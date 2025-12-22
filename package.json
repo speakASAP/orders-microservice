@@ -1,5 +1,5 @@
 {
-  "name": "order-microservice",
+  "name": "orders-microservice",
   "version": "1.0.0",
   "description": "Central order processing service - handles orders from all sales channels",
   "main": "dist/main.js",
