@@ -3,14 +3,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: order-microservice-blue
+    container_name: orders-microservice-blue
     ports:
       - "${PORT:-3203}:${PORT:-3203}"
     env_file:
       - .env
     environment:
       - NODE_ENV=${NODE_ENV:-production}
-      - SERVICE_NAME=${SERVICE_NAME:-order-microservice}
+      - SERVICE_NAME=${SERVICE_NAME:-orders-microservice}
       - PORT=${PORT:-3203}
       - DB_HOST=${DB_HOST:-db-server-postgres}
       - DB_PORT=${DB_PORT:-5432}

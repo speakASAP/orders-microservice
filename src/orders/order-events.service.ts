@@ -12,19 +12,30 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    if (this.channel) await this.channel.close();
-    if (this.connection) await this.connection.close();
+    try {
+      if (this.channel) {
+        await this.channel.close();
+      }
+      if (this.connection) {
+        await this.connection.close();
+      }
+    } catch (error: unknown) {
+      // Ignore errors during cleanup
+    }
   }
 
   private async connect() {
     try {
       const url = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
-      this.connection = await amqp.connect(url);
-      this.channel = await this.connection.createChannel();
+      const conn = await amqp.connect(url);
+      this.connection = conn as unknown as amqp.Connection;
+      const ch = await this.connection.createChannel();
+      this.channel = ch as unknown as amqp.Channel;
       await this.channel.assertExchange(this.exchangeName, 'topic', { durable: true });
       console.log('Connected to RabbitMQ');
-    } catch (error) {
-      console.error('Failed to connect to RabbitMQ:', error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Failed to connect to RabbitMQ:', errorMessage);
     }
   }
 
@@ -47,8 +58,9 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
         persistent: true,
         contentType: 'application/json',
       });
-    } catch (error) {
-      console.error('Failed to publish event:', error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Failed to publish event:', errorMessage);
     }
   }
 }
