@@ -22,6 +22,13 @@ services:
       - WAREHOUSE_SERVICE_URL=${WAREHOUSE_SERVICE_URL:-http://warehouse-microservice:3201}
     networks:
       - nginx-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:${PORT:-3203}/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
