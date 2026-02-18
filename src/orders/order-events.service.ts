@@ -3,7 +3,7 @@ import * as amqp from 'amqplib';
 
 @Injectable()
 export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
-  private connection: amqp.Connection | null = null;
+  private connection: amqp.ChannelModel | null = null;
   private channel: amqp.Channel | null = null;
   private readonly exchangeName = 'orders.events';
 
@@ -28,9 +28,9 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
     try {
       const url = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
       const conn = await amqp.connect(url);
-      this.connection = conn as unknown as amqp.Connection;
+      this.connection = conn;
       const ch = await this.connection.createChannel();
-      this.channel = ch as unknown as amqp.Channel;
+      this.channel = ch;
       await this.channel.assertExchange(this.exchangeName, 'topic', { durable: true });
       console.log('Connected to RabbitMQ');
     } catch (error: unknown) {
