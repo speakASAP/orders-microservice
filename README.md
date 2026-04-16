@@ -2,7 +2,7 @@
 
 Central order processing service - handles orders from all sales channels.
 
-## Port: 3203 (orders.statex.cz)
+## Port: 3203 (orders.alfares.cz)
 
 ## API Endpoints
 

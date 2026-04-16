@@ -19,5 +19,5 @@ flipflop-service, allegro-service, aukro-service, bazos-service, marketing-micro
 ## SLA
 
 - Port: 3203 (<http://orders-microservice:3203>)
-- Production: <https://orders.statex.cz>
+- Production: <https://orders.alfares.cz>
 - Events: `order.created`, `order.updated`, `order.shipped` → RabbitMQ

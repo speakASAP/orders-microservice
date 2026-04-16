@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrdersModule } from './orders/orders.module';
 import { ItemsModule } from './items/items.module';
 import { ShipmentsModule } from './shipments/shipments.module';
+import { PricingModule } from './pricing/pricing.module';
 import { HealthModule } from './health/health.module';
 import { LoggerModule } from './logger/logger.module';
 import { AuthModule } from './auth/auth.module';
@@ -29,6 +30,7 @@ import { JwtRolesGuard } from './auth/jwt-roles.guard';
     OrdersModule,
     ItemsModule,
     ShipmentsModule,
+    PricingModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtRolesGuard },

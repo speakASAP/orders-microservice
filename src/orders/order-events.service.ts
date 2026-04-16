@@ -5,7 +5,8 @@ import * as amqp from 'amqplib';
 export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
   private connection: amqp.ChannelModel | null = null;
   private channel: amqp.Channel | null = null;
-  private readonly exchangeName = 'orders.events';
+  private readonly ordersExchangeName = 'orders.events';
+  private readonly pricingExchangeName = 'pricing.events';
 
   async onModuleInit() {
     await this.connect();
@@ -31,7 +32,12 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
       this.connection = conn;
       const ch = await this.connection.createChannel();
       this.channel = ch;
-      await this.channel.assertExchange(this.exchangeName, 'topic', { durable: true });
+      await this.channel.assertExchange(this.ordersExchangeName, 'topic', {
+        durable: true,
+      });
+      await this.channel.assertExchange(this.pricingExchangeName, 'topic', {
+        durable: true,
+      });
       console.log('Connected to RabbitMQ');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -40,24 +46,60 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async publishOrderCreated(orderId: string, channel: string) {
-    await this.publish('order.created', { type: 'order.created', orderId, channel, timestamp: new Date().toISOString() });
+    await this.publish(this.ordersExchangeName, 'order.created', {
+      type: 'order.created',
+      orderId,
+      channel,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   async publishOrderUpdated(orderId: string, status: string) {
-    await this.publish('order.updated', { type: 'order.updated', orderId, status, timestamp: new Date().toISOString() });
+    await this.publish(this.ordersExchangeName, 'order.updated', {
+      type: 'order.updated',
+      orderId,
+      status,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   async publishOrderShipped(orderId: string, trackingNumber: string) {
-    await this.publish('order.shipped', { type: 'order.shipped', orderId, trackingNumber, timestamp: new Date().toISOString() });
+    await this.publish(this.ordersExchangeName, 'order.shipped', {
+      type: 'order.shipped',
+      orderId,
+      trackingNumber,
+      timestamp: new Date().toISOString(),
+    });
   }
 
-  private async publish(routingKey: string, event: object) {
+  async publishPricingPriceChanged(event: {
+    productId: string;
+    productName: string;
+    oldPrice: number;
+    newPrice: number;
+    changePercent: number;
+    approvedAt: string;
+    suggestionId: string;
+  }) {
+    await this.publish(
+      this.pricingExchangeName,
+      'pricing.price_changed',
+      event,
+    );
+  }
+
+  private async publish(exchangeName: string, routingKey: string, event: object) {
     if (!this.channel) return;
     try {
-      this.channel.publish(this.exchangeName, routingKey, Buffer.from(JSON.stringify(event)), {
-        persistent: true,
-        contentType: 'application/json',
-      });
+      this.channel.publish(
+        exchangeName,
+        routingKey,
+        Buffer.from(JSON.stringify(event)),
+        {
+          persistent: true,
+          contentType: 'application/json',
+        },
+      );
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Failed to publish event:', errorMessage);
