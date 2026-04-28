@@ -24,10 +24,16 @@ spec:
       containers:
         - name: app
           image: localhost:5000/orders-microservice:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3203
               name: http
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-credentials
+                  key: DB_PASSWORD
           envFrom:
             - configMapRef:
                 name: orders-microservice-config

@@ -11,7 +11,7 @@ data:
   SERVICE_NAME: "orders-microservice"
   DOMAIN: "orders.alfares.cz"
   PORT: "3203"
-  DB_HOST: "192.168.88.53"
+  DB_HOST: "db-server-postgres"
   DB_PORT: "5432"
   DB_USER: "dbadmin"
   DB_NAME: "orders"
