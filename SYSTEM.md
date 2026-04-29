@@ -1,35 +1,59 @@
 # System: orders-microservice
 
-## Architecture
+## Stack
 
-NestJS + PostgreSQL. Multi-channel order ingestion + fulfillment tracking.
+NestJS · PostgreSQL · RabbitMQ  
+**Port**: 3203 · **Domain**: `orders.alfares.cz`
 
-- Events published: `order.created`, `order.updated`, `order.shipped` → RabbitMQ
-- State machine: pending → confirmed → processing → shipped → delivered | cancelled
+## Deployment
 
-### Product pricing (ecosystem rule)
+**Platform**: Kubernetes (k3s) · namespace `statex-apps` · Phase A ✅  
+**Image**: `localhost:5000/orders-microservice:latest`  
+**Deploy**: `./scripts/deploy.sh`  
+**Logs**: `kubectl logs -n statex-apps -l app=orders-microservice -f`
 
-**This service (`orders-microservice`) owns the orders domain, including product list prices and AI price-suggestion workflows** (read suggestions, generate, approve/reject, safety guards, related RabbitMQ events). That logic **must not** live in `payments-microservice` (payment sessions only) or `business-orchestrator` (agent coordination).
+## Secrets
 
-Canonical pricing HTTP surface in this service:
-- `GET /admin/pricing/suggestions` (also `/pricing/suggestions`)
-- `POST /admin/pricing/generate` (also `/pricing/generate`)
-- `PATCH /admin/pricing/suggestions/:id/approve` (also `/pricing/suggestions/:id/approve`)
-- `PATCH /admin/pricing/suggestions/:id/reject` (also `/pricing/suggestions/:id/reject`)
+All secrets in Vault at `secret/prod/orders-microservice`.  
+Synced via ESO → K8s Secret `orders-microservice-secret`.  
+See [`../shared/docs/VAULT.md`](../shared/docs/VAULT.md).
 
-**Flipflop:** The flipflop monorepo currently ships a colocated Nest **`order-service`** under `flipflop-service/services/order-service/` with the HTTP routes and DB access for the flipflop catalog; treat it as the same bounded context until pricing APIs are fully exposed or merged here.
+| Secret key | Purpose |
+|---|---|
+| `DB_PASSWORD` | PostgreSQL password |
+| `JWT_SECRET` | JWT signing key |
 
 ## Integrations
 
-| Dependency | URL |
-|-----------|-----|
-| database-server | db-server-postgres:5432 |
-| logging-microservice | logging-microservice:3367 |
-| RabbitMQ | order events |
+| Dependency | Internal URL |
+|---|---|
+| database-server | `db-server-postgres:5432` |
+| logging-microservice | `logging-microservice.statex-apps.svc.cluster.local:3367` |
+| auth-microservice | `auth-microservice.statex-apps.svc.cluster.local:3370` |
+| RabbitMQ | `amqp://host.k3s.internal:5672` · exchange `orders.events` |
+
+## Order State Machine
+
+`pending → confirmed → processing → shipped → delivered | cancelled`
+
+No state jumps. See `BUSINESS.md` for constraints.
+
+## Events Published
+
+| Event | Trigger |
+|---|---|
+| `order.created` | New order ingested |
+| `order.updated` | Status changed |
+| `order.shipped` | Shipment created |
+
+## Pricing Domain
+
+This service owns the pricing/AI-suggestion domain (not `payments-microservice`).  
+Canonical surface: `GET/POST /admin/pricing/*` and `/pricing/*`.
 
 ## Current State
 <!-- AI-maintained -->
-Stage: production
+Stage: production · Health: ok
 
 ## Known Issues
 <!-- AI-maintained -->

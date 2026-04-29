@@ -1,33 +1,34 @@
 # CLAUDE.md (orders-microservice)
 
-Ecosystem defaults: sibling [`../CLAUDE.md`](../CLAUDE.md) and [`../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md`](../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md).
+Ecosystem defaults: [`../CLAUDE.md`](../CLAUDE.md) · [`../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md`](../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md)
 
-Read this repo's `BUSINESS.md` → `SYSTEM.md` → `AGENTS.md` → `TASKS.md` → `STATE.json` first.
+## Reading order
+
+`BUSINESS.md` → `SYSTEM.md` → `AGENTS.md` → `TASKS.md` → `STATE.json`
 
 ---
 
 ## orders-microservice
 
-**Purpose**: Central order processing hub for all sales channels. Manages order state machine and shipment tracking.  
-**Port**: 3203  
-**Domain**: https://orders.alfares.cz  
-**Stack**: NestJS · PostgreSQL · RabbitMQ
+**Purpose**: Central order processing hub. Manages order state machine and shipment tracking.  
+**Port**: 3203 · **Domain**: `https://orders.alfares.cz`  
+**Stack**: NestJS · PostgreSQL · RabbitMQ  
+**Constraints**: → [`BUSINESS.md`](BUSINESS.md)
 
-### Key constraints
-- Never cancel or refund orders without explicit human approval
-- Order status transitions must follow the defined state machine — no jumping states
-- Never log sensitive customer data (address, payment info)
-- All marketplace services (allegro, aukro, bazos) forward orders here — do not store locally
+## Quick ops
 
-### Events published
-- `order.created`, `order.updated`, `order.shipped` → RabbitMQ
-
-### Consumers
-flipflop-service, allegro-service, aukro-service, bazos-service, marketing-microservice.
-
-### Quick ops
 ```bash
 curl http://orders-microservice:3203/health
-docker compose logs -f
+kubectl logs -n statex-apps -l app=orders-microservice -f
 ./scripts/deploy.sh
 ```
+
+## Key facts for agents
+
+- Never cancel or refund orders without explicit human approval
+- State machine: `pending → confirmed → processing → shipped → delivered | cancelled` — no jumps
+- Never log customer address or payment info
+- All marketplace services (allegro, aukro, bazos) forward orders here
+- Secrets: Vault `secret/prod/orders-microservice` → see [`SYSTEM.md`](SYSTEM.md)
+- Events: `order.created`, `order.updated`, `order.shipped` → RabbitMQ
+- Consumers: flipflop-service, allegro-service, aukro-service, bazos-service, marketing-microservice

@@ -1,6 +1,6 @@
 # Agents: orders-microservice
 
-N/A — data service. No AI agent coordination.
+Data service — no AI agent coordination.
 
 ## Active Agents
 <!-- Coordinator-maintained -->
