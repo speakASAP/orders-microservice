@@ -1,10 +1,6 @@
 # CLAUDE.md (orders-microservice)
 
-Ecosystem defaults: [`../CLAUDE.md`](../CLAUDE.md) · [`../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md`](../shared/docs/PROJECT_AGENT_DOCS_STANDARD.md)
-
-## Reading order
-
-`BUSINESS.md` → `SYSTEM.md` → `AGENTS.md` → `TASKS.md` → `STATE.json`
+→ Ecosystem: [../shared/CLAUDE.md](../shared/CLAUDE.md) | Reading order: `BUSINESS.md` → `SYSTEM.md` → `AGENTS.md` → `TASKS.md` → `STATE.json`
 
 ---
 
@@ -15,13 +11,7 @@ Ecosystem defaults: [`../CLAUDE.md`](../CLAUDE.md) · [`../shared/docs/PROJECT_A
 **Stack**: NestJS · PostgreSQL · RabbitMQ  
 **Constraints**: → [`BUSINESS.md`](BUSINESS.md)
 
-## Quick ops
-
-```bash
-curl http://orders-microservice:3203/health
-kubectl logs -n statex-apps -l app=orders-microservice -f
-./scripts/deploy.sh
-```
+**Ops**: `curl http://orders-microservice:3203/health` · `kubectl logs -n statex-apps -l app=orders-microservice -f` · `./scripts/deploy.sh`
 
 ## Key facts for agents
 
