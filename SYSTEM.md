@@ -30,7 +30,7 @@ See [`../shared/docs/VAULT.md`](../shared/docs/VAULT.md).
 | database-server | `db-server-postgres:5432` |
 | logging-microservice | `logging-microservice.statex-apps.svc.cluster.local:3367` |
 | auth-microservice | `auth-microservice.statex-apps.svc.cluster.local:3370` |
-| RabbitMQ | `amqp://host.k3s.internal:5672` · exchange `orders.events` |
+| RabbitMQ | `amqp://192.168.88.53:5672` (host node · K8s DNS: `host.k3s.internal`) · exchange `orders.events` |
 
 ## Order State Machine
 
