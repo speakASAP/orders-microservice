@@ -21,6 +21,16 @@ spec:
       labels:
         app: orders-microservice
     spec:
+      initContainers:
+        - name: wait-postgres
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z db-server-postgres 5432; do echo waiting for postgres; sleep 2; done']
+        - name: wait-auth
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z auth-microservice 3370; do echo waiting for auth; sleep 2; done']
+        - name: wait-logging
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z logging-microservice 3367; do echo waiting for logging; sleep 2; done']
       containers:
         - name: app
           image: localhost:5000/orders-microservice:latest
@@ -39,11 +49,17 @@ spec:
                 name: orders-microservice-config
             - secretRef:
                 name: orders-microservice-secret
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3203
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
           livenessProbe:
             httpGet:
               path: /health
               port: 3203
-            initialDelaySeconds: 15
             periodSeconds: 30
             failureThreshold: 3
             timeoutSeconds: 5
