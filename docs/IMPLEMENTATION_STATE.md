@@ -25,7 +25,7 @@ related_adrs: []
 current_goal: none
 current_chunk: none
 next_recommended_goal: Goal 2 - Order Contract And State Machine Hardening, chunk 2.2
-last_completed_goal: Owner-selected admin frontend for orders dashboard and safe order details
+last_completed_goal: Owner-selected admin frontend deployed to production
 blockers: []
 ```
 
@@ -49,13 +49,18 @@ The production-readiness roadmap for making Orders available to FlipFlop and oth
 - Updated `src/app.module.ts` to register `AdminModule`.
 - Updated `src/main.ts` to expose `/admin` and `/admin/orders` outside the `/api` global prefix while leaving admin data APIs under `/api/admin/orders/*`.
 - `npm run build` passed after implementation.
+- Admin frontend commit: `c7eed31` (`Add orders admin dashboard`).
+- Init-timeout deployment fix commit: `086400b` (`Add timeouts to orders init checks`).
+- Deployment completed with pod `orders-microservice-564ffdfbb-hgvk4` running image `localhost:5000/orders-microservice@sha256:e88340faed13915bddfc8655bec5e90c325871d2e86f18d2b3693a7df0e869d1`.
+- Production health route returned HTTP 200 and `/admin/orders` returned HTTP 200 HTML.
+- Protected admin data route returned HTTP 401 without a bearer token, confirming the existing JWT guard protects admin JSON data.
 - Missing-marker scan returned no matches.
 - Sensitive-pattern scan found only the existing non-secret environment-variable reference `process.env.DB_PASSWORD` in `src/app.module.ts`; no literal secret value was present.
 - DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs and source files were sufficient for this bounded Orders-local admin surface.
 
 ## Next Action
 
-Commit and deploy the admin frontend changes, then continue Goal 2, chunk 2.2: add runtime validation for `PUT /api/orders/:id/status` and `PUT /api/items/:id/fulfillment` according to `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`.
+Continue Goal 2, chunk 2.2: add runtime validation for `PUT /api/orders/:id/status` and `PUT /api/items/:id/fulfillment` according to `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`.
 
 ## Verification State
 
@@ -67,4 +72,4 @@ rg '\[(MISSING|UNKNOWN):' docs/IMPLEMENTATION_STATE.md docs/IMPLEMENTATION_ORCHE
 rg -n 'Authorization: Bearer [A-Za-z0-9_./+=:-]{12,}|(access[_-]?token|client[_-]?secret|password|private[_-]?key|jwt[_-]?secret|db[_-]?password)\s*[:=]\s*['"]?[A-Za-z0-9_./+=:-]{12,}' docs AGENTS.md TASKS.md implementation-goals src/admin src/app.module.ts src/main.ts
 ```
 
-Deployment and production smoke checks remain to be run after commit.
+Deployment completed. Production smoke checks passed for `https://orders.alfares.cz/health`, `https://orders.alfares.cz/admin/orders`, and unauthenticated `GET /api/admin/orders/dashboard?limit=1` returning `401`.

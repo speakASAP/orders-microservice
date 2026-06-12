@@ -260,3 +260,39 @@ Gate decision:
 Next unfinished chunk:
 
 - Deploy and smoke-check `/admin/orders`, then continue Goal 2, chunk 2.2: runtime validation for order and item fulfillment status transitions.
+
+
+## 2026-06-12 - Orders Admin Deployment Evidence
+
+Deployment evidence:
+
+- Commit `c7eed31` created: `Add orders admin dashboard`.
+- `./scripts/deploy.sh` built and pushed `localhost:5000/orders-microservice:c7eed31` / `latest` successfully.
+- The deploy script rolled Kubernetes but failed its final in-pod health check because the runtime image does not include `wget`.
+- Initial rollout did not pick up the new `latest` digest because the running pod still used an older cached image digest.
+- Set deployment image to immutable `localhost:5000/orders-microservice:c7eed31`.
+- Rollout initially blocked in init because BusyBox `nc` checks without timeout could hang while waiting on dependencies.
+- Commit `086400b` created: `Add timeouts to orders init checks`, changing Orders init checks to `nc -w 2 -z ...`.
+- Applied the manifest and kept the deployment image at `localhost:5000/orders-microservice:c7eed31`.
+- Kubernetes rollout completed successfully.
+
+Production verification evidence:
+
+- Running pod: `orders-microservice-564ffdfbb-hgvk4`, status `1/1 Running`.
+- Running image: `localhost:5000/orders-microservice@sha256:e88340faed13915bddfc8655bec5e90c325871d2e86f18d2b3693a7df0e869d1`.
+- `curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/health`: HTTP 200.
+- `curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/admin/orders`: HTTP 200, `content-type: text/html; charset=utf-8`.
+- `curl -i -H 'Cache-Control: no-cache' 'https://orders.alfares.cz/api/admin/orders/dashboard?limit=1'`: HTTP 401 without bearer token, confirming admin JSON data remains protected by the existing JWT role guard.
+
+Known follow-up:
+
+- `./scripts/deploy.sh` should replace its final in-pod `wget` health check with a tool available in the runtime image, or use Kubernetes probes/external curl instead.
+- Browser/IAB visual verification was not available in this turn; HTTP route checks verified the deployed admin shell and protected API behavior.
+
+Gate decision:
+
+- Deployment readiness: accept with deploy-script health-check follow-up.
+
+Next unfinished chunk:
+
+- Goal 2, chunk 2.2: add runtime validation for order status transitions and item fulfillment transitions.
