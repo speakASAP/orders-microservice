@@ -160,5 +160,5 @@ If build or validation fails, revert only this chunk validation helper and scope
 - [x] Build passes.
 - [x] Direct verification evidence recorded.
 - [x] IPS status and implementation state updated.
-- [ ] Remote commit created.
-- [ ] Deployment completed if runtime behavior is ready.
+- [x] Remote commit created.
+- [x] Deployment completed if runtime behavior is ready.

@@ -380,3 +380,30 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 2, chunk 2.3: add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
+
+## 2026-06-12 - Goal 2 Chunk 2.2 Deployment Evidence
+
+Deployment evidence:
+
+- Commit `e598278` created: `Record order transition validation evidence`.
+- Source validation implementation was present in commit `9c04018`: `Update documentation and configuration for order status transitions`.
+- `./scripts/deploy.sh` completed successfully and built/pushed `localhost:5000/orders-microservice:e598278` plus `latest` with digest `sha256:c836a04a46001718c5255217783596662ee14076fc97579286bc72139dafb68a`.
+- Because the deployment initially stayed on the older cached `latest` digest, the deployment image was set to immutable `localhost:5000/orders-microservice:e598278` and rollout completed successfully.
+- Final running pod: `orders-microservice-7bb7db659d-nrmx5`.
+- Final running image: `localhost:5000/orders-microservice:e598278` with image ID `localhost:5000/orders-microservice@sha256:c836a04a46001718c5255217783596662ee14076fc97579286bc72139dafb68a`.
+
+Production verification evidence:
+
+- Deployment status: `replicas=1`, `updated=1`, `ready=1`, `available=1`.
+- In-pod health check returned healthy JSON from `http://localhost:3203/health`.
+- Public health check `curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/health`: HTTP 200.
+- Unauthenticated protected mutation smoke check `PUT /api/orders/00000000-0000-0000-0000-000000000000/status`: HTTP 401, confirming existing JWT guard still protects the mutation endpoint.
+- Live container transition helper check rejected `pending -> processing` with `runtime transition rejection ok`.
+
+Gate decision:
+
+- Deployment readiness: accept.
+
+Next unfinished chunk:
+
+- Goal 2, chunk 2.3: add human-approval gates for cancellation, refund-like transitions, and destructive corrections.

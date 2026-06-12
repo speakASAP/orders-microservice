@@ -53,6 +53,10 @@ The production-readiness roadmap for making Orders available to FlipFlop and oth
 - Item validation enforces `pending -> reserved -> shipped -> delivered`, rejects jumps and reverse moves, blocks terminal-state exits, rejects unrecognized fulfillment values, and rejects synthetic `cancelled` fulfillment values.
 - No payment identity, stock ownership, product truth, notification delivery, CRM, refund automation, cancellation approval automation, sensitive-data logging, schema migration, or production data dump changes were made.
 - DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs were sufficient for this bounded Orders-local validation chunk.
+- Deployment commit: `e598278` (`Record order transition validation evidence`).
+- Deployment completed successfully after setting the Kubernetes deployment to immutable image `localhost:5000/orders-microservice:e598278`.
+- Final running pod `orders-microservice-7bb7db659d-nrmx5` uses image digest `sha256:c836a04a46001718c5255217783596662ee14076fc97579286bc72139dafb68a`.
+- Production health returned HTTP 200 and a live container helper check rejected `pending -> processing`.
 
 ## Next Action
 
@@ -73,4 +77,4 @@ rg '\[(MISSING|UNKNOWN):' docs/IMPLEMENTATION_STATE.md docs/IMPLEMENTATION_ORCHE
 rg -n 'Authorization: Bearer [A-Za-z0-9_./+=:-]{12,}|(access[_-]?token|client[_-]?secret|password|private[_-]?key|jwt[_-]?secret|db[_-]?password)\s*[:=]\s*["'"'"']?[A-Za-z0-9_./+=:-]{12,}' docs AGENTS.md TASKS.md implementation-goals src/orders src/items
 ```
 
-All checks passed. Deployment is pending commit.
+All checks passed. Deployment completed successfully with image `localhost:5000/orders-microservice:e598278` and digest `sha256:c836a04a46001718c5255217783596662ee14076fc97579286bc72139dafb68a`.
