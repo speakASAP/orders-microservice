@@ -26,6 +26,28 @@ The local goalkeeper application acts as the implementation orchestrator around 
 - Keep this project documentation synchronized when the orchestrator rules or operating approach changes.
 - Every assistant response in this project context must end with a final line beginning `Next step:`. Use a specific next action when work remains, or `Next step: No action needed.` when the task is complete.
 
+## Intent Preservation System
+
+Use the company compact IPS pack for all future implementation work:
+
+- `docs/IMPLEMENTATION_ORCHESTRATOR.md`
+- `docs/IMPLEMENTATION_STATE.md`
+- `docs/orchestrator/MASTER_PROMPT.md`
+- `docs/orchestrator/INTENT.md`
+- `docs/orchestrator/GOALS.md`
+- `docs/orchestrator/PLAN.md`
+- `docs/orchestrator/PROJECT_INVARIANTS.md`
+- `docs/orchestrator/CONTEXT_PACKAGE.md`
+- `docs/orchestrator/EXECUTION_PLAN.md`
+- `docs/orchestrator/PRE_CODING_GATE.md`
+- `docs/orchestrator/READINESS_GATES.md`
+- `docs/orchestrator/PROMPTS.md`
+- `docs/orchestrator/STATUS.md`
+- `implementation-goals/README.md`
+- `implementation-goals/templates/*`
+
+Future coding must not begin until the selected task has upstream traceability, invariant review, sensitive-data classification, contract impact review, validation plan, and a pre-coding gate decision. After work, update `docs/orchestrator/STATUS.md` and `docs/IMPLEMENTATION_STATE.md` with evidence and the next action.
+
 ## Active Agents
 <!-- Coordinator-maintained -->
 None.
