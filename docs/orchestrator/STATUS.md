@@ -296,3 +296,32 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 2, chunk 2.2: add runtime validation for order status transitions and item fulfillment transitions.
+
+
+## 2026-06-12 - Orders Runtime Image Health Tooling
+
+Current focus:
+
+- Owner-selected follow-up: add `wget` or `curl` to the Orders runtime Docker image so deploy-script in-pod health checks do not fail because of missing tools.
+
+Implementation evidence:
+
+- Updated `Dockerfile` production stage to install `ca-certificates`, `curl`, and `wget` with `--no-install-recommends`, then remove apt package lists.
+- Commit `95432d0` created: `Add curl and wget to orders runtime image`.
+
+Verification evidence:
+
+- `npm run build`: pass before commit.
+- `./scripts/deploy.sh`: pass after rerun.
+- Docker image built and pushed as `localhost:5000/orders-microservice:95432d0` and `latest` with digest `sha256:1142327b6a4162ce1af4cbaa6375196691429413f9113dfcb65800e9d7630b09`.
+- Deploy script rollout phase completed successfully.
+- Deploy script in-pod health check using `wget -qO- http://localhost:3203/health` returned healthy JSON.
+- Verified live pod has `/usr/bin/wget` and `/usr/bin/curl` available.
+
+Gate decision:
+
+- Deployment readiness: accept.
+
+Next unfinished chunk:
+
+- Goal 2, chunk 2.2: add runtime validation for order status transitions and item fulfillment transitions in a separate thread.

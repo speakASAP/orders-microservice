@@ -54,6 +54,8 @@ The production-readiness roadmap for making Orders available to FlipFlop and oth
 - Deployment completed with pod `orders-microservice-564ffdfbb-hgvk4` running image `localhost:5000/orders-microservice@sha256:e88340faed13915bddfc8655bec5e90c325871d2e86f18d2b3693a7df0e869d1`.
 - Production health route returned HTTP 200 and `/admin/orders` returned HTTP 200 HTML.
 - Protected admin data route returned HTTP 401 without a bearer token, confirming the existing JWT guard protects admin JSON data.
+- Runtime image tooling commit: `95432d0` (`Add curl and wget to orders runtime image`).
+- `./scripts/deploy.sh` completed successfully after the runtime image included `wget`; in-pod health check returned healthy JSON.
 - Missing-marker scan returned no matches.
 - Sensitive-pattern scan found only the existing non-secret environment-variable reference `process.env.DB_PASSWORD` in `src/app.module.ts`; no literal secret value was present.
 - DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs and source files were sufficient for this bounded Orders-local admin surface.
