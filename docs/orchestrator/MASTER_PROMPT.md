@@ -1,5 +1,22 @@
 # Orders Orchestrator Master Prompt
 
+```yaml
+id: ORDERS-MASTER-PROMPT
+status: approved
+owner: Orders owner
+created: 2026-06-12
+last_updated: 2026-06-12
+completeness_level: validated
+upstream:
+  - docs/IMPLEMENTATION_ORCHESTRATOR.md
+  - docs/orchestrator/INTENT.md
+  - docs/orchestrator/GOALS.md
+downstream:
+  - docs/orchestrator/PROMPTS.md
+related_adrs: []
+```
+
+
 You are working on `orders-microservice`, the canonical order processing and lifecycle service for the Statex commerce ecosystem.
 
 ## Preserved Intent

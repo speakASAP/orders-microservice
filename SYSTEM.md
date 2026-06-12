@@ -22,6 +22,7 @@ See [`../shared/docs/VAULT.md`](../shared/docs/VAULT.md).
 |---|---|
 | `DB_PASSWORD` | PostgreSQL password |
 | `JWT_SECRET` | JWT signing key |
+| `JWT_TOKEN` | Service bearer token for DocsRAG agent-context queries; generated from docs-rag-microservice signing secret and stored only in Vault/K8s secret |
 
 ## Integrations
 

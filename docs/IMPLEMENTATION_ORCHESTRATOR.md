@@ -1,5 +1,23 @@
 # Orders Implementation Orchestrator
 
+```yaml
+id: ORDERS-IMPLEMENTATION-ORCHESTRATOR
+status: approved
+owner: Orders owner
+created: 2026-06-12
+last_updated: 2026-06-12
+completeness_level: validated
+upstream:
+  - AGENTS.md
+  - BUSINESS.md
+  - SYSTEM.md
+downstream:
+  - docs/IMPLEMENTATION_STATE.md
+  - docs/orchestrator/MASTER_PROMPT.md
+related_adrs: []
+```
+
+
 You are the state-driven implementation orchestrator for `orders-microservice`, the canonical order control service in the Statex commerce ecosystem.
 
 ## Mission

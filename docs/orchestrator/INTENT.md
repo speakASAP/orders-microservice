@@ -1,5 +1,24 @@
 # Orders Intent Preservation
 
+```yaml
+id: ORDERS-INTENT
+status: approved
+owner: Orders owner
+created: 2026-06-12
+last_updated: 2026-06-12
+completeness_level: validated
+upstream:
+  - BUSINESS.md
+  - SYSTEM.md
+  - README.md
+downstream:
+  - docs/orchestrator/GOALS.md
+  - docs/orchestrator/PROJECT_INVARIANTS.md
+  - docs/orchestrator/MASTER_PROMPT.md
+related_adrs: []
+```
+
+
 ## Original Intent
 
 `orders-microservice` is the central order processing hub. It must answer: what order was created, from which channel, which items and catalog product IDs it contains, who the customer is, what status the order is in, which shipment records exist, and which lifecycle events downstream systems should consume.

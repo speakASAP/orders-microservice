@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { Order } from './order.entity';
 import { OrderEventsService } from './order-events.service';
+import { validateOrderStatusTransition } from './status-transitions';
 
 @Injectable()
 export class OrdersService {
@@ -52,10 +53,18 @@ export class OrdersService {
 
   async updateStatus(id: string, status: string): Promise<Order> {
     const order = await this.findOne(id);
-    order.status = status;
+    let nextStatus: string;
+
+    try {
+      nextStatus = validateOrderStatusTransition(order.status, status, order.items || []);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+
+    order.status = nextStatus;
     const updated = await this.orderRepository.save(order);
 
-    await this.orderEvents.publishOrderUpdated(id, status);
+    await this.orderEvents.publishOrderUpdated(id, nextStatus);
 
     return updated;
   }
@@ -67,4 +76,3 @@ export class OrdersService {
     });
   }
 }
-

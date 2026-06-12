@@ -1,5 +1,21 @@
 # Orders Goal Prompts
 
+```yaml
+id: ORDERS-GOAL-PROMPTS
+status: approved
+owner: Orders owner
+created: 2026-06-12
+last_updated: 2026-06-12
+completeness_level: validated
+upstream:
+  - docs/orchestrator/MASTER_PROMPT.md
+  - docs/orchestrator/GOALS.md
+downstream:
+  - implementation-goals/templates/CODING_PROMPT.md
+related_adrs: []
+```
+
+
 Use these prompts when the owner asks to continue Orders intent-preservation work.
 
 ## Universal Session Prompt

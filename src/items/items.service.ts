@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderItem } from './order-item.entity';
+import { validateItemFulfillmentTransition } from '../orders/status-transitions';
 
 @Injectable()
 export class ItemsService {
@@ -20,8 +21,17 @@ export class ItemsService {
   }
 
   async updateFulfillmentStatus(id: string, status: string): Promise<OrderItem> {
-    await this.itemRepository.update(id, { fulfillmentStatus: status });
-    return this.itemRepository.findOne({ where: { id } });
+    const item = await this.itemRepository.findOne({ where: { id } });
+    if (!item) throw new NotFoundException(`Order item ${id} not found`);
+
+    let nextStatus: string;
+    try {
+      nextStatus = validateItemFulfillmentTransition(item.fulfillmentStatus, status);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+
+    item.fulfillmentStatus = nextStatus;
+    return this.itemRepository.save(item);
   }
 }
-

@@ -5,18 +5,46 @@ id: ORDERS-EXECUTION-PLAN-TEMPLATE
 goal:
 chunk:
 status: draft
+owner: Orders owner
+created: YYYY-MM-DD
+last_updated: YYYY-MM-DD
+completeness_level: skeletal
+upstream:
+  - docs/orchestrator/INTENT.md
+  - docs/orchestrator/GOALS.md
+downstream:
+  - docs/orchestrator/STATUS.md
+related_adrs: []
 gate_decision: pending
-created:
-updated:
 ```
 
-## Selected Work
+## Metadata
 
-Describe the smallest complete chunk.
+Name the selected goal, chunk, owner, status, date, and gate decision.
 
 ## Upstream Traceability
 
 Link to `docs/orchestrator/INTENT.md`, `docs/orchestrator/GOALS.md`, `TASKS.md`, owner request, or another approved source.
+
+## Goal Impact
+
+State how the work advances the selected Orders goal and preserves original intent.
+
+## Project Invariants
+
+Evaluate applicable `ORD-INV-*` rules.
+
+## Sensitive-Data Handling
+
+Use one classification: `none`, `synthetic`, `masked`, or `sensitive`. State handling rules.
+
+## Contract Validation Plan
+
+State API, JWT/RBAC, state-machine, RabbitMQ event, warehouse, payment, catalog, notification, CRM, and channel-service impact.
+
+## Replay/Determinism Plan
+
+State what evidence must be recorded so another agent can replay the decision and validation path.
 
 ## Scope
 
@@ -26,26 +54,55 @@ List deliverables.
 
 List explicitly excluded work.
 
-## Invariant Review
+## Files To Inspect
 
-Evaluate applicable `ORD-INV-*` rules.
+List exact files or directories to read before editing.
 
-## Sensitive Data Classification
+## Files To Create
 
-State data class and handling rules.
+List exact new files, or `None`.
 
-## Contract Impact
+## Files To Modify
 
-State API, JWT/RBAC, state-machine, event, warehouse, payment, catalog, notification, CRM, and channel-service impact.
+List exact files expected to change. Update the plan before editing any file outside this list.
+
+## Files That Must Not Be Modified
+
+List protected files, unrelated domains, secrets, and generated artifacts.
+
+## Implementation Steps
+
+List ordered implementation steps.
+
+## Test Plan
+
+List exact commands and expected validation categories.
 
 ## Validation Plan
 
-List exact commands and runtime checks.
+List acceptance checks and evidence requirements.
+
+## Gate Commands
+
+List exact pre-coding, build, test, scan, smoke, or deployment commands.
+
+## Documentation Updates
+
+List docs that must be updated after implementation.
 
 ## Rollback Plan
 
 State how to back out if validation fails.
 
-## Gate Decision
+## Agent Handoff Prompt
 
-Use one: `pass`, `pass-with-exception`, `fail`.
+Provide the bounded prompt for the implementation agent.
+
+## Completion Checklist
+
+- [ ] Traceability complete.
+- [ ] Invariants evaluated.
+- [ ] Sensitive-data handling defined.
+- [ ] Contract impact defined.
+- [ ] Validation plan defined.
+- [ ] Gate decision recorded.

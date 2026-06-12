@@ -1,5 +1,21 @@
 # Coding Prompt Template
 
+```yaml
+id: ORDERS-CODING-PROMPT-TEMPLATE
+status: approved
+owner: Orders owner
+created: 2026-06-12
+last_updated: 2026-06-12
+completeness_level: complete
+upstream:
+  - docs/orchestrator/PROMPTS.md
+  - docs/orchestrator/EXECUTION_PLAN.md
+downstream:
+  - docs/orchestrator/STATUS.md
+related_adrs: []
+```
+
+
 Use this prompt for implementation workers after the pre-coding gate passes.
 
 ## Role

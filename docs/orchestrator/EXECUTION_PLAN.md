@@ -14,159 +14,151 @@ upstream:
   - README.md
   - TASKS.md
   - docs/orchestrator/INTENT.md
+  - docs/orchestrator/GOALS.md
+  - docs/orchestrator/ORDER_STATUS_TRANSITIONS.md
   - docs/orchestrator/PROJECT_INVARIANTS.md
   - docs/IMPLEMENTATION_STATE.md
 downstream:
-  - src/admin/admin.module.ts
-  - src/admin/admin.controller.ts
-  - src/admin/admin.service.ts
-  - src/admin/admin-ui.ts
-  - src/app.module.ts
-  - src/main.ts
+  - src/orders/status-transitions.ts
+  - src/orders/orders.service.ts
+  - src/items/items.service.ts
   - docs/orchestrator/STATUS.md
   - docs/IMPLEMENTATION_STATE.md
 related_adrs: []
-selected_goal: Owner-selected admin frontend
-selected_chunk: Admin orders dashboard, filters, details, and safe lifecycle logs
+selected_goal: Goal 2 - Order Contract And State Machine Hardening
+selected_chunk: 2.2 - Runtime validation for order and item fulfillment transitions
 gate_decision: pass-with-exception
 ```
 
 ## Metadata
 
-This plan covers the owner-selected task to add a frontend/admin panel for `orders-microservice`.
+This plan covers Goal 2 chunk 2.2: enforce the documented state machine at runtime for `PUT /api/orders/:id/status` and `PUT /api/items/:id/fulfillment`.
 
-The chunk is intentionally read-only from an order lifecycle perspective. It adds operator visibility into existing orders, source channel/application/service derivation, order details, and safe lifecycle logs. It does not alter order status, cancellation, refund, warehouse, payment, catalog, notification, CRM, or pricing behavior.
+The chunk is intentionally limited to validation. Cancellation approval, refund-like flows, terminal-state correction workflows, stock-release coordination, and audit persistence are deferred to Goal 2 chunk 2.3 or later owner-approved chunks.
 
 ## Upstream Traceability
 
-- Owner request: add a frontend/admin panel for all orders, source application/service tracking, order details, logs, and dashboard filters.
-- Intent source: `docs/orchestrator/INTENT.md` says Orders must answer which channel an order came from, which items it contains, status, shipment records, and lifecycle events.
-- Business source: `BUSINESS.md` requires central order processing from all sales channels and sensitive customer/payment data safety.
-- System source: `SYSTEM.md` identifies NestJS/PostgreSQL/RabbitMQ on port 3203 and the order state machine.
-- Runtime source: existing `Order`, `OrderItem`, and `Shipment` entities.
+- `BUSINESS.md`: order status transitions must follow a defined state machine; AI must never cancel or refund without explicit human approval.
+- `SYSTEM.md`: normal order path is `pending -> confirmed -> processing -> shipped -> delivered | cancelled`.
+- `README.md`: exposes the two mutation endpoints affected by this chunk.
+- `docs/orchestrator/GOALS.md`: Goal 2 is active and chunk 2.2 is pending.
+- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`: source contract for allowed and forbidden transitions.
+- `docs/IMPLEMENTATION_STATE.md`: next recommended goal is Goal 2 chunk 2.2.
 
 ## Goal Impact
 
-The admin frontend gives operators a single Orders-owned operational view across source applications/services without creating a competing source of truth in channel services.
+The implementation closes the current arbitrary-string status gap and makes Orders enforce its canonical lifecycle contract before publishing order update events or saving item fulfillment changes.
 
 ## Project Invariants
 
-- `ORD-INV-001`: Preserved; admin UI reads from Orders as canonical order source.
-- `ORD-INV-002`: Preserved; no status transition or destructive order behavior changes.
-- `ORD-INV-003`: Preserved; source application/service labels are derived metadata, not ownership changes.
-- `ORD-INV-004`: Preserved; UI/API responses mask or omit sensitive address/payment/token details and do not use production data dumps.
-- `ORD-INV-005`: Preserved; new admin read endpoints are additive and protected by existing JWT role guard.
+- `ORD-INV-001`: Preserved; Orders remains the canonical source for order and item lifecycle state.
+- `ORD-INV-002`: Strengthened; invalid state jumps, reverse moves, terminal-state changes, and cancellation without approval are rejected.
+- `ORD-INV-003`: Preserved; no product, stock, payment, auth, notification, CRM, or channel ownership moves into Orders.
+- `ORD-INV-004`: Preserved; validation uses status strings and IDs only, with no customer address, payment data, tokens, secrets, or production data logging.
+- `ORD-INV-005`: Additive-compatible validation hardens existing endpoints; invalid requests now fail with `400 Bad Request` instead of silently mutating state.
 - `ORD-INV-006`: Not applicable; pricing behavior is unchanged.
 - `ORD-INV-007`: Preserved by status and implementation-state updates.
-- `ORD-INV-008`: Pass with exception; no session `JWT_TOKEN` is available for DocsRAG. Repository source-of-truth docs and local source files are sufficient for this bounded Orders-local admin surface.
+- `ORD-INV-008`: Pass with exception; no session `JWT_TOKEN` is available for DocsRAG. Repository source-of-truth docs are sufficient for this bounded Orders-local validation chunk.
 
 ## Sensitive-Data Handling
 
-Classification: `masked`.
+Classification: `none` for implementation data.
 
-The implementation may read existing order fields through TypeORM at runtime, but admin summaries avoid exposing raw shipping/billing addresses, payment details, bearer tokens, secrets, or decoded credentials. Customer display is limited to safe operational identifiers already present in the order contract. Logs are derived lifecycle/audit entries from order metadata, items, and shipments; raw production log streams are not queried or exposed.
+The code reads only existing order and item status fields needed for transition validation. It must not log or document customer addresses, payment details, bearer tokens, JWT secrets, database secrets, decoded credentials, or raw production customer data.
 
 ## Contract Validation Plan
 
-Additive API impact:
+Changed behavior:
 
-- `GET /api/admin/orders/dashboard`
-- `GET /api/admin/orders/:id`
+- `PUT /api/orders/:id/status` rejects unrecognized statuses, jumps, reverse transitions, terminal-state changes, and cancellation until an approval workflow exists.
+- `PUT /api/items/:id/fulfillment` rejects unrecognized fulfillment statuses, jumps, reverse transitions, terminal-state changes, and synthetic cancellation, refund, or return values.
+- `PUT /api/orders/:id/status` rejects `shipped` unless every item is at least `shipped`, and rejects `delivered` unless every item is `delivered`.
 
-Frontend route impact:
+Unchanged contracts:
 
-- `GET /admin`
-- `GET /admin/orders`
-
-Existing public order, item, shipment, pricing, health, JWT/RBAC, event, warehouse, payment, catalog, notification, and CRM contracts remain unchanged.
+- Request body shape remains `{ "status": "..." }`.
+- Successful response shape remains `{ success: true, data: ... }`.
+- JWT/RBAC, RabbitMQ event names, create-order, shipment, pricing, warehouse, payment, catalog, notification, and CRM contracts remain unchanged.
 
 ## Scope
 
-- Add a NestJS `AdminModule`.
-- Serve a responsive, code-native admin dashboard frontend.
-- Add protected dashboard JSON API with filters for application, service, state/status, channel, search, and date range.
-- Add protected order detail JSON API with summary, source metadata, items, shipments, timeline, and safe lifecycle logs.
-- Derive application/service labels from existing `channel` values without a database migration.
-- Update app module and global-prefix exclusions for admin frontend routes.
-- Update IPS evidence docs.
+- Add reusable pure validation helpers for order and item status transitions.
+- Update orders service to validate before save and before `order.updated` publication.
+- Update items service to load the current item, validate before save, and return `404` for missing item instead of returning `null` after update.
+- Run build and direct helper verification.
+- Record evidence and commit the remote changes.
+- Deploy only after checks pass.
 
 ## Non-Goals
 
-- No database migration.
-- No persisted audit-log table.
-- No raw production log ingestion.
-- No status transition validation; Goal 2 chunk 2.2 remains next.
-- No auth login flow; existing JWT role guard protects admin JSON APIs.
-- No deployment unless explicitly requested after build passes.
+- No database schema migration.
+- No new status values.
+- No owner-approval implementation for cancellation or destructive corrections.
+- No refund automation or payment reconciliation changes.
+- No warehouse stock release, reservation, or decrement changes.
+- No automatic parent order status updates from item fulfillment changes.
+- No event payload schema changes.
 
 ## Files To Inspect
 
-- `src/main.ts`
-- `src/app.module.ts`
-- `src/auth/jwt-roles.guard.ts`
-- `src/auth/roles.decorator.ts`
 - `src/orders/order.entity.ts`
 - `src/orders/orders.service.ts`
 - `src/orders/orders.controller.ts`
 - `src/items/order-item.entity.ts`
 - `src/items/items.service.ts`
-- `src/shipments/shipment.entity.ts`
-- `src/shipments/shipments.service.ts`
+- `src/items/items.controller.ts`
+- `package.json`
 
 ## Files To Create
 
-- `src/admin/admin.module.ts`
-- `src/admin/admin.controller.ts`
-- `src/admin/admin.service.ts`
-- `src/admin/admin-ui.ts`
+- `src/orders/status-transitions.ts`
 
 ## Files To Modify
 
-- `src/app.module.ts`
-- `src/main.ts`
+- `src/orders/orders.service.ts`
+- `src/items/items.service.ts`
 - `docs/orchestrator/CONTEXT_PACKAGE.md`
 - `docs/orchestrator/EXECUTION_PLAN.md`
 - `docs/orchestrator/STATUS.md`
 - `docs/IMPLEMENTATION_STATE.md`
 
+## Files To Protect
+
+- `.env*`, K8s secrets, Vault material, production logs, and production order table dumps.
+- Existing unrelated dirty files in the remote worktree.
+
 ## Implementation Steps
 
-1. Build the admin module and service with read-only queries against `Order` and `Shipment` repositories.
-2. Add safe serializers for summaries, details, source metadata, timeline, and lifecycle logs.
-3. Serve a self-contained admin UI at `/admin/orders` with filters, order table, detail panel, and token-based API access.
-4. Register the module and frontend route exclusions.
-5. Run TypeScript build and sensitive-data scans.
-6. Record evidence and commit the remote changes.
+1. Add status constants, ordering helpers, and validation functions matching `ORDER_STATUS_TRANSITIONS.md`.
+2. Reject cancellation through the normal status endpoint with a clear approval-required error.
+3. Enforce item alignment before order `shipped` and `delivered` transitions.
+4. Update services to call validators before persistence.
+5. Build and run direct pure-function verification because the repo has no test script or test directory.
+6. Update IPS evidence docs, commit, and deploy if validation passes.
 
 ## Test Plan
 
 - `npm run build`
-- IPS missing-marker scan over docs, implementation goals, `AGENTS.md`, and `TASKS.md`
-- Sensitive-pattern scan over docs plus `src/admin`, `src/app.module.ts`, and `src/main.ts`
-
-Optional runtime checks after deployment or with a valid admin token:
-
-- `curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/health`
-- `curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/admin/orders`
-- `curl -s -H 'Authorization: Bearer <admin-token>' 'https://orders.alfares.cz/api/admin/orders/dashboard?limit=10'`
-
-Do not paste real token values into docs or chat.
+- Direct Node verification against compiled `dist/orders/status-transitions.js` for allowed and rejected order and item transitions.
+- Missing-marker scan over IPS docs.
+- Sensitive-pattern scan over docs plus `src/orders` and `src/items`.
+- Deployment smoke after successful deploy: production `/health` and protected endpoint behavior if a safe token is available, without printing token or customer data.
 
 ## Gate Decision
 
-`pass-with-exception`: DocsRAG was not queried because no session service JWT is available. This is acceptable for the bounded Orders-local admin read surface because the owner request maps directly to existing Orders source-of-truth docs and entities.
+`pass-with-exception`: DocsRAG was not queried because no session service `JWT_TOKEN` is available. This is acceptable for this bounded Orders-local validation chunk because the source transition contract and affected endpoint code are in the repository.
 
 ## Rollback Plan
 
-If build or scans fail, revert only the new `src/admin/*` files and the scoped `src/app.module.ts` / `src/main.ts` registrations, then restore the previous IPS docs for this chunk. Do not revert unrelated dirty worktree changes.
+If build or validation fails, revert only this chunk validation helper and scoped service changes plus the evidence docs for this chunk. Do not revert unrelated pre-existing dirty files.
 
 ## Completion Checklist
 
-- [x] Admin module added.
-- [x] Dashboard filters and table implemented.
-- [x] Order details and safe lifecycle logs implemented.
-- [x] Existing auth guard protects admin data APIs.
-- [x] Build passes.
-- [x] Sensitive-data scan completed with only existing environment-variable false positive.
-- [x] IPS status and implementation state updated.
+- [ ] Transition validator added.
+- [ ] Order status endpoint validation added.
+- [ ] Item fulfillment endpoint validation added.
+- [ ] Build passes.
+- [ ] Direct verification evidence recorded.
+- [ ] IPS status and implementation state updated.
 - [ ] Remote commit created.
+- [ ] Deployment completed if runtime behavior is ready.

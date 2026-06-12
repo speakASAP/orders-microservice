@@ -1,5 +1,22 @@
 # Orders Implementation Plan
 
+```yaml
+id: ORDERS-IMPLEMENTATION-PLAN
+status: approved
+owner: Orders owner
+created: 2026-06-12
+last_updated: 2026-06-12
+completeness_level: validated
+upstream:
+  - docs/orchestrator/GOALS.md
+  - docs/orchestrator/INTENT.md
+downstream:
+  - docs/orchestrator/EXECUTION_PLAN.md
+  - docs/orchestrator/PRE_CODING_GATE.md
+related_adrs: []
+```
+
+
 ## Execution Rule
 
 Work one goal chunk at a time. Prefer a complete, verifiable chunk over starting multiple tracks.
@@ -46,12 +63,14 @@ The coordinator agent must:
 
 ## Active Work
 
-No active goal.
+No active runtime coding goal.
 
 Current chunk:
 
 - Goal 1 - Orders Intent Preservation Pack: done.
-- Next ready goal: Goal 2 - Order Contract And State Machine Hardening, pending owner selection.
+- Goal 2 - Order Contract And State Machine Hardening: active.
+- Goal 2 chunk 2.1 - Document allowed order and item fulfillment status transitions: done.
+- Next ready chunk: Goal 2 chunk 2.2 - Add or verify runtime validation for order and item fulfillment transitions.
 
 ## Verification Commands
 

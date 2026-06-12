@@ -4,35 +4,60 @@
 id: ORDERS-VALIDATION-REPORT-TEMPLATE
 goal:
 chunk:
+status: draft
+owner: Orders owner
+created: YYYY-MM-DD
+last_updated: YYYY-MM-DD
+completeness_level: skeletal
+upstream:
+  - docs/orchestrator/EXECUTION_PLAN.md
+  - docs/orchestrator/READINESS_GATES.md
+downstream:
+  - docs/orchestrator/STATUS.md
+related_adrs: []
 decision: pending
-created:
-updated:
 ```
 
-## Summary
+## Artifact Validated
 
-State what changed.
+Name the code, documentation, deployment, API, event, or contract artifact validated.
 
-## Commands Run
+## Validation Scope
 
-List commands and results.
+State what was and was not validated.
 
-## Contract Checks
+## Evidence
 
-State whether API, JWT/RBAC, state-machine, event, warehouse, payment, catalog, notification, CRM, or channel contracts changed and how they were checked.
+List files changed, commands run, and inspected source facts.
 
-## Sensitive Data Checks
+## Gate Evidence
 
-State scans/reviews run and any findings.
+Record pre-coding, integration-readiness, deployment-readiness, or documentation-only gate results.
 
-## Runtime Evidence
+## Invariant Evidence
 
-Include health, API, smoke, deployment, or log evidence when applicable. Do not include secrets, tokens, payment details, customer addresses, or raw production customer data.
+State how each applicable `ORD-INV-*` invariant was preserved or why it is not applicable.
 
-## Decision
+## Sensitive-Data Scan Evidence
 
-Use one: `accept`, `accept-with-follow-up`, `block`.
+State scans/reviews run and findings. Do not include secrets, tokens, payment details, customer addresses, or raw production customer data.
 
-## Next Action
+## Replay And Determinism Evidence
 
-Name exactly one next unfinished chunk.
+State how another agent can reproduce the validation path.
+
+## Passed Criteria
+
+List accepted criteria.
+
+## Failed Criteria
+
+List failed criteria, or `None`.
+
+## Deviations
+
+List exceptions, unavailable checks, or owner-approved deviations.
+
+## Recommendation
+
+Use one: `accept`, `accept-with-follow-up`, or `block`, and name exactly one next unfinished chunk.

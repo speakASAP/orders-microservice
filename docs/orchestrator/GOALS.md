@@ -1,5 +1,24 @@
 # Orders Goal Backlog
 
+```yaml
+id: ORDERS-GOAL-BACKLOG
+status: approved
+owner: Orders owner
+created: 2026-06-12
+last_updated: 2026-06-12
+completeness_level: validated
+upstream:
+  - docs/orchestrator/INTENT.md
+  - BUSINESS.md
+  - TASKS.md
+downstream:
+  - docs/orchestrator/PLAN.md
+  - docs/orchestrator/EXECUTION_PLAN.md
+  - implementation-goals/README.md
+related_adrs: []
+```
+
+
 Status values: `pending`, `active`, `done`, `blocked`.
 
 ## Goal 1 - Orders Intent Preservation Pack
@@ -25,13 +44,13 @@ Acceptance criteria:
 
 ## Goal 2 - Order Contract And State Machine Hardening
 
-Status: pending
+Status: active
 
 Intent: Orders must enforce safe, explicit order lifecycle transitions and keep cancellation/refund/destructive changes owner-approved.
 
 Chunks:
 
-- [ ] 2.1 Document allowed order and item fulfillment status transitions.
+- [x] 2.1 Document allowed order and item fulfillment status transitions.
 - [ ] 2.2 Add or verify runtime validation for order status transitions.
 - [ ] 2.3 Add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
 - [ ] 2.4 Add tests or direct API verification for allowed, rejected, and owner-approved transitions.
