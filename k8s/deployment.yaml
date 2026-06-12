@@ -24,13 +24,13 @@ spec:
       initContainers:
         - name: wait-postgres
           image: busybox:1.36
-          command: ['sh', '-c', 'until nc -z db-server-postgres 5432; do echo waiting for postgres; sleep 2; done']
+          command: ['sh', '-c', 'until nc -w 2 -z db-server-postgres 5432; do echo waiting for postgres; sleep 2; done']
         - name: wait-auth
           image: busybox:1.36
-          command: ['sh', '-c', 'until nc -z auth-microservice 3370; do echo waiting for auth; sleep 2; done']
+          command: ['sh', '-c', 'until nc -w 2 -z auth-microservice 3370; do echo waiting for auth; sleep 2; done']
         - name: wait-logging
           image: busybox:1.36
-          command: ['sh', '-c', 'until nc -z logging-microservice 3367; do echo waiting for logging; sleep 2; done']
+          command: ['sh', '-c', 'until nc -w 2 -z logging-microservice 3367; do echo waiting for logging; sleep 2; done']
       containers:
         - name: app
           image: localhost:5000/orders-microservice:latest
