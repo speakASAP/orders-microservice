@@ -20,22 +20,24 @@ upstream:
 downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
-  - src/admin/*
+  - src/orders/status-transitions.ts
+  - src/orders/orders.service.ts
+  - src/items/items.service.ts
 related_adrs: []
 current_goal: none
 current_chunk: none
-next_recommended_goal: Goal 2 - Order Contract And State Machine Hardening, chunk 2.2
-last_completed_goal: Owner-selected admin frontend deployed to production
+next_recommended_goal: Goal 2 - Order Contract And State Machine Hardening, chunk 2.3
+last_completed_goal: Goal 2 chunk 2.2 runtime transition validation
 blockers: []
 ```
 
 ## Current Checkpoint
 
-The owner-selected orders admin frontend chunk is complete. The service now includes a NestJS-served admin panel at `/admin/orders` and protected read APIs under `/api/admin/orders/*` for dashboard filters, order summaries, order details, source application/service metadata, items, shipments, timeline, and safe lifecycle logs.
+Goal 2, chunk 2.2 is complete. Runtime validation now protects the normal order status endpoint and item fulfillment endpoint from arbitrary strings, state jumps, reverse transitions, terminal-state exits, and cancellation requests without the future owner-approval workflow.
 
-Goal 2, chunk 2.1 remains complete. Future implementation sessions should continue with Goal 2, chunk 2.2: add or verify runtime validation for order status and item fulfillment transitions.
+The owner-selected orders admin frontend remains implemented and deployed from the previous checkpoint. Goal 2 should continue with chunk 2.3: add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
 
-The production-readiness roadmap for making Orders available to FlipFlop and other ecosystem clients is documented in `docs/orchestrator/PRODUCTION_READINESS_ROADMAP.md`.
+The production-readiness roadmap for making Orders available to FlipFlop and other ecosystem clients remains documented in `docs/orchestrator/PRODUCTION_READINESS_ROADMAP.md`.
 
 ## Preserved Intent Summary
 
@@ -43,35 +45,32 @@ The production-readiness roadmap for making Orders available to FlipFlop and oth
 
 ## Current Evidence
 
-- Owner selected an admin frontend/dashboard task for operational visibility into Orders.
-- `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` were refreshed for the owner-selected frontend chunk.
-- Added `src/admin/admin.module.ts`, `src/admin/admin.controller.ts`, `src/admin/admin.service.ts`, and `src/admin/admin-ui.ts`.
-- Updated `src/app.module.ts` to register `AdminModule`.
-- Updated `src/main.ts` to expose `/admin` and `/admin/orders` outside the `/api` global prefix while leaving admin data APIs under `/api/admin/orders/*`.
-- `npm run build` passed after implementation.
-- Admin frontend commit: `c7eed31` (`Add orders admin dashboard`).
-- Init-timeout deployment fix commit: `086400b` (`Add timeouts to orders init checks`).
-- Deployment completed with pod `orders-microservice-564ffdfbb-hgvk4` running image `localhost:5000/orders-microservice@sha256:e88340faed13915bddfc8655bec5e90c325871d2e86f18d2b3693a7df0e869d1`.
-- Production health route returned HTTP 200 and `/admin/orders` returned HTTP 200 HTML.
-- Protected admin data route returned HTTP 401 without a bearer token, confirming the existing JWT guard protects admin JSON data.
-- Runtime image tooling commit: `95432d0` (`Add curl and wget to orders runtime image`).
-- `./scripts/deploy.sh` completed successfully after the runtime image included `wget`; in-pod health check returned healthy JSON.
-- Missing-marker scan returned no matches.
-- Sensitive-pattern scan found only the existing non-secret environment-variable reference `process.env.DB_PASSWORD` in `src/app.module.ts`; no literal secret value was present.
-- DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs and source files were sufficient for this bounded Orders-local admin surface.
+- `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` were refreshed for Goal 2 chunk 2.2 before coding.
+- Added `src/orders/status-transitions.ts` with order and item fulfillment status normalization plus transition validation helpers.
+- Updated `src/orders/orders.service.ts` so `PUT /api/orders/:id/status` validates before saving and before publishing `order.updated`.
+- Updated `src/items/items.service.ts` so `PUT /api/items/:id/fulfillment` validates before saving and returns `404` for missing items.
+- Order validation enforces `pending -> confirmed -> processing -> shipped -> delivered`, rejects jumps and reverse moves, blocks terminal-state exits, rejects unrecognized status values, rejects normal-endpoint cancellation until owner approval support exists, requires all items to be at least shipped before order `shipped`, and requires all items delivered before order `delivered`.
+- Item validation enforces `pending -> reserved -> shipped -> delivered`, rejects jumps and reverse moves, blocks terminal-state exits, rejects unrecognized fulfillment values, and rejects synthetic `cancelled` fulfillment values.
+- No payment identity, stock ownership, product truth, notification delivery, CRM, refund automation, cancellation approval automation, sensitive-data logging, schema migration, or production data dump changes were made.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs were sufficient for this bounded Orders-local validation chunk.
 
 ## Next Action
 
-Continue Goal 2, chunk 2.2: add runtime validation for `PUT /api/orders/:id/status` and `PUT /api/items/:id/fulfillment` according to `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`.
+Continue Goal 2, chunk 2.3: add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
 
 ## Verification State
 
-Runtime validation completed for the admin frontend chunk:
+Runtime validation completed for Goal 2 chunk 2.2:
 
 ```bash
 npm run build
+node - <<'NODE'
+const t = require("./dist/orders/status-transitions");
+// Direct assertions covered allowed and rejected order and item transitions.
+NODE
+node --check dist/main.js
 rg '\[(MISSING|UNKNOWN):' docs/IMPLEMENTATION_STATE.md docs/IMPLEMENTATION_ORCHESTRATOR.md docs/orchestrator implementation-goals AGENTS.md TASKS.md
-rg -n 'Authorization: Bearer [A-Za-z0-9_./+=:-]{12,}|(access[_-]?token|client[_-]?secret|password|private[_-]?key|jwt[_-]?secret|db[_-]?password)\s*[:=]\s*['"]?[A-Za-z0-9_./+=:-]{12,}' docs AGENTS.md TASKS.md implementation-goals src/admin src/app.module.ts src/main.ts
+rg -n 'Authorization: Bearer [A-Za-z0-9_./+=:-]{12,}|(access[_-]?token|client[_-]?secret|password|private[_-]?key|jwt[_-]?secret|db[_-]?password)\s*[:=]\s*["'"'"']?[A-Za-z0-9_./+=:-]{12,}' docs AGENTS.md TASKS.md implementation-goals src/orders src/items
 ```
 
-Deployment completed. Production smoke checks passed for `https://orders.alfares.cz/health`, `https://orders.alfares.cz/admin/orders`, and unauthenticated `GET /api/admin/orders/dashboard?limit=1` returning `401`.
+All checks passed. Deployment is pending commit.

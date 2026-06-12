@@ -103,7 +103,7 @@ Run:
 
 ```bash
 npm run build
-node -e "const t=require("./dist/orders/status-transitions"); /* direct transition assertions */"
+node -e 'const t=require("./dist/orders/status-transitions"); /* direct transition assertions */'
 rg missing-or-unknown-marker-scan
 rg sensitive-literal-scan
 ```

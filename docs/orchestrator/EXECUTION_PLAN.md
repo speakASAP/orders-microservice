@@ -154,11 +154,11 @@ If build or validation fails, revert only this chunk validation helper and scope
 
 ## Completion Checklist
 
-- [ ] Transition validator added.
-- [ ] Order status endpoint validation added.
-- [ ] Item fulfillment endpoint validation added.
-- [ ] Build passes.
-- [ ] Direct verification evidence recorded.
-- [ ] IPS status and implementation state updated.
+- [x] Transition validator added.
+- [x] Order status endpoint validation added.
+- [x] Item fulfillment endpoint validation added.
+- [x] Build passes.
+- [x] Direct verification evidence recorded.
+- [x] IPS status and implementation state updated.
 - [ ] Remote commit created.
 - [ ] Deployment completed if runtime behavior is ready.

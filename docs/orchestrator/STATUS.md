@@ -325,3 +325,58 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 2, chunk 2.2: add runtime validation for order status transitions and item fulfillment transitions in a separate thread.
+
+## 2026-06-12 - Goal 2 Chunk 2.2 Runtime Transition Validation
+
+Current focus:
+
+- Goal 2 - Order Contract And State Machine Hardening.
+- Chunk 2.2 - Runtime validation for order status transitions and item fulfillment transitions.
+
+Context search evidence:
+
+- Read required Orders source-of-truth docs: `AGENTS.md`, `BUSINESS.md`, `SYSTEM.md`, `README.md`, `TASKS.md`, `STATE.json`, `docs/IMPLEMENTATION_STATE.md`, `docs/IMPLEMENTATION_ORCHESTRATOR.md`, `docs/orchestrator/MASTER_PROMPT.md`, `docs/orchestrator/INTENT.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/PLAN.md`, `docs/orchestrator/PROJECT_INVARIANTS.md`, `docs/orchestrator/PRE_CODING_GATE.md`, `docs/orchestrator/READINESS_GATES.md`, `implementation-goals/README.md`, and `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`.
+- Read affected runtime source: `src/orders/order.entity.ts`, `src/orders/orders.service.ts`, `src/orders/orders.controller.ts`, `src/items/order-item.entity.ts`, `src/items/items.service.ts`, `src/items/items.controller.ts`, and `package.json`.
+- Refreshed `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` before coding.
+- Live DocsRAG query was not run because no session `JWT_TOKEN` was available; this bounded Orders-local validation chunk proceeded from repository source-of-truth docs.
+
+Implementation evidence:
+
+- Added `src/orders/status-transitions.ts` with order and item fulfillment status normalization plus transition validation helpers.
+- Updated `src/orders/orders.service.ts` so `PUT /api/orders/:id/status` validates before saving and before publishing `order.updated`.
+- Updated `src/items/items.service.ts` so `PUT /api/items/:id/fulfillment` loads the current item, returns `404` for missing items, validates before saving, and rejects invalid fulfillment transitions.
+- Marked Goal 2 chunk 2.2 complete in `docs/orchestrator/GOALS.md`.
+
+Runtime behavior enforced:
+
+- Allowed order path remains `pending -> confirmed -> processing -> shipped -> delivered`.
+- Order jumps, reverse moves, unrecognized statuses, and transitions out of terminal states are rejected with `400 Bad Request`.
+- `cancelled` through the normal status endpoint is rejected until Goal 2 chunk 2.3 adds explicit owner approval and audit evidence.
+- Order `shipped` requires every item to be `shipped` or `delivered`; order `delivered` requires every item to be `delivered`.
+- Allowed item path remains `pending -> reserved -> shipped -> delivered`.
+- Item jumps, reverse moves, unrecognized statuses, terminal-state changes, and synthetic `cancelled` values are rejected.
+- Item fulfillment updates do not silently move the parent order status.
+
+Verification evidence:
+
+- `npm run build`: pass.
+- Direct compiled-helper verification: pass for allowed order transitions, rejected order jumps, terminal protection, cancellation rejection, item alignment rules, allowed item fulfillment transitions, rejected item jumps, terminal protection, and synthetic item cancellation rejection.
+- `node --check dist/main.js`: pass.
+- Missing-marker scan: pass; no `[(MISSING|UNKNOWN):` matches found.
+- Sensitive-pattern scan over docs plus `src/orders` and `src/items`: pass; no literal bearer-token, token, private-key, JWT-secret, DB-password, password, or client-secret values detected.
+- No `npm test` command exists and no test directory exists in the repo, so direct compiled-helper verification was used as targeted evidence.
+
+Safety and boundary notes:
+
+- No payment identity, stock ownership, product truth, notification delivery, CRM, cancellation approval automation, refund automation, or sensitive data logging changes were made.
+- No database migration or production data dump was used.
+- Existing unrelated dirty worktree files were not reverted.
+
+Gate decision:
+
+- Integration readiness: accept.
+- Deployment readiness: pending commit and deploy.
+
+Next unfinished chunk:
+
+- Goal 2, chunk 2.3: add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
