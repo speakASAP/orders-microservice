@@ -10,6 +10,7 @@ import { HealthModule } from './health/health.module';
 import { LoggerModule } from './logger/logger.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtRolesGuard } from './auth/jwt-roles.guard';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -31,10 +32,10 @@ import { JwtRolesGuard } from './auth/jwt-roles.guard';
     ItemsModule,
     ShipmentsModule,
     PricingModule,
+    AdminModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtRolesGuard },
   ],
 })
 export class AppModule {}
-

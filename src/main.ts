@@ -13,7 +13,11 @@ async function bootstrap() {
 
   app.enableCors({ origin: '*', credentials: true });
   app.setGlobalPrefix('api', {
-    exclude: [{ path: 'health', method: RequestMethod.GET }],
+    exclude: [
+      { path: 'health', method: RequestMethod.GET },
+      { path: 'admin', method: RequestMethod.GET },
+      { path: 'admin/orders', method: RequestMethod.GET },
+    ],
   });
 
   const port = process.env.PORT || 3203;
@@ -23,4 +27,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-

@@ -2,14 +2,15 @@
 
 ```yaml
 id: ORDERS-CONTEXT-PACKAGE
-status: approved
+status: active
 owner: Orders owner
 created: 2026-06-12
 last_updated: 2026-06-12
-completeness_level: validated
+completeness_level: implementation-ready
 upstream:
   - docs/orchestrator/GOALS.md
   - docs/orchestrator/INTENT.md
+  - docs/IMPLEMENTATION_STATE.md
 downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
   - docs/orchestrator/PROMPTS.md
@@ -17,24 +18,21 @@ downstream:
 
 ## Target Task
 
-Default target: the active goal in `docs/IMPLEMENTATION_STATE.md`, then the earliest `active` or `pending` goal in `docs/orchestrator/GOALS.md`, then the first ready owner-selected goal in `implementation-goals/README.md`.
+Owner-selected task: create an orders admin frontend so operators can see orders from all applications/services, filter by source and state, inspect order details, and review safe order lifecycle logs.
 
-When the owner selects another task, record the selected goal, chunk, and reason in `docs/orchestrator/STATUS.md` before implementation.
+This task is selected by explicit owner request and temporarily supersedes the default next recommendation, Goal 2 chunk 2.2. It supports the preserved Orders intent by improving operational visibility into the canonical order source of truth without changing status transition behavior.
 
 ## Upstream Traceability
 
-Every task must trace to:
-
 - Original Orders intent: `docs/orchestrator/INTENT.md`
 - Current state: `docs/IMPLEMENTATION_STATE.md`
-- Current goal or backlog item: `docs/orchestrator/GOALS.md`, `implementation-goals/README.md`, and `TASKS.md`
-- Orders service contract surface: `README.md`, `SYSTEM.md`, and relevant source modules
-- Ecosystem boundary context: `shared/ECOSYSTEM_MAP.md` and indexed shared commerce docs when available through DocsRAG
+- Owner request: admin panel for all orders, source application/service tracking, details, logs, dashboard filters
+- Orders service contract surface: `README.md`, `SYSTEM.md`, `src/orders/*`, `src/items/*`, `src/shipments/*`, `src/auth/*`
 - Verification standard: `docs/orchestrator/READINESS_GATES.md`
 
-## Included Documents
+## Included Documents And Source
 
-Read these before coding:
+Read before coding:
 
 - `AGENTS.md`
 - `BUSINESS.md`
@@ -53,41 +51,52 @@ Read these before coding:
 - `docs/orchestrator/EXECUTION_PLAN.md`
 - `docs/orchestrator/READINESS_GATES.md`
 - `docs/orchestrator/STATUS.md`
-- `docs/orchestrator/PROMPTS.md`
-- selected `implementation-goals/GOAL-XX-*.md`
+- `implementation-goals/README.md`
+- `src/main.ts`
+- `src/app.module.ts`
+- `src/auth/jwt-roles.guard.ts`
+- `src/auth/roles.decorator.ts`
+- `src/orders/order.entity.ts`
+- `src/orders/orders.service.ts`
+- `src/orders/orders.controller.ts`
+- `src/items/order-item.entity.ts`
+- `src/items/items.service.ts`
+- `src/shipments/shipment.entity.ts`
+- `src/shipments/shipments.service.ts`
 
-Inspect source files only after the plan names expected files. Prefer narrow reads over broad source-tree reading.
+## Excluded Documents And Data
 
-## Excluded Documents
-
-Do not use these as primary authority unless the owner explicitly selects historical research:
+Do not use as source material:
 
 - Raw production logs containing customer data, addresses, tokens, or payment details.
 - Decoded secrets from Vault, K8s Secrets, or `.env`.
-- Consuming-service source trees unless the selected goal is cross-service contract validation.
-- Generated `dist/` output unless validating deploy/build output.
+- Production order table dumps.
+- Consuming-service source trees.
+- Generated `dist/` output except build validation.
 
 ## Orders Constraints
 
 - Keep Orders as the order lifecycle source of truth.
 - Do not move product, stock, payment identity, auth, notification delivery, CRM, gateway, or database ownership into Orders.
-- Do not log, document, expose, or embed secrets, tokens, payment details, or raw customer data.
-- Do not make API, state-machine, event, JWT/RBAC, warehouse, payment, catalog, notification, or CRM breaking changes without an explicit migration and validation plan.
-- Do not directly write production order tables as an agent shortcut.
+- Do not log, document, expose, or embed secrets, bearer tokens, payment details, raw customer addresses, or raw production customer data.
+- Do not change status transition behavior in this chunk.
+- Do not directly write production order tables.
 - Record evidence in `docs/orchestrator/STATUS.md` and compressed continuation state in `docs/IMPLEMENTATION_STATE.md`.
 
 ## Allowed Changes
 
-Allowed files must be named by the selected execution plan before coding. Documentation workflow changes should stay under `docs/orchestrator/`, `docs/IMPLEMENTATION_STATE.md`, `docs/IMPLEMENTATION_ORCHESTRATOR.md`, `TASKS.md`, `AGENTS.md`, or `implementation-goals/`.
+- Add `src/admin/*` for the admin UI shell and protected dashboard read APIs.
+- Update `src/app.module.ts` to register the admin module.
+- Update `src/main.ts` to expose non-API admin frontend routes.
+- Update `docs/orchestrator/CONTEXT_PACKAGE.md`, `docs/orchestrator/EXECUTION_PLAN.md`, `docs/orchestrator/STATUS.md`, and `docs/IMPLEMENTATION_STATE.md` with plan and evidence.
 
 ## Forbidden Changes
 
-Unless owner-approved for the selected task, do not modify secrets, decoded runtime configuration, unrelated service domains, payment-provider logic, warehouse stock truth, catalog product truth, or channel-service canonical data.
-
-## Agent Prompt
-
-Use `docs/orchestrator/PROMPTS.md` as the canonical prompt source. Pair the universal prompt with the selected goal prompt or an owner-provided task prompt.
+- No schema migration for this chunk.
+- No order status mutation flow changes.
+- No cancellation, refund, pricing, payment-provider, warehouse reservation, catalog truth, notification delivery, or CRM campaign changes.
+- No secrets, K8s Secret values, Vault reads, or production data dumps.
 
 ## Validation Instructions
 
-Before coding, run the checks in `docs/orchestrator/PRE_CODING_GATE.md`. After coding, run the relevant checks in `docs/orchestrator/READINESS_GATES.md` and record evidence in `docs/orchestrator/STATUS.md`.
+Run `npm run build`, the IPS missing-marker scan, and the sensitive-pattern scan over docs plus `src/admin`, `src/app.module.ts`, and `src/main.ts`. Treat existing environment-variable references such as `process.env.DB_PASSWORD` as false positives when no literal secret value is present.
