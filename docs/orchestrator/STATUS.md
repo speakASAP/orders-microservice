@@ -1089,3 +1089,44 @@ Gate decision:
 Next unfinished chunk:
 
 - Create or reconcile the production `public.orders` table migration path, then verify `ux_orders_create_idempotency` exists and run a real concurrent duplicate-create test.
+
+## 2026-06-13 - Goal 4.6 / H3.6 Production Schema And Idempotency Index Materialized
+
+Current focus:
+
+- Owner-approved continuation after the guarded idempotency index migration no-op.
+- Scope: create the missing production base table migration path, materialize the idempotency index, and verify live duplicate-key concurrency behavior.
+
+Implementation evidence:
+
+- Added `migrations/000_create_order_core_tables.sql`.
+- The migration creates `orders`, `order_items`, and `shipments` with `CREATE TABLE IF NOT EXISTS`, matching the current TypeORM entities while production `synchronize` stays disabled.
+- Added `scripts/verify-live-idempotency-index.sh` for repeatable live verification of `ux_orders_create_idempotency`.
+
+Database evidence:
+
+- Applied `migrations/000_create_order_core_tables.sql` to the live `orders` database: created `orders`, `order_items`, and `shipments`.
+- Reapplied `migrations/002_order_idempotency_unique_index.sql`: `ux_orders_create_idempotency` materialized on `orders`.
+- Confirmed public tables: `orders`, `order_items`, `shipments`.
+- Confirmed indexes include `orders_pkey`, `idx_orders_channel_created_at`, `idx_orders_external_channel`, `idx_orders_status_created_at`, and `ux_orders_create_idempotency`.
+
+Concurrency evidence:
+
+- `scripts/verify-live-idempotency-index.sh`: pass.
+- Two concurrent live inserts with the same channel, channelAccountId, and externalOrderId produced exactly one success and one duplicate-key failure on `ux_orders_create_idempotency`.
+- Surviving duplicate-test row count was `1`; cleanup deleted the test row.
+
+Verification evidence:
+
+- `npm test`: pass.
+- `git diff --check`: pass.
+- Exact IPS unresolved-marker scan: pass.
+
+Gate decision:
+
+- H3 database hardening readiness: accept.
+- Production schema readiness: accept for the current Orders, OrderItem, and Shipment entities.
+
+Next unfinished chunk:
+
+- Goal H4 event contract versioning, then Goal H5 warehouse reservation choreography and Goal H6 payments callback boundary.

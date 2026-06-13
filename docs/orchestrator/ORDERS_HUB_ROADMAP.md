@@ -119,7 +119,7 @@ Verification stages:
 
 ### Goal H3 - Channel Idempotency And Duplicate Protection
 
-Status: active
+Status: complete
 
 Intent: Ensure every channel can safely retry order creation without creating duplicate canonical orders.
 
@@ -130,12 +130,13 @@ Chunks:
 - [x] H3.3 Return stable existing order response on safe retry.
 - [x] H3.4 Add conflict response for mismatched duplicate payloads.
 - [x] H3.5 Verify FlipFlop and marketplace adapters can retry safely.
+- [x] H3.6 Materialize guarded production schema and database idempotency unique index.
 
 Acceptance criteria:
 
 - Duplicate handling is deterministic and documented.
 - Channel services remain clients of Orders.
-- No direct production database edits are required.
+- Production database changes are guarded SQL migrations with repeatable verification evidence.
 
 Verification stages:
 
@@ -143,6 +144,7 @@ Verification stages:
 2. Contract test for mismatched duplicate.
 3. `npm test`.
 4. Consumer smoke with FlipFlop sample payload.
+5. Live database duplicate-key race verification.
 
 ### Goal H4 - Event Contract Versioning
 

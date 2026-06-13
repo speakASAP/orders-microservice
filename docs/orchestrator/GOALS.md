@@ -99,6 +99,7 @@ Acceptance criteria:
 - Create-order contract is documented.
 - External ID + channel duplicate handling is defined and verified.
 - Channel services remain clients of Orders.
+- Production schema migrations are repository-owned, guarded, and repeatably verifiable.
 
 ## Goal 5 - Warehouse, Payment, And Event Boundary Alignment
 
@@ -188,7 +189,7 @@ Acceptance criteria:
 
 ## Goal H3 - Channel Idempotency And Duplicate Protection
 
-Status: active
+Status: complete
 
 Intent: Ensure every channel can safely retry order creation without creating duplicate canonical orders.
 
@@ -199,11 +200,13 @@ Chunks:
 - [x] H3.3 Return stable existing order response on safe retry.
 - [x] H3.4 Add conflict response for mismatched duplicate payloads.
 - [x] H3.5 Verify FlipFlop and marketplace adapters can retry safely.
+- [x] H3.6 Materialize guarded production schema and database idempotency unique index.
 
 Acceptance criteria:
 
 - Duplicate handling is deterministic and documented.
 - Channel services remain clients of Orders.
+- Production schema migrations are repository-owned, guarded, and repeatably verifiable.
 
 ## Goal H4 - Event Contract Versioning
 
