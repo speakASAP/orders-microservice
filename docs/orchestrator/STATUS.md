@@ -1661,4 +1661,31 @@ Validation evidence:
 
 Next unfinished chunk:
 
-- Commit, deploy the immutable image, verify ESO projected WAREHOUSE_SERVICE_TOKEN without printing values, and rerun the persistent production synthetic reservation smoke.
+- Completed in follow-up runtime closeout below.
+
+## 2026-06-13 - Persistent Warehouse Handoff Runtime Smoke Complete
+
+Runtime deployment evidence:
+
+- Commit 634d570 was built, pushed, and deployed as localhost:5000/orders-microservice:634d570.
+- The standard deploy script timed out while Kubernetes was still starting init containers, but a manual rollout wait immediately afterward completed successfully.
+- Active pod orders-microservice-6f797c7cf9-rzc5z is healthy on image localhost:5000/orders-microservice:634d570 with digest sha256:7c50721a35a759a12637a8053e6ff7035003fc6e8607cdfbd66d34d2a8bf8e5b.
+- ExternalSecret status is Ready/SecretSynced; the live Kubernetes Secret key list includes DB_PASSWORD, JWT_SECRET, JWT_TOKEN, and WAREHOUSE_SERVICE_TOKEN.
+- Runtime env presence check confirmed WAREHOUSE_RESERVATION_ENABLED, WAREHOUSE_SERVICE_TOKEN, WAREHOUSE_SERVICE_URL, and JWT_SECRET are present without printing values.
+
+Persistent smoke evidence:
+
+- Created synthetic FlipFlop-channel order 5c277990-acb6-411e-8895-89cd9826981e with externalOrderId codex-reservation-persistent-1781373803 for product c0de0000-0000-4000-8000-000000000011 and warehouse c0de0000-0000-4000-8000-000000000013.
+- Orders warehouseHandoff after create: status=reserved, itemCount=1, reservedCount=1, failedCount=0, reasonCode=ORDER_CREATE_RESERVATION.
+- Warehouse reservation lookup after create returned one reservation row for the synthetic order.
+- Owner-approved cancellation returned order status=cancelled and warehouseHandoff status=cancelled, itemCount=1, reservedCount=1, failedCount=0, reasonCode=ORDER_CANCELLED.
+
+Validation evidence:
+
+- kubectl rollout status deployment/orders-microservice: pass after manual wait.
+- In-pod GET /health: pass.
+- Persistent production synthetic reservation smoke: pass.
+
+Next unfinished chunk:
+
+- Monitor normal Orders traffic with managed reservation handoff enabled and consider lengthening deploy rollout timeout for slow init-container startups.
