@@ -34,6 +34,8 @@ blockers: []
 
 ## Current Checkpoint
 
+2026-06-13 post-deploy monitoring and deploy-timeout hardening is complete. Live Orders health is passing, the Kubernetes deployment has one ready replica with zero pod restarts, and the recent application log stream includes a safe successful `order.create` audit entry. `scripts/deploy.sh` now passes an Orders-scoped `ORDERS_ROLLOUT_TIMEOUT` value, defaulting to `300s`, to the shared rollout helper so slow init-container replacement has a longer bounded wait window.
+
 Goal 4 chunks 4.3-4.6 / Goal H3 are complete in runtime, adapter verification, and database hardening. Orders now looks up existing orders by `contractVersion + channel + channelAccountId + externalOrderId`, returns the existing order for exact replay, and rejects same-key different-payload creates with HTTP 409.
 
 The documented idempotency key is `contractVersion + channel + channelAccountId + externalOrderId`. New clients must send `contractVersion=orders.create.v1`, a supported channel, a stable channel account/store/integration identity, and the upstream order or checkout ID. Safe retries must return the existing canonical order without inserting duplicate `orders` or `order_items` rows, without re-emitting `order.created`, and without rerunning warehouse/payment/notification/CRM side effects. Mismatched duplicates must become bounded `409 ORDER_IDEMPOTENCY_CONFLICT` responses without raw customer/address/payment payloads.
@@ -95,7 +97,7 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 ## Next Action
 
-Continue monitoring normal Orders traffic with managed reservation handoff enabled and consider lengthening the deploy rollout timeout for slow init-container startups. Start a future candidate contract goal only when an owner approves a concrete application integration.
+Continue monitoring normal Orders traffic with managed reservation handoff enabled. Start a future candidate contract goal only when an owner approves a concrete application integration.
 
 ## Verification State
 

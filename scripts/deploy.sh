@@ -14,6 +14,7 @@ DEFAULT_TAG="$(cd "$PROJECT_ROOT" && git rev-parse --short HEAD 2>/dev/null || e
 IMAGE_TAG="${1:-$DEFAULT_TAG}"
 IMAGE="${REGISTRY}/${SERVICE_NAME}:${IMAGE_TAG}"
 IMAGE_LATEST="${REGISTRY}/${SERVICE_NAME}:latest"
+ROLLOUT_TIMEOUT="${ORDERS_ROLLOUT_TIMEOUT:-300s}"
 
 # shellcheck disable=SC1091
 source "$(dirname "$PROJECT_ROOT")/shared/scripts/load-deploy-phase-timing.sh" "$PROJECT_ROOT" 2>/dev/null \
@@ -78,7 +79,7 @@ kubectl set image "deployment/${SERVICE_NAME}" app="$IMAGE" -n "$NAMESPACE"
 deploy_timing_phase_end "Set deployment image"
 
 deploy_timing_phase_start "Wait for rollout"
-deploy_timing_k8s_rollout_wait kubectl "$SERVICE_NAME" "$NAMESPACE"
+deploy_timing_k8s_rollout_wait kubectl "$SERVICE_NAME" "$NAMESPACE" "$ROLLOUT_TIMEOUT"
 deploy_timing_phase_end "Wait for rollout"
 
 deploy_timing_phase_start "Health check"

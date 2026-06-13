@@ -1708,3 +1708,39 @@ Monitoring evidence:
 Next unfinished chunk:
 
 - Continue monitoring normal Orders traffic with managed reservation handoff enabled and consider lengthening deploy rollout timeout for slow init-container startups.
+
+## 2026-06-13 - Post-Deploy Monitoring And Rollout Timeout Hardening
+
+Current focus:
+
+- Owner request: check plans and execute the next goal.
+- Current authoritative state had no active coding goal and pointed to post-deploy monitoring plus a deploy rollout timeout hardening follow-up.
+
+Monitoring evidence:
+
+- Repository HEAD before this change was `2bc236e Record orders post-deploy monitoring check`.
+- Kubernetes deployment `orders-microservice` is available with `1/1` ready replica on image `localhost:5000/orders-microservice:634d570`.
+- Active pod `orders-microservice-6f797c7cf9-rzc5z` is running with zero restarts.
+- Deployment conditions are `Available=True` and `Progressing=True`.
+- External health check `https://orders.alfares.cz/health` returned HTTP 200 with body `{"status":"healthy","service":"orders-microservice"}` and timestamp `2026-06-13T20:14:00.255Z`.
+- Recent application logs included a safe audit entry for `order.create` with outcome `success`; no customer/address/payment/token values were recorded in this status update.
+
+Implementation evidence:
+
+- Updated `scripts/deploy.sh` to use `ORDERS_ROLLOUT_TIMEOUT`, defaulting to `300s`, when calling the shared Kubernetes rollout wait helper.
+- This keeps the timeout scoped to Orders deployments and addresses the observed slow init-container replacement behavior without changing shared deployment behavior for other services.
+
+Gate decision:
+
+- Monitoring: pass.
+- Runtime deployment: not required for this script/documentation hardening change.
+
+Verification evidence:
+
+- `bash -n scripts/deploy.sh`: pass.
+- `git diff --check`: pass after trimming trailing EOF whitespace.
+- `npm test`: pass; build, transition, sensitive logging, create-order contract, idempotency, duplicate protection, event contract, warehouse handoff, payment boundary, and admin operations console checks completed successfully.
+
+Next unfinished chunk:
+
+- Continue normal traffic monitoring. Start a future candidate contract goal only when the owner approves a concrete application integration.
