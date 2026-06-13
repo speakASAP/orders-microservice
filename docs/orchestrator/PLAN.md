@@ -63,16 +63,20 @@ The coordinator agent must:
 
 ## Active Work
 
-No active runtime coding goal.
+Current active runtime/UI goal: Goal H1 - Public Landing And Admin Access Surface.
 
 Current chunk:
 
 - Goal 1 - Orders Intent Preservation Pack: done.
 - Goal 2 - Order Contract And State Machine Hardening: complete.
 - Goal 2 chunk 2.4 - Tests or direct API verification for allowed, rejected, and owner-approved transitions: done.
-- Goal 3 - Sensitive Customer Data And Audit Safety: active.
+- Goal 3 - Sensitive Customer Data And Audit Safety: complete.
 - Goal 3 chunk 3.1 - Review order, item, shipment, pricing, event, and logger paths for sensitive fields: done.
-- Next ready chunk: Goal 3 chunk 3.2 - Add safe structured audit metadata for writes and status changes.
+- Goal 3 chunk 3.2 - Add safe structured audit metadata for writes and status changes: done.
+- Goal 3 chunk 3.3 - Add redaction or no-log guarantees for customer, address, payment, token, and secret fields: done.
+- Goal 4 chunk 4.1 - Channel create-order contract reconciliation: done.
+- Goal H1 chunks H1.1-H1.4 - Landing/admin UI and roadmap: done.
+- Next ready chunk: Goal H1 chunk H1.5 route smoke checks and H1.6 deploy verification; then Goal 4 chunk 4.2 / Goal H3 chunk H3.1 idempotency expectations.
 
 ## Verification Commands
 

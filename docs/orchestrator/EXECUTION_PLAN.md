@@ -4,150 +4,62 @@
 id: ORDERS-EXECUTION-PLAN
 status: active
 owner: Orders owner
-created: 2026-06-12
+created: 2026-06-13
 last_updated: 2026-06-13
-completeness_level: implementation-ready
-upstream:
-  - AGENTS.md
-  - BUSINESS.md
-  - SYSTEM.md
-  - README.md
-  - TASKS.md
-  - docs/orchestrator/INTENT.md
-  - docs/orchestrator/GOALS.md
-  - docs/orchestrator/PROJECT_INVARIANTS.md
-  - docs/IMPLEMENTATION_STATE.md
-downstream:
-  - docs/orchestrator/SENSITIVE_DATA_REVIEW.md
-  - docs/orchestrator/STATUS.md
-  - docs/IMPLEMENTATION_STATE.md
-related_adrs: []
-selected_goal: Goal 3 - Sensitive Customer Data And Audit Safety
-selected_chunk: 3.1 - Review sensitive fields
-gate_decision: pass-with-exception
+selected_goal: Goal H1 - Public Landing And Admin Access Surface
+selected_chunk: H1.1-H1.4
+pre_coding_gate: pass-with-exception
 ```
 
-## Metadata
+## Preserved Intent
 
-This plan covers Goal 3 chunk 3.1: review order, item, shipment, pricing, event, and logger paths for sensitive fields.
+Orders remains the canonical order lifecycle service. Public UI may explain Orders Hub benefits, and admin UI may read protected Orders data, but Orders must not take ownership of identity, stock, product truth, payment identity/reconciliation, notifications, leads, marketing, or channel-specific workflows.
 
-The chunk is documentation-only. It maps sensitive surfaces and defines follow-up hardening work without changing runtime behavior.
+## Planned Changes
 
-## Upstream Traceability
+- Add public landing routes `/` and `/landing`.
+- Add a dedicated landing module and HTML shell.
+- Keep admin shell public but data-free.
+- Keep admin JSON at `/api/admin/orders/dashboard` and `/api/admin/orders/:id`.
+- Add explicit admin roles to admin JSON routes.
+- Improve admin locked/authenticated UX and clear-token behavior.
+- Add `docs/orchestrator/ORDERS_HUB_ROADMAP.md` for delegated future work.
 
-- `BUSINESS.md`: customer data, payment data, tokens, and secrets must not be logged or exposed.
-- `docs/orchestrator/INTENT.md`: sensitive customer data, shipping/billing addresses, payment details, tokens, and secrets must not be logged, copied into docs, or exposed in prompts.
-- `docs/orchestrator/GOALS.md`: Goal 3 chunk 3.1 is the selected chunk.
-- `docs/orchestrator/PROJECT_INVARIANTS.md`: `ORD-INV-004` requires sensitive-data scans and logging review.
+## Invariant Review
 
-## Goal Impact
+- `ORD-INV-003` boundary: preserved; the roadmap names external owners and candidate integrations.
+- `ORD-INV-004` sensitive-data: preserved; public/admin shells contain no raw order/customer/payment data.
+- `ORD-INV-007` evidence: status and implementation state must be updated after checks.
 
-The review identifies concrete surfaces that need structured audit metadata, redaction, or no-log guarantees in chunks 3.2 through 3.4.
+## Sensitive Data Classification
 
-## Project Invariants
+Classification: `masked`.
 
-- `ORD-INV-001`: Preserved; Orders remains canonical lifecycle source.
-- `ORD-INV-002`: Preserved; state-machine behavior unchanged.
-- `ORD-INV-003`: Preserved; cross-service ownership unchanged.
-- `ORD-INV-004`: Strengthened; sensitive fields and logging/event/API surfaces are now documented.
-- `ORD-INV-005`: Preserved; no API/event contract changes.
-- `ORD-INV-006`: Preserved; pricing automation unchanged.
-- `ORD-INV-007`: Preserved by status and implementation-state updates.
-- `ORD-INV-008`: Pass with exception; no session `JWT_TOKEN` is available for DocsRAG, and this is a bounded local source review.
+The UI changes contain no production data. Admin data continues to come only from protected JSON endpoints. The roadmap must not include secrets, tokens, payment details, customer addresses, or raw production customer data.
 
-## Sensitive-Data Handling
+## Contract Impact
 
-Classification: `sensitive-source-review`.
+- Public route contract: new HTML at `/` and `/landing`.
+- JWT/RBAC contract: explicit roles added for admin JSON routes.
+- Order create contract: no change.
+- State machine: no change.
+- Event contract: no runtime change; roadmap defines future event goals.
+- Warehouse/payment/catalog/notifications/leads/marketing: no runtime change; roadmap defines future integration goals.
 
-The task reads source files only. It does not read production rows, logs, decoded secrets, bearer tokens, payment credentials, real customer addresses, or real shipment tracking values.
+## Validation Plan
 
-## Contract Validation Plan
+```bash
+npm run build
+npm test
+rg '\[(MISSING|UNKNOWN):' docs/IMPLEMENTATION_STATE.md docs/IMPLEMENTATION_ORCHESTRATOR.md docs/orchestrator implementation-goals AGENTS.md TASKS.md
+rg -n 'Authorization: Bearer [A-Za-z0-9_./+=:-]{12,}|(access[_-]?token|client[_-]?secret|password|private[_-]?key|jwt[_-]?secret|db[_-]?password)\s*[:=]\s*['"'"'\"]?[A-Za-z0-9_./+=:-]{12,}' docs AGENTS.md TASKS.md implementation-goals
+curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/
+curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/admin/orders
+curl -i -H 'Cache-Control: no-cache' 'https://orders.alfares.cz/api/admin/orders/dashboard?limit=1'
+```
 
-Reviewed behavior:
+## Pre-Coding Gate Decision
 
-- Core order API returns full order entities under JWT guard.
-- Item API returns operational line data without direct customer PII fields.
-- Shipment API returns tracking values.
-- Pricing service logs product-level diagnostics and error strings.
-- Order events avoid customer/address/payment fields except `order.shipped` includes tracking number.
-- Logger has no redaction boundary.
-- Admin detail exposes customer email and shipment tracking to authenticated admins.
+Decision: `pass-with-exception`.
 
-Unchanged contracts:
-
-- No endpoint response shape changes.
-- No event shape changes.
-- No auth, payment, warehouse, catalog, notification, CRM, pricing, shipment, or state-machine behavior changes.
-
-## Scope
-
-- Review source paths for sensitive fields.
-- Add `docs/orchestrator/SENSITIVE_DATA_REVIEW.md`.
-- Update Goal 3 chunk status and IPS handoff docs.
-- Run documentation readiness checks.
-
-## Non-Goals
-
-- No redaction implementation in chunk 3.1.
-- No audit-log implementation in chunk 3.1.
-- No response DTO or event schema changes.
-- No production data inspection.
-- No deployment.
-
-## Files To Inspect
-
-- `src/orders/*`
-- `src/items/*`
-- `src/shipments/*`
-- `src/pricing/*`
-- `src/logger/*`
-- `src/auth/jwt-roles.guard.ts`
-- `src/admin/*`
-- `src/main.ts`
-- `src/app.module.ts`
-
-## Files To Modify
-
-- `docs/orchestrator/SENSITIVE_DATA_REVIEW.md`
-- `docs/orchestrator/CONTEXT_PACKAGE.md`
-- `docs/orchestrator/EXECUTION_PLAN.md`
-- `docs/orchestrator/GOALS.md`
-- `docs/orchestrator/PLAN.md`
-- `docs/orchestrator/STATUS.md`
-- `docs/IMPLEMENTATION_STATE.md`
-- `implementation-goals/README.md`
-
-## Files To Protect
-
-- `.env*`, K8s secrets, Vault material, production logs, and production order table dumps.
-- Runtime source files for this review-only chunk.
-
-## Implementation Steps
-
-1. Read IPS checkpoint and Goal 3 requirements.
-2. Scan source for sensitive field names, logging calls, event payloads, response surfaces, and auth/token handling.
-3. Read affected source files for concrete classification.
-4. Add a review report with findings and follow-ups.
-5. Update IPS docs and run readiness checks.
-
-## Test Plan
-
-- Missing-marker scan over IPS docs.
-- Sensitive-literal scan over docs and reviewed source paths.
-- `git diff --check`.
-
-## Gate Decision
-
-`pass-with-exception`: DocsRAG was not queried because no session service `JWT_TOKEN` is available. This is acceptable for this local source review chunk because no cross-service contract or runtime behavior changes are made.
-
-## Rollback Plan
-
-If the review is inaccurate, update only the review and IPS docs. Do not revert unrelated worktree changes.
-
-## Completion Checklist
-
-- [x] Sensitive fields reviewed.
-- [x] Logging/event/API surfaces reviewed.
-- [x] Findings documented.
-- [x] Follow-up chunks named.
-- [x] IPS status and implementation state updated.
+Reason: DocsRAG live query was unavailable because no session `JWT_TOKEN` was present. Compensating evidence came from Orders source-of-truth docs and remote neighboring repository discovery. The selected chunk is bounded to Orders UI and documentation, with no cross-service runtime integration.

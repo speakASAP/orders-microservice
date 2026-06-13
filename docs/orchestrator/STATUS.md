@@ -590,3 +590,245 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 3, chunk 3.2: add safe structured audit metadata for writes and status changes.
+
+
+## 2026-06-13 - Goal 3 Chunk 3.2 Safe Structured Audit Metadata
+
+Current focus:
+
+- Owner-selected task: continue Goal 3 chunk 3.2.
+- Scope: safe structured audit metadata for writes and status changes.
+
+Context search evidence:
+
+- Read `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/PLAN.md`, `docs/orchestrator/PROJECT_INVARIANTS.md`, `docs/orchestrator/PRE_CODING_GATE.md`, `docs/orchestrator/READINESS_GATES.md`, and `docs/orchestrator/SENSITIVE_DATA_REVIEW.md`.
+- Read affected runtime paths: `src/logger/logger.service.ts`, `src/orders/orders.service.ts`, `src/items/items.service.ts`, `src/shipments/shipments.service.ts`, and `src/pricing/pricing.service.ts`.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; this bounded logging-hardening chunk did not require a cross-service contract decision.
+
+Implementation evidence:
+
+- Added `LoggerService.audit` with an allowlisted structured metadata schema and scalar sanitization.
+- Added audit records for `order.create` and `order.status.update` with resource ID, actor identity where available, channel, status movement, outcome, reason code when present, and duration.
+- Added audit records for `order_item.create` and `order_item.fulfillment.update` with item/order IDs, status movement, outcome, and duration.
+- Added audit records for `shipment.create`, `shipment.tracking.update`, and `shipment.status.update` without logging tracking numbers or tracking URLs.
+- Added audit records for pricing suggestion generation plus pricing suggestion approve/reject status changes without logging product names, AI responses, customer data, payment data, or raw errors.
+- Updated `docs/orchestrator/CONTEXT_PACKAGE.md`, `docs/orchestrator/EXECUTION_PLAN.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/PLAN.md`, and `docs/IMPLEMENTATION_STATE.md`.
+
+Sensitive-data safety:
+
+- Audit records use only operation names, resource IDs, parent resource IDs, actor/source metadata, channel, bounded statuses, reason code, outcome, duration, and aggregate counters.
+- No raw order entities, request bodies, customer JSON, addresses, notes, payment metadata, shipment tracking values, bearer tokens, JWT secrets, DB passwords, production rows, or raw exception traces were added to audit logs.
+
+Verification evidence:
+
+- `npm run build`: pass.
+- `npm test`: pass; `scripts/verify-status-transitions.js` printed `status transition verification ok`.
+- Missing-marker scan: pass; no matches.
+- Sensitive-literal scan: pass; no matches.
+- `git diff --check`: pass.
+
+Gate decision:
+
+- Runtime readiness: accept.
+- Deployment not run because it was not requested for this chunk.
+
+Next unfinished chunk:
+
+- Goal 3 chunk 3.3: add redaction or no-log guarantees for customer, address, payment, token, and secret fields.
+
+## 2026-06-13 - Goal 3 Chunk 3.3 Redaction And No-Log Guarantees
+
+Current focus:
+
+- Owner-selected task: continue Goal 3 chunk 3.3.
+- Scope: add runtime redaction or no-log guarantees for customer, address, payment, token, and secret fields.
+
+Context search evidence:
+
+- Read `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/GOALS.md`, and `docs/orchestrator/SENSITIVE_DATA_REVIEW.md`.
+- Read affected runtime paths: `src/logger/logger.service.ts`, `src/admin/admin.service.ts`, `src/pricing/pricing.service.ts`, `src/orders/order-events.service.ts`, `src/orders/orders.controller.ts`, `src/orders/orders.service.ts`, and shipment/order entity surfaces.
+- Searched source for logger/console calls and sensitive field names covering customer, address, payment, token, secret, bearer, authorization, and tracking paths.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; this bounded hardening chunk relied on repository source-of-truth docs and the Goal 3 sensitive-data review.
+
+Implementation evidence:
+
+- Added centralized message redaction to `LoggerService.log`, `LoggerService.warn`, and `LoggerService.error` for bearer tokens, JWT-looking values, sensitive key/value pairs, and sensitive JSON keys.
+- Kept `LoggerService.audit` allowlisted and added guards against bearer/JWT/sensitive key-value payloads without dropping safe operation names such as `shipment.tracking.update`.
+- Masked admin order summaries and details so customer labels, customer name/email, payment method/status, shipment tracking URLs, tracking numbers, and timeline/log tracking context no longer expose raw values.
+- Replaced RabbitMQ console error details with generic no-secret messages.
+- Replaced raw product-service price-update exception propagation with a bounded upstream-failure message.
+- Updated `docs/orchestrator/GOALS.md` and `docs/IMPLEMENTATION_STATE.md`.
+
+Sensitive-data safety:
+
+- Logger calls now redact customer/address/payment/token/secret-shaped data even when a future caller passes raw strings accidentally.
+- Admin synthetic logs and timeline context no longer include raw tracking values.
+- Admin JSON detail preserves operational booleans and masked indicators rather than raw customer, payment, or tracking fields.
+- No database schema, order lifecycle, payment ownership, warehouse ownership, catalog ownership, event routing, JWT/RBAC, or API authentication behavior was changed.
+
+Verification evidence:
+
+- `npm run build`: pass.
+- `npm test`: pass; `scripts/verify-status-transitions.js` printed `status transition verification ok`.
+- Logger redaction verification snippet: pass; raw customer email, token, and bearer-like values were absent and safe audit operation names remained present.
+- `git diff --check`: pass.
+- Sensitive logger call scan: pass; no raw customer/address/payment/token/secret/tracking terms found in logger/console call arguments.
+- Sensitive literal scan: pass with a documented false positive for the source comment `Bearer JWT`; no literal bearer token, JWT, JWT secret, DB password, client secret, or password assignment was found.
+
+Gate decision:
+
+- Runtime readiness: accept.
+- Deployment not run because it was not requested for this chunk.
+
+Next unfinished chunk:
+
+- Goal 3 chunk 3.4: add regression checks or static scans for sensitive logging.
+
+## 2026-06-13 - Goal 3 Chunk 3.4 Sensitive Logging Regression Checks
+
+Current focus:
+
+- Owner-selected task: continue Goal 3 chunk 3.4.
+- Scope: add regression checks or static scans for sensitive logging.
+
+Context search evidence:
+
+- Read `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/SENSITIVE_DATA_REVIEW.md`, existing `scripts/verify-status-transitions.js`, `package.json`, and `src/logger/logger.service.ts`.
+- Confirmed repository verification style uses dependency-free Node scripts after `nest build`.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; this bounded verification-gate chunk did not alter ecosystem contracts.
+
+Implementation evidence:
+
+- Added `scripts/verify-sensitive-logging.js`.
+- Wired `npm test` to run `npm run verify:sensitive-logging` after the build and status-transition verifier.
+- Added `verify:sensitive-logging` package script.
+- The verifier statically scans logger/console call arguments for sensitive customer/address/payment/token/secret/tracking terms.
+- The verifier statically scans source and IPS documentation for bearer-token, JWT, and secret-assignment literals.
+- The verifier executes the compiled `LoggerService` and asserts sensitive runtime values are redacted while safe audit operation names remain present.
+- Tightened logger context sanitization after the new verifier caught `customerContext` as unsafe.
+- Updated `docs/orchestrator/GOALS.md` and `docs/IMPLEMENTATION_STATE.md`.
+
+Sensitive-data safety:
+
+- Future `npm test` runs now fail if a logger/console call includes sensitive field names in arguments.
+- Future `npm test` runs now fail if source or IPS docs contain token/JWT/secret-like literals matching the gate patterns.
+- Runtime redaction is checked with sample customer, address, payment, token, bearer, JWT, password, and sensitive context values.
+- No database schema, API auth, order lifecycle, payment ownership, warehouse ownership, catalog ownership, or event contract behavior changed.
+
+Verification evidence:
+
+- `npm test`: pass; build completed, `status transition verification ok`, and `sensitive logging verification ok`.
+- `npm run verify:sensitive-logging`: pass.
+- `git diff --check`: pass.
+- Missing-marker scan: pass; no matches.
+
+Gate decision:
+
+- Runtime verification readiness: accept.
+- Goal 3 is complete.
+- Deployment not run because it was not requested for this chunk.
+
+Next unfinished chunk:
+
+- Goal 4 chunk 4.1: reconcile current `POST /orders` request/response shape with FlipFlop and marketplace expectations.
+
+## 2026-06-13 - Goal 4 Chunk 4.1 Channel Create-Order Contract Reconciliation
+
+Current focus:
+
+- Owner-selected task: implement Goal 4 chunk 4.1.
+- Scope: reconcile current `POST /orders` request/response shape with FlipFlop and marketplace expectations.
+
+Context search evidence:
+
+- Read `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/GOALS.md`, `BUSINESS.md`, `SYSTEM.md`, `README.md`, `CLAUDE.md`, and `docs/orchestrator/PRODUCTION_READINESS_ROADMAP.md`.
+- Read current runtime paths: `src/orders/orders.controller.ts`, `src/orders/orders.service.ts`, `src/orders/order.entity.ts`, `src/items/order-item.entity.ts`, `src/items/items.service.ts`, and `src/orders/orders.module.ts`.
+- Searched repository docs/source for FlipFlop, marketplace, `POST /orders`, `externalOrderId`, `channelAccountId`, create-order contract, and idempotency references.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; this bounded implementation used repository source-of-truth docs and local source evidence.
+
+Implementation evidence:
+
+- Added `src/orders/create-order.dto.ts` with `orders.create.v1` contract normalization and validation.
+- Updated `POST /api/orders` to use `CreateOrderRequestDto` instead of raw `Partial<Order>`.
+- Updated order creation to persist order item rows from `items[]` in the same database transaction as the order row.
+- Added `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md` documenting request shape, accepted values, persistence mapping, response shape, current guarantees, deferrals, and client expectations.
+- Added `scripts/verify-create-order-contract.js`.
+- Wired `npm test` to run `verify:create-order-contract` after build, transition verification, and sensitive logging verification.
+- Updated `docs/orchestrator/GOALS.md` and `docs/IMPLEMENTATION_STATE.md`.
+
+Contract summary:
+
+- New channel clients should send `contractVersion=orders.create.v1`.
+- Supported channels are `flipflop`, `allegro`, `aukro`, `bazos`, and `heureka`.
+- `externalOrderId`, non-empty `items[]`, and `totals` with a three-letter currency are required.
+- Create-time status is limited to `pending` or `confirmed`; default is `pending`.
+- Unknown top-level request fields are rejected.
+- Saved response keeps the existing `{ success: true, data }` envelope and includes saved item rows.
+
+Boundary notes:
+
+- Duplicate detection and idempotent replay remain deferred to Goal 4 chunks 4.2 and 4.3.
+- Catalog product truth, warehouse stock truth, payment identity/reconciliation, auth/RBAC, notifications, and event versioning ownership did not change.
+- Audit logging remains bounded and does not log raw customer/address/payment request data.
+
+Verification evidence:
+
+- `npm run build`: pass.
+- `npm run verify:create-order-contract`: pass; `create order contract verification ok`.
+- `npm test`: pass; build completed, `status transition verification ok`, `sensitive logging verification ok`, and `create order contract verification ok`.
+- `git diff --check`: pass.
+- Missing-marker scan: pass; no matches.
+
+Gate decision:
+
+- Runtime readiness: accept.
+- Deployment not run because it was not requested for this chunk.
+
+Next unfinished chunk:
+
+- Goal 4 chunk 4.2: document idempotency expectations for external order IDs and channel account IDs.
+
+## 2026-06-13 - Goal H1 public landing, admin access surface, and roadmap
+
+Selected goal: Goal H1 - Public Landing And Admin Access Surface.
+
+Selected chunks:
+
+- H1.1 Add public landing HTML route for `/` and `/landing`.
+- H1.2 Add landing CTAs for registration and admin entry.
+- H1.3 Improve admin shell locked/authenticated states without embedding order data.
+- H1.4 Make admin JSON route roles explicit.
+
+Work completed:
+
+- Created `src/landing/landing.module.ts`.
+- Created `src/landing/landing.controller.ts`.
+- Created `src/landing/landing-ui.ts`.
+- Updated `src/main.ts` to exclude `/` and `/landing` from the `/api` global prefix.
+- Updated `src/app.module.ts` to import `LandingModule`.
+- Updated `src/admin/admin.controller.ts` to add explicit roles for protected admin JSON routes.
+- Replaced `src/admin/admin-ui.ts` with an improved admin operations shell.
+- Created `docs/orchestrator/ORDERS_HUB_ROADMAP.md`.
+- Refreshed `docs/orchestrator/CONTEXT_PACKAGE.md`.
+- Refreshed `docs/orchestrator/EXECUTION_PLAN.md`.
+- Updated `docs/orchestrator/GOALS.md`, `docs/orchestrator/PLAN.md`, and `docs/IMPLEMENTATION_STATE.md`.
+
+Ecosystem discovery:
+
+- Sub-agent discovery confirmed FlipFlop and marketplace channels are aligned with `POST /api/orders` and `orders.create.v1`.
+- Catalog, Warehouse, Payments, Auth, Notifications, Leads, and Marketing have distinct ownership boundaries that Orders must preserve.
+- Speak ASAP, School Committee, Rentabox, and Marathon have order/payment-like concepts but no confirmed central Orders integration mandate. They are recorded as candidate integrations requiring owner decisions before runtime work.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available.
+
+Pre-coding gate:
+
+- Decision: `pass-with-exception`.
+- Exception: DocsRAG unavailable; compensating evidence came from Orders source-of-truth docs and remote neighboring repository discovery.
+
+Verification:
+
+- Pending at initial documentation time; see follow-up entries for build, test, deployment, and live route checks.
+
+Next unfinished action:
+
+- Run `npm run build`, `npm test`, static scans, route smoke checks, deploy, and live verification.

@@ -11,6 +11,7 @@ import { LoggerModule } from './logger/logger.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtRolesGuard } from './auth/jwt-roles.guard';
 import { AdminModule } from './admin/admin.module';
+import { LandingModule } from './landing/landing.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AdminModule } from './admin/admin.module';
     }),
     LoggerModule,
     HealthModule,
+    LandingModule,
     OrdersModule,
     ItemsModule,
     ShipmentsModule,

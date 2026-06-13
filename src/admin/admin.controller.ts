@@ -1,5 +1,5 @@
 import { Controller, Get, Header, Param, ParseUUIDPipe, Query } from '@nestjs/common';
-import { Public } from '../auth/roles.decorator';
+import { Public, Roles } from '../auth/roles.decorator';
 import { AdminService } from './admin.service';
 import { ADMIN_ORDERS_HTML } from './admin-ui';
 
@@ -14,6 +14,7 @@ export class AdminController {
     return ADMIN_ORDERS_HTML;
   }
 
+  @Roles('global:superadmin', 'internal:orders-microservice:admin')
   @Get('admin/orders/dashboard')
   getOrdersDashboard(
     @Query('application') application?: string,
@@ -29,6 +30,7 @@ export class AdminController {
     return this.adminService.getDashboard({ application, service, state, status, channel, search, from, to, limit });
   }
 
+  @Roles('global:superadmin', 'internal:orders-microservice:admin')
   @Get('admin/orders/:id')
   getOrderDetail(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminService.getOrderDetail(id);
