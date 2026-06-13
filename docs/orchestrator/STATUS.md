@@ -1585,3 +1585,28 @@ Validation evidence:
 Next unfinished chunk:
 
 - Deploy Orders and run an owner-approved synthetic order reservation smoke against Warehouse using the existing synthetic stock fixture, then record runtime evidence.
+
+## 2026-06-13 - Warehouse Handoff Auth Deployment Attempt And Runtime Blocker
+
+Deployment evidence:
+
+- Commit 7591b98d64d4b398b84cad8b413f137a607569eb was pushed to origin/main.
+- ./scripts/deploy.sh built and pushed localhost:5000/orders-microservice:7591b98 and latest with digest sha256:7c50721a35a759a12637a8053e6ff7035003fc6e8607cdfbd66d34d2a8bf8e5b.
+- The standard deploy script reported health against the already-running pod because the deployment still referenced mutable latest and did not rotate the pod.
+
+Runtime smoke attempt:
+
+- A synthetic order create was attempted for product c0de0000-0000-4000-8000-000000000011 and warehouse c0de0000-0000-4000-8000-000000000013.
+- The first smoke returned warehouseHandoff.status=disabled, proving production reservation handoff was still configuration-gated; the synthetic order was cancelled under the disabled handoff path.
+- WAREHOUSE_RESERVATION_ENABLED=true was applied to the deployment and the image was pinned to localhost:5000/orders-microservice:7591b98 for a deterministic rollout, but replacement pods stalled before IP assignment and never reached app startup.
+- The deployment was restored to the previous stable template with WAREHOUSE_RESERVATION_ENABLED removed and image latest. Production health returned healthy on the previous serving pod.
+
+Current production state:
+
+- Serving pod imageID is localhost:5000/orders-microservice@sha256:c37c09130e514fa040dc5eb2123a115e700a298c2645b7e4486a407f44c56fe9.
+- Deployment spec image is localhost:5000/orders-microservice:latest.
+- Warehouse handoff auth hardening is committed and pushed, but not live until Kubernetes can rotate the Orders pod to the new image.
+
+Next unfinished chunk:
+
+- Resolve the Orders replacement pod scheduling/IP assignment issue, roll out commit 7591b98 or a follow-up immutable image, enable reservation handoff, and rerun the synthetic order reservation smoke.

@@ -57,7 +57,7 @@ Goal H7 is complete. The protected admin console now exposes read-only integrati
 
 Goal H8 is complete. SpeakASAP, School Committee, Rentabox, and Marathon were reviewed from repository source-of-truth docs and targeted lifecycle evidence. No candidate is approved to feed Orders in this pass. All reviewed candidates keep domain-local lifecycle ownership unless a future owner-approved contract goal explicitly defines the Orders create contract, idempotency key, payment boundary, warehouse/stock boundary, event contract, sensitive-data policy, rollback, and coexistence plan.
 
-The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was built as `localhost:5000/orders-microservice:2f82535`, pushed with `latest`, rolled out to Kubernetes namespace `statex-apps`, and passed the live `/health` check from the deployed pod.
+The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was built as `localhost:5000/orders-microservice:2f82535`, pushed with `latest`, rolled out to Kubernetes namespace `statex-apps`, and passed the live `/health` check from the deployed pod. Commit `7591b98` was built and pushed for Warehouse handoff auth hardening as image digest sha256:7c50721a35a759a12637a8053e6ff7035003fc6e8607cdfbd66d34d2a8bf8e5b, but the runtime rollout did not replace the serving pod because replacement pods stalled before IP assignment. Production was restored to the previous stable serving pod digest sha256:c37c09130e514fa040dc5eb2123a115e700a298c2645b7e4486a407f44c56fe9.
 
 ## Preserved Intent Summary
 
