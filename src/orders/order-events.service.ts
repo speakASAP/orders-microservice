@@ -45,9 +45,8 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
         durable: true,
       });
       console.log('Connected to RabbitMQ');
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Failed to connect to RabbitMQ:', errorMessage);
+    } catch {
+      console.error('Failed to connect to RabbitMQ');
     }
   }
 
@@ -108,9 +107,8 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
           contentType: 'application/json',
         },
       );
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Failed to publish event:', errorMessage);
+    } catch {
+      console.error('Failed to publish event');
     }
   }
 }

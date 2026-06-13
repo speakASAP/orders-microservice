@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Put, Body, Param, Query, ParseUUIDPipe, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { OrdersService } from './orders.service';
-import { Order } from './order.entity';
 import { OrderStatusApprovalInput } from './status-transitions';
+import { CreateOrderRequestDto } from './create-order.dto';
 
 interface OrderStatusUpdateBody {
   status: string;
@@ -34,7 +34,7 @@ export class OrdersController {
   }
 
   @Post()
-  async create(@Body() data: Partial<Order>) {
+  async create(@Body() data: CreateOrderRequestDto) {
     const order = await this.ordersService.create(data);
     return { success: true, data: order };
   }

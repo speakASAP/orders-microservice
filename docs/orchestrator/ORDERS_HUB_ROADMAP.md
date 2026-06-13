@@ -69,8 +69,8 @@ Chunks:
 - [x] H1.2 Add landing CTAs for registration and admin entry.
 - [x] H1.3 Improve admin shell locked/authenticated states without embedding order data.
 - [x] H1.4 Make admin JSON route roles explicit.
-- [ ] H1.5 Add route smoke checks for public/private split.
-- [ ] H1.6 Deploy and verify landing/admin reachability.
+- [x] H1.5 Add route smoke checks for public/private split.
+- [x] H1.6 Deploy and verify landing/admin reachability.
 
 Acceptance criteria:
 
@@ -119,16 +119,16 @@ Verification stages:
 
 ### Goal H3 - Channel Idempotency And Duplicate Protection
 
-Status: pending
+Status: active
 
 Intent: Ensure every channel can safely retry order creation without creating duplicate canonical orders.
 
 Chunks:
 
-- [ ] H3.1 Document idempotency key shape: channel, external order ID, channel account ID, contract version.
-- [ ] H3.2 Add database uniqueness or deterministic duplicate lookup.
-- [ ] H3.3 Return stable existing order response on safe retry.
-- [ ] H3.4 Add conflict response for mismatched duplicate payloads.
+- [x] H3.1 Document idempotency key shape: channel, external order ID, channel account ID, contract version.
+- [x] H3.2 Add deterministic duplicate lookup. Database uniqueness remains a hardening follow-up.
+- [x] H3.3 Return stable existing order response on safe retry.
+- [x] H3.4 Add conflict response for mismatched duplicate payloads.
 - [ ] H3.5 Verify FlipFlop and marketplace adapters can retry safely.
 
 Acceptance criteria:

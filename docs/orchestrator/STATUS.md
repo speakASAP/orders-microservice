@@ -877,3 +877,84 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal H3 chunk H3.1 / Goal 4 chunk 4.2: document idempotency expectations for external order IDs and channel account IDs.
+
+## 2026-06-13 - Goal 4 Chunk 4.2 / Goal H3 Chunk H3.1 Idempotency Expectations
+
+Current focus:
+
+- Owner-selected task: implement the next Goal 4 chunk.
+- Scope: document idempotency expectations for external order IDs and channel account IDs.
+- Cross-reference: this also completes Goal H3 chunk H3.1 from `docs/orchestrator/ORDERS_HUB_ROADMAP.md`.
+
+Context search evidence:
+
+- Read `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md`, `docs/orchestrator/ORDERS_HUB_ROADMAP.md`, `docs/orchestrator/PLAN.md`, `package.json`, `src/orders/create-order.dto.ts`, and `src/orders/orders.service.ts`.
+- Searched repository source and docs for idempotency, `externalOrderId`, `channelAccountId`, duplicate handling, replay behavior, and order creation references.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; this bounded documentation chunk used repository source-of-truth docs and the implemented create-order contract.
+
+Implementation evidence:
+
+- Added `docs/orchestrator/ORDER_IDEMPOTENCY_CONTRACT.md`.
+- Updated `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md` to reference `contractVersion + channel + channelAccountId + externalOrderId` as the full key.
+- Added `scripts/verify-idempotency-contract.js`.
+- Wired `npm test` to run `verify:idempotency-contract`.
+- Updated `docs/orchestrator/GOALS.md` to mark Goal 4 chunk 4.2 and H3.1 complete.
+- Updated `docs/orchestrator/ORDERS_HUB_ROADMAP.md`, `docs/orchestrator/PLAN.md`, and `docs/IMPLEMENTATION_STATE.md`.
+
+Contract summary:
+
+- Canonical idempotency key: `contractVersion + channel + channelAccountId + externalOrderId`.
+- `channelAccountId` scopes storefront, seller account, shop, tenant, source mailbox/feed, or integration account.
+- Clients without a natural account partition must send a stable sentinel such as `default`.
+- Safe retry means same key and same normalized order fingerprint.
+- Safe retry must return the existing canonical order without duplicate rows, duplicate item rows, duplicate `order.created` events, or repeated cross-service side effects.
+- Mismatched duplicate must become bounded `409 ORDER_IDEMPOTENCY_CONFLICT` without raw customer/address/payment data.
+
+Boundary notes:
+
+- No runtime duplicate detection was added in this chunk; it is the next implementation chunk.
+- No database schema, order lifecycle, JWT/RBAC, warehouse, catalog, payment, notification, CRM, or event contract behavior changed.
+- The contract explicitly preserves Orders as canonical order truth while keeping channel services as clients.
+
+Verification evidence:
+
+- `npm run verify:idempotency-contract`: pass; `idempotency contract verification ok`.
+- Full `npm test`, `git diff --check`, and missing-marker scan are recorded in the final verification state for this run.
+
+Gate decision:
+
+- Documentation readiness: accept pending final command verification.
+- Deployment not required because no runtime behavior changed.
+
+Next unfinished chunk:
+
+- Goal 4 chunk 4.3 / Goal H3 chunk H3.2: add duplicate-order protection with database uniqueness or deterministic duplicate lookup.
+
+## 2026-06-13 - Goal 4.3 / H3 runtime idempotency protection
+
+Selected goal: Goal 4 chunk 4.3 / Goal H3 - Channel Idempotency And Duplicate Protection.
+
+Selected chunks:
+
+- Goal 4.3 Add duplicate-order protection where missing.
+- H3.2 Add deterministic duplicate lookup.
+- H3.3 Return stable existing order response on safe retry.
+- H3.4 Add conflict response for mismatched duplicate payloads.
+
+Implementation summary:
+
+- Added runtime idempotency lookup for `contractVersion + channel + channelAccountId + externalOrderId`.
+- Added normalized replay comparison against stored order snapshot and item rows.
+- Exact replay returns the existing canonical order and does not publish another `order.created` event.
+- Same-key different-payload replay is rejected with HTTP 409.
+- Added contract verification coverage for idempotency key extraction, exact replay matching, total mismatch, and item mismatch.
+- Updated `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md`, `docs/orchestrator/CONTEXT_PACKAGE.md`, `docs/orchestrator/EXECUTION_PLAN.md`, and `docs/IMPLEMENTATION_STATE.md`.
+
+Pre-coding gate:
+
+- Decision: `pass-with-exception`.
+- Exception: DocsRAG unavailable because no session `JWT_TOKEN` was provided. This is a bounded Orders-local runtime chunk based on existing source-of-truth contract docs.
+
+Known follow-up:
+
+- Add database-level uniqueness or another concurrency-safe guard for simultaneous duplicate creates. The current implementation prevents ordinary retries but does not fully eliminate concurrent insert races.

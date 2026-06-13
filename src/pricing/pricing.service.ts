@@ -139,23 +139,63 @@ export class PricingService {
       `${new Date().toISOString()} generateSuggestions finished duration_ms=${Date.now() - startedAt} generated=${generated} skipped=${skipped} processed=${products.length}`,
       PricingService.CONTEXT,
     );
+    this.logger.audit(
+      {
+        operation: 'pricing.suggestions.generate',
+        resourceType: 'price_suggestion',
+        outcome: 'success',
+        durationMs: Date.now() - startedAt,
+        generated,
+        skipped,
+        processed: products.length,
+      },
+      PricingService.CONTEXT,
+    );
 
     return { generated, skipped };
   }
 
   async approveSuggestion(id: string) {
+    const startedAt = Date.now();
     const suggestion = await this.priceSuggestionRepository.findOne({
       where: { id },
     });
     if (!suggestion) {
       throw new NotFoundException(`Suggestion ${id} not found`);
     }
+    const previousStatus = suggestion.status;
     if (suggestion.status !== 'pending') {
+      this.logger.audit(
+        {
+          operation: 'pricing.suggestion.approve',
+          resourceType: 'price_suggestion',
+          resourceId: id,
+          parentResourceId: suggestion.productId,
+          previousStatus,
+          requestedStatus: 'approved',
+          outcome: 'rejected',
+          durationMs: Date.now() - startedAt,
+        },
+        PricingService.CONTEXT,
+      );
       throw new BadRequestException(`Suggestion ${id} is already ${suggestion.status}`);
     }
 
     const changePercent = Number(suggestion.changePercent || 0);
     if (Math.abs(changePercent) > 30) {
+      this.logger.audit(
+        {
+          operation: 'pricing.suggestion.approve',
+          resourceType: 'price_suggestion',
+          resourceId: id,
+          parentResourceId: suggestion.productId,
+          previousStatus,
+          requestedStatus: 'approved',
+          outcome: 'rejected',
+          durationMs: Date.now() - startedAt,
+        },
+        PricingService.CONTEXT,
+      );
       throw new BadRequestException(
         `Price change of ${changePercent.toFixed(1)}% exceeds the 30% safety limit`,
       );
@@ -163,51 +203,143 @@ export class PricingService {
 
     const suggestedPrice = Number(suggestion.suggestedPrice);
     if (!Number.isFinite(suggestedPrice) || suggestedPrice <= 0) {
+      this.logger.audit(
+        {
+          operation: 'pricing.suggestion.approve',
+          resourceType: 'price_suggestion',
+          resourceId: id,
+          parentResourceId: suggestion.productId,
+          previousStatus,
+          requestedStatus: 'approved',
+          outcome: 'rejected',
+          durationMs: Date.now() - startedAt,
+        },
+        PricingService.CONTEXT,
+      );
       throw new BadRequestException(`Suggestion ${id} has invalid suggestedPrice`);
     }
 
-    await this.updateProductPrice(suggestion.productId, suggestedPrice);
+    try {
+      await this.updateProductPrice(suggestion.productId, suggestedPrice);
 
-    this.logger.log(
-      `${new Date().toISOString()} approve suggestion applying product price = suggestedPrice value=${suggestedPrice}`,
-      PricingService.CONTEXT,
-    );
+      this.logger.log(
+        `${new Date().toISOString()} approve suggestion applying product price = suggestedPrice value=${suggestedPrice}`,
+        PricingService.CONTEXT,
+      );
 
-    suggestion.status = 'approved';
-    await this.priceSuggestionRepository.save(suggestion);
+      suggestion.status = 'approved';
+      await this.priceSuggestionRepository.save(suggestion);
 
-    await this.orderEventsService.publishPricingPriceChanged({
-      productId: suggestion.productId,
-      productName: suggestion.productName,
-      oldPrice: Number(suggestion.currentPrice || 0),
-      newPrice: Number(suggestion.suggestedPrice || 0),
-      changePercent,
-      approvedAt: new Date().toISOString(),
-      suggestionId: suggestion.id,
-    });
+      await this.orderEventsService.publishPricingPriceChanged({
+        productId: suggestion.productId,
+        productName: suggestion.productName,
+        oldPrice: Number(suggestion.currentPrice || 0),
+        newPrice: Number(suggestion.suggestedPrice || 0),
+        changePercent,
+        approvedAt: new Date().toISOString(),
+        suggestionId: suggestion.id,
+      });
 
-    this.logger.log(
-      `${new Date().toISOString()} published pricing.price_changed event suggestionId=${id}`,
-      PricingService.CONTEXT,
-    );
+      this.logger.log(
+        `${new Date().toISOString()} published pricing.price_changed event suggestionId=${id}`,
+        PricingService.CONTEXT,
+      );
+      this.logger.audit(
+        {
+          operation: 'pricing.suggestion.approve',
+          resourceType: 'price_suggestion',
+          resourceId: id,
+          parentResourceId: suggestion.productId,
+          previousStatus,
+          requestedStatus: 'approved',
+          resultingStatus: suggestion.status,
+          outcome: 'success',
+          durationMs: Date.now() - startedAt,
+        },
+        PricingService.CONTEXT,
+      );
 
-    return { success: true, newPrice: suggestedPrice };
+      return { success: true, newPrice: suggestedPrice };
+    } catch (error) {
+      this.logger.audit(
+        {
+          operation: 'pricing.suggestion.approve',
+          resourceType: 'price_suggestion',
+          resourceId: id,
+          parentResourceId: suggestion.productId,
+          previousStatus,
+          requestedStatus: 'approved',
+          resultingStatus: suggestion.status,
+          outcome: 'failure',
+          durationMs: Date.now() - startedAt,
+        },
+        PricingService.CONTEXT,
+      );
+      throw error;
+    }
   }
 
   async rejectSuggestion(id: string) {
+    const startedAt = Date.now();
     const suggestion = await this.priceSuggestionRepository.findOne({
       where: { id },
     });
     if (!suggestion) {
       throw new NotFoundException(`Suggestion ${id} not found`);
     }
+    const previousStatus = suggestion.status;
     if (suggestion.status !== 'pending') {
+      this.logger.audit(
+        {
+          operation: 'pricing.suggestion.reject',
+          resourceType: 'price_suggestion',
+          resourceId: id,
+          parentResourceId: suggestion.productId,
+          previousStatus,
+          requestedStatus: 'rejected',
+          outcome: 'rejected',
+          durationMs: Date.now() - startedAt,
+        },
+        PricingService.CONTEXT,
+      );
       throw new BadRequestException(`Suggestion ${id} is already ${suggestion.status}`);
     }
 
-    suggestion.status = 'rejected';
-    await this.priceSuggestionRepository.save(suggestion);
-    return { success: true };
+    try {
+      suggestion.status = 'rejected';
+      await this.priceSuggestionRepository.save(suggestion);
+      this.logger.audit(
+        {
+          operation: 'pricing.suggestion.reject',
+          resourceType: 'price_suggestion',
+          resourceId: id,
+          parentResourceId: suggestion.productId,
+          previousStatus,
+          requestedStatus: 'rejected',
+          resultingStatus: suggestion.status,
+          outcome: 'success',
+          durationMs: Date.now() - startedAt,
+        },
+        PricingService.CONTEXT,
+      );
+      return { success: true };
+    } catch (error) {
+      this.logger.audit(
+        {
+          operation: 'pricing.suggestion.reject',
+          resourceType: 'price_suggestion',
+          resourceId: id,
+          parentResourceId: suggestion.productId,
+          previousStatus,
+          requestedStatus: 'rejected',
+          resultingStatus: suggestion.status,
+          outcome: 'failure',
+          durationMs: Date.now() - startedAt,
+        },
+        PricingService.CONTEXT,
+      );
+      throw error;
+    }
   }
 
   private async loadCandidateProducts(): Promise<
@@ -337,8 +469,8 @@ export class PricingService {
           timeout: 5000,
         });
         return;
-      } catch (error) {
-        lastError = error instanceof Error ? error.message : String(error);
+      } catch {
+        lastError = 'upstream request failed';
       }
     }
 

@@ -18,34 +18,30 @@ upstream:
   - docs/orchestrator/PROJECT_INVARIANTS.md
   - docs/orchestrator/PRODUCTION_READINESS_ROADMAP.md
   - docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md
+  - docs/orchestrator/ORDER_IDEMPOTENCY_CONTRACT.md
+  - docs/orchestrator/ORDERS_HUB_ROADMAP.md
 downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: none
 current_chunk: none
-next_recommended_goal: Goal H3 chunk H3.1 / Goal 4 chunk 4.2 idempotency expectations for external order IDs and channel account IDs
-last_completed_goal: Goal H1 public landing, admin access surface, roadmap, deployment, and live route verification
+next_recommended_goal: Goal H3 chunk H3.5 verify FlipFlop and marketplace adapters can retry safely; follow-up hardening: database uniqueness for concurrent duplicate creates
+last_completed_goal: Goal 4 chunk 4.3 / Goal H3 chunks H3.2-H3.4 runtime idempotency protection
 blockers: []
 ```
 
 ## Current Checkpoint
 
-Goal H1 chunks H1.1-H1.6 are complete. The service now has a public Orders Hub landing page at `/` and `/landing`, an improved admin shell at `/admin` and `/admin/orders`, explicit admin roles on protected JSON endpoints, and live deployment evidence.
+Goal 4 chunk 4.3 / Goal H3 chunks H3.2-H3.4 are complete in runtime. Orders now looks up existing orders by `contractVersion + channel + channelAccountId + externalOrderId`, returns the existing order for exact replay, and rejects same-key different-payload creates with HTTP 409.
 
-The admin shell remains public but data-free. Admin data remains under `/api/admin/orders/dashboard` and `/api/admin/orders/:id`, protected by Auth-issued roles `global:superadmin` or `internal:orders-microservice:admin`.
+The documented idempotency key is `contractVersion + channel + channelAccountId + externalOrderId`. New clients must send `contractVersion=orders.create.v1`, a supported channel, a stable channel account/store/integration identity, and the upstream order or checkout ID. Safe retries must return the existing canonical order without inserting duplicate `orders` or `order_items` rows, without re-emitting `order.created`, and without rerunning warehouse/payment/notification/CRM side effects. Mismatched duplicates must become bounded `409 ORDER_IDEMPOTENCY_CONFLICT` responses without raw customer/address/payment payloads.
 
-The new `docs/orchestrator/ORDERS_HUB_ROADMAP.md` records the delegated system roadmap for landing/admin access, Auth-owned login, channel idempotency, event contracts, warehouse choreography, payment boundaries, admin console expansion, and candidate application integration decisions.
+Goal 4 chunks 4.1 and 4.2 remain complete. `POST /api/orders` has a documented channel-ingestion contract, runtime normalizer for `orders.create.v1`, item-row persistence in the same transaction, and documented idempotency expectations. Database-level uniqueness for simultaneous duplicate creates remains a hardening follow-up.
 
-Goal 4 chunk 4.1 is complete. `POST /api/orders` now has a documented channel-ingestion contract and a runtime normalizer for `orders.create.v1` requests from FlipFlop and marketplace services.
+Goal H1 chunks H1.1-H1.6 remain complete and deployed. The public Orders Hub landing page, admin shell, explicit admin JSON roles, roadmap, deployment, and live route checks are recorded in `docs/orchestrator/STATUS.md` and `docs/orchestrator/ORDERS_HUB_ROADMAP.md`.
 
-The create endpoint now accepts a stable request shape with `contractVersion`, `channel`, `externalOrderId`, `channelAccountId`, customer summary, shipping/billing address JSON, item lines, totals, payment method/status metadata, shipping method, and customer note. Runtime validation rejects unsupported channels, unsupported contract versions, unknown top-level fields, empty item arrays, invalid totals/currency/timestamps, and create-time statuses outside `pending|confirmed`.
-
-Order creation now persists order item rows from the same `POST /api/orders` request in the same database transaction as the order row, then returns the saved order with saved item rows. Item lines start with `fulfillmentStatus=pending`. Duplicate-order/idempotency behavior remains deliberately deferred to Goal 4 chunks 4.2 and 4.3.
-
-Goal 3 remains complete. Sensitive logging regression checks are wired into `npm test` and continue to pass.
-
-Goal 2 remains complete. Runtime validation still supports documented pre-shipment order cancellation only when explicit human approval evidence is supplied. Refund-like statuses and destructive terminal-state corrections remain blocked from the normal status endpoint.
+Goal 3 remains complete. Sensitive logging regression checks are wired into `npm test` and continue to pass. Goal 2 remains complete; owner-approved cancellation gates and state-transition validation remain in force.
 
 ## Preserved Intent Summary
 
@@ -53,32 +49,24 @@ Goal 2 remains complete. Runtime validation still supports documented pre-shipme
 
 ## Current Evidence
 
-- Added `src/orders/create-order.dto.ts` with `orders.create.v1` request normalization and validation.
-- Updated `src/orders/orders.controller.ts` to type `POST /orders` as `CreateOrderRequestDto`.
-- Updated `src/orders/orders.service.ts` so order creation persists normalized order rows and item rows together.
-- Updated `src/orders/orders.module.ts` to register `OrderItem` for the Orders module TypeORM feature set.
-- Added `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md`.
-- Added `scripts/verify-create-order-contract.js` and wired `npm test` to run it.
-- Added `src/landing/landing.module.ts`, `src/landing/landing.controller.ts`, and `src/landing/landing-ui.ts`.
-- Updated `src/main.ts` and `src/app.module.ts` for public landing routes.
-- Updated `src/admin/admin.controller.ts` with explicit admin roles.
-- Updated `src/admin/admin-ui.ts` with locked/admin states and clearer ecosystem boundary messaging.
-- Added `docs/orchestrator/ORDERS_HUB_ROADMAP.md`.
-- Refreshed `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` for Goal H1.
-- Preserved database schema, status transition behavior, JWT/RBAC guard behavior, warehouse/catalog/payment ownership boundaries, and existing event publishing contract.
-- DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs, existing production-readiness roadmap, and sub-agent ecosystem discovery were used as compensating evidence.
+- Added `docs/orchestrator/ORDER_IDEMPOTENCY_CONTRACT.md`.
+- Updated `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md` to reference the full idempotency key and `channelAccountId` expectation.
+- Added `scripts/verify-idempotency-contract.js`.
+- Updated `package.json` so `npm test` runs `verify:idempotency-contract` after build, transition, sensitive logging, and create-order contract checks.
+- Updated `docs/orchestrator/GOALS.md`, `docs/orchestrator/ORDERS_HUB_ROADMAP.md`, and `docs/orchestrator/PLAN.md` for Goal 4.2 / H3.1 completion and the next duplicate-lookup chunk.
+- Preserved runtime behavior; no database schema, create-order duplicate behavior, status transition behavior, JWT/RBAC guard behavior, warehouse/catalog/payment ownership boundaries, or event publishing behavior changed in this documentation chunk.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs and the current create-order contract were sufficient for this bounded idempotency documentation chunk.
 
 ## Next Action
 
-Continue Goal H3 chunk H3.1 / Goal 4 chunk 4.2: document idempotency expectations for external order IDs and channel account IDs.
+Continue Goal H3 chunk H3.5: verify FlipFlop and marketplace adapters can retry safely; then add database-level uniqueness hardening.
 
 ## Verification State
 
-Goal 4 chunk 4.1 verification completed:
+Goal 4 chunk 4.2 / Goal H3 chunk H3.1 verification completed:
 
 ```bash
-npm run build
-npm run verify:create-order-contract
+npm run verify:idempotency-contract
 npm test
 git diff --check
 missing-marker scan
@@ -86,39 +74,9 @@ missing-marker scan
 
 Verification results:
 
-- `npm run build`: pass.
-- `npm run verify:create-order-contract`: pass; `create order contract verification ok`.
-- `npm test`: pass; build completed, `status transition verification ok`, `sensitive logging verification ok`, and `create order contract verification ok`.
+- `npm run verify:idempotency-contract`: pass; `idempotency contract verification ok`.
+- `npm test`: pass; build completed, `status transition verification ok`, `sensitive logging verification ok`, `create order contract verification ok`, and `idempotency contract verification ok`.
 - `git diff --check`: pass.
 - Missing-marker scan: pass; no `[(MISSING|UNKNOWN):` markers found in IPS documentation scope.
 
-Goal H1 verification completed:
-
-```bash
-npm run build
-npm test
-git diff --check
-missing-marker scan
-sensitive-pattern scan
-./scripts/deploy.sh
-curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/
-curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/landing
-curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/admin/orders
-curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/health
-curl -i -H 'Cache-Control: no-cache' 'https://orders.alfares.cz/api/admin/orders/dashboard?limit=1'
-```
-
-Verification results:
-
-- `npm run build`: pass.
-- `npm test`: pass; transition, sensitive logging, and create-order contract checks passed.
-- `git diff --check`: pass.
-- Missing-marker scan: pass.
-- Sensitive-pattern scan: pass; no new secrets/tokens found. The only local scanner hit was the existing `process.env.DB_PASSWORD` application configuration reference.
-- `./scripts/deploy.sh`: pass; image `localhost:5000/orders-microservice:bf0510f` / `latest` pushed with digest `sha256:8b6a5edfe26e50ff2393b8488bc2cd7d600cc17c1c86309e0aaa019e9b39eea7`.
-- In-pod health check returned healthy JSON.
-- Public `/`, `/landing`, `/admin/orders`, and `/health` returned HTTP 200.
-- Unauthenticated `/api/admin/orders/dashboard?limit=1` returned HTTP 401.
-- Browser screenshot verification was attempted with bundled Playwright, but local Chrome failed to launch in the sandbox. HTTP and deployment verification completed.
-
-Deployment was not run because this chunk was not requested for deployment.
+Deployment was not run because this chunk does not change runtime behavior.

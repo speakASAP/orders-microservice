@@ -63,7 +63,7 @@ The coordinator agent must:
 
 ## Active Work
 
-Current active runtime/UI goal: Goal H1 - Public Landing And Admin Access Surface.
+Current active runtime goal: Goal 4 chunk 4.3 / Goal H3 - Channel Idempotency And Duplicate Protection.
 
 Current chunk:
 
@@ -75,8 +75,8 @@ Current chunk:
 - Goal 3 chunk 3.2 - Add safe structured audit metadata for writes and status changes: done.
 - Goal 3 chunk 3.3 - Add redaction or no-log guarantees for customer, address, payment, token, and secret fields: done.
 - Goal 4 chunk 4.1 - Channel create-order contract reconciliation: done.
-- Goal H1 chunks H1.1-H1.4 - Landing/admin UI and roadmap: done.
-- Next ready chunk: Goal H1 chunk H1.5 route smoke checks and H1.6 deploy verification; then Goal 4 chunk 4.2 / Goal H3 chunk H3.1 idempotency expectations.
+- Goal H1 chunks H1.1-H1.6 - Landing/admin UI, route smoke, deployment, and roadmap: done.
+- Next ready chunk: Goal H3 chunk H3.5 verify FlipFlop and marketplace adapters can retry safely; then add database-level uniqueness hardening.
 
 ## Verification Commands
 

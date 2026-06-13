@@ -86,16 +86,17 @@ export class AdminService {
       customer: this.serializeCustomer(order),
       totals: this.serializeTotals(order),
       payment: {
-        method: order.paymentMethod || 'unknown',
-        status: order.paymentStatus || 'unknown',
+        method: order.paymentMethod ? 'recorded' : 'unknown',
+        status: order.paymentStatus ? 'recorded' : 'unknown',
       },
       shipping: {
         method: order.shippingMethod || 'unknown',
         shipments: shipments.map((shipment) => ({
           id: shipment.id,
           carrier: shipment.carrier,
-          trackingNumber: shipment.trackingNumber || null,
-          trackingUrl: shipment.trackingUrl || null,
+          trackingNumber: this.maskTrackingValue(shipment.trackingNumber),
+          trackingUrl: null,
+          trackingUrlPresent: Boolean(shipment.trackingUrl),
           status: shipment.status,
           shippedAt: this.toIso(shipment.shippedAt),
           deliveredAt: this.toIso(shipment.deliveredAt),
@@ -181,7 +182,7 @@ export class AdminService {
       customerLabel: this.getCustomerLabel(order),
       total: this.toNumber(order.total),
       currency: order.currency,
-      paymentStatus: order.paymentStatus || 'unknown',
+      paymentStatus: order.paymentStatus ? 'recorded' : 'unknown',
       shippingMethod: order.shippingMethod || 'unknown',
       itemCount,
       orderedAt: this.toIso(order.orderedAt),
@@ -209,8 +210,8 @@ export class AdminService {
 
   private serializeCustomer(order: Order) {
     return {
-      name: order.customer?.name || 'Unknown customer',
-      email: order.customer?.email || null,
+      name: this.maskName(order.customer?.name),
+      email: this.maskEmail(order.customer?.email),
       phonePresent: Boolean(order.customer?.phone),
     };
   }
@@ -226,14 +227,14 @@ export class AdminService {
   }
 
   private getCustomerLabel(order: Order): string {
-    if (order.customer?.name) return order.customer.name;
-    if (order.customer?.email) return order.customer.email;
-    return 'Unknown customer';
+    return order.customer?.name || order.customer?.email
+      ? `Customer ${this.shortId(order.id)}`
+      : 'Unknown customer';
   }
 
   private getLogIndicators(order: Order): string[] {
     const indicators = ['created', `state:${order.status}`];
-    if (order.paymentStatus) indicators.push(`payment:${order.paymentStatus}`);
+    if (order.paymentStatus) indicators.push('payment:recorded');
     if ((order.items || []).some((item) => item.fulfillmentStatus !== 'pending')) indicators.push('fulfillment');
     return indicators;
   }
@@ -259,7 +260,7 @@ export class AdminService {
         at: this.toIso(shipment.createdAt),
         type: 'shipment.created',
         label: `Shipment ${shipment.status}`,
-        detail: `${shipment.carrier}${shipment.trackingNumber ? ` / ${shipment.trackingNumber}` : ''}`,
+        detail: shipment.trackingNumber ? `${shipment.carrier} / tracking recorded` : shipment.carrier,
       });
       if (shipment.shippedAt) {
         events.push({
@@ -351,5 +352,30 @@ export class AdminService {
       .replace(/\s+/g, ' ')
       .trim()
       .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  private shortId(id: string): string {
+    return String(id || '').slice(0, 8) || 'unknown';
+  }
+
+  private maskName(value?: string | null): string {
+    const trimmed = value?.trim();
+    if (!trimmed) return 'Unknown customer';
+    return trimmed.length <= 2 ? 'Customer **' : `${trimmed[0]}***`;
+  }
+
+  private maskEmail(value?: string | null): string | null {
+    const trimmed = value?.trim();
+    if (!trimmed) return null;
+    const [local, domain] = trimmed.split('@');
+    if (!local || !domain) return '[redacted]';
+    return `${local[0] || '*'}***@${domain}`;
+  }
+
+  private maskTrackingValue(value?: string | null): string | null {
+    const trimmed = value?.trim();
+    if (!trimmed) return null;
+    const suffix = trimmed.slice(-4);
+    return suffix ? `tracking-***${suffix}` : 'tracking-recorded';
   }
 }

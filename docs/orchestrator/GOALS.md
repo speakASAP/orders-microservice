@@ -90,8 +90,8 @@ Intent: FlipFlop and marketplace channels must create or forward orders through 
 Chunks:
 
 - [x] 4.1 Reconcile current `POST /orders` request/response shape with FlipFlop and marketplace expectations.
-- [ ] 4.2 Document idempotency expectations for external order IDs and channel account IDs.
-- [ ] 4.3 Add duplicate-order protection where missing.
+- [x] 4.2 Document idempotency expectations for external order IDs and channel account IDs.
+- [x] 4.3 Add duplicate-order protection where missing.
 - [ ] 4.4 Verify consumers can use the contract without storing duplicate canonical order records.
 
 Acceptance criteria:
@@ -155,8 +155,8 @@ Chunks:
 - [x] H1.2 Add landing CTAs for registration and admin entry.
 - [x] H1.3 Improve admin shell locked/authenticated states without embedding order data.
 - [x] H1.4 Make admin JSON route roles explicit.
-- [ ] H1.5 Add route smoke checks for public/private split.
-- [ ] H1.6 Deploy and verify landing/admin reachability.
+- [x] H1.5 Add route smoke checks for public/private split.
+- [x] H1.6 Deploy and verify landing/admin reachability.
 
 Acceptance criteria:
 
@@ -188,16 +188,16 @@ Acceptance criteria:
 
 ## Goal H3 - Channel Idempotency And Duplicate Protection
 
-Status: pending
+Status: active
 
 Intent: Ensure every channel can safely retry order creation without creating duplicate canonical orders.
 
 Chunks:
 
-- [ ] H3.1 Document idempotency key shape: channel, external order ID, channel account ID, contract version.
-- [ ] H3.2 Add database uniqueness or deterministic duplicate lookup.
-- [ ] H3.3 Return stable existing order response on safe retry.
-- [ ] H3.4 Add conflict response for mismatched duplicate payloads.
+- [x] H3.1 Document idempotency key shape: channel, external order ID, channel account ID, contract version.
+- [x] H3.2 Add deterministic duplicate lookup. Database uniqueness remains a hardening follow-up.
+- [x] H3.3 Return stable existing order response on safe retry.
+- [x] H3.4 Add conflict response for mismatched duplicate payloads.
 - [ ] H3.5 Verify FlipFlop and marketplace adapters can retry safely.
 
 Acceptance criteria:

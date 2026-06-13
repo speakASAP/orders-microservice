@@ -6,8 +6,8 @@ status: active
 owner: Orders owner
 created: 2026-06-13
 last_updated: 2026-06-13
-selected_goal: Goal H1 - Public Landing And Admin Access Surface
-selected_chunk: H1.1-H1.4
+selected_goal: Goal H3 - Channel Idempotency And Duplicate Protection / Goal 4 - Channel Order Ingestion Contract
+selected_chunk: H3.1-H3.4 / 4.2-4.3
 ```
 
 ## Included Context
@@ -23,10 +23,12 @@ selected_chunk: H1.1-H1.4
 - `docs/orchestrator/PROJECT_INVARIANTS.md`
 - `docs/orchestrator/PRE_CODING_GATE.md`
 - `docs/orchestrator/READINESS_GATES.md`
-- `src/main.ts`
-- `src/app.module.ts`
-- `src/admin/*`
-- `src/auth/*`
+- `src/orders/create-order.dto.ts`
+- `src/orders/orders.service.ts`
+- `src/orders/orders.controller.ts`
+- `src/orders/order.entity.ts`
+- `src/items/order-item.entity.ts`
+- `scripts/verify-create-order-contract.js`
 
 ## Ecosystem Context Used
 
@@ -41,4 +43,4 @@ Sub-agent repository discovery on 2026-06-13 reviewed neighboring remote reposit
 
 ## Scope Boundary
 
-This chunk may add public marketing HTML, improve the admin shell, and make admin roles explicit. It may not add login/session ownership, user management, payment processing, stock authority, product truth, notification delivery, lead consent management, or CRM campaign logic inside Orders.
+This chunk may define and implement create-order idempotency for `contractVersion + channel + channelAccountId + externalOrderId`. It may not add login/session ownership, user management, payment processing, stock authority, product truth, notification delivery, lead consent management, or CRM campaign logic inside Orders.
