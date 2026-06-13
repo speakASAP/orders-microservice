@@ -34,7 +34,7 @@ blockers: []
 
 ## Current Checkpoint
 
-Goal 2, chunk 2.3 is complete pending deployment evidence. Runtime validation now supports documented pre-shipment order cancellation only when explicit human approval evidence is supplied, while refund-like statuses and destructive terminal-state corrections remain blocked from the normal status endpoint.
+Goal 2, chunk 2.3 is complete and deployed. Runtime validation now supports documented pre-shipment order cancellation only when explicit human approval evidence is supplied, while refund-like statuses and destructive terminal-state corrections remain blocked from the normal status endpoint.
 
 The owner-selected orders admin frontend remains implemented and deployed. Goal 2 should continue with chunk 2.4: add tests or direct API verification for allowed, rejected, and owner-approved transitions.
 
@@ -55,6 +55,10 @@ The production-readiness roadmap for making Orders available to FlipFlop and oth
 - Refund-like order statuses remain rejected as Payments-owned. Terminal-state destructive corrections remain rejected pending a separate owner-approved correction workflow. Synthetic item cancellation, refund, and return statuses remain rejected pending owner-approved schema/API work.
 - No payment identity, refund execution, stock ownership, warehouse stock release, product truth, notification delivery, CRM campaign execution, pricing, auth, shipment status, sensitive-data logging, schema migration, or production data dump changes were made.
 - DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs were sufficient for this bounded Orders-local approval-gate chunk.
+- Deployment commit: `445e455` (`Add approved order cancellation gates`).
+- Deployment completed successfully after setting Kubernetes to immutable image `localhost:5000/orders-microservice:445e455`.
+- Final running pod `orders-microservice-6498bf95fd-mznjn` uses image digest `sha256:f175ef81a254bca57369456fa4154794f2906ba5ac854c87cf1b5132a7c40c8f`.
+- Production health returned HTTP 200 and a live container helper check returned `runtime approval gates ok`.
 
 ## Next Action
 
@@ -76,4 +80,4 @@ rg -n 'Authorization: Bearer [A-Za-z0-9_./+=:-]{12,}|(access[_-]?token|client[_-
 git diff --check
 ```
 
-All checks passed. Deployment is pending commit.
+All checks passed. Deployment completed successfully with image `localhost:5000/orders-microservice:445e455` and digest `sha256:f175ef81a254bca57369456fa4154794f2906ba5ac854c87cf1b5132a7c40c8f`.

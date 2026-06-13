@@ -162,5 +162,5 @@ If build or validation fails, revert only chunk 2.3 approval helper/controller/s
 - [x] Build passes.
 - [x] Direct verification evidence recorded.
 - [x] IPS status and implementation state updated.
-- [ ] Remote commit created.
-- [ ] Deployment completed if runtime behavior is ready.
+- [x] Remote commit created.
+- [x] Deployment completed if runtime behavior is ready.

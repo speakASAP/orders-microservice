@@ -464,3 +464,29 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 2, chunk 2.4: add tests or direct API verification for allowed, rejected, and owner-approved transitions.
+
+## 2026-06-13 - Goal 2 Chunk 2.3 Deployment Evidence
+
+Deployment evidence:
+
+- Commit `445e455` created: `Add approved order cancellation gates`.
+- `./scripts/deploy.sh` completed successfully and built/pushed `localhost:5000/orders-microservice:445e455` plus `latest` with digest `sha256:f175ef81a254bca57369456fa4154794f2906ba5ac854c87cf1b5132a7c40c8f`.
+- The Kubernetes deployment was set to immutable image `localhost:5000/orders-microservice:445e455` after the deploy script completed.
+- Final deployment status: `replicas=1`, `updated=1`, `ready=1`, `available=1`.
+- Final running pod: `orders-microservice-6498bf95fd-mznjn`.
+- Final running image: `localhost:5000/orders-microservice:445e455` with image ID `localhost:5000/orders-microservice@sha256:f175ef81a254bca57369456fa4154794f2906ba5ac854c87cf1b5132a7c40c8f`.
+
+Production verification evidence:
+
+- In-pod health check returned healthy JSON from `http://localhost:3203/health`.
+- Public health check `curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/health`: HTTP 200.
+- Unauthenticated protected cancellation smoke check `PUT /api/orders/00000000-0000-0000-0000-000000000000/status`: HTTP 401, confirming the existing JWT guard still protects the mutation endpoint.
+- Live container helper check returned `runtime approval gates ok`, confirming approved cancellation succeeds through the helper and refund-like status rejection remains active in the deployed image.
+
+Gate decision:
+
+- Deployment readiness: accept.
+
+Next unfinished chunk:
+
+- Goal 2, chunk 2.4: add tests or direct API verification for allowed, rejected, and owner-approved transitions.
