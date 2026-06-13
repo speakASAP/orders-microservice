@@ -1610,3 +1610,29 @@ Current production state:
 Next unfinished chunk:
 
 - Resolve the Orders replacement pod scheduling/IP assignment issue, roll out commit 7591b98 or a follow-up immutable image, enable reservation handoff, and rerun the synthetic order reservation smoke.
+
+## 2026-06-13 - Warehouse Handoff Auth Runtime Smoke Complete
+
+Runtime deployment evidence:
+
+- Orders fixed image is live on digest sha256:7c50721a35a759a12637a8053e6ff7035003fc6e8607cdfbd66d34d2a8bf8e5b from commit 7591b98d64d4b398b84cad8b413f137a607569eb.
+- Replacement pod startup was delayed by Kubernetes init/image-pull timing but ultimately rolled out successfully.
+- External health returned healthy after rollout.
+
+Runtime smoke evidence:
+
+- Generated short-lived Orders and Warehouse smoke JWTs inside the remote shell; token values were not written to docs or chat.
+- Created synthetic FlipFlop-channel order d13d6dc6-cb89-4f07-8763-a83eb2b6e1e2 for product c0de0000-0000-4000-8000-000000000011 and warehouse c0de0000-0000-4000-8000-000000000013.
+- Orders warehouseHandoff after create: status=reserved, itemCount=1, reservedCount=1, failedCount=0, reasonCode=ORDER_CREATE_RESERVATION.
+- Warehouse reservation lookup after create returned one reservation row for the synthetic order.
+- Owner-approved cancellation returned order status=cancelled and warehouseHandoff status=cancelled, reservedCount=1, failedCount=0, reasonCode=ORDER_CANCELLED.
+
+Cleanup and safe production state:
+
+- A longer-lived Warehouse token could not be persisted through Vault because the available ExternalSecrets token returned 403 on write.
+- The ad hoc deployment Warehouse token was removed after the smoke, and WAREHOUSE_RESERVATION_ENABLED was removed from the deployment.
+- Active pod orders-microservice-768c84b58c-45swf is healthy on the fixed image digest and has JWT_SECRET present, WAREHOUSE_RESERVATION_ENABLED missing, and WAREHOUSE_SERVICE_TOKEN missing.
+
+Next unfinished chunk:
+
+- Add a managed Vault-backed WAREHOUSE_SERVICE_TOKEN entry for Orders, map it through ExternalSecret, enable WAREHOUSE_RESERVATION_ENABLED through reviewed config, then rerun the same synthetic reservation smoke as a persistent production configuration check.
