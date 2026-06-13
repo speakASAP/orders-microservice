@@ -95,7 +95,7 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 ## Next Action
 
-Monitor the deployed H7/H8 release and start a future approved candidate contract goal only when an owner approves a concrete application integration.
+Continue monitoring normal Orders traffic with managed reservation handoff enabled and consider lengthening the deploy rollout timeout for slow init-container startups. Start a future candidate contract goal only when an owner approves a concrete application integration.
 
 ## Verification State
 

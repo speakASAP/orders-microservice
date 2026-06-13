@@ -1689,3 +1689,22 @@ Validation evidence:
 Next unfinished chunk:
 
 - Monitor normal Orders traffic with managed reservation handoff enabled and consider lengthening deploy rollout timeout for slow init-container startups.
+
+## 2026-06-13 - Post-Deploy Monitoring Check
+
+Current focus:
+
+- Owner asked to start Goal 2, but the remote repository already records Goal 2 as complete across chunks 2.1-2.4.
+- Followed the current remote continuation state instead: post-deploy monitoring for the latest Orders runtime.
+
+Monitoring evidence:
+
+- Confirmed `docs/orchestrator/GOALS.md` marks Goal 2 - Order Contract And State Machine Hardening as complete.
+- Confirmed `docs/IMPLEMENTATION_STATE.md` states Goal 2 remains complete and owner-approved cancellation gates plus state-transition validation remain in force.
+- Current repository HEAD: `6cac242 Record managed warehouse runtime smoke`.
+- External health check `curl -sS -i -H 'Cache-Control: no-cache' https://orders.alfares.cz/health`: pass, HTTP 200.
+- Health response body: `{"status":"healthy","service":"orders-microservice","uptime":7421,"timestamp":"2026-06-13T20:05:12.633Z"}`.
+
+Next unfinished chunk:
+
+- Continue monitoring normal Orders traffic with managed reservation handoff enabled and consider lengthening deploy rollout timeout for slow init-container startups.
