@@ -47,7 +47,7 @@ Goal H3 chunks H3.5-H3.6 are complete. FlipFlop, Allegro, Aukro, Bazos, and Heur
 
 Goal H6 is complete. Orders now exposes a protected `orders.payment-status.v1` callback boundary at `PUT /api/orders/:id/payment-status` for Auth-authorized Orders admins or the Payments service role. Orders stores only bounded payment references (`paymentReferenceId`, `paymentApplicationId`, `paymentMethod`, `paymentStatus`, `paymentUpdatedAt`), maps Payments `completed` to Orders `paid`, emits `orders.order.paid.v1` once, and only advances `pending -> confirmed` on first paid status. Raw provider webhooks, provider transaction identifiers, variable symbols, provider response bodies, metadata, amounts, currency, customer payment payloads, card data, tokens, secrets, refunds, and reconciliation stay in `payments-microservice`.
 
-H6 live schema is not materialized yet. `migrations/005_add_order_payment_status_boundary.sql` is present and must be applied before production use of `PUT /api/orders/:id/payment-status`.
+H6 live schema is materialized. `migrations/005_add_order_payment_status_boundary.sql` was replayed against the live `orders` database on 2026-06-13 and verified `paymentReferenceId`, `paymentApplicationId`, and `paymentUpdatedAt` on `public.orders`.
 
 Goal H4 is complete. Orders now defines `orders.order.created.v1`, `orders.order.updated.v1`, `orders.order.paid.v1`, `orders.order.shipped.v1`, and `orders.order.cancelled.v1`, publishes version metadata and RabbitMQ headers, and verifies fixtures/builders/publisher payloads against forbidden sensitive fields. Goal H5 is complete for reservation choreography and H5.5: Orders maps Warehouse lifecycle endpoints, has a config-gated Warehouse reservation client, stores audit-safe `warehouseHandoff` metadata, fulfills reservations on paid payment status, releases reservations on failed/cancelled payment status, cancels reservations after approved order cancellation, and verifies return remains outside normal Orders status updates. Goal H6 is complete for bounded Payments-owned status updates without taking over payment identity, provider webhooks, reconciliation, transactions, or refunds.
 
@@ -84,12 +84,13 @@ Goal H8 is complete. SpeakASAP, School Committee, Rentabox, and Marathon were re
 - Added an approved action UI panel that requires human approval metadata and cancellation side-effect acknowledgements before calling the bounded action endpoint.
 - Added `scripts/verify-admin-operations-console.js` and wired `npm test` to run `npm run verify:admin-operations-console`.
 - Added `docs/orchestrator/CANDIDATE_APPLICATION_INTEGRATION_DECISIONS.md` for H8. It records excluded-for-now decisions for SpeakASAP, School Committee, Rentabox, and Marathon, plus future owner-approved contract gates.
-- Applied the live `orders.warehouseHandoff` `jsonb` migration and verified the column exists. The H6 payment status migration is not applied yet.
+- Applied the live `orders.warehouseHandoff` `jsonb` migration and verified the column exists.
+- Applied/replayed the live H6 payment status boundary migration and verified `orders.paymentReferenceId`, `orders.paymentApplicationId`, and `orders.paymentUpdatedAt` exist with bounded varchar/timestamp types. The guarded replay emitted only expected existing-column notices.
 - DocsRAG live query was not run because no session JWT_TOKEN was available; repository source-of-truth docs and the current create-order/idempotency contracts were sufficient for this bounded Orders-local runtime chunk.
 
 ## Next Action
 
-Continue with an owner-selected deployment/migration step or a future approved candidate contract goal.
+Continue with an explicit runtime deployment decision for the completed H7/H8 source/docs changes, or start a future approved candidate contract goal.
 
 ## Verification State
 
@@ -103,7 +104,7 @@ Verification results:
 - `npm run verify:admin-operations-console`: pass; read-only integration health, idempotency diagnostics, protected route declarations and role metadata, read-only/action-capable mode policy, approved order status workflow delegation, UI panels, and sensitive response exclusions passed.
 - Local Playwright render smoke against the admin HTML: pass; Integration health, Idempotency diagnostics, and Approved actions panels rendered; the action button starts disabled with `Read-only mode`; no visible error banner was present.
 - H8 documentation verification: pass; candidate decisions recorded, no application approved without owner approval, no runtime integration goals created, future contract gates documented.
-- H6 guarded migration apply: not run in this chunk; `migrations/005_add_order_payment_status_boundary.sql` must be applied before production use.
+- H6 guarded migration apply: pass; pre-check found `paymentReferenceId`, `paymentApplicationId`, and `paymentUpdatedAt` already present, guarded replay skipped the existing columns as expected, and post-check verified all three columns remained present on `public.orders`.
 
 - npm run verify:duplicate-order-protection: pass; duplicate order protection verification ok.
 - npm run verify:channel-adapter-idempotency: pass; channel adapter idempotency verification ok.

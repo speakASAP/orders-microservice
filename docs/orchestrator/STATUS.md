@@ -1494,3 +1494,32 @@ Gate decision:
 Next unfinished chunk:
 
 - Owner-selected deployment/migration step or future approved candidate contract goal.
+
+## 2026-06-13 - Owner-Selected H6 Payment Status Migration Verification
+
+Current focus:
+
+- Owner request: choose the next deployment/migration step.
+- Selected step: verify and replay the guarded H6 payment status boundary migration before any runtime deployment, because the H6 payment callback endpoint depends on the live `orders` table columns.
+
+Migration evidence:
+
+- Pre-check against the live `orders` database found `public.orders.paymentReferenceId`, `public.orders.paymentApplicationId`, and `public.orders.paymentUpdatedAt` already present.
+- Replayed `migrations/005_add_order_payment_status_boundary.sql` through the live `db-server-postgres` pod in namespace `statex-apps`.
+- Guarded replay emitted expected existing-column notices for all three columns and completed with `ALTER TABLE`.
+- Post-check verified the three columns remain present with bounded varchar/timestamp types.
+
+Gate decision:
+
+- Migration readiness: accept.
+- Runtime deployment: not run in this step. The next deployment decision should be explicit because the worktree includes H7/H8 admin and documentation changes beyond the schema verification.
+
+Verification evidence:
+
+- Live schema pre-check: pass.
+- Guarded migration replay: pass.
+- Live schema post-check: pass.
+
+Next unfinished chunk:
+
+- Commit/deploy the completed H7/H8 source and documentation changes when the owner approves the runtime release, or start a future approved candidate contract goal.
