@@ -1009,3 +1009,83 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal H3 chunk H3.5: verify FlipFlop and marketplace adapters can retry safely; then add database-level uniqueness hardening for simultaneous duplicate creates.
+
+
+## 2026-06-13 - Goal 4.4 / H3.5 Channel Adapter Retry Verification
+
+Current focus:
+
+- Owner-selected continuation: implement Goal H3 chunk H3.5 after runtime duplicate protection.
+- Scope: make FlipFlop and marketplace order adapters send the Orders idempotency contract fields so ordinary retries use the same deterministic key.
+
+Implementation evidence:
+
+- Updated flipflop-service/shared/clients/order-client.service.ts.
+- Updated allegro-service/shared/clients/order-client.service.ts.
+- Updated aukro-service/shared/clients/order-client.service.ts.
+- Updated bazos-service/shared/clients/order-client.service.ts.
+- Updated heureka-service/shared/clients/order-client.service.ts.
+- Updated flipflop-service/services/order-service/src/orders/orders.service.ts to send ORDERS_CHANNEL_ACCOUNT_ID or fallback flipflop-storefront.
+- Added scripts/verify-channel-adapter-idempotency.js in orders-microservice and package script verify:channel-adapter-idempotency.
+
+Adapter behavior:
+
+- Channel clients send contractVersion=orders.create.v1 on create-order calls.
+- Channel clients normalize channelAccountId to the supplied value or stable default sentinel default.
+- Same channel retries reuse channel, channelAccountId, and externalOrderId, preserving the Orders idempotency key.
+- Same-key payload conflicts from Orders keep HTTP 409 semantics through ORDER_IDEMPOTENCY_CONFLICT.
+- Channel adapters remain clients of Orders and do not become canonical order lifecycle owners.
+
+Verification evidence:
+
+- orders-microservice npm run verify:channel-adapter-idempotency: pass.
+- orders-microservice npm test: pass.
+- flipflop-service/shared npm run build: pass.
+- allegro-service/shared npm run build: pass.
+- bazos-service/shared npm run build: pass.
+- flipflop-service/services/order-service npm run build: pass.
+- aukro-service/shared npm run build: not run to completion because tsc is not installed in that repo environment.
+- heureka-service/shared npm run build: not run to completion because tsc is not installed in that repo environment.
+
+Gate decision:
+
+- H3.5 readiness: accept with dependency note for Aukro and Heureka local TypeScript install state.
+- Deployment not run in this chunk.
+
+Next unfinished chunk:
+
+- Add database-level uniqueness or another concurrency-safe guard for simultaneous duplicate creates.
+
+## 2026-06-13 - Goal 4.5 / H3 Database Idempotency Guard Migration
+
+Current focus:
+
+- Owner-approved continuation after channel adapter retry verification.
+- Scope: add database-level uniqueness hardening for the Orders create idempotency key without inventing or manually creating the production base orders schema.
+
+Implementation evidence:
+
+- Added `migrations/002_order_idempotency_unique_index.sql`.
+- Migration creates `ux_orders_create_idempotency` on `(channel, COALESCE("channelAccountId", ''), "externalOrderId")` only when `public.orders` exists.
+- The API validates `contractVersion=orders.create.v1`, but contract version is not persisted in the current order shape; the index therefore enforces the persisted idempotency dimensions and the docs call out this limitation.
+
+Database evidence:
+
+- Applied the guarded migration to the live `orders` database with `psql -f migrations/002_order_idempotency_unique_index.sql`: pass, returned `DO`.
+- Confirmed `to_regclass('public.orders')` is null in the current live `orders` database, so the migration intentionally did not create an index yet.
+- No production table was manually created and no schema ownership boundary was bypassed.
+
+Verification evidence:
+
+- `npm run verify:channel-adapter-idempotency`: pass.
+- `npm test`: pass.
+- `git diff --check`: pass.
+
+Gate decision:
+
+- Migration readiness: accept as repository hardening and safe live no-op.
+- Runtime concurrency readiness: partial until the production base orders table migration path exists and the unique index is materialized.
+
+Next unfinished chunk:
+
+- Create or reconcile the production `public.orders` table migration path, then verify `ux_orders_create_idempotency` exists and run a real concurrent duplicate-create test.

@@ -129,7 +129,7 @@ Chunks:
 - [x] H3.2 Add deterministic duplicate lookup. Database uniqueness remains a hardening follow-up.
 - [x] H3.3 Return stable existing order response on safe retry.
 - [x] H3.4 Add conflict response for mismatched duplicate payloads.
-- [ ] H3.5 Verify FlipFlop and marketplace adapters can retry safely.
+- [x] H3.5 Verify FlipFlop and marketplace adapters can retry safely.
 
 Acceptance criteria:
 

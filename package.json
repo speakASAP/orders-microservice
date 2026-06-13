@@ -13,7 +13,8 @@
     "verify:sensitive-logging": "node scripts/verify-sensitive-logging.js",
     "verify:create-order-contract": "node scripts/verify-create-order-contract.js",
     "verify:idempotency-contract": "node scripts/verify-idempotency-contract.js",
-    "verify:duplicate-order-protection": "node scripts/verify-duplicate-order-protection.js"
+    "verify:duplicate-order-protection": "node scripts/verify-duplicate-order-protection.js",
+    "verify:channel-adapter-idempotency": "node scripts/verify-channel-adapter-idempotency.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

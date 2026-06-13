@@ -92,7 +92,7 @@ Chunks:
 - [x] 4.1 Reconcile current `POST /orders` request/response shape with FlipFlop and marketplace expectations.
 - [x] 4.2 Document idempotency expectations for external order IDs and channel account IDs.
 - [x] 4.3 Add duplicate-order protection where missing.
-- [ ] 4.4 Verify consumers can use the contract without storing duplicate canonical order records.
+- [x] 4.4 Verify consumers can use the contract without storing duplicate canonical order records.
 
 Acceptance criteria:
 
@@ -198,7 +198,7 @@ Chunks:
 - [x] H3.2 Add deterministic duplicate lookup. Database uniqueness remains a hardening follow-up.
 - [x] H3.3 Return stable existing order response on safe retry.
 - [x] H3.4 Add conflict response for mismatched duplicate payloads.
-- [ ] H3.5 Verify FlipFlop and marketplace adapters can retry safely.
+- [x] H3.5 Verify FlipFlop and marketplace adapters can retry safely.
 
 Acceptance criteria:
 
