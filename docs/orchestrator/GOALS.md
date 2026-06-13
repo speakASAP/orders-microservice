@@ -267,17 +267,17 @@ Acceptance criteria:
 
 ## Goal H7 - Admin Operations Console
 
-Status: pending
+Status: complete
 
 Intent: Expand the admin panel into a useful operational console while keeping mutating actions explicitly approved and role-scoped.
 
 Chunks:
 
-- [ ] H7.1 Add read-only integration health/status panels for Auth, Warehouse, Payments, Catalog, Notifications, Leads, Marketing.
-- [ ] H7.2 Add idempotency diagnostics for channel/external order IDs.
-- [ ] H7.3 Add event/audit timeline and safe lifecycle log panels.
-- [ ] H7.4 Add role-scoped read-only versus action-capable admin modes.
-- [ ] H7.5 Add human-approved action workflows only for approved transitions.
+- [x] H7.1 Add read-only integration health/status panels for Auth, Warehouse, Payments, Catalog, Notifications, Leads, Marketing.
+- [x] H7.2 Add idempotency diagnostics for channel/external order IDs.
+- [x] H7.3 Add event/audit timeline and safe lifecycle log panels.
+- [x] H7.4 Add role-scoped read-only versus action-capable admin modes.
+- [x] H7.5 Add human-approved action workflows only for approved transitions.
 
 Acceptance criteria:
 
@@ -286,17 +286,17 @@ Acceptance criteria:
 
 ## Goal H8 - Candidate Application Integration Decisions
 
-Status: pending
+Status: complete
 
 Intent: Decide which non-marketplace applications should feed Orders and which should keep domain-local order/payment lifecycles.
 
 Chunks:
 
-- [ ] H8.1 Review Speak ASAP order/payment lifecycle with owner.
-- [ ] H8.2 Review School Committee payment/contribution lifecycle with owner.
-- [ ] H8.3 Review Rentabox reservation/rental lifecycle with owner.
-- [ ] H8.4 Review Marathon VIP checkout/payment-attempt ledger with owner.
-- [ ] H8.5 For approved integrations, create per-application contract goals; for rejected integrations, document exclusion.
+- [x] H8.1 Review Speak ASAP order/payment lifecycle with owner.
+- [x] H8.2 Review School Committee payment/contribution lifecycle with owner.
+- [x] H8.3 Review Rentabox reservation/rental lifecycle with owner.
+- [x] H8.4 Review Marathon VIP checkout/payment-attempt ledger with owner.
+- [x] H8.5 For approved integrations, create per-application contract goals; for rejected integrations, document exclusion.
 
 Acceptance criteria:
 

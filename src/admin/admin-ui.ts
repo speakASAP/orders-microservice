@@ -127,6 +127,14 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
       grid-template-columns: repeat(6, minmax(120px, 1fr));
       gap: 8px;
     }
+    .ops-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+    .ops-body { padding: 14px; display: grid; gap: 12px; }
+    .integration-list, .diag-result { display: grid; gap: 8px; }
     .system {
       background: var(--surface);
       border: 1px solid var(--line);
@@ -136,6 +144,14 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
     }
     .system strong { display: block; font-size: 12px; }
     .system span { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; line-height: 1.35; }
+    .system-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .system-row .pill { flex: 0 0 auto; }
+    .diag-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; align-items: end; }
+    .diag-form .wide { grid-column: 1 / -1; }
+    .action-panel { display: grid; gap: 10px; }
+    .checks { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+    .check { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+    .check input { width: 14px; height: 14px; }
     .metrics { display: grid; grid-template-columns: repeat(5, minmax(130px, 1fr)); gap: 10px; }
     .metric { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 13px 14px; }
     .metric span { color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
@@ -194,7 +210,7 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
     @media (max-width: 1180px) {
       .shell { grid-template-columns: 72px minmax(0, 1fr); }
       .brand span, .nav span, .side-note { display: none; }
-      .metrics, .ecosystem-strip { grid-template-columns: repeat(2, 1fr); }
+      .metrics, .ecosystem-strip, .ops-grid { grid-template-columns: repeat(2, 1fr); }
       .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .layout { grid-template-columns: 1fr; }
       .detail { position: static; max-height: none; }
@@ -203,7 +219,8 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
     @media (max-width: 720px) {
       .topbar { align-items: stretch; flex-direction: column; padding: 14px; }
       .content { padding: 14px; }
-      .metrics, .toolbar, .ecosystem-strip, .session { grid-template-columns: 1fr; }
+      .metrics, .toolbar, .ecosystem-strip, .ops-grid, .diag-form, .checks, .session { grid-template-columns: 1fr; }
+      .diag-form .wide { grid-column: auto; }
     }
   </style>
 </head>
@@ -231,14 +248,55 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
       <section class="content">
         <div id="locked" class="notice visible">Admin visibility requires an Auth-issued JWT with <strong>global:superadmin</strong> or <strong>internal:orders-microservice:admin</strong>. The public shell is visible, but order data remains protected.</div>
         <div id="error" class="error"></div>
-        <div class="ecosystem-strip" aria-label="Ecosystem integration status">
-          <div class="system"><strong>Auth</strong><span>JWT/RBAC authority for admin access</span></div>
-          <div class="system"><strong>Catalog</strong><span>Product truth remains external</span></div>
-          <div class="system"><strong>Warehouse</strong><span>Stock and reservations boundary</span></div>
-          <div class="system"><strong>Payments</strong><span>Payment identity and reconciliation owner</span></div>
-          <div class="system"><strong>Notifications</strong><span>Delivery service for lifecycle messages</span></div>
-          <div class="system"><strong>Leads/Marketing</strong><span>Read-only CRM signals</span></div>
+        <div class="ops-grid">
+          <section class="panel">
+            <div class="panel-head"><h2>Integration health</h2><span class="count" id="opsMode">Locked</span></div>
+            <div class="ops-body">
+              <div class="integration-list" id="integrations">
+                <div class="locked"><div><strong>Protected operations data</strong>Load with an authorized token to inspect read-only integration health.</div></div>
+              </div>
+              <div class="metrics">
+                <div class="metric"><span>Open</span><strong id="oOpen">-</strong></div>
+                <div class="metric"><span>Stale</span><strong id="oStale">-</strong></div>
+                <div class="metric"><span>Paid</span><strong id="oPaid">-</strong></div>
+                <div class="metric"><span>Shipments</span><strong id="oShipments">-</strong></div>
+                <div class="metric"><span>Handoffs</span><strong id="oHandoffs">-</strong></div>
+              </div>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h2>Idempotency diagnostics</h2><span class="count" id="diagState">Locked</span></div>
+            <div class="ops-body">
+              <form class="diag-form" id="diagForm">
+                <div class="field"><label for="diagChannel">Channel</label><input id="diagChannel" name="channel" placeholder="flipflop" /></div>
+                <div class="field"><label for="diagAccount">Account</label><input id="diagAccount" name="channelAccountId" placeholder="store or integration id" /></div>
+                <div class="field wide"><label for="diagExternal">External order ID</label><input id="diagExternal" name="externalOrderId" placeholder="upstream order id" /></div>
+                <button class="btn primary" type="submit">Check key</button>
+              </form>
+              <div class="diag-result" id="diagResult"><div class="muted">Query a channel and external order ID after loading admin data.</div></div>
+            </div>
+          </section>
         </div>
+        <section class="panel">
+          <div class="panel-head"><h2>Approved actions</h2><span class="count" id="actionMode">Locked</span></div>
+          <div class="ops-body action-panel">
+            <form class="diag-form" id="actionForm">
+              <div class="field"><label for="actionOrderId">Order ID</label><input id="actionOrderId" name="orderId" placeholder="canonical order uuid" /></div>
+              <div class="field"><label for="actionStatus">Status</label><select id="actionStatus" name="status"><option value="confirmed">confirmed</option><option value="processing">processing</option><option value="shipped">shipped</option><option value="delivered">delivered</option><option value="cancelled">cancelled</option></select></div>
+              <div class="field"><label for="actionReason">Reason code</label><input id="actionReason" name="reasonCode" placeholder="CUSTOMER_REQUEST" /></div>
+              <div class="field"><label for="actionApprovedBy">Approved by</label><input id="actionApprovedBy" name="approvedBy" placeholder="Auth actor or approver" /></div>
+              <div class="checks wide" aria-label="Side-effect acknowledgements">
+                <label class="check"><input type="checkbox" name="payment" />Payment</label>
+                <label class="check"><input type="checkbox" name="warehouse" />Warehouse</label>
+                <label class="check"><input type="checkbox" name="notification" />Notify</label>
+                <label class="check"><input type="checkbox" name="crm" />CRM</label>
+                <label class="check"><input type="checkbox" name="channel" />Channel</label>
+              </div>
+              <button class="btn primary" type="submit" id="runAction" disabled>Read-only mode</button>
+            </form>
+            <div class="diag-result" id="actionResult"><div class="muted">Default admin mode is read-only. Action-capable roles can run approved lifecycle workflows.</div></div>
+          </div>
+        </section>
         <div class="metrics">
           <div class="metric"><span>Total</span><strong id="mTotal">-</strong></div>
           <div class="metric"><span>Matching</span><strong id="mMatching">-</strong></div>
@@ -286,19 +344,31 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
       renderOrders();
       setError('');
       setLocked(true);
+      renderOperations(null);
+      renderDiagnostics(null);
+      renderActionCatalog(null);
+      renderActionResult(null);
       el('detailState').textContent = 'Locked';
       el('detail').innerHTML = '<div class="locked"><div><strong>Protected admin data</strong>Load with an authorized token to inspect details, source metadata, items, shipments, timelines, and safe lifecycle logs.</div></div>';
     });
     el('filters').addEventListener('submit', (event) => { event.preventDefault(); loadDashboard(); });
     el('reset').addEventListener('click', () => { el('filters').reset(); loadDashboard(); });
+    el('diagForm').addEventListener('submit', (event) => { event.preventDefault(); loadDiagnostics(); });
+    el('actionForm').addEventListener('submit', (event) => { event.preventDefault(); runApprovedAction(); });
 
     function authHeaders() {
       const token = tokenInput.value.trim() || sessionStorage.getItem('ordersAdminToken') || '';
       return token ? { Authorization: 'Bearer ' + token } : {};
     }
 
-    async function api(path) {
-      const response = await fetch(path, { headers: authHeaders() });
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        ...options,
+        headers: {
+          ...authHeaders(),
+          ...(options.headers || {}),
+        },
+      });
       if (!response.ok) {
         throw new Error(response.status === 401 || response.status === 403 ? 'Admin token is missing, expired, or lacks the Orders admin role.' : 'Request failed with status ' + response.status);
       }
@@ -323,8 +393,75 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
         renderMetrics(data.metrics || {});
         renderFilterOptions(data.filters || {});
         renderOrders();
+        loadOperations();
+        loadActionCatalog();
       } catch (error) {
         setLocked(true);
+        setError(error.message);
+      }
+    }
+
+    async function loadOperations() {
+      try {
+        const data = await api('/api/admin/operations/overview');
+        renderOperations(data);
+      } catch (error) {
+        setError(error.message);
+        renderOperations(null);
+      }
+    }
+
+    async function loadDiagnostics() {
+      setError('');
+      const params = new URLSearchParams(new FormData(el('diagForm')));
+      params.set('contractVersion', 'orders.create.v1');
+      try {
+        const data = await api('/api/admin/operations/idempotency?' + params.toString());
+        renderDiagnostics(data);
+      } catch (error) {
+        setError(error.message);
+        renderDiagnostics(null);
+      }
+    }
+
+    async function loadActionCatalog() {
+      try {
+        const data = await api('/api/admin/operations/actions');
+        renderActionCatalog(data);
+      } catch (error) {
+        renderActionCatalog(null);
+      }
+    }
+
+    async function runApprovedAction() {
+      setError('');
+      const form = new FormData(el('actionForm'));
+      const body = {
+        orderId: String(form.get('orderId') || '').trim(),
+        status: String(form.get('status') || '').trim(),
+        approval: {
+          approved: true,
+          approvalType: 'human',
+          approvedBy: String(form.get('approvedBy') || '').trim(),
+          reasonCode: String(form.get('reasonCode') || '').trim(),
+          sideEffectsHandled: {
+            payment: form.get('payment') === 'on',
+            warehouse: form.get('warehouse') === 'on',
+            notification: form.get('notification') === 'on',
+            crm: form.get('crm') === 'on',
+            channel: form.get('channel') === 'on',
+          },
+        },
+      };
+      try {
+        const data = await api('/api/admin/operations/actions/order-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        renderActionResult(data);
+        loadDashboard();
+      } catch (error) {
         setError(error.message);
       }
     }
@@ -341,6 +478,40 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
       fillSelect('application', filters.applications || []);
       fillSelect('service', filters.services || []);
       fillSelect('state', filters.states || []);
+    }
+
+    function renderOperations(data) {
+      el('opsMode').textContent = data ? (data.mode.readOnly ? 'Read-only' : 'Actions enabled') : 'Locked';
+      const lifecycle = data?.lifecycle || {};
+      el('oOpen').textContent = lifecycle.openOrders ?? '-';
+      el('oStale').textContent = lifecycle.staleOpenOrders ?? '-';
+      el('oPaid').textContent = lifecycle.paidOrders ?? '-';
+      el('oShipments').textContent = lifecycle.shipmentRecords ?? '-';
+      el('oHandoffs').textContent = lifecycle.warehouseHandoffs ?? '-';
+      el('integrations').innerHTML = data ? (data.integrations || []).map((item) => '<div class="system"><div class="system-row"><strong>' + escapeHtml(item.name) + '</strong><span class="pill">' + escapeHtml(item.status) + '</span></div><span>' + escapeHtml(item.owner) + '</span><span>' + escapeHtml(item.signal) + '</span><span>' + escapeHtml(item.evidence) + '</span></div>').join('') : '<div class="locked"><div><strong>Protected operations data</strong>Load with an authorized token to inspect read-only integration health.</div></div>';
+    }
+
+    function renderDiagnostics(data) {
+      el('diagState').textContent = data ? data.outcome : 'Locked';
+      if (!data) {
+        el('diagResult').innerHTML = '<div class="muted">Query a channel and external order ID after loading admin data.</div>';
+        return;
+      }
+      el('diagResult').innerHTML = '<div class="event"><strong>' + escapeHtml(data.outcome) + '</strong><span class="muted">' + escapeHtml(data.contractVersion) + '</span><span>' + escapeHtml(data.guidance) + '</span></div>' +
+        (data.matches || []).map((order) => '<div class="item"><strong class="mono">' + shortId(order.id) + '</strong><span class="muted">' + escapeHtml(order.source.channel) + ' / ' + escapeHtml(order.source.accountId || 'default') + '</span><span>' + escapeHtml(order.state) + ' - ' + formatDate(order.updatedAt || order.createdAt) + '</span></div>').join('');
+    }
+
+    function renderActionCatalog(data) {
+      const canRun = Boolean(data?.mode?.canRunActions);
+      el('actionMode').textContent = data ? data.mode.name : 'Locked';
+      el('runAction').disabled = !canRun;
+      el('runAction').textContent = canRun ? 'Run approved action' : 'Read-only mode';
+      el('actionResult').innerHTML = data ? '<div class="event"><strong>' + escapeHtml(data.mode.name) + '</strong><span>' + escapeHtml(data.mode.actionPolicy) + '</span></div>' : '<div class="muted">Default admin mode is read-only. Action-capable roles can run approved lifecycle workflows.</div>';
+    }
+
+    function renderActionResult(data) {
+      if (!data) return;
+      el('actionResult').innerHTML = '<div class="event"><strong>' + escapeHtml(data.action.workflow) + '</strong><span class="muted">' + escapeHtml(data.action.resourceId) + '</span><span>' + escapeHtml(data.action.requestedStatus) + ' -> ' + escapeHtml(data.action.resultingStatus) + '</span></div>';
     }
 
     function fillSelect(id, values) {

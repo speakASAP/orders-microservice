@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
 import { Order } from '../orders/order.entity';
+import { OrdersService } from '../orders/orders.service';
+import { OrderStatusApprovalInput } from '../orders/status-transitions';
 import { Shipment } from '../shipments/shipment.entity';
 
 type SourceMeta = {
@@ -24,6 +26,37 @@ type OrderFilters = {
   limit?: string;
 };
 
+type IdempotencyDiagnosticFilters = {
+  contractVersion?: string;
+  channel?: string;
+  channelAccountId?: string;
+  externalOrderId?: string;
+};
+
+type AdminActor = {
+  sub?: string;
+  email?: string;
+  roles?: string[];
+};
+
+type AdminOrderStatusActionInput = {
+  orderId?: string;
+  status?: string;
+  approval?: OrderStatusApprovalInput;
+};
+
+const ORDER_CREATE_CONTRACT_VERSION = 'orders.create.v1';
+export const ADMIN_READ_ROLES = [
+  'global:superadmin',
+  'internal:orders-microservice:admin',
+  'internal:orders-microservice:readonly',
+  'internal:orders-microservice:operator',
+] as const;
+export const ADMIN_ACTION_ROLES = [
+  'global:superadmin',
+  'internal:orders-microservice:action-admin',
+] as const;
+
 const SOURCE_CATALOG: Record<string, { application: string; service: string }> = {
   flipflop: { application: 'FlipFlop Storefront', service: 'flipflop-service' },
   allegro: { application: 'Allegro Marketplace', service: 'allegro-service' },
@@ -39,6 +72,7 @@ export class AdminService {
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(Shipment)
     private readonly shipmentRepository: Repository<Shipment>,
+    private readonly ordersService: OrdersService,
   ) {}
 
   async getDashboard(filters: OrderFilters) {
@@ -121,6 +155,143 @@ export class AdminService {
         hasCustomerNote: Boolean(order.customerNote),
         hasInternalNote: Boolean(order.internalNote),
       },
+    };
+  }
+
+  async getOperationsOverview(actor: AdminActor = {}) {
+    const orders = await this.orderRepository.find({
+      select: ['id', 'channel', 'channelAccountId', 'externalOrderId', 'status', 'paymentStatus', 'warehouseHandoff', 'updatedAt'],
+    });
+    const shipmentCount = await this.shipmentRepository.count();
+    const now = Date.now();
+    const openStates = new Set(['pending', 'confirmed', 'processing']);
+    const staleOpenOrders = orders.filter((order) => {
+      if (!openStates.has(order.status)) return false;
+      const updatedAt = order.updatedAt ? new Date(order.updatedAt).getTime() : 0;
+      return updatedAt > 0 && now - updatedAt > 24 * 60 * 60 * 1000;
+    }).length;
+
+    return {
+      generatedAt: new Date().toISOString(),
+      mode: this.getAdminMode(actor),
+      integrations: this.getIntegrationHealth(orders, shipmentCount),
+      idempotency: this.getIdempotencySummary(orders),
+      lifecycle: {
+        openOrders: orders.filter((order) => openStates.has(order.status)).length,
+        staleOpenOrders,
+        paidOrders: orders.filter((order) => order.paymentStatus === 'paid').length,
+        shipmentRecords: shipmentCount,
+        warehouseHandoffs: orders.filter((order) => Boolean(order.warehouseHandoff)).length,
+      },
+    };
+  }
+
+  getActionCatalog(actor: AdminActor = {}) {
+    const mode = this.getAdminMode(actor);
+    return {
+      generatedAt: new Date().toISOString(),
+      mode,
+      workflows: [
+        {
+          id: 'order.status.update',
+          enabled: mode.canRunActions,
+          resourceType: 'order',
+          allowedStatuses: ['confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
+          approvalRequiredFor: ['cancelled'],
+          approval: {
+            approvalType: 'human',
+            requiredSideEffects: ['payment', 'warehouse', 'notification', 'crm', 'channel'],
+            reasonCode: '3-80 uppercase letters, numbers, underscores, or hyphens',
+          },
+          boundary: 'Delegates to OrdersService.updateStatus and the existing order state-machine validator.',
+        },
+      ],
+    };
+  }
+
+  async applyOrderStatusAction(input: AdminOrderStatusActionInput, actor: AdminActor = {}) {
+    const mode = this.getAdminMode(actor);
+    if (!mode.canRunActions) {
+      throw new ForbiddenException('Orders admin action role is required for lifecycle mutations');
+    }
+
+    const orderId = input.orderId?.trim();
+    const status = input.status?.trim();
+    if (!orderId || !status) {
+      throw new BadRequestException('orderId and status are required for admin order status actions');
+    }
+
+    const updated = await this.ordersService.updateStatus(orderId, status, {
+      approval: input.approval,
+      actor,
+    });
+
+    return {
+      success: true,
+      action: {
+        workflow: 'order.status.update',
+        resourceType: 'order',
+        resourceId: updated.id,
+        requestedStatus: status,
+        resultingStatus: updated.status,
+        approvalRequired: status.toLowerCase() === 'cancelled',
+        actorMode: mode.name,
+      },
+      order: this.serializeOrderSummary(updated),
+    };
+  }
+
+  async getIdempotencyDiagnostics(filters: IdempotencyDiagnosticFilters) {
+    const contractVersion = (filters.contractVersion || ORDER_CREATE_CONTRACT_VERSION).trim();
+    if (contractVersion !== ORDER_CREATE_CONTRACT_VERSION) {
+      throw new BadRequestException(`Unsupported order create contract version: ${contractVersion}`);
+    }
+
+    const channel = filters.channel?.trim().toLowerCase();
+    const externalOrderId = filters.externalOrderId?.trim();
+    const channelAccountId = filters.channelAccountId?.trim();
+    if (!channel || !externalOrderId) {
+      throw new BadRequestException('channel and externalOrderId are required for idempotency diagnostics');
+    }
+
+    const query = this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.items', 'item')
+      .where('LOWER(order.channel) = :channel', { channel })
+      .andWhere('order.externalOrderId = :externalOrderId', { externalOrderId })
+      .orderBy('order.createdAt', 'DESC')
+      .take(25);
+
+    if (channelAccountId !== undefined) {
+      query.andWhere("COALESCE(order.channelAccountId, '') = :channelAccountId", { channelAccountId });
+    }
+
+    const matches = await query.getMany();
+    const accountScopes = Array.from(new Set(matches.map((order) => order.channelAccountId || ''))).sort();
+
+    return {
+      contractVersion,
+      query: {
+        channel,
+        channelAccountId: channelAccountId || null,
+        externalOrderId,
+      },
+      outcome: matches.length === 0 ? 'not_found' : matches.length === 1 ? 'single_match' : 'multiple_matches',
+      duplicateRisk: matches.length > 1,
+      accountScopes,
+      matches: matches.map((order) => ({
+        id: order.id,
+        state: order.status,
+        source: this.getSourceMeta(order),
+        itemCount: (order.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0),
+        total: this.toNumber(order.total),
+        currency: order.currency,
+        createdAt: this.toIso(order.createdAt),
+        updatedAt: this.toIso(order.updatedAt),
+      })),
+      guidance: matches.length === 0
+        ? 'No canonical order exists for this idempotency key.'
+        : 'Safe retry should return the existing canonical order without creating new rows or rerunning side effects.',
     };
   }
 
@@ -304,6 +475,98 @@ export class AdminService {
     });
 
     return logs.sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  }
+
+  private getAdminMode(actor: AdminActor = {}) {
+    const roles = Array.isArray(actor.roles) ? actor.roles : [];
+    const canRunActions = roles.some((role) => ADMIN_ACTION_ROLES.includes(role as typeof ADMIN_ACTION_ROLES[number]));
+    const canRead = canRunActions || roles.some((role) => ADMIN_READ_ROLES.includes(role as typeof ADMIN_READ_ROLES[number]));
+
+    return {
+      name: canRunActions ? 'action-capable' : 'read-only',
+      readOnly: !canRunActions,
+      canRead,
+      canRunActions,
+      actionWorkflowsEnabled: canRunActions,
+      allowedReadRoles: [...ADMIN_READ_ROLES],
+      actionRolesRequired: [...ADMIN_ACTION_ROLES],
+      actionPolicy: canRunActions
+        ? 'Action-capable role present. Mutations still delegate to approved Orders workflows and state-machine gates.'
+        : 'Default admin mode is read-only. Human-approved mutations require global:superadmin or internal:orders-microservice:action-admin.',
+    };
+  }
+
+  private getIntegrationHealth(orders: Order[], shipmentCount: number) {
+    const channelSet = new Set(orders.map((order) => (order.channel || '').toLowerCase()).filter(Boolean));
+    const eventBusConfigured = Boolean(process.env.RABBITMQ_URL);
+    return [
+      {
+        name: 'Auth',
+        owner: 'auth-microservice',
+        status: process.env.JWT_SECRET ? 'configured' : 'missing_configuration',
+        signal: 'JWT role guard protects admin JSON routes',
+        evidence: process.env.JWT_SECRET ? 'JWT_SECRET configured' : 'JWT_SECRET missing',
+      },
+      {
+        name: 'Warehouse',
+        owner: 'warehouse-microservice',
+        status: process.env.WAREHOUSE_RESERVATION_ENABLED === 'true' ? 'enabled' : 'disabled',
+        signal: `${orders.filter((order) => Boolean(order.warehouseHandoff)).length} orders have warehouse handoff metadata`,
+        evidence: process.env.WAREHOUSE_RESERVATION_ENABLED === 'true' ? 'reservation handoff enabled' : 'reservation handoff disabled',
+      },
+      {
+        name: 'Payments',
+        owner: 'payments-microservice',
+        status: 'available',
+        signal: `${orders.filter((order) => Boolean(order.paymentStatus)).length} orders have bounded payment status`,
+        evidence: 'orders.payment-status.v1 callback boundary is present',
+      },
+      {
+        name: 'Catalog',
+        owner: 'catalog-microservice',
+        status: process.env.PRODUCT_SERVICE_URL || process.env.CATALOG_SERVICE_URL ? 'configured' : 'not_configured',
+        signal: 'Product truth remains external; Orders stores order item snapshots only',
+        evidence: process.env.PRODUCT_SERVICE_URL || process.env.CATALOG_SERVICE_URL ? 'catalog/product URL configured' : 'catalog/product URL not configured',
+      },
+      {
+        name: 'Notifications',
+        owner: 'notifications-microservice',
+        status: eventBusConfigured ? 'event_signal_ready' : 'event_signal_local_default',
+        signal: 'Consumes versioned order lifecycle events as read-only delivery signals',
+        evidence: eventBusConfigured ? 'RabbitMQ URL configured' : 'RabbitMQ default/fallback configuration',
+      },
+      {
+        name: 'Leads',
+        owner: 'leads-microservice',
+        status: eventBusConfigured ? 'event_signal_ready' : 'event_signal_local_default',
+        signal: 'Consumes order events without becoming order truth',
+        evidence: `${channelSet.size} source channels observed`,
+      },
+      {
+        name: 'Marketing',
+        owner: 'marketing-microservice',
+        status: eventBusConfigured ? 'event_signal_ready' : 'event_signal_local_default',
+        signal: 'Receives lifecycle events only; no campaign execution happens in Orders',
+        evidence: `${shipmentCount} shipment records available for lifecycle context`,
+      },
+    ];
+  }
+
+  private getIdempotencySummary(orders: Order[]) {
+    const ordersWithExternalId = orders.filter((order) => Boolean(order.externalOrderId));
+    const groups = new Map<string, number>();
+    for (const order of ordersWithExternalId) {
+      const key = [order.channel || '', order.channelAccountId || '', order.externalOrderId || ''].join('|');
+      groups.set(key, (groups.get(key) || 0) + 1);
+    }
+
+    return {
+      contractVersion: ORDER_CREATE_CONTRACT_VERSION,
+      ordersWithExternalId: ordersWithExternalId.length,
+      channelAccountScopes: new Set(ordersWithExternalId.map((order) => `${order.channel || 'unknown'}:${order.channelAccountId || 'default'}`)).size,
+      duplicateKeyGroups: Array.from(groups.values()).filter((count) => count > 1).length,
+      diagnosticInputs: ['channel', 'channelAccountId', 'externalOrderId'],
+    };
   }
 
   private getFilterOptions(orders: Order[]) {

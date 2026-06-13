@@ -1361,3 +1361,136 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal H7 admin operations console or owner-selected deployment/migration step.
+
+## 2026-06-13 - Goal H7 Admin Operations Console, Read-Only Operations Panels
+
+Current focus:
+
+- Owner-approved continuation for Goal H7 - Admin Operations Console.
+- Scope: read-only operational visibility and diagnostics only; no cancellation, refund, destructive correction, pricing mutation, warehouse mutation, payment mutation, or catalog mutation behavior changed.
+
+Implementation evidence:
+
+- Added protected `GET /api/admin/operations/overview` for read-only integration health, admin mode metadata, lifecycle operating metrics, and idempotency summary.
+- Added protected `GET /api/admin/operations/idempotency` for `orders.create.v1` diagnostics by channel, optional channel account ID, and external order ID.
+- Extended `src/admin/admin-ui.ts` with integration health and idempotency diagnostic panels that load only through the existing Auth bearer-token path.
+- Kept default admin operations mode read-only. The API explicitly reports `actionWorkflowsEnabled=false`; H7.4 and H7.5 remain open.
+- Added `scripts/verify-admin-operations-console.js` and wired `npm test` to run `npm run verify:admin-operations-console`.
+- Updated `docs/orchestrator/GOALS.md`, `docs/orchestrator/ORDERS_HUB_ROADMAP.md`, and `docs/IMPLEMENTATION_STATE.md` to mark H7.1-H7.3 complete and H7.4-H7.5 open.
+
+Boundary decisions:
+
+- Auth remains the authority for admin identity and roles. Orders consumes Auth-issued JWT roles and does not mint sessions or users.
+- Warehouse, Payments, Catalog, Notifications, Leads, and Marketing are shown as integration boundaries/status signals only; Orders does not take over their domain ownership.
+- Idempotency diagnostics return canonical order IDs, bounded source metadata, state, totals, item counts, and timestamps only. They do not expose addresses, raw payment references, provider payloads, tracking URLs, tokens, secrets, or customer free text.
+- Safe lifecycle timeline/log panels remain derived from bounded order, item, and shipment metadata.
+
+Verification evidence:
+
+- `npm run build`: pass.
+- `npm run verify:admin-operations-console`: pass; read-only integration health, idempotency diagnostics, protected route declarations, UI panels, and sensitive response exclusions passed.
+- `npm test`: pass; build, transitions, sensitive logging, create-order contract, idempotency contract, duplicate protection, event contracts, warehouse handoff, payment boundary, and admin operations console checks passed.
+
+Gate decision:
+
+- H7.1-H7.3 readiness: accept.
+- Deployment readiness: pending explicit release/deploy decision.
+
+Next unfinished chunk:
+
+- Goal H7.4 role-scoped read-only versus action-capable admin modes.
+
+## 2026-06-13 - Goal H7 Admin Operations Console, Role-Scoped Approved Actions
+
+Current focus:
+
+- Complete Goal H7 - Admin Operations Console by adding role-scoped read-only versus action-capable modes and bounded human-approved action workflows.
+- Scope: admin operations only. No payment provider identity, refund execution, warehouse stock authority, catalog truth, notifications delivery, CRM ownership, or pricing mutation ownership moved into Orders.
+
+Implementation evidence:
+
+- Added `ADMIN_READ_ROLES` and `ADMIN_ACTION_ROLES` to `src/admin/admin.service.ts`.
+- Kept default `internal:orders-microservice:admin` read-only. Action-capable workflows require `global:superadmin` or `internal:orders-microservice:action-admin`.
+- Added protected `GET /api/admin/operations/actions` to expose the available workflow catalog and current mode.
+- Added protected `POST /api/admin/operations/actions/order-status` for approved order lifecycle actions.
+- Wired the action endpoint through `OrdersService.updateStatus`, preserving the existing state-machine validation, cancellation approval audit, side-effect acknowledgements, Warehouse cancellation handoff, and event publishing behavior.
+- Extended `src/admin/admin-ui.ts` with an approved actions panel. The action button is disabled in read-only mode and the request sends only order ID, target status, reason code, approver label, and side-effect acknowledgement booleans.
+- Imported `OrdersModule` into `AdminModule` so the admin action layer delegates to the existing Orders service.
+- Extended `scripts/verify-admin-operations-console.js` to check read-only/action-capable policy, compiled Nest role metadata, approved action workflow delegation, UI wiring, and sensitive response exclusions.
+- Updated `docs/orchestrator/GOALS.md`, `docs/orchestrator/ORDERS_HUB_ROADMAP.md`, and `docs/IMPLEMENTATION_STATE.md` to mark H7 complete.
+
+Boundary decisions:
+
+- Default admin remains read-only.
+- Action-capable mode is explicit and role-scoped.
+- Human approval metadata is required for cancellation by the existing `validateOrderStatusTransitionWithAudit` gate.
+- Refund-like operations remain rejected by the Payments boundary and are not exposed through the admin operations workflow.
+- Destructive terminal-state corrections remain outside this workflow.
+
+Verification evidence:
+
+- `npm run build`: pass.
+- `npm run verify:admin-operations-console`: pass; read-only integration health, idempotency diagnostics, protected route declarations and role metadata, read-only/action-capable mode policy, approved order status workflow delegation, UI panels, and sensitive response exclusions passed.
+- `npm test`: pass; build, transitions, sensitive logging, create-order contract, idempotency contract, duplicate protection, event contracts, warehouse handoff, payment boundary, and admin operations console checks passed.
+- Local Playwright render smoke against the admin HTML: pass; Integration health, Idempotency diagnostics, and Approved actions panels rendered; the action button starts disabled with `Read-only mode`; no visible error banner was present.
+
+Gate decision:
+
+- H7 readiness: accept.
+- Deployment readiness: pending explicit release/deploy decision.
+
+Next unfinished chunk:
+
+- Goal H8 candidate application integration decisions or owner-selected deployment/migration step.
+
+## 2026-06-13 - Goal H8 Candidate Application Integration Decisions
+
+Current focus:
+
+- Complete Goal H8 - Candidate Application Integration Decisions.
+- Scope: documentation and decision record only. No runtime integration, API behavior, database schema, deployment, or candidate repository code changed.
+
+Context search evidence:
+
+- Read Orders preserved intent and invariants: `docs/orchestrator/INTENT.md`, `docs/orchestrator/PROJECT_INVARIANTS.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/ORDERS_HUB_ROADMAP.md`, and `docs/IMPLEMENTATION_STATE.md`.
+- Reviewed SpeakASAP docs and targeted payment/order evidence: `speakasap/BUSINESS.md`, `speakasap/SYSTEM.md`, `speakasap/README.md`, `speakasap/docs/refactoring/GATEWAY_API_CONTRACT.md`, `speakasap/docs/refactoring/GATEWAY_ROUTE_OWNERSHIP_MATRIX.md`, and `speakasap/docs/orchestrator/WORKFLOW_OWNERSHIP_MAP.md`.
+- Reviewed School Committee docs and schema evidence: `school-committee/BUSINESS.md`, `school-committee/SYSTEM.md`, `school-committee/README.md`, `school-committee/prisma/schema.prisma`, `school-committee/types/payments.ts`, and focused payment tests/docs search.
+- Reviewed Rentabox docs: `rent-a-box/docs/mvp-boundary.md`, `rent-a-box/docs/goals/GOAL-04-reservation-payment-rental-lifecycle.md`, `rent-a-box/docs/goals/GOAL-05-contracts-pin-notifications.md`, `rent-a-box/docs/api.md`, `rent-a-box/docs/database.md`, and `rent-a-box/docs/goals/ORCHESTRATION_STATE.md`.
+- Reviewed Marathon docs and targeted payment ledger evidence: `marathon/BUSINESS.md`, `marathon/SYSTEM.md`, `marathon/GOALS.md`, `marathon/docs/intent/05_subsystems/SUB-002-vip-payments.md`, `marathon/docs/intent/07_decisions/ADR-003-payment-attempt-ledger.md`, and `marathon/docs/intent/04_systems/SYS-001-marathon-platform.md`.
+- DocsRAG live query was not run from this Orders session because no session `JWT_TOKEN` was available; repository source-of-truth docs were used as compensating evidence.
+
+Decision evidence:
+
+- Added `docs/orchestrator/CANDIDATE_APPLICATION_INTEGRATION_DECISIONS.md`.
+- Marked H8 chunks H8.1-H8.5 complete in `docs/orchestrator/GOALS.md` and `docs/orchestrator/ORDERS_HUB_ROADMAP.md`.
+- Updated `docs/IMPLEMENTATION_STATE.md` to record H8 completion and the next action.
+
+Decision summary:
+
+- SpeakASAP: excluded for now. SpeakASAP `payment-service` owns its education order/invoice/subscription/payment-webhook domain; external payment processing remains in `payments-microservice`.
+- School Committee: excluded. Contributions are QR/bank payment intents, variable symbols, and reconciliation events owned by the committee platform and legal association context.
+- Rentabox: excluded for MVP v1. The domain is reservation, mock payment, rental activation, contracts, PIN access, and customer/admin self-storage workflows, not a sales-channel order flow.
+- Marathon: excluded. Marathon owns participant registration, VIP payment-attempt ledger, gift redemption, assignment progress, and VIP state; VIP unlock requires a matching payment attempt.
+- No approved integrations were identified, so no per-application runtime contract goals were created.
+
+Boundary decisions:
+
+- No application is forced into central Orders without owner approval.
+- Future candidate integration requires a new owner-approved contract goal naming create contract, idempotency key, event payloads, payment references, warehouse/no-warehouse decision, sensitive-data policy, rollback, and coexistence plan.
+- Orders remains canonical for sales-channel orders and lifecycle events; it does not take over education payments, parent-committee contributions, self-storage rentals/access, or Marathon participant/VIP state.
+
+Verification evidence:
+
+- Documentation-only gate: runtime build not required.
+- H8 decision discoverability: pass; `docs/orchestrator/CANDIDATE_APPLICATION_INTEGRATION_DECISIONS.md` exists and is referenced by `docs/IMPLEMENTATION_STATE.md`.
+- IPS missing-marker scan: pass; no missing or unknown markers found in IPS documentation scope.
+- Sensitive logging/literal scan: pass; `npm run verify:sensitive-logging` completed successfully.
+- `git diff --check`: pass.
+
+Gate decision:
+
+- H8 documentation readiness: accept.
+
+Next unfinished chunk:
+
+- Owner-selected deployment/migration step or future approved candidate contract goal.

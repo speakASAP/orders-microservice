@@ -20,14 +20,15 @@ upstream:
   - docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md
   - docs/orchestrator/ORDER_IDEMPOTENCY_CONTRACT.md
   - docs/orchestrator/ORDERS_HUB_ROADMAP.md
+  - docs/orchestrator/CANDIDATE_APPLICATION_INTEGRATION_DECISIONS.md
 downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: none
 current_chunk: none
-next_recommended_goal: Goal H7 admin operations console or owner-selected deployment/migration step
-last_completed_goal: Goal H5.5 payment-success, cancellation, and return verification
+next_recommended_goal: owner-selected deployment/migration step or future approved candidate contract goal
+last_completed_goal: Goal H8 candidate application integration decisions
 blockers: []
 ```
 
@@ -52,6 +53,10 @@ Goal H4 is complete. Orders now defines `orders.order.created.v1`, `orders.order
 
 Goal 3 remains complete. Sensitive logging regression checks are wired into `npm test` and continue to pass. Goal 2 remains complete; owner-approved cancellation gates and state-transition validation remain in force.
 
+Goal H7 is complete. The protected admin console now exposes read-only integration health for Auth, Warehouse, Payments, Catalog, Notifications, Leads, and Marketing; idempotency diagnostics for `orders.create.v1` channel/external order keys; safe order detail timeline/lifecycle log panels; role-scoped read-only versus action-capable modes; and a human-approved order status action workflow that delegates to the existing Orders state-machine and cancellation approval gates.
+
+Goal H8 is complete. SpeakASAP, School Committee, Rentabox, and Marathon were reviewed from repository source-of-truth docs and targeted lifecycle evidence. No candidate is approved to feed Orders in this pass. All reviewed candidates keep domain-local lifecycle ownership unless a future owner-approved contract goal explicitly defines the Orders create contract, idempotency key, payment boundary, warehouse/stock boundary, event contract, sensitive-data policy, rollback, and coexistence plan.
+
 ## Preserved Intent Summary
 
 `orders-microservice` is the canonical order processing and lifecycle service. It stores orders, order items, shipment records, order status, and order events for all sales channels. FlipFlop and marketplace services are clients of Orders, not duplicate order sources of truth. Catalog remains product truth, Warehouse remains stock truth, Payments remains payment identity/reconciliation truth, and Auth remains identity/RBAC truth.
@@ -72,12 +77,19 @@ Goal 3 remains complete. Sensitive logging regression checks are wired into `npm
 - Updated `OrderEventsService` to publish versioned routing keys and message headers, sanitize approval metadata, emit `orders.order.cancelled.v1` for approved cancellation, and omit tracking numbers from shipped events.
 - Added `docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md`, `src/warehouse/warehouse-reservation.client.ts`, `migrations/004_add_order_warehouse_handoff.sql`, and `scripts/verify-warehouse-handoff-contract.js` for H5.
 - Added `docs/orchestrator/PAYMENT_STATUS_BOUNDARY.md`, `src/payments/payment-status.dto.ts`, `migrations/005_add_order_payment_status_boundary.sql`, and `scripts/verify-payment-boundary.js` for H6.
+- Added protected H7 admin operations endpoints `GET /api/admin/operations/overview` and `GET /api/admin/operations/idempotency`.
+- Extended the admin UI with read-only integration health, lifecycle operating metrics, and idempotency diagnostic panels.
+- Added protected H7 action endpoints `GET /api/admin/operations/actions` and `POST /api/admin/operations/actions/order-status`.
+- Added `ADMIN_READ_ROLES` and `ADMIN_ACTION_ROLES`; default `internal:orders-microservice:admin` remains read-only while `global:superadmin` and `internal:orders-microservice:action-admin` can run approved action workflows.
+- Added an approved action UI panel that requires human approval metadata and cancellation side-effect acknowledgements before calling the bounded action endpoint.
+- Added `scripts/verify-admin-operations-console.js` and wired `npm test` to run `npm run verify:admin-operations-console`.
+- Added `docs/orchestrator/CANDIDATE_APPLICATION_INTEGRATION_DECISIONS.md` for H8. It records excluded-for-now decisions for SpeakASAP, School Committee, Rentabox, and Marathon, plus future owner-approved contract gates.
 - Applied the live `orders.warehouseHandoff` `jsonb` migration and verified the column exists. The H6 payment status migration is not applied yet.
 - DocsRAG live query was not run because no session JWT_TOKEN was available; repository source-of-truth docs and the current create-order/idempotency contracts were sufficient for this bounded Orders-local runtime chunk.
 
 ## Next Action
 
-Continue with Goal H7 admin operations console or owner-selected deployment/migration step.
+Continue with an owner-selected deployment/migration step or a future approved candidate contract goal.
 
 ## Verification State
 
@@ -88,6 +100,9 @@ Commands run: npm run verify:duplicate-order-protection; npm run verify:channel-
 Verification results:
 
 - `npm run verify:payment-boundary`: pass; bounded status mapping, forbidden Payments-owned fields, paid event idempotency, paid-reference replacement rejection, paid downgrade rejection, and cancelled-order paid rejection passed.
+- `npm run verify:admin-operations-console`: pass; read-only integration health, idempotency diagnostics, protected route declarations and role metadata, read-only/action-capable mode policy, approved order status workflow delegation, UI panels, and sensitive response exclusions passed.
+- Local Playwright render smoke against the admin HTML: pass; Integration health, Idempotency diagnostics, and Approved actions panels rendered; the action button starts disabled with `Read-only mode`; no visible error banner was present.
+- H8 documentation verification: pass; candidate decisions recorded, no application approved without owner approval, no runtime integration goals created, future contract gates documented.
 - H6 guarded migration apply: not run in this chunk; `migrations/005_add_order_payment_status_boundary.sql` must be applied before production use.
 
 - npm run verify:duplicate-order-protection: pass; duplicate order protection verification ok.
@@ -95,7 +110,7 @@ Verification results:
 - npm run verify:event-contracts: pass; fixture, builder, publisher route/header, and sensitive-field checks passed.
 - npm run verify:warehouse-handoff: pass; disabled, reserve, skip, failure, release, fulfill, cancel, expire, and return handoff checks passed.
 - npm run verify:payment-boundary: pass; bounded payment status, paid confirmation, warehouse fulfill, failed release, refund rejection, and provider-field rejection checks passed.
-- npm test: pass; build completed, status transition verification ok, sensitive logging verification ok, create order contract verification ok, idempotency contract verification ok, duplicate order protection verification ok, event contract verification ok, warehouse handoff verification ok, and payment boundary verification ok.
+- npm test: pass; build completed, status transition verification ok, sensitive logging verification ok, create order contract verification ok, idempotency contract verification ok, duplicate order protection verification ok, event contract verification ok, warehouse handoff verification ok, payment boundary verification ok, and admin operations console verification ok.
 - Channel compile checks: flipflop-service/shared, allegro-service/shared, aukro-service/shared, bazos-service/shared, heureka-service/shared, and flipflop-service/services/order-service builds passed. Aukro and Heureka dependencies were restored with npm ci before their shared builds.
 - Guarded base schema migration apply: pass; `orders`, `order_items`, and `shipments` were created in the live `orders` database.
 - Guarded idempotency migration apply: pass; `ux_orders_create_idempotency` is materialized on `orders`.

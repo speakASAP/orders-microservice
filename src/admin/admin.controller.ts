@@ -1,7 +1,23 @@
-import { Controller, Get, Header, Param, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, ParseUUIDPipe, Post, Query, Req } from '@nestjs/common';
+import { Request } from 'express';
+import { OrderStatusApprovalInput } from '../orders/status-transitions';
 import { Public, Roles } from '../auth/roles.decorator';
-import { AdminService } from './admin.service';
+import { ADMIN_ACTION_ROLES, ADMIN_READ_ROLES, AdminService } from './admin.service';
 import { ADMIN_ORDERS_HTML } from './admin-ui';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    sub?: string;
+    email?: string;
+    roles?: string[];
+  };
+}
+
+interface AdminOrderStatusActionBody {
+  orderId: string;
+  status: string;
+  approval?: OrderStatusApprovalInput;
+}
 
 @Controller()
 export class AdminController {
@@ -14,7 +30,7 @@ export class AdminController {
     return ADMIN_ORDERS_HTML;
   }
 
-  @Roles('global:superadmin', 'internal:orders-microservice:admin')
+  @Roles(...ADMIN_READ_ROLES)
   @Get('admin/orders/dashboard')
   getOrdersDashboard(
     @Query('application') application?: string,
@@ -30,7 +46,39 @@ export class AdminController {
     return this.adminService.getDashboard({ application, service, state, status, channel, search, from, to, limit });
   }
 
-  @Roles('global:superadmin', 'internal:orders-microservice:admin')
+  @Roles(...ADMIN_READ_ROLES)
+  @Get('admin/operations/overview')
+  getOperationsOverview(@Req() request: AuthenticatedRequest) {
+    return this.adminService.getOperationsOverview(request.user);
+  }
+
+  @Roles(...ADMIN_READ_ROLES)
+  @Get('admin/operations/idempotency')
+  getIdempotencyDiagnostics(
+    @Query('contractVersion') contractVersion?: string,
+    @Query('channel') channel?: string,
+    @Query('channelAccountId') channelAccountId?: string,
+    @Query('externalOrderId') externalOrderId?: string,
+  ) {
+    return this.adminService.getIdempotencyDiagnostics({ contractVersion, channel, channelAccountId, externalOrderId });
+  }
+
+  @Roles(...ADMIN_READ_ROLES)
+  @Get('admin/operations/actions')
+  getActionCatalog(@Req() request: AuthenticatedRequest) {
+    return this.adminService.getActionCatalog(request.user);
+  }
+
+  @Roles(...ADMIN_ACTION_ROLES)
+  @Post('admin/operations/actions/order-status')
+  applyOrderStatusAction(
+    @Body() body: AdminOrderStatusActionBody,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.adminService.applyOrderStatusAction(body, request.user);
+  }
+
+  @Roles(...ADMIN_READ_ROLES)
   @Get('admin/orders/:id')
   getOrderDetail(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminService.getOrderDetail(id);
