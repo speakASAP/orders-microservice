@@ -37,7 +37,7 @@ If an active checkpoint exists, continue it. Otherwise select the next owner-app
 | Goal | Status | Intent | Source |
 | --- | --- | --- | --- |
 | Goal 1 - Orders Intent Preservation Pack | done | Create the company-standard compact IPS pack for Orders. | `docs/orchestrator/GOALS.md` |
-| Goal 2 - Order Contract And State Machine Hardening | active | Enforce safe order lifecycle transitions and owner-approved destructive paths. | `docs/orchestrator/GOALS.md` |
+| Goal 2 - Order Contract And State Machine Hardening | complete | Enforce safe order lifecycle transitions and owner-approved destructive paths. | `docs/orchestrator/GOALS.md` |
 | Goal 3 - Sensitive Customer Data And Audit Safety | pending | Make Orders observable without leaking customer or payment data. | `docs/orchestrator/GOALS.md` |
 | Goal 4 - Channel Order Ingestion Contract | pending | Keep channels as clients of the canonical Orders contract. | `docs/orchestrator/GOALS.md` |
 | Goal 5 - Warehouse, Payment, And Event Boundary Alignment | pending | Coordinate surrounding services without taking over their domains. | `docs/orchestrator/GOALS.md` |
@@ -54,4 +54,4 @@ Use these templates when creating executable work packets:
 
 ## Current Recommendation
 
-Next chunk: Goal 2, chunk 2.4 - add tests or direct API verification for allowed, rejected, and owner-approved transitions.
+Next chunk: Goal 3, chunk 3.1 - review order, item, shipment, pricing, event, and logger paths for sensitive fields.

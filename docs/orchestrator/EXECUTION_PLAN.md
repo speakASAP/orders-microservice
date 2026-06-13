@@ -19,81 +19,81 @@ upstream:
   - docs/orchestrator/PROJECT_INVARIANTS.md
   - docs/IMPLEMENTATION_STATE.md
 downstream:
-  - src/orders/status-transitions.ts
-  - src/orders/orders.controller.ts
-  - src/orders/orders.service.ts
-  - src/orders/order-events.service.ts
+  - scripts/verify-status-transitions.js
+  - package.json
   - docs/orchestrator/STATUS.md
   - docs/IMPLEMENTATION_STATE.md
 related_adrs: []
 selected_goal: Goal 2 - Order Contract And State Machine Hardening
-selected_chunk: 2.3 - Human-approval gates for cancellation and destructive paths
+selected_chunk: 2.4 - Tests or direct verification for transitions
 gate_decision: pass-with-exception
 ```
 
 ## Metadata
 
-This plan covers Goal 2 chunk 2.3: add explicit human-approval gates for cancellation, refund-like transitions, and destructive corrections.
+This plan covers Goal 2 chunk 2.4: add tests or direct API verification for allowed, rejected, and owner-approved transitions.
 
-The chunk is intentionally limited. It supports approved order cancellation from documented pre-shipment states, rejects refund-like statuses as Payments-owned/non-Orders transitions, and keeps terminal-state corrections blocked from the normal status endpoint until a separate correction workflow is owner-approved.
+The chunk is intentionally limited to repeatable verification. Runtime transition behavior was implemented in chunks 2.2 and 2.3; this chunk adds a stable `npm test` path that builds the service and verifies the compiled transition helper.
 
 ## Upstream Traceability
 
 - `BUSINESS.md`: cancellations and refunds require explicit human approval.
+- `SYSTEM.md`: order status transitions must follow the state machine.
 - `docs/orchestrator/INTENT.md`: state jumps, cancellations, refunds, and destructive corrections require explicit owner approval and audit evidence.
-- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`: cancellation from `pending`, `confirmed`, and `processing` is allowed only with approval and side-effect evidence.
-- `docs/IMPLEMENTATION_STATE.md`: next recommended goal is Goal 2 chunk 2.3.
+- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`: defines normal, rejected, item fulfillment, and owner-approved cancellation paths.
+- `docs/IMPLEMENTATION_STATE.md`: next recommended goal is Goal 2 chunk 2.4.
 
 ## Goal Impact
 
-The implementation removes the temporary chunk 2.2 blanket cancellation rejection and replaces it with an explicit approval gate for the documented cancellation path while preserving all non-Orders boundaries.
+The implementation turns prior ad hoc direct helper checks into a committed verification command. It increases regression coverage without changing endpoint behavior, persistence, events, payment, warehouse, catalog, notification, CRM, pricing, auth, or shipment ownership.
 
 ## Project Invariants
 
-- `ORD-INV-001`: Preserved; Orders remains the canonical lifecycle source for order status.
-- `ORD-INV-002`: Strengthened; cancellation requires explicit approval and destructive/refund-like paths remain blocked without approved workflows.
-- `ORD-INV-003`: Preserved; payment, stock, catalog, notification, CRM, and channel side effects are acknowledged but not implemented by Orders.
-- `ORD-INV-004`: Preserved; approval metadata is constrained to safe actor IDs, reason codes, booleans, statuses, and timestamps.
-- `ORD-INV-005`: Additive-compatible API/event hardening; `approval` is optional and required only for cancellation.
+- `ORD-INV-001`: Preserved; Orders remains the canonical lifecycle source.
+- `ORD-INV-002`: Strengthened; normal, rejected, item, and owner-approved cancellation transitions now have repeatable verification.
+- `ORD-INV-003`: Preserved; cross-service ownership boundaries remain unchanged.
+- `ORD-INV-004`: Preserved; verification uses synthetic actor identifiers and no customer/payment data.
+- `ORD-INV-005`: Preserved; no API/event contract changes were made.
 - `ORD-INV-006`: Not applicable; pricing behavior is unchanged.
 - `ORD-INV-007`: Preserved by status and implementation-state updates.
-- `ORD-INV-008`: Pass with exception; no session `JWT_TOKEN` is available for DocsRAG. Repository source-of-truth docs are sufficient for this bounded Orders-local validation chunk.
+- `ORD-INV-008`: Pass with exception; no session `JWT_TOKEN` is available for DocsRAG.
 
 ## Sensitive-Data Handling
 
-Classification: `masked`.
+Classification: `synthetic`.
 
-The approval payload must not contain customer address, payment details, tokens, secrets, or raw production data. Runtime validation accepts only safe approval metadata: approval boolean, human approval marker, actor ID/email from Auth where available, a constrained reason code, side-effect booleans, previous/requested/resulting status, and timestamp.
+The verification script uses synthetic actor IDs, synthetic email domains, synthetic timestamps, reason codes, and boolean side-effect acknowledgements. It does not use production orders, customer addresses, payment details, bearer tokens, database secrets, or raw logs.
 
 ## Contract Validation Plan
 
-Changed behavior:
+Verified behavior:
 
-- `PUT /api/orders/:id/status` accepts optional `approval` metadata.
-- `pending|confirmed|processing -> cancelled` succeeds only when approval metadata is complete.
-- Cancellation without approval returns `400 Bad Request`.
-- Refund-like statuses remain rejected as unsupported by Orders and owned by Payments.
-- Reverse moves, jumps, and transitions out of terminal states remain rejected.
-- `order.updated` may include additive approval metadata for approved cancellation events.
+- Normal order transitions: `pending -> confirmed -> processing -> shipped -> delivered`.
+- Order item gating for shipped and delivered parent transitions.
+- Rejected order jumps, reverse/destructive terminal corrections, refund-like statuses, and unknown statuses.
+- Owner-approved cancellation from `pending`, `confirmed`, and `processing` with safe approval audit metadata.
+- Rejected cancellation without approval, with non-human approval, with invalid reason code, with missing side-effect acknowledgement, and after shipment.
+- Normal item fulfillment transitions: `pending -> reserved -> shipped -> delivered`.
+- Rejected item jumps, reversals, terminal changes, synthetic return/refund/cancellation values, and unknown statuses.
 
 Unchanged contracts:
 
-- Normal status body `{ "status": "confirmed" }` remains supported.
-- Successful response shape remains `{ success: true, data: ... }`.
+- No endpoint response shape changes.
+- No state-machine behavior changes.
+- No event schema changes.
 - No warehouse, payment, catalog, notification, CRM, pricing, shipment, or auth ownership changes.
 
 ## Scope
 
-- Add approval payload types and validation helpers.
-- Update controller to pass Auth actor identity and approval payload to the service.
-- Update service to validate approval before saving and publish safe cancellation metadata.
-- Update order event service to support optional additive metadata.
-- Build and run direct helper verification.
-- Record evidence, commit, and deploy if checks pass.
+- Add `scripts/verify-status-transitions.js`.
+- Add `npm test` and `npm run verify:transitions` scripts.
+- Build and run repeatable verification.
+- Record evidence, commit, and skip deployment because runtime behavior did not change.
 
 ## Non-Goals
 
 - No database schema migration.
+- No endpoint or runtime behavior changes.
 - No persisted audit-log table.
 - No refund execution or payment reconciliation.
 - No warehouse stock release automation.
@@ -104,63 +104,58 @@ Unchanged contracts:
 ## Files To Inspect
 
 - `src/orders/status-transitions.ts`
-- `src/orders/orders.controller.ts`
-- `src/orders/orders.service.ts`
-- `src/orders/order-events.service.ts`
-- `src/auth/jwt-roles.guard.ts`
+- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`
 - `package.json`
 
 ## Files To Modify
 
-- `src/orders/status-transitions.ts`
-- `src/orders/orders.controller.ts`
-- `src/orders/orders.service.ts`
-- `src/orders/order-events.service.ts`
+- `scripts/verify-status-transitions.js`
+- `package.json`
 - `docs/orchestrator/CONTEXT_PACKAGE.md`
 - `docs/orchestrator/EXECUTION_PLAN.md`
 - `docs/orchestrator/GOALS.md`
 - `docs/orchestrator/STATUS.md`
+- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`
 - `docs/IMPLEMENTATION_STATE.md`
 
 ## Files To Protect
 
 - `.env*`, K8s secrets, Vault material, production logs, and production order table dumps.
+- Runtime transition implementation files unless a verification failure proves a bug.
 - Existing unrelated dirty files in the remote worktree.
 
 ## Implementation Steps
 
-1. Add constrained approval types and validation for cancellation.
-2. Require `approval.approved === true`, `approval.approvalType === "human"`, actor identity, reason code, and side-effect acknowledgements for payment, warehouse, notification, CRM, and channel.
-3. Allow only `pending|confirmed|processing -> cancelled` with approval.
-4. Keep refund-like statuses and destructive corrections blocked with explicit errors.
-5. Include safe approval metadata in the additive order-updated event payload for approved cancellation.
-6. Build, run direct helper verification, update docs, commit, and deploy if ready.
+1. Add a direct verification script against `dist/orders/status-transitions.js`.
+2. Cover allowed normal order and item fulfillment transitions.
+3. Cover rejected jumps, terminal corrections, refund-like values, synthetic item return/refund/cancellation values, and item gating.
+4. Cover owner-approved cancellation and missing/invalid approval rejection cases.
+5. Wire `npm test` to build and run verification.
+6. Run readiness checks and record evidence.
 
 ## Test Plan
 
-- `npm run build`
-- Direct Node verification against compiled `dist/orders/status-transitions.js` for approved cancellation, missing approval rejection, refund-like rejection, destructive correction rejection, and normal transition preservation.
+- `npm test`
 - `node --check dist/main.js`
 - Missing-marker scan over IPS docs.
-- Sensitive-pattern scan over docs plus `src/orders` and `src/items`.
-- Production deployment health and live container helper verification after deploy.
+- Sensitive-pattern scan over docs, scripts, package metadata, and affected transition source.
+- `git diff --check`
 
 ## Gate Decision
 
-`pass-with-exception`: DocsRAG was not queried because no session service `JWT_TOKEN` is available. This is acceptable for this bounded Orders-local approval-gate chunk because the source transition contract and affected endpoint code are in the repository.
+`pass-with-exception`: DocsRAG was not queried because no session service `JWT_TOKEN` is available. This is acceptable for this bounded Orders-local verification chunk because the transition contract and runtime helper are local source-of-truth files.
 
 ## Rollback Plan
 
-If build or validation fails, revert only chunk 2.3 approval helper/controller/service/event changes plus the evidence docs for this chunk. Do not revert unrelated worktree changes.
+If verification fails, update only the verification script or stop and fix the previously implemented transition helper. Do not revert unrelated worktree changes.
 
 ## Completion Checklist
 
-- [x] Approval payload validator added.
-- [x] Approved cancellation path implemented.
-- [x] Refund-like and destructive correction paths remain blocked.
-- [x] Safe event metadata added for approved cancellation.
+- [x] Transition verification script added.
+- [x] `npm test` added.
+- [x] Allowed transitions covered.
+- [x] Rejected transitions covered.
+- [x] Owner-approved transitions covered.
 - [x] Build passes.
-- [x] Direct verification evidence recorded.
+- [x] Verification command passes.
 - [x] IPS status and implementation state updated.
-- [x] Remote commit created.
-- [x] Deployment completed if runtime behavior is ready.

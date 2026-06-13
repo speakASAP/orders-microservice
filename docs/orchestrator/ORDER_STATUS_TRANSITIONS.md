@@ -128,4 +128,4 @@ Goal 2.3 added the explicit approval gate for documented order cancellation path
 - Terminal-state destructive corrections remain rejected through the normal status endpoint until a separate owner-approved correction workflow exists.
 - Synthetic item cancellation, refund, and return values remain rejected until owner-approved schema and API changes define them.
 
-Goal 2.4 must add tests or direct API verification for allowed, rejected, and owner-approved transitions.
+Goal 2.4 added committed direct verification for allowed, rejected, and owner-approved transitions through `npm test` and `scripts/verify-status-transitions.js`.

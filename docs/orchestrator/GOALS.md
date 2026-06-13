@@ -44,7 +44,7 @@ Acceptance criteria:
 
 ## Goal 2 - Order Contract And State Machine Hardening
 
-Status: active
+Status: complete
 
 Intent: Orders must enforce safe, explicit order lifecycle transitions and keep cancellation/refund/destructive changes owner-approved.
 
@@ -53,7 +53,7 @@ Chunks:
 - [x] 2.1 Document allowed order and item fulfillment status transitions.
 - [x] 2.2 Add or verify runtime validation for order status transitions.
 - [x] 2.3 Add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
-- [ ] 2.4 Add tests or direct API verification for allowed, rejected, and owner-approved transitions.
+- [x] 2.4 Add tests or direct API verification for allowed, rejected, and owner-approved transitions.
 
 Acceptance criteria:
 

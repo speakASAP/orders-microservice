@@ -490,3 +490,50 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 2, chunk 2.4: add tests or direct API verification for allowed, rejected, and owner-approved transitions.
+
+## 2026-06-13 - Goal 2 Chunk 2.4 Transition Verification
+
+Current focus:
+
+- Owner-selected task: continue Goal 2 chunk 2.4.
+- Goal 2 - Order Contract And State Machine Hardening.
+- Chunk 2.4 - Tests or direct API verification for allowed, rejected, and owner-approved transitions.
+
+Context search evidence:
+
+- Read `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/PLAN.md`, `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`, `docs/orchestrator/PRE_CODING_GATE.md`, and `docs/orchestrator/READINESS_GATES.md`.
+- Read `src/orders/status-transitions.ts` and `package.json`.
+- Confirmed the repository has no existing Jest/test directory or test runner setup, so direct compiled-helper verification is the least invasive durable coverage path.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs were sufficient for this bounded verification chunk.
+
+Implementation evidence:
+
+- Added `scripts/verify-status-transitions.js`.
+- Added `npm test` as `npm run build && npm run verify:transitions`.
+- Added `npm run verify:transitions` as `node scripts/verify-status-transitions.js`.
+- Updated `docs/orchestrator/CONTEXT_PACKAGE.md`, `docs/orchestrator/EXECUTION_PLAN.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/PLAN.md`, `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`, `implementation-goals/README.md`, and `docs/IMPLEMENTATION_STATE.md`.
+
+Verification coverage:
+
+- Allowed order transitions: `pending -> confirmed`, `confirmed -> processing`, `processing -> shipped` with shipped/delivered items, and `shipped -> delivered` with delivered items.
+- Rejected order transitions: jump, item-gating failure, terminal correction, cancelled terminal correction, refund-like status, unknown status, cancellation without approval, non-human approval, invalid reason code, missing side-effect acknowledgement, and shipped cancellation.
+- Owner-approved cancellation transitions: `pending|confirmed|processing -> cancelled` with safe audit metadata, actor identity, reason code, side-effect acknowledgements, prior/requested/resulting statuses, and deterministic timestamp.
+- Allowed item fulfillment transitions: `pending -> reserved`, `reserved -> shipped`, and `shipped -> delivered`.
+- Rejected item fulfillment transitions: jump, reversal, terminal transition, synthetic return/refund/cancellation value, and unknown value.
+
+Final verification evidence:
+
+- `npm test`: pass; build completed and `scripts/verify-status-transitions.js` printed `status transition verification ok`.
+- `node --check dist/main.js`: pass.
+- Missing-marker scan: pass; no matches.
+- Sensitive literal audit: pass; no matches.
+- `git diff --check`: pass.
+
+Gate decision:
+
+- Integration readiness: accept.
+- Deployment not required because no runtime service behavior changed.
+
+Next unfinished chunk:
+
+- Goal 3, chunk 3.1: review order, item, shipment, pricing, event, and logger paths for sensitive fields.

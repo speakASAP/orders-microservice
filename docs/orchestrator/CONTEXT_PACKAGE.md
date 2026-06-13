@@ -19,18 +19,18 @@ downstream:
 
 ## Target Task
 
-Goal 2 - Order Contract And State Machine Hardening, chunk 2.3: add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
+Goal 2 - Order Contract And State Machine Hardening, chunk 2.4: add tests or direct API verification for allowed, rejected, and owner-approved transitions.
 
-This task builds on chunk 2.2 runtime validation. It allows only documented order cancellations with explicit human approval evidence, keeps refund-like statuses outside Orders, and keeps destructive terminal-state corrections blocked until a separate owner-approved correction workflow exists.
+This task builds on chunks 2.2 and 2.3. It adds repeatable direct verification for the compiled transition helper so normal transitions, invalid/rejected transitions, item fulfillment transitions, and owner-approved cancellation gates are covered by a durable command.
 
 ## Upstream Traceability
 
-- `BUSINESS.md`: AI must never cancel or refund orders without explicit human approval.
+- `BUSINESS.md`: cancellations and refunds require explicit human approval.
 - `SYSTEM.md`: order status transitions must follow the state machine.
-- `README.md`: `PUT /api/orders/:id/status` is the affected order status mutation endpoint.
-- `docs/orchestrator/GOALS.md`: Goal 2 chunk 2.3 is the next recommended chunk.
-- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`: cancellation paths require approval, side-effect evidence, actor identity, reason, previous/requested/resulting status, and timestamp.
-- `docs/IMPLEMENTATION_STATE.md`: chunk 2.3 is the active next action.
+- `README.md`: `PUT /api/orders/:id/status` and `PUT /api/items/:id/fulfillment` are the affected mutation endpoints.
+- `docs/orchestrator/GOALS.md`: Goal 2 chunk 2.4 requires tests or direct API verification.
+- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`: defines allowed, rejected, and owner-approved transition behavior.
+- `docs/IMPLEMENTATION_STATE.md`: chunk 2.4 is the active next action.
 
 ## Included Documents And Source
 
@@ -54,11 +54,6 @@ Read before coding:
 - `implementation-goals/README.md`
 - `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`
 - `src/orders/status-transitions.ts`
-- `src/orders/orders.controller.ts`
-- `src/orders/orders.service.ts`
-- `src/orders/order-events.service.ts`
-- `src/auth/jwt-roles.guard.ts`
-- `src/auth/roles.decorator.ts`
 - `package.json`
 
 ## Excluded Documents And Data
@@ -69,12 +64,11 @@ Do not use as source material:
 - Decoded secrets from Vault, K8s Secrets, or `.env`.
 - Production order table dumps or direct database edits.
 - Payment provider, warehouse reservation, catalog truth, notification delivery, CRM campaign, or channel-service internals.
-- Generated `dist/` output except for build and direct pure-function verification.
 
 ## Orders Constraints
 
 - Keep Orders as the order lifecycle source of truth.
-- Require explicit human approval for cancellation.
+- Verify explicit human approval for cancellation.
 - Do not implement refunds or payment identity; refund-like statuses must remain rejected and point to Payments ownership.
 - Do not implement terminal-state destructive corrections through the normal status endpoint.
 - Do not invent item fulfillment states during order cancellation.
@@ -82,31 +76,20 @@ Do not use as source material:
 
 ## Allowed Changes
 
-- Extend the order status transition helper with approval-gate validation for `pending|confirmed|processing -> cancelled`.
-- Update `PUT /api/orders/:id/status` request handling to accept an optional approval payload for cancellation.
-- Include safe approval metadata in the additive `order.updated` event only for approved cancellation.
-- Add direct pure-function verification because the repo has no test script or test directory.
+- Add a repeatable verification script for compiled status transition helpers.
+- Add npm scripts to run build plus transition verification.
 - Update IPS docs with evidence.
 
 ## Forbidden Changes
 
-- No database migration for this chunk.
+- No runtime service behavior changes for this chunk.
+- No database migration.
 - No refund automation or payment reconciliation changes.
 - No warehouse stock release/reservation/decrement implementation.
 - No product truth, notification delivery, CRM campaign, pricing, auth, or shipment status ownership changes.
 - No terminal-state correction endpoint.
-- No secrets, K8s Secret values, Vault reads, production logs, or production data dumps.
+- No deployment unless runtime behavior changes separately.
 
 ## Validation Instructions
 
-Run:
-
-```bash
-npm run build
-node -e 'const t=require("./dist/orders/status-transitions"); /* direct approval assertions */'
-node --check dist/main.js
-rg missing-or-unknown-marker-scan
-rg sensitive-literal-scan
-```
-
-If deployment proceeds, run `./scripts/deploy.sh`, set an immutable image tag if needed, and perform production health plus safe protected-route smoke checks without printing real tokens or customer data.
+Run `npm test`, `node --check dist/main.js`, the IPS missing-marker scan, the sensitive-literal scan, and `git diff --check`.
