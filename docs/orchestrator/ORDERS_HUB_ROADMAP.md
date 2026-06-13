@@ -148,17 +148,17 @@ Verification stages:
 
 ### Goal H4 - Event Contract Versioning
 
-Status: pending
+Status: complete
 
 Intent: Make order lifecycle events stable for Warehouse, Payments, Notifications, Leads, Marketing, and channel services.
 
 Chunks:
 
-- [ ] H4.1 Define `orders.order.created.v1`, `orders.order.updated.v1`, `orders.order.paid.v1`, `orders.order.shipped.v1`, `orders.order.cancelled.v1`.
-- [ ] H4.2 Classify allowed and forbidden payload fields.
-- [ ] H4.3 Add event publisher version metadata.
-- [ ] H4.4 Add fixture-based event contract checks.
-- [ ] H4.5 Coordinate consumers and record compatibility.
+- [x] H4.1 Define `orders.order.created.v1`, `orders.order.updated.v1`, `orders.order.paid.v1`, `orders.order.shipped.v1`, `orders.order.cancelled.v1`.
+- [x] H4.2 Classify allowed and forbidden payload fields.
+- [x] H4.3 Add event publisher version metadata.
+- [x] H4.4 Add fixture-based event contract checks.
+- [x] H4.5 Coordinate consumers and record compatibility.
 
 Acceptance criteria:
 

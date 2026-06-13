@@ -43,9 +43,9 @@ No state jumps. See `BUSINESS.md` for constraints.
 
 | Event | Trigger |
 |---|---|
-| `order.created` | New order ingested |
-| `order.updated` | Status changed |
-| `order.shipped` | Shipment created |
+| `orders.order.created.v1` | New order ingested |
+| `orders.order.updated.v1` | Status changed |
+| `orders.order.shipped.v1` | Shipment created |
 
 ## Pricing Domain
 

@@ -91,9 +91,9 @@ This review maps customer, address, payment, token, shipment, pricing, event, an
 
 ### Events
 
-- `order.created` publishes order ID, channel, and timestamp only.
-- `order.updated` publishes order ID, status, optional previous status, and optional approval audit metadata.
-- `order.shipped` publishes order ID, tracking number, and timestamp. Tracking number is sensitive operational data and should be reviewed before external consumers rely on it.
+- `orders.order.created.v1` publishes a versioned envelope with order ID and channel only.
+- `orders.order.updated.v1` publishes a versioned envelope with order ID, status, optional previous status, and safe approval metadata only.
+- `orders.order.shipped.v1` publishes a versioned envelope with order ID and shipment status only; tracking numbers and tracking URLs are forbidden event fields.
 - `pricing.price_changed` publishes product/pricing business data only.
 - Event publish failures log only error messages, not event payloads.
 
@@ -118,7 +118,7 @@ This review maps customer, address, payment, token, shipment, pricing, event, an
 | G3-1 | High | Core order API responses return full persisted order entities with customer, address, note, and payment metadata. | `src/orders/orders.controller.ts`, `src/orders/order.entity.ts` | Chunk 3.3 should add response DTOs or redaction rules for list/detail/write responses. |
 | G3-2 | Medium | Logger accepts arbitrary raw strings and has no redaction boundary. | `src/logger/logger.service.ts` | Chunk 3.2/3.3 should add structured audit helpers and no-log/redaction guarantees. |
 | G3-3 | Medium | Admin detail surfaces customer email and shipment tracking values to authenticated admins, and admin timeline/log context includes tracking numbers. | `src/admin/admin.service.ts` | Chunk 3.3 should decide whether admin detail is allowed to show full values, masked values, or role-scoped values. |
-| G3-4 | Medium | `order.shipped` event includes tracking number. | `src/orders/order-events.service.ts` | Goal 5 or chunk 3.3 should document event consumers and whether tracking number is allowed, masked, or moved behind a shipment-owned lookup. |
+| G3-4 | Resolved | Versioned shipped events no longer include tracking number or tracking URL. | `src/orders/order-event-contracts.ts`, `scripts/verify-event-contracts.js` | H4 event contract verification forbids tracking fields in fixtures, builders, and publisher payloads. |
 | G3-5 | Low | Pricing logs are currently product-level and safe, but upstream error text is copied into thrown errors. | `src/pricing/pricing.service.ts` | Add error-message redaction if upstream services may return secrets or customer data in errors. |
 
 ## Safe Existing Behavior

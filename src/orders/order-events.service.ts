@@ -1,6 +1,15 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import * as amqp from 'amqplib';
 import { OrderStatusApprovalAudit } from './status-transitions';
+import {
+  buildOrderCancelledEvent,
+  buildOrderCreatedEvent,
+  buildOrderPaidEvent,
+  buildOrderShippedEvent,
+  buildOrderUpdatedEvent,
+  ORDER_EVENT_TYPES,
+  ORDER_EVENT_VERSION,
+} from './order-event-contracts';
 
 interface OrderUpdatedMetadata {
   previousStatus?: string;
@@ -51,32 +60,28 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async publishOrderCreated(orderId: string, channel: string) {
-    await this.publish(this.ordersExchangeName, 'order.created', {
-      type: 'order.created',
-      orderId,
-      channel,
-      timestamp: new Date().toISOString(),
-    });
+    await this.publish(this.ordersExchangeName, ORDER_EVENT_TYPES.created, buildOrderCreatedEvent(orderId, channel));
   }
 
   async publishOrderUpdated(orderId: string, status: string, metadata?: OrderUpdatedMetadata) {
-    await this.publish(this.ordersExchangeName, 'order.updated', {
-      type: 'order.updated',
-      orderId,
-      status,
-      ...(metadata?.previousStatus ? { previousStatus: metadata.previousStatus } : {}),
-      ...(metadata?.approval ? { approval: metadata.approval } : {}),
-      timestamp: new Date().toISOString(),
-    });
+    const event = buildOrderUpdatedEvent(orderId, status, metadata?.previousStatus, metadata?.approval);
+    await this.publish(this.ordersExchangeName, ORDER_EVENT_TYPES.updated, event);
+
+    if (status === 'cancelled') {
+      await this.publish(
+        this.ordersExchangeName,
+        ORDER_EVENT_TYPES.cancelled,
+        buildOrderCancelledEvent(orderId, metadata?.previousStatus, metadata?.approval),
+      );
+    }
   }
 
-  async publishOrderShipped(orderId: string, trackingNumber: string) {
-    await this.publish(this.ordersExchangeName, 'order.shipped', {
-      type: 'order.shipped',
-      orderId,
-      trackingNumber,
-      timestamp: new Date().toISOString(),
-    });
+  async publishOrderPaid(orderId: string, paymentReferenceId?: string) {
+    await this.publish(this.ordersExchangeName, ORDER_EVENT_TYPES.paid, buildOrderPaidEvent(orderId, paymentReferenceId));
+  }
+
+  async publishOrderShipped(orderId: string, _trackingNumber?: string) {
+    await this.publish(this.ordersExchangeName, ORDER_EVENT_TYPES.shipped, buildOrderShippedEvent(orderId));
   }
 
   async publishPricingPriceChanged(event: {
@@ -105,6 +110,10 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
         {
           persistent: true,
           contentType: 'application/json',
+          headers: {
+            eventType: routingKey,
+            eventVersion: ORDER_EVENT_VERSION,
+          },
         },
       );
     } catch {

@@ -1,0 +1,23 @@
+{
+  "type": "orders.order.cancelled.v1",
+  "eventVersion": 1,
+  "eventId": "00000000-0000-4000-8000-000000000005",
+  "occurredAt": "2026-06-13T08:04:00.000Z",
+  "source": "orders-microservice",
+  "payload": {
+    "orderId": "order-1001",
+    "previousStatus": "processing",
+    "approval": {
+      "approvalType": "human",
+      "reasonCode": "CUSTOMER_REQUEST",
+      "sideEffectsHandled": {
+        "payment": true,
+        "warehouse": true,
+        "notification": true,
+        "crm": true,
+        "channel": true
+      },
+      "approvedAt": "2026-06-13T08:04:00.000Z"
+    }
+  }
+}

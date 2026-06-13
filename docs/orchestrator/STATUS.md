@@ -1130,3 +1130,42 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal H4 event contract versioning, then Goal H5 warehouse reservation choreography and Goal H6 payments callback boundary.
+
+## 2026-06-13 - Goal H4 Event Contract Versioning
+
+Current focus:
+
+- Owner-approved continuation after H3 database idempotency hardening.
+- Scope: make order lifecycle events versioned, documented, fixture-backed, and safe for Warehouse, Payments, Notifications, Leads, Marketing, and channel consumers.
+
+Implementation evidence:
+
+- Added `src/orders/order-event-contracts.ts`.
+- Added `docs/orchestrator/ORDER_EVENT_CONTRACTS.md`.
+- Added fixtures in `docs/orchestrator/event-fixtures/` for `orders.order.created.v1`, `orders.order.updated.v1`, `orders.order.paid.v1`, `orders.order.shipped.v1`, and `orders.order.cancelled.v1`.
+- Added `scripts/verify-event-contracts.js` and wired `npm test` to run `npm run verify:event-contracts`.
+- Updated `src/orders/order-events.service.ts` to publish versioned routing keys and RabbitMQ headers `eventType` and `eventVersion`.
+
+Contract decisions:
+
+- `orders.order.shipped.v1` does not include tracking numbers or tracking URLs; authorized consumers must look up shipment details through the owning API.
+- Cancellation events include safe approval metadata only: approval type, reason code, side-effect acknowledgements, and approval timestamp.
+- Payment-success event helper is reserved for the future H6 Payments boundary; Orders does not take over payment identity or reconciliation.
+- Live production RabbitMQ publish/consume smoke was not run because synthetic order lifecycle events on `orders.events` could trigger real consumers. The verifier exercises publisher routing keys, headers, and payload safety with a mocked channel instead.
+
+Verification evidence:
+
+- `npm run verify:event-contracts`: pass.
+- `npm test`: pass.
+- Sensitive logging verification: pass.
+- `git diff --check`: pass.
+- Exact IPS unresolved-marker scan: pass.
+
+Gate decision:
+
+- H4 readiness: accept.
+- Consumer compatibility: accept as documented contract update; deploy should be coordinated with consumers that currently bind to legacy unversioned routing keys.
+
+Next unfinished chunk:
+
+- Goal H5 warehouse reservation choreography, then Goal H6 payments callback boundary.

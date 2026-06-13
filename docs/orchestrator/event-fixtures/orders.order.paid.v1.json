@@ -1,0 +1,12 @@
+{
+  "type": "orders.order.paid.v1",
+  "eventVersion": 1,
+  "eventId": "00000000-0000-4000-8000-000000000003",
+  "occurredAt": "2026-06-13T08:02:00.000Z",
+  "source": "orders-microservice",
+  "payload": {
+    "orderId": "order-1001",
+    "paymentStatus": "paid",
+    "paymentReferenceId": "payments-ref-1001"
+  }
+}

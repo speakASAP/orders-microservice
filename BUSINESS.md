@@ -20,4 +20,4 @@ flipflop-service, allegro-service, aukro-service, bazos-service, marketing-micro
 
 - Port: 3203 (<http://orders-microservice:3203>)
 - Production: <https://orders.alfares.cz>
-- Events: `order.created`, `order.updated`, `order.shipped` → RabbitMQ
+- Events: `orders.order.created.v1`, `orders.order.updated.v1`, `orders.order.shipped.v1` → RabbitMQ

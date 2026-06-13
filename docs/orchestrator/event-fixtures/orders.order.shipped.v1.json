@@ -1,0 +1,12 @@
+{
+  "type": "orders.order.shipped.v1",
+  "eventVersion": 1,
+  "eventId": "00000000-0000-4000-8000-000000000004",
+  "occurredAt": "2026-06-13T08:03:00.000Z",
+  "source": "orders-microservice",
+  "payload": {
+    "orderId": "order-1001",
+    "shipmentStatus": "shipped",
+    "shipmentLookupRequired": true
+  }
+}
