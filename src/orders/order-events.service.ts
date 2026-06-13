@@ -1,5 +1,11 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import * as amqp from 'amqplib';
+import { OrderStatusApprovalAudit } from './status-transitions';
+
+interface OrderUpdatedMetadata {
+  previousStatus?: string;
+  approval?: OrderStatusApprovalAudit;
+}
 
 @Injectable()
 export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
@@ -54,11 +60,13 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async publishOrderUpdated(orderId: string, status: string) {
+  async publishOrderUpdated(orderId: string, status: string, metadata?: OrderUpdatedMetadata) {
     await this.publish(this.ordersExchangeName, 'order.updated', {
       type: 'order.updated',
       orderId,
       status,
+      ...(metadata?.previousStatus ? { previousStatus: metadata.previousStatus } : {}),
+      ...(metadata?.approval ? { approval: metadata.approval } : {}),
       timestamp: new Date().toISOString(),
     });
   }
@@ -106,4 +114,3 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 }
-

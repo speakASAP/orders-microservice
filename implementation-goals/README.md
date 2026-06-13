@@ -54,4 +54,4 @@ Use these templates when creating executable work packets:
 
 ## Current Recommendation
 
-Next chunk: Goal 2, chunk 2.2 - add or verify runtime validation for order and item fulfillment transitions.
+Next chunk: Goal 2, chunk 2.4 - add tests or direct API verification for allowed, rejected, and owner-approved transitions.

@@ -407,3 +407,60 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 2, chunk 2.3: add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
+
+## 2026-06-13 - Goal 2 Chunk 2.3 Approval Gates
+
+Current focus:
+
+- Goal 2 - Order Contract And State Machine Hardening.
+- Chunk 2.3 - Human-approval gates for cancellation, refund-like transitions, and destructive corrections.
+
+Context search evidence:
+
+- Read required Orders source-of-truth docs: `AGENTS.md`, `BUSINESS.md`, `SYSTEM.md`, `README.md`, `TASKS.md`, `STATE.json`, `docs/IMPLEMENTATION_STATE.md`, `docs/IMPLEMENTATION_ORCHESTRATOR.md`, `docs/orchestrator/MASTER_PROMPT.md`, `docs/orchestrator/INTENT.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/PLAN.md`, `docs/orchestrator/PROJECT_INVARIANTS.md`, `docs/orchestrator/PRE_CODING_GATE.md`, `docs/orchestrator/READINESS_GATES.md`, `implementation-goals/README.md`, and `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`.
+- Read affected runtime source: `src/orders/status-transitions.ts`, `src/orders/orders.controller.ts`, `src/orders/orders.service.ts`, `src/orders/order-events.service.ts`, `src/auth/jwt-roles.guard.ts`, `src/auth/roles.decorator.ts`, `src/items/items.service.ts`, and `package.json`.
+- Refreshed `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` before coding.
+- Live DocsRAG query was not run because no session `JWT_TOKEN` was available; this bounded Orders-local approval-gate chunk proceeded from repository source-of-truth docs.
+
+Implementation evidence:
+
+- Extended `src/orders/status-transitions.ts` with constrained approval payload types, cancellation approval validation, refund-like order status rejection, terminal destructive correction rejection, and explicit item cancellation/refund/return rejection messages.
+- Updated `src/orders/orders.controller.ts` so `PUT /api/orders/:id/status` accepts optional `approval` metadata and passes Auth actor identity from the request.
+- Updated `src/orders/orders.service.ts` to validate through the audited transition helper and publish approval metadata only for approved cancellations.
+- Updated `src/orders/order-events.service.ts` so `order.updated` can carry additive safe approval metadata for approved cancellation events.
+- Updated `docs/orchestrator/GOALS.md`, `docs/orchestrator/PLAN.md`, `implementation-goals/README.md`, and `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md` so the next chunk is Goal 2 chunk 2.4.
+
+Runtime behavior enforced:
+
+- Normal order transitions remain unchanged.
+- `pending|confirmed|processing -> cancelled` is allowed only with `approval.approved=true`, `approval.approvalType=human`, actor identity, safe `reasonCode`, and side-effect acknowledgements for payment, warehouse, notification, CRM, and channel.
+- Cancellation without approval or without complete side-effect acknowledgements returns `400 Bad Request`.
+- `shipped -> cancelled` remains rejected.
+- Terminal-state destructive corrections remain rejected through the normal status endpoint.
+- Refund-like order statuses remain rejected as Payments-owned.
+- Synthetic item cancellation, refund, and return statuses remain rejected until owner-approved schema/API work exists.
+
+Verification evidence:
+
+- `npm run build`: pass.
+- Direct compiled-helper verification: pass for normal transition preservation, approved cancellation audit output, missing approval rejection, missing side-effect rejection, shipped cancellation rejection, terminal destructive correction rejection, refund-like order rejection, and synthetic item return rejection.
+- `node --check dist/main.js`: pass.
+- Missing-marker scan: pass; no `[(MISSING|UNKNOWN):` matches found.
+- Sensitive-pattern scan over docs plus `src/orders` and `src/items`: pass; no literal bearer-token, token, private-key, JWT-secret, DB-password, password, or client-secret values detected.
+- `git diff --check`: pass.
+- No `npm test` command exists and no test directory exists in the repo, so direct compiled-helper verification was used as targeted evidence.
+
+Safety and boundary notes:
+
+- No payment identity, refund execution, stock ownership, warehouse stock release, product truth, notification delivery, CRM campaign execution, pricing, auth, shipment status, sensitive-data logging, schema migration, or production data dump changes were made.
+- Cancellation approval records only safe metadata: actor identity, reason code, side-effect booleans, previous/requested/resulting statuses, and timestamp.
+- Existing unrelated dirty worktree files were not reverted.
+
+Gate decision:
+
+- Integration readiness: accept.
+- Deployment readiness: pending commit and deploy.
+
+Next unfinished chunk:
+
+- Goal 2, chunk 2.4: add tests or direct API verification for allowed, rejected, and owner-approved transitions.

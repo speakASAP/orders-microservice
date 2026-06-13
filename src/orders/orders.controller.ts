@@ -1,6 +1,21 @@
-import { Controller, Get, Post, Put, Body, Param, Query, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, ParseUUIDPipe, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { OrdersService } from './orders.service';
 import { Order } from './order.entity';
+import { OrderStatusApprovalInput } from './status-transitions';
+
+interface OrderStatusUpdateBody {
+  status: string;
+  approval?: OrderStatusApprovalInput;
+}
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    sub?: string;
+    email?: string;
+    roles?: string[];
+  };
+}
 
 @Controller('orders')
 export class OrdersController {
@@ -25,9 +40,15 @@ export class OrdersController {
   }
 
   @Put(':id/status')
-  async updateStatus(@Param('id', ParseUUIDPipe) id: string, @Body() body: { status: string }) {
-    const order = await this.ordersService.updateStatus(id, body.status);
+  async updateStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: OrderStatusUpdateBody,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    const order = await this.ordersService.updateStatus(id, body.status, {
+      approval: body.approval,
+      actor: request.user,
+    });
     return { success: true, data: order };
   }
 }
-

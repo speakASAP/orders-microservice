@@ -4,7 +4,10 @@ import { Repository } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { Order } from './order.entity';
 import { OrderEventsService } from './order-events.service';
-import { validateOrderStatusTransition } from './status-transitions';
+import {
+  OrderStatusTransitionContext,
+  validateOrderStatusTransitionWithAudit,
+} from './status-transitions';
 
 @Injectable()
 export class OrdersService {
@@ -51,20 +54,30 @@ export class OrdersService {
     return saved;
   }
 
-  async updateStatus(id: string, status: string): Promise<Order> {
+  async updateStatus(id: string, status: string, context: OrderStatusTransitionContext = {}): Promise<Order> {
     const order = await this.findOne(id);
-    let nextStatus: string;
+    const previousStatus = order.status;
+    let transition;
 
     try {
-      nextStatus = validateOrderStatusTransition(order.status, status, order.items || []);
+      transition = validateOrderStatusTransitionWithAudit(previousStatus, status, order.items || [], context);
     } catch (error) {
       throw new BadRequestException(error.message);
     }
 
-    order.status = nextStatus;
+    order.status = transition.status;
     const updated = await this.orderRepository.save(order);
 
-    await this.orderEvents.publishOrderUpdated(id, nextStatus);
+    await this.orderEvents.publishOrderUpdated(
+      id,
+      transition.status,
+      transition.approvalAudit
+        ? {
+            previousStatus,
+            approval: transition.approvalAudit,
+          }
+        : undefined,
+    );
 
     return updated;
   }

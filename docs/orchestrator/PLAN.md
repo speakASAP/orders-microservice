@@ -70,7 +70,7 @@ Current chunk:
 - Goal 1 - Orders Intent Preservation Pack: done.
 - Goal 2 - Order Contract And State Machine Hardening: active.
 - Goal 2 chunk 2.1 - Document allowed order and item fulfillment status transitions: done.
-- Next ready chunk: Goal 2 chunk 2.2 - Add or verify runtime validation for order and item fulfillment transitions.
+- Next ready chunk: Goal 2 chunk 2.4 - Add tests or direct API verification for allowed, rejected, and owner-approved transitions.
 
 ## Verification Commands
 

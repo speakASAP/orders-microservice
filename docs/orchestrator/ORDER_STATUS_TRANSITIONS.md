@@ -117,11 +117,15 @@ Cancellation, refund-like transitions, terminal-state corrections, and destructi
 - Previous status, requested status, resulting status, and timestamp.
 - Evidence that payment, warehouse, notification, CRM, and channel side effects are handled by the owning services.
 
-## Current Implementation Gap
+## Current Implementation Status
 
-Current service methods accept arbitrary strings:
+Goal 2.2 added runtime transition validation for order status and item fulfillment updates.
 
-- `src/orders/orders.service.ts` assigns `order.status = status`.
-- `src/items/items.service.ts` updates `fulfillmentStatus` directly.
+Goal 2.3 added the explicit approval gate for documented order cancellation paths:
 
-Goal 2.2 must add runtime validation for this contract. Goal 2.3 must add the explicit approval gate for cancellation, refund-like paths, and destructive corrections.
+- `pending|confirmed|processing -> cancelled` requires `approval.approved=true`, `approval.approvalType=human`, actor identity, a safe `reasonCode`, and side-effect acknowledgements for payment, warehouse, notification, CRM, and channel handling.
+- Refund-like order statuses remain rejected as Payments-owned and require a separate owner-approved workflow.
+- Terminal-state destructive corrections remain rejected through the normal status endpoint until a separate owner-approved correction workflow exists.
+- Synthetic item cancellation, refund, and return values remain rejected until owner-approved schema and API changes define them.
+
+Goal 2.4 must add tests or direct API verification for allowed, rejected, and owner-approved transitions.

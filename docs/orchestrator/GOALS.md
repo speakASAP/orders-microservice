@@ -52,7 +52,7 @@ Chunks:
 
 - [x] 2.1 Document allowed order and item fulfillment status transitions.
 - [x] 2.2 Add or verify runtime validation for order status transitions.
-- [ ] 2.3 Add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
+- [x] 2.3 Add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
 - [ ] 2.4 Add tests or direct API verification for allowed, rejected, and owner-approved transitions.
 
 Acceptance criteria:

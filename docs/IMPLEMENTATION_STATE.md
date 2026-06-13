@@ -5,7 +5,7 @@ id: ORDERS-IMPLEMENTATION-STATE
 status: ready
 owner: Orders owner
 created: 2026-06-12
-last_updated: 2026-06-12
+last_updated: 2026-06-13
 completeness_level: validated
 upstream:
   - AGENTS.md
@@ -21,21 +21,22 @@ downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
   - src/orders/status-transitions.ts
+  - src/orders/orders.controller.ts
   - src/orders/orders.service.ts
-  - src/items/items.service.ts
+  - src/orders/order-events.service.ts
 related_adrs: []
 current_goal: none
 current_chunk: none
-next_recommended_goal: Goal 2 - Order Contract And State Machine Hardening, chunk 2.3
-last_completed_goal: Goal 2 chunk 2.2 runtime transition validation
+next_recommended_goal: Goal 2 - Order Contract And State Machine Hardening, chunk 2.4
+last_completed_goal: Goal 2 chunk 2.3 approval gates
 blockers: []
 ```
 
 ## Current Checkpoint
 
-Goal 2, chunk 2.2 is complete. Runtime validation now protects the normal order status endpoint and item fulfillment endpoint from arbitrary strings, state jumps, reverse transitions, terminal-state exits, and cancellation requests without the future owner-approval workflow.
+Goal 2, chunk 2.3 is complete pending deployment evidence. Runtime validation now supports documented pre-shipment order cancellation only when explicit human approval evidence is supplied, while refund-like statuses and destructive terminal-state corrections remain blocked from the normal status endpoint.
 
-The owner-selected orders admin frontend remains implemented and deployed from the previous checkpoint. Goal 2 should continue with chunk 2.3: add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
+The owner-selected orders admin frontend remains implemented and deployed. Goal 2 should continue with chunk 2.4: add tests or direct API verification for allowed, rejected, and owner-approved transitions.
 
 The production-readiness roadmap for making Orders available to FlipFlop and other ecosystem clients remains documented in `docs/orchestrator/PRODUCTION_READINESS_ROADMAP.md`.
 
@@ -45,36 +46,34 @@ The production-readiness roadmap for making Orders available to FlipFlop and oth
 
 ## Current Evidence
 
-- `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` were refreshed for Goal 2 chunk 2.2 before coding.
-- Added `src/orders/status-transitions.ts` with order and item fulfillment status normalization plus transition validation helpers.
-- Updated `src/orders/orders.service.ts` so `PUT /api/orders/:id/status` validates before saving and before publishing `order.updated`.
-- Updated `src/items/items.service.ts` so `PUT /api/items/:id/fulfillment` validates before saving and returns `404` for missing items.
-- Order validation enforces `pending -> confirmed -> processing -> shipped -> delivered`, rejects jumps and reverse moves, blocks terminal-state exits, rejects unrecognized status values, rejects normal-endpoint cancellation until owner approval support exists, requires all items to be at least shipped before order `shipped`, and requires all items delivered before order `delivered`.
-- Item validation enforces `pending -> reserved -> shipped -> delivered`, rejects jumps and reverse moves, blocks terminal-state exits, rejects unrecognized fulfillment values, and rejects synthetic `cancelled` fulfillment values.
-- No payment identity, stock ownership, product truth, notification delivery, CRM, refund automation, cancellation approval automation, sensitive-data logging, schema migration, or production data dump changes were made.
-- DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs were sufficient for this bounded Orders-local validation chunk.
-- Deployment commit: `e598278` (`Record order transition validation evidence`).
-- Deployment completed successfully after setting the Kubernetes deployment to immutable image `localhost:5000/orders-microservice:e598278`.
-- Final running pod `orders-microservice-7bb7db659d-nrmx5` uses image digest `sha256:c836a04a46001718c5255217783596662ee14076fc97579286bc72139dafb68a`.
-- Production health returned HTTP 200 and a live container helper check rejected `pending -> processing`.
+- `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` were refreshed for Goal 2 chunk 2.3 before coding.
+- Extended `src/orders/status-transitions.ts` with constrained approval payload validation and safe approval audit metadata.
+- Updated `src/orders/orders.controller.ts` to pass optional approval metadata and Auth actor identity into status updates.
+- Updated `src/orders/orders.service.ts` to validate through the audited transition helper and publish approval metadata only for approved cancellations.
+- Updated `src/orders/order-events.service.ts` with additive safe approval metadata support on `order.updated` events.
+- Approved cancellation now requires `approval.approved=true`, `approval.approvalType=human`, actor identity, safe `reasonCode`, and side-effect acknowledgements for payment, warehouse, notification, CRM, and channel.
+- Refund-like order statuses remain rejected as Payments-owned. Terminal-state destructive corrections remain rejected pending a separate owner-approved correction workflow. Synthetic item cancellation, refund, and return statuses remain rejected pending owner-approved schema/API work.
+- No payment identity, refund execution, stock ownership, warehouse stock release, product truth, notification delivery, CRM campaign execution, pricing, auth, shipment status, sensitive-data logging, schema migration, or production data dump changes were made.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs were sufficient for this bounded Orders-local approval-gate chunk.
 
 ## Next Action
 
-Continue Goal 2, chunk 2.3: add human-approval gates for cancellation, refund-like transitions, and destructive corrections.
+Continue Goal 2, chunk 2.4: add tests or direct API verification for allowed, rejected, and owner-approved transitions.
 
 ## Verification State
 
-Runtime validation completed for Goal 2 chunk 2.2:
+Runtime approval gates completed for Goal 2 chunk 2.3:
 
 ```bash
 npm run build
 node - <<'NODE'
 const t = require("./dist/orders/status-transitions");
-// Direct assertions covered allowed and rejected order and item transitions.
+// Direct assertions covered approved cancellation and rejected destructive/refund-like paths.
 NODE
 node --check dist/main.js
 rg '\[(MISSING|UNKNOWN):' docs/IMPLEMENTATION_STATE.md docs/IMPLEMENTATION_ORCHESTRATOR.md docs/orchestrator implementation-goals AGENTS.md TASKS.md
 rg -n 'Authorization: Bearer [A-Za-z0-9_./+=:-]{12,}|(access[_-]?token|client[_-]?secret|password|private[_-]?key|jwt[_-]?secret|db[_-]?password)\s*[:=]\s*["'"'"']?[A-Za-z0-9_./+=:-]{12,}' docs AGENTS.md TASKS.md implementation-goals src/orders src/items
+git diff --check
 ```
 
-All checks passed. Deployment completed successfully with image `localhost:5000/orders-microservice:e598278` and digest `sha256:c836a04a46001718c5255217783596662ee14076fc97579286bc72139dafb68a`.
+All checks passed. Deployment is pending commit.
