@@ -62,4 +62,4 @@ Stage: production · Health: ok
 
 ## Warehouse Handoff
 
-`WAREHOUSE_RESERVATION_ENABLED=false` by default. When explicitly enabled, Orders calls Warehouse reservation endpoints and records audit-safe `warehouseHandoff` metadata; Warehouse remains stock truth.
+Production sets `WAREHOUSE_RESERVATION_ENABLED=true` through Kubernetes ConfigMap and receives `WAREHOUSE_SERVICE_TOKEN` from Vault through External Secrets Operator. Orders calls Warehouse reservation endpoints with bearer auth and records audit-safe `warehouseHandoff` metadata; Warehouse remains stock truth.

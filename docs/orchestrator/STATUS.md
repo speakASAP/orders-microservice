@@ -1636,3 +1636,29 @@ Cleanup and safe production state:
 Next unfinished chunk:
 
 - Add a managed Vault-backed WAREHOUSE_SERVICE_TOKEN entry for Orders, map it through ExternalSecret, enable WAREHOUSE_RESERVATION_ENABLED through reviewed config, then rerun the same synthetic reservation smoke as a persistent production configuration check.
+
+## 2026-06-13 - Managed Warehouse Handoff Runtime Wiring
+
+Current focus:
+
+- Owner approved adding required variables to Vault, Kubernetes Vault/ESO wiring, and env examples by following ecosystem patterns.
+
+Implementation evidence:
+
+- Created an Orders-to-Warehouse service JWT with role internal:warehouse-microservice:admin and stored it as WAREHOUSE_SERVICE_TOKEN at Vault path secret/prod/orders-microservice without printing or committing the token value.
+- Mapped WAREHOUSE_SERVICE_TOKEN through k8s/external-secret.yaml into orders-microservice-secret.
+- Enabled WAREHOUSE_RESERVATION_ENABLED=true in k8s/configmap.yaml with WAREHOUSE_SERVICE_URL=http://warehouse-microservice.statex-apps.svc.cluster.local:3201 and WAREHOUSE_RESERVATION_TTL_MINUTES=15.
+- Added .env.example placeholders for the Warehouse handoff runtime variables.
+- Changed scripts/deploy.sh to set the deployment image to the immutable commit tag it builds instead of mutable latest.
+- Updated README.md, SYSTEM.md, and docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md to record the managed runtime wiring.
+
+Validation evidence:
+
+- kubectl apply --dry-run=server for k8s/configmap.yaml and k8s/external-secret.yaml: pass.
+- npm run verify:warehouse-handoff: pass.
+- npm test: pass.
+- git diff --check: pass.
+
+Next unfinished chunk:
+
+- Commit, deploy the immutable image, verify ESO projected WAREHOUSE_SERVICE_TOKEN without printing values, and rerun the persistent production synthetic reservation smoke.

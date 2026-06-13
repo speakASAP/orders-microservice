@@ -73,4 +73,4 @@ Central order processing service. Handles orders from all sales channels.
 
 ## Warehouse Handoff
 
-Orders can record Warehouse reservation handoff metadata on order creation. Reservation calls are disabled unless `WAREHOUSE_RESERVATION_ENABLED=true`; when enabled, every order item must include a Warehouse-owned `warehouseId`. Warehouse remains the stock and reservation authority.
+Orders records Warehouse reservation handoff metadata on order creation when `WAREHOUSE_RESERVATION_ENABLED=true`. Production receives `WAREHOUSE_SERVICE_TOKEN` from Vault through External Secrets Operator and calls Warehouse with bearer auth. Every reservable order item must include a Warehouse-owned `warehouseId`; Warehouse remains the stock and reservation authority.
