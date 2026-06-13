@@ -1523,3 +1523,36 @@ Verification evidence:
 Next unfinished chunk:
 
 - Commit/deploy the completed H7/H8 source and documentation changes when the owner approves the runtime release, or start a future approved candidate contract goal.
+
+## 2026-06-13 - Owner-Approved H7/H8 Runtime Deployment
+
+Current focus:
+
+- Owner approved the runtime release after H6 migration verification.
+- Scope: deploy the current `orders-microservice` main branch containing completed H7 admin operations console changes, H8 candidate integration decisions, and H6 migration evidence.
+
+Release evidence:
+
+- Pre-deploy `npm test`: pass; build, transitions, sensitive logging, create-order contract, idempotency contract, duplicate protection, event contracts, warehouse handoff, payment boundary, and admin operations console verification all passed.
+- Committed IPS migration evidence as `2f82535 Record H6 payment status migration verification`.
+- Ran `./scripts/deploy.sh` from `/home/ssf/Documents/Github/orders-microservice`.
+- Built Docker image `localhost:5000/orders-microservice:2f82535` and tagged/pushed `localhost:5000/orders-microservice:latest`.
+- Applied Kubernetes manifests in namespace `statex-apps`, set the deployment image, and completed rollout.
+- Live deployment status after rollout: `1/1` ready replica, one updated replica, generation 25 observed.
+- Live health check from the deployed pod returned `{"status":"healthy","service":"orders-microservice"}`.
+
+Operational notes:
+
+- The rollout wait initially exceeded the first wait window while the new pod started, but the old pod remained ready during that period.
+- New pod `orders-microservice-6cc649d75f-27z7p` became ready with zero restarts.
+- Application logs showed the H7 admin operations routes mapped and the service listening on port 3203.
+- Logs also showed a non-fatal `Failed to connect to RabbitMQ` message during startup; readiness and health still passed.
+
+Gate decision:
+
+- Deployment readiness: accept.
+- Runtime deployment: complete.
+
+Next unfinished chunk:
+
+- Post-deploy monitoring, or a future owner-approved candidate contract goal.

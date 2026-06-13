@@ -27,8 +27,8 @@ downstream:
 related_adrs: []
 current_goal: none
 current_chunk: none
-next_recommended_goal: owner-selected deployment/migration step or future approved candidate contract goal
-last_completed_goal: Goal H8 candidate application integration decisions
+next_recommended_goal: post-deploy monitoring or future approved candidate contract goal
+last_completed_goal: Owner-approved H7/H8 runtime deployment
 blockers: []
 ```
 
@@ -56,6 +56,8 @@ Goal 3 remains complete. Sensitive logging regression checks are wired into `npm
 Goal H7 is complete. The protected admin console now exposes read-only integration health for Auth, Warehouse, Payments, Catalog, Notifications, Leads, and Marketing; idempotency diagnostics for `orders.create.v1` channel/external order keys; safe order detail timeline/lifecycle log panels; role-scoped read-only versus action-capable modes; and a human-approved order status action workflow that delegates to the existing Orders state-machine and cancellation approval gates.
 
 Goal H8 is complete. SpeakASAP, School Committee, Rentabox, and Marathon were reviewed from repository source-of-truth docs and targeted lifecycle evidence. No candidate is approved to feed Orders in this pass. All reviewed candidates keep domain-local lifecycle ownership unless a future owner-approved contract goal explicitly defines the Orders create contract, idempotency key, payment boundary, warehouse/stock boundary, event contract, sensitive-data policy, rollback, and coexistence plan.
+
+The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was built as `localhost:5000/orders-microservice:2f82535`, pushed with `latest`, rolled out to Kubernetes namespace `statex-apps`, and passed the live `/health` check from the deployed pod.
 
 ## Preserved Intent Summary
 
@@ -86,11 +88,12 @@ Goal H8 is complete. SpeakASAP, School Committee, Rentabox, and Marathon were re
 - Added `docs/orchestrator/CANDIDATE_APPLICATION_INTEGRATION_DECISIONS.md` for H8. It records excluded-for-now decisions for SpeakASAP, School Committee, Rentabox, and Marathon, plus future owner-approved contract gates.
 - Applied the live `orders.warehouseHandoff` `jsonb` migration and verified the column exists.
 - Applied/replayed the live H6 payment status boundary migration and verified `orders.paymentReferenceId`, `orders.paymentApplicationId`, and `orders.paymentUpdatedAt` exist with bounded varchar/timestamp types. The guarded replay emitted only expected existing-column notices.
+- Deployed the owner-approved H7/H8 runtime release from commit `2f82535`; Kubernetes reported `deployment/orders-microservice` successfully rolled out with one ready updated replica and the live health endpoint returned `{"status":"healthy","service":"orders-microservice"}`.
 - DocsRAG live query was not run because no session JWT_TOKEN was available; repository source-of-truth docs and the current create-order/idempotency contracts were sufficient for this bounded Orders-local runtime chunk.
 
 ## Next Action
 
-Continue with an explicit runtime deployment decision for the completed H7/H8 source/docs changes, or start a future approved candidate contract goal.
+Monitor the deployed H7/H8 release and start a future approved candidate contract goal only when an owner approves a concrete application integration.
 
 ## Verification State
 
