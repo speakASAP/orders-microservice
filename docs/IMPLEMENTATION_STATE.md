@@ -22,16 +22,16 @@ downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
-current_goal: Goal H1 - Public Landing And Admin Access Surface
-current_chunk: H1.1-H1.4 landing/admin UI and roadmap
-next_recommended_goal: Goal H1 chunk H1.5 route smoke checks and H1.6 deploy verification
-last_completed_goal: Goal H1 chunks H1.1-H1.4 landing/admin UI and roadmap preparation
+current_goal: none
+current_chunk: none
+next_recommended_goal: Goal H3 chunk H3.1 / Goal 4 chunk 4.2 idempotency expectations for external order IDs and channel account IDs
+last_completed_goal: Goal H1 public landing, admin access surface, roadmap, deployment, and live route verification
 blockers: []
 ```
 
 ## Current Checkpoint
 
-Goal H1 chunks H1.1-H1.4 are complete in source and documentation. The service now has a public Orders Hub landing page planned for `/` and `/landing`, an improved admin shell at `/admin` and `/admin/orders`, and explicit admin roles on protected JSON endpoints.
+Goal H1 chunks H1.1-H1.6 are complete. The service now has a public Orders Hub landing page at `/` and `/landing`, an improved admin shell at `/admin` and `/admin/orders`, explicit admin roles on protected JSON endpoints, and live deployment evidence.
 
 The admin shell remains public but data-free. Admin data remains under `/api/admin/orders/dashboard` and `/api/admin/orders/:id`, protected by Auth-issued roles `global:superadmin` or `internal:orders-microservice:admin`.
 
@@ -70,7 +70,7 @@ Goal 2 remains complete. Runtime validation still supports documented pre-shipme
 
 ## Next Action
 
-Run route smoke checks, deploy, and verify `/`, `/admin/orders`, and protected `/api/admin/orders/dashboard?limit=1`. After the UI slice is deployed, continue Goal 4 chunk 4.2 or Goal H3 chunk H3.1 for idempotency expectations.
+Continue Goal H3 chunk H3.1 / Goal 4 chunk 4.2: document idempotency expectations for external order IDs and channel account IDs.
 
 ## Verification State
 
@@ -91,5 +91,34 @@ Verification results:
 - `npm test`: pass; build completed, `status transition verification ok`, `sensitive logging verification ok`, and `create order contract verification ok`.
 - `git diff --check`: pass.
 - Missing-marker scan: pass; no `[(MISSING|UNKNOWN):` markers found in IPS documentation scope.
+
+Goal H1 verification completed:
+
+```bash
+npm run build
+npm test
+git diff --check
+missing-marker scan
+sensitive-pattern scan
+./scripts/deploy.sh
+curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/
+curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/landing
+curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/admin/orders
+curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/health
+curl -i -H 'Cache-Control: no-cache' 'https://orders.alfares.cz/api/admin/orders/dashboard?limit=1'
+```
+
+Verification results:
+
+- `npm run build`: pass.
+- `npm test`: pass; transition, sensitive logging, and create-order contract checks passed.
+- `git diff --check`: pass.
+- Missing-marker scan: pass.
+- Sensitive-pattern scan: pass; no new secrets/tokens found. The only local scanner hit was the existing `process.env.DB_PASSWORD` application configuration reference.
+- `./scripts/deploy.sh`: pass; image `localhost:5000/orders-microservice:bf0510f` / `latest` pushed with digest `sha256:8b6a5edfe26e50ff2393b8488bc2cd7d600cc17c1c86309e0aaa019e9b39eea7`.
+- In-pod health check returned healthy JSON.
+- Public `/`, `/landing`, `/admin/orders`, and `/health` returned HTTP 200.
+- Unauthenticated `/api/admin/orders/dashboard?limit=1` returned HTTP 401.
+- Browser screenshot verification was attempted with bundled Playwright, but local Chrome failed to launch in the sandbox. HTTP and deployment verification completed.
 
 Deployment was not run because this chunk was not requested for deployment.

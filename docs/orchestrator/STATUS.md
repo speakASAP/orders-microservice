@@ -832,3 +832,48 @@ Verification:
 Next unfinished action:
 
 - Run `npm run build`, `npm test`, static scans, route smoke checks, deploy, and live verification.
+
+## 2026-06-13 - Goal H1 validation and deployment
+
+Commit:
+
+- `bf0510f` - `Add orders hub landing roadmap`
+
+Commands and checks:
+
+- `npm run build`: pass.
+- `npm test`: pass; build completed, `status transition verification ok`, `sensitive logging verification ok`, and `create order contract verification ok`.
+- `git diff --check`: pass.
+- Missing-marker scan: pass; no unresolved `[(MISSING|UNKNOWN):` markers found.
+- Sensitive-pattern scan: pass for new docs/UI scope; no raw secrets/tokens found. The scanner reported only the existing source configuration reference `process.env.DB_PASSWORD`.
+- `./scripts/deploy.sh`: pass.
+
+Deployment evidence:
+
+- Built and pushed `localhost:5000/orders-microservice:bf0510f` and `latest`.
+- Image digest: `sha256:8b6a5edfe26e50ff2393b8488bc2cd7d600cc17c1c86309e0aaa019e9b39eea7`.
+- Kubernetes rollout completed successfully.
+- In-pod health check returned healthy JSON from `http://localhost:3203/health`.
+
+Live route checks:
+
+- `curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/`: HTTP 200, `content-type: text/html; charset=utf-8`.
+- `curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/landing`: HTTP 200, `content-type: text/html; charset=utf-8`.
+- `curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/admin/orders`: HTTP 200, `content-type: text/html; charset=utf-8`.
+- `curl -I -H 'Cache-Control: no-cache' https://orders.alfares.cz/health`: HTTP 200.
+- `curl -i -H 'Cache-Control: no-cache' 'https://orders.alfares.cz/api/admin/orders/dashboard?limit=1'`: HTTP 401 without bearer token, confirming protected admin JSON remains guarded.
+
+Visual/browser verification:
+
+- Attempted bundled Playwright screenshot capture for desktop/mobile landing and admin pages.
+- Browser capture was blocked because local Chrome failed to launch under Playwright in the sandbox.
+- HTTP route checks, deployment logs, Nest route mapping logs, and protected API checks verified the deployed behavior.
+
+Gate decision:
+
+- Integration readiness: accept.
+- Deployment readiness: accept with follow-up for browser screenshot verification when Browser/IAB or local Chrome automation is available.
+
+Next unfinished chunk:
+
+- Goal H3 chunk H3.1 / Goal 4 chunk 4.2: document idempotency expectations for external order IDs and channel account IDs.
