@@ -109,11 +109,15 @@ async function run() {
     assert.equal(client.buildLifecyclePayload(order, item, 'RESERVATION_EXPIRED').reasonCode, 'RESERVATION_EXPIRED');
     assert.equal(client.buildLifecyclePayload(order, item, 'ORDER_RETURNED').reasonCode, 'ORDER_RETURNED');
 
-    await client.postReservationAction('release', client.buildReleasePayload(order, item));
-    await client.postReservationAction('fulfill', client.buildLifecyclePayload(order, item, 'PAYMENT_CONFIRMED'));
-    await client.postReservationAction('cancel', client.buildLifecyclePayload(order, item, 'ORDER_CANCELLED'));
+    const released = await client.releaseOrderItems(order);
+    const fulfilled = await client.fulfillOrderItems(order);
+    const cancelled = await client.cancelOrderItems(order);
     await client.postReservationAction('expire', client.buildLifecyclePayload(order, item, 'RESERVATION_EXPIRED'));
     await client.postReservationAction('return', client.buildLifecyclePayload(order, item, 'ORDER_RETURNED'));
+
+    assert.equal(released.status, 'released');
+    assert.equal(fulfilled.status, 'fulfilled');
+    assert.equal(cancelled.status, 'cancelled');
 
     assert.deepEqual(calls.map((call) => call.url), [
       'http://warehouse-microservice:3201/api/reservations/release',

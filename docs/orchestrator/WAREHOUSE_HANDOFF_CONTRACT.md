@@ -28,11 +28,11 @@ Orders records order lifecycle and item snapshots. Warehouse remains the stock, 
 | --- | --- | --- | --- | --- |
 | order created, items have `warehouseId` | create or update active reservation | `POST /api/reservations/reserve` | `ORDER_CREATE_RESERVATION` | Disabled unless `WAREHOUSE_RESERVATION_ENABLED=true`. |
 | order created, any item missing `warehouseId` | skip reservation and record metadata | none | `ORDER_CREATE_RESERVATION` | Warehouse routing must be selected by Warehouse/Catalog/channel workflow first. |
-| payment failed before fulfillment | release active reservation | `POST /api/reservations/release` | `PAYMENT_FAILED_RELEASE` | H6 payment boundary will call this after payment contract approval. |
-| payment confirmed | fulfill reservation | `POST /api/reservations/fulfill` | `PAYMENT_CONFIRMED` | H6 payment boundary owns trigger; Warehouse performs stock decrement. |
+| payment failed before fulfillment | release active reservation | `POST /api/reservations/release` | `PAYMENT_FAILED_RELEASE` | Implemented via the approved H6 payment status boundary for failed or cancelled payment statuses. |
+| payment confirmed | fulfill reservation | `POST /api/reservations/fulfill` | `PAYMENT_CONFIRMED` | Implemented via the approved H6 payment status boundary for completed payments; Warehouse performs stock decrement. |
 | owner-approved cancellation | cancel reservation | `POST /api/reservations/cancel` | `ORDER_CANCELLED` | Cancellation still requires side-effect acknowledgement in Orders status transition. |
 | reservation TTL elapsed | expire reservation | `POST /api/reservations/expire` | `RESERVATION_EXPIRED` | Scheduler/worker ownership is a follow-up. |
-| return after fulfillment | return reservation | `POST /api/reservations/return` | `ORDER_RETURNED` | Return workflow remains owner-approved follow-up. |
+| return after fulfillment | return reservation | `POST /api/reservations/return` | `ORDER_RETURNED` | Return workflow remains owner-approved follow-up and is verified as excluded from normal Orders status updates. |
 
 ## Reserve Payload
 

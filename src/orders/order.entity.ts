@@ -76,6 +76,15 @@ export class Order {
   @Column({ length: 50, nullable: true })
   paymentStatus: string;
 
+  @Column({ length: 200, nullable: true })
+  paymentReferenceId: string;
+
+  @Column({ length: 100, nullable: true })
+  paymentApplicationId: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  paymentUpdatedAt: Date;
+
   // Shipping
   @Column({ length: 100, nullable: true })
   shippingMethod: string;

@@ -14,6 +14,12 @@ import {
 } from './create-order.dto';
 import { OrderEventsService } from './order-events.service';
 import {
+  NormalizedPaymentStatusUpdate,
+  PaymentStatusUpdateRequestDto,
+  normalizePaymentStatusUpdate,
+} from '../payments/payment-status.dto';
+import {
+  OrderStatusActorContext,
   OrderStatusTransitionContext,
   validateOrderStatusTransitionWithAudit,
 } from './status-transitions';
@@ -174,6 +180,11 @@ export class OrdersService {
       order.status = transition.status;
       const updated = await this.orderRepository.save(order);
 
+      if (transition.status === 'cancelled') {
+        updated.warehouseHandoff = await this.warehouseReservations.cancelOrderItems(updated);
+        await this.orderRepository.save(updated);
+      }
+
       await this.orderEvents.publishOrderUpdated(
         id,
         transition.status,
@@ -217,6 +228,103 @@ export class OrdersService {
           requestedStatus: status,
           resultingStatus: transition.status,
           outcome: 'failure',
+          durationMs: Date.now() - startedAt,
+        },
+        OrdersService.CONTEXT,
+      );
+      throw error;
+    }
+  }
+
+  async applyPaymentStatus(
+    id: string,
+    data: PaymentStatusUpdateRequestDto,
+    actor: OrderStatusActorContext = {},
+  ): Promise<Order> {
+    const startedAt = Date.now();
+    const order = await this.findOne(id);
+    const previousStatus = order.status;
+    const previousPaymentStatus = order.paymentStatus;
+    let normalized: NormalizedPaymentStatusUpdate;
+
+    try {
+      normalized = normalizePaymentStatusUpdate(data);
+      if (order.status === 'cancelled' && normalized.paymentStatus === 'paid') {
+        throw new BadRequestException('Payments cannot mark a cancelled order as paid');
+      }
+      if (previousPaymentStatus === 'paid' && normalized.paymentStatus !== 'paid') {
+        throw new BadRequestException('Paid orders require a separate owner-approved refund or correction workflow');
+      }
+      if (
+        previousPaymentStatus === 'paid' &&
+        normalized.paymentStatus === 'paid' &&
+        order.paymentReferenceId &&
+        order.paymentReferenceId !== normalized.paymentReferenceId
+      ) {
+        throw new BadRequestException('Paid payment reference cannot be replaced by Orders');
+      }
+
+      order.paymentReferenceId = normalized.paymentReferenceId;
+      order.paymentApplicationId = normalized.paymentApplicationId || order.paymentApplicationId;
+      order.paymentMethod = normalized.paymentMethod || order.paymentMethod;
+      order.paymentStatus = normalized.paymentStatus;
+      order.paymentUpdatedAt = normalized.paymentUpdatedAt;
+
+      const shouldConfirmOrder = normalized.paymentStatus === 'paid' && order.status === 'pending';
+      if (shouldConfirmOrder) {
+        order.status = 'confirmed';
+      }
+
+      const updated = await this.orderRepository.save(order);
+
+      const paymentStatusChanged = previousPaymentStatus !== normalized.paymentStatus;
+      if (normalized.paymentStatus === 'paid' && paymentStatusChanged) {
+        updated.warehouseHandoff = await this.warehouseReservations.fulfillOrderItems(updated);
+        await this.orderRepository.save(updated);
+      } else if (
+        (normalized.paymentStatus === 'failed' || normalized.paymentStatus === 'cancelled') &&
+        paymentStatusChanged
+      ) {
+        updated.warehouseHandoff = await this.warehouseReservations.releaseOrderItems(updated);
+        await this.orderRepository.save(updated);
+      }
+
+      if (shouldConfirmOrder) {
+        await this.orderEvents.publishOrderUpdated(id, 'confirmed', { previousStatus });
+      }
+      if (normalized.paymentStatus === 'paid' && previousPaymentStatus !== 'paid') {
+        await this.orderEvents.publishOrderPaid(id, normalized.paymentReferenceId);
+      }
+
+      this.logger.audit(
+        {
+          operation: 'order.payment_status.update',
+          resourceType: 'order',
+          resourceId: id,
+          actorId: actor?.sub,
+          actorEmail: actor?.email,
+          channel: order.channel,
+          previousStatus: previousPaymentStatus,
+          requestedStatus: normalized.paymentStatus,
+          resultingStatus: updated.paymentStatus,
+          outcome: 'success',
+          durationMs: Date.now() - startedAt,
+        },
+        OrdersService.CONTEXT,
+      );
+
+      return updated;
+    } catch (error) {
+      this.logger.audit(
+        {
+          operation: 'order.payment_status.update',
+          resourceType: 'order',
+          resourceId: id,
+          actorId: actor?.sub,
+          actorEmail: actor?.email,
+          channel: order.channel,
+          previousStatus: previousPaymentStatus,
+          outcome: 'rejected',
           durationMs: Date.now() - startedAt,
         },
         OrdersService.CONTEXT,

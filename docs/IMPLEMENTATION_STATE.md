@@ -26,8 +26,8 @@ downstream:
 related_adrs: []
 current_goal: none
 current_chunk: none
-next_recommended_goal: Goal H6 payments callback boundary
-last_completed_goal: Goal H5 warehouse reservation choreography
+next_recommended_goal: Goal H7 admin operations console or owner-selected deployment/migration step
+last_completed_goal: Goal H5.5 payment-success, cancellation, and return verification
 blockers: []
 ```
 
@@ -44,7 +44,11 @@ Goal H1 chunks H1.1-H1.6 remain complete and deployed. The public Orders Hub lan
 
 Goal H3 chunks H3.5-H3.6 are complete. FlipFlop, Allegro, Aukro, Bazos, and Heureka shared order clients now send contractVersion=orders.create.v1, normalize a stable channelAccountId fallback, preserve the same payload for retry, and surface ORDER_IDEMPOTENCY_CONFLICT as HTTP 409 instead of flattening it to a generic 400. FlipFlop checkout forwarding now sends a stable account scope through ORDERS_CHANNEL_ACCOUNT_ID with fallback flipflop-storefront.
 
-Goal H4 is complete. Orders now defines `orders.order.created.v1`, `orders.order.updated.v1`, `orders.order.paid.v1`, `orders.order.shipped.v1`, and `orders.order.cancelled.v1`, publishes version metadata and RabbitMQ headers, and verifies fixtures/builders/publisher payloads against forbidden sensitive fields. Goal H5 is complete for reservation choreography: Orders maps Warehouse lifecycle endpoints, has a config-gated Warehouse reservation client, stores audit-safe `warehouseHandoff` metadata, and verifies reserve, release, fulfill, cancel, expire, and return payloads without becoming stock truth. H6 remains responsible for payment-triggered runtime decisions.
+Goal H6 is complete. Orders now exposes a protected `orders.payment-status.v1` callback boundary at `PUT /api/orders/:id/payment-status` for Auth-authorized Orders admins or the Payments service role. Orders stores only bounded payment references (`paymentReferenceId`, `paymentApplicationId`, `paymentMethod`, `paymentStatus`, `paymentUpdatedAt`), maps Payments `completed` to Orders `paid`, emits `orders.order.paid.v1` once, and only advances `pending -> confirmed` on first paid status. Raw provider webhooks, provider transaction identifiers, variable symbols, provider response bodies, metadata, amounts, currency, customer payment payloads, card data, tokens, secrets, refunds, and reconciliation stay in `payments-microservice`.
+
+H6 live schema is not materialized yet. `migrations/005_add_order_payment_status_boundary.sql` is present and must be applied before production use of `PUT /api/orders/:id/payment-status`.
+
+Goal H4 is complete. Orders now defines `orders.order.created.v1`, `orders.order.updated.v1`, `orders.order.paid.v1`, `orders.order.shipped.v1`, and `orders.order.cancelled.v1`, publishes version metadata and RabbitMQ headers, and verifies fixtures/builders/publisher payloads against forbidden sensitive fields. Goal H5 is complete for reservation choreography and H5.5: Orders maps Warehouse lifecycle endpoints, has a config-gated Warehouse reservation client, stores audit-safe `warehouseHandoff` metadata, fulfills reservations on paid payment status, releases reservations on failed/cancelled payment status, cancels reservations after approved order cancellation, and verifies return remains outside normal Orders status updates. Goal H6 is complete for bounded Payments-owned status updates without taking over payment identity, provider webhooks, reconciliation, transactions, or refunds.
 
 Goal 3 remains complete. Sensitive logging regression checks are wired into `npm test` and continue to pass. Goal 2 remains complete; owner-approved cancellation gates and state-transition validation remain in force.
 
@@ -67,26 +71,31 @@ Goal 3 remains complete. Sensitive logging regression checks are wired into `npm
 - Added `docs/orchestrator/ORDER_EVENT_CONTRACTS.md`, `docs/orchestrator/event-fixtures/*`, `src/orders/order-event-contracts.ts`, and `scripts/verify-event-contracts.js` for versioned lifecycle event contracts.
 - Updated `OrderEventsService` to publish versioned routing keys and message headers, sanitize approval metadata, emit `orders.order.cancelled.v1` for approved cancellation, and omit tracking numbers from shipped events.
 - Added `docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md`, `src/warehouse/warehouse-reservation.client.ts`, `migrations/004_add_order_warehouse_handoff.sql`, and `scripts/verify-warehouse-handoff-contract.js` for H5.
-- Applied the live `orders.warehouseHandoff` `jsonb` migration and verified the column exists.
+- Added `docs/orchestrator/PAYMENT_STATUS_BOUNDARY.md`, `src/payments/payment-status.dto.ts`, `migrations/005_add_order_payment_status_boundary.sql`, and `scripts/verify-payment-boundary.js` for H6.
+- Applied the live `orders.warehouseHandoff` `jsonb` migration and verified the column exists. The H6 payment status migration is not applied yet.
 - DocsRAG live query was not run because no session JWT_TOKEN was available; repository source-of-truth docs and the current create-order/idempotency contracts were sufficient for this bounded Orders-local runtime chunk.
 
 ## Next Action
 
-Continue with Goal H6 payments callback boundary.
+Continue with Goal H7 admin operations console or owner-selected deployment/migration step.
 
 ## Verification State
 
 Goal 4 chunks 4.3-4.6 / Goal H3 verification completed.
 
-Commands run: npm run verify:duplicate-order-protection; npm run verify:channel-adapter-idempotency; npm run verify:event-contracts; npm run verify:warehouse-handoff; npm test; channel shared builds where dependencies were installed; FlipFlop order-service build; guarded base schema and idempotency migrations against `orders` database; table/index-state confirmation; scripts/verify-live-idempotency-index.sh; git diff --check; missing-marker scan.
+Commands run: npm run verify:duplicate-order-protection; npm run verify:channel-adapter-idempotency; npm run verify:event-contracts; npm run verify:warehouse-handoff; npm run verify:payment-boundary; npm test; channel shared builds where dependencies were installed; FlipFlop order-service build; guarded base schema and idempotency migrations against `orders` database; table/index-state confirmation; scripts/verify-live-idempotency-index.sh; git diff --check; missing-marker scan.
 
 Verification results:
+
+- `npm run verify:payment-boundary`: pass; bounded status mapping, forbidden Payments-owned fields, paid event idempotency, paid-reference replacement rejection, paid downgrade rejection, and cancelled-order paid rejection passed.
+- H6 guarded migration apply: not run in this chunk; `migrations/005_add_order_payment_status_boundary.sql` must be applied before production use.
 
 - npm run verify:duplicate-order-protection: pass; duplicate order protection verification ok.
 - npm run verify:channel-adapter-idempotency: pass; channel adapter idempotency verification ok.
 - npm run verify:event-contracts: pass; fixture, builder, publisher route/header, and sensitive-field checks passed.
 - npm run verify:warehouse-handoff: pass; disabled, reserve, skip, failure, release, fulfill, cancel, expire, and return handoff checks passed.
-- npm test: pass; build completed, status transition verification ok, sensitive logging verification ok, create order contract verification ok, idempotency contract verification ok, and duplicate order protection verification ok.
+- npm run verify:payment-boundary: pass; bounded payment status, paid confirmation, warehouse fulfill, failed release, refund rejection, and provider-field rejection checks passed.
+- npm test: pass; build completed, status transition verification ok, sensitive logging verification ok, create order contract verification ok, idempotency contract verification ok, duplicate order protection verification ok, event contract verification ok, warehouse handoff verification ok, and payment boundary verification ok.
 - Channel compile checks: flipflop-service/shared, allegro-service/shared, aukro-service/shared, bazos-service/shared, heureka-service/shared, and flipflop-service/services/order-service builds passed. Aukro and Heureka dependencies were restored with npm ci before their shared builds.
 - Guarded base schema migration apply: pass; `orders`, `order_items`, and `shipments` were created in the live `orders` database.
 - Guarded idempotency migration apply: pass; `ux_orders_create_idempotency` is materialized on `orders`.

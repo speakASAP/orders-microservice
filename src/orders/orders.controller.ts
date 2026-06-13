@@ -3,6 +3,8 @@ import { Request } from 'express';
 import { OrdersService } from './orders.service';
 import { OrderStatusApprovalInput } from './status-transitions';
 import { CreateOrderRequestDto } from './create-order.dto';
+import { PaymentStatusUpdateRequestDto } from '../payments/payment-status.dto';
+import { Roles } from '../auth/roles.decorator';
 
 interface OrderStatusUpdateBody {
   status: string;
@@ -36,6 +38,17 @@ export class OrdersController {
   @Post()
   async create(@Body() data: CreateOrderRequestDto) {
     const order = await this.ordersService.create(data);
+    return { success: true, data: order };
+  }
+
+  @Put(':id/payment-status')
+  @Roles('global:superadmin', 'internal:orders-microservice:admin', 'internal:payments-microservice:service')
+  async updatePaymentStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: PaymentStatusUpdateRequestDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    const order = await this.ordersService.applyPaymentStatus(id, body, request.user);
     return { success: true, data: order };
   }
 

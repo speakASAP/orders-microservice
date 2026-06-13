@@ -5,7 +5,7 @@ import { Order } from '../orders/order.entity';
 import { OrderItem } from '../items/order-item.entity';
 import { LoggerService } from '../logger/logger.service';
 
-export type WarehouseHandoffStatus = 'disabled' | 'skipped' | 'reserved' | 'failed';
+export type WarehouseHandoffStatus = 'disabled' | 'skipped' | 'reserved' | 'released' | 'fulfilled' | 'cancelled' | 'expired' | 'returned' | 'failed';
 export type WarehouseReservationAction = 'release' | 'fulfill' | 'cancel' | 'expire' | 'return';
 
 export interface WarehouseHandoffSummary {
@@ -41,6 +41,20 @@ interface ReleasePayload extends ReservationLifecyclePayload {
 }
 
 const RESERVE_REASON_CODE = 'ORDER_CREATE_RESERVATION';
+const ACTION_STATUS: Record<WarehouseReservationAction, WarehouseHandoffStatus> = {
+  release: 'released',
+  fulfill: 'fulfilled',
+  cancel: 'cancelled',
+  expire: 'expired',
+  return: 'returned',
+};
+const ACTION_REASON: Record<WarehouseReservationAction, string> = {
+  release: 'PAYMENT_FAILED_RELEASE',
+  fulfill: 'PAYMENT_CONFIRMED',
+  cancel: 'ORDER_CANCELLED',
+  expire: 'RESERVATION_EXPIRED',
+  return: 'ORDER_RETURNED',
+};
 const DEFAULT_RESERVATION_TTL_MINUTES = 15;
 
 @Injectable()
@@ -109,6 +123,18 @@ export class WarehouseReservationClient {
     }
   }
 
+  async releaseOrderItems(order: Order, reasonCode = ACTION_REASON.release): Promise<WarehouseHandoffSummary> {
+    return this.applyReservationAction('release', order, reasonCode);
+  }
+
+  async fulfillOrderItems(order: Order, reasonCode = ACTION_REASON.fulfill): Promise<WarehouseHandoffSummary> {
+    return this.applyReservationAction('fulfill', order, reasonCode);
+  }
+
+  async cancelOrderItems(order: Order, reasonCode = ACTION_REASON.cancel): Promise<WarehouseHandoffSummary> {
+    return this.applyReservationAction('cancel', order, reasonCode);
+  }
+
   buildReservePayload(order: Order, item: OrderItem, expiresAt: string): ReservePayload {
     return {
       ...this.buildLifecyclePayload(order, item, RESERVE_REASON_CODE),
@@ -141,6 +167,63 @@ export class WarehouseReservationClient {
     payload: ReservationLifecyclePayload | ReleasePayload,
   ): Promise<void> {
     await firstValueFrom(this.httpService.post(this.baseUrl + '/api/reservations/' + action, payload));
+  }
+
+  private async applyReservationAction(
+    action: WarehouseReservationAction,
+    order: Order,
+    reasonCode: string,
+  ): Promise<WarehouseHandoffSummary> {
+    const attemptedAt = new Date();
+    const items = order.items || [];
+    const base = {
+      attemptedAt: attemptedAt.toISOString(),
+      itemCount: items.length,
+      reservedCount: 0,
+      failedCount: 0,
+      reasonCode,
+      actor: 'orders-microservice' as const,
+    };
+
+    if (!this.enabled) {
+      return { ...base, status: 'disabled', skipReason: 'reservation_disabled' };
+    }
+
+    if (!items.length) {
+      return { ...base, status: 'skipped', skipReason: 'missing_order_items' };
+    }
+
+    if (items.some((item) => !this.hasWarehouseId(item))) {
+      return { ...base, status: 'skipped', skipReason: 'missing_warehouse_id' };
+    }
+
+    let succeeded = 0;
+    try {
+      for (const item of items) {
+        const payload = action === 'release'
+          ? this.buildReleasePayload(order, item, reasonCode)
+          : this.buildLifecyclePayload(order, item, reasonCode);
+        await this.postReservationAction(action, payload);
+        succeeded += 1;
+      }
+
+      return {
+        ...base,
+        status: ACTION_STATUS[action],
+        completedAt: new Date().toISOString(),
+        reservedCount: succeeded,
+      };
+    } catch {
+      this.logger.warn('Warehouse reservation lifecycle handoff failed', 'WarehouseReservationClient');
+      return {
+        ...base,
+        status: 'failed',
+        completedAt: new Date().toISOString(),
+        reservedCount: succeeded,
+        failedCount: items.length - succeeded,
+        failureCode: 'warehouse_request_failed',
+      };
+    }
   }
 
   private async reserveItem(order: Order, item: OrderItem, expiresAt: string): Promise<void> {

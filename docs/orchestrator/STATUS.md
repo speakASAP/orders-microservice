@@ -1289,3 +1289,75 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal H6 payments callback boundary.
+
+
+## 2026-06-13 - Goal H6 Payments Callback And Status Boundary
+
+Current focus:
+
+- Owner-approved continuation after H5.1-H5.4 Warehouse reservation choreography.
+- Scope: align Orders with Payments status updates while Payments remains payment identity, provider webhook, reconciliation, and refund authority.
+
+Implementation evidence:
+
+- Added `docs/orchestrator/PAYMENT_STATUS_BOUNDARY.md` documenting that Orders does not receive raw provider webhooks and accepts only bounded Payments-owned status updates.
+- Added `src/payments/payment-status.dto.ts` with contract version `orders.payment-status.v1`, status normalization, allowed fields, and explicit rejection of refund/provider-owned fields.
+- Added protected `PUT /api/orders/:id/payment-status` for `global:superadmin`, `internal:orders-microservice:admin`, and `internal:payments-microservice:service` actors.
+- Added `paymentReferenceId`, `paymentApplicationId`, and `paymentUpdatedAt` to the Orders entity, base production schema, and guarded migration `migrations/005_add_order_payment_status_boundary.sql`.
+- Added `scripts/verify-payment-boundary.js` and wired `npm test` to run `npm run verify:payment-boundary`.
+
+Boundary decisions:
+
+- Payments remains owner of provider sessions, checkout redirects, webhooks, reconciliation, provider transaction IDs, variable symbols, transactions, and refunds.
+- Orders may store only Payments-owned payment ID, bounded application ID, bounded method label, normalized payment status, and status timestamp.
+- `completed` maps to Orders `paymentStatus=paid`; if the order is `pending`, Orders moves it to `confirmed`, publishes `orders.order.updated.v1`, and publishes `orders.order.paid.v1`.
+- `failed` and `cancelled` update only `paymentStatus`; Warehouse release/cancel choreography remains H5.5 follow-up.
+- Refund-like statuses and provider-owned fields are rejected by the Orders boundary.
+
+Verification evidence:
+
+- `npm run verify:payment-boundary`: pass.
+- `npm test`: pass, including build, transitions, sensitive logging, create-order contract, idempotency, duplicate protection, event contracts, warehouse handoff, and payment boundary checks.
+
+Gate decision:
+
+- H6 readiness: accept.
+- Runtime deployment: not run in this chunk. Apply `migrations/005_add_order_payment_status_boundary.sql` before enabling production use of the new payment status endpoint.
+
+Next unfinished chunk:
+
+- Goal H5.5 payment-success, cancellation, and return verification using the approved H6 payment status boundary.
+
+## 2026-06-13 - Goal H5.5 Payment Success, Cancellation, And Return Verification
+
+Current focus:
+
+- Owner-approved continuation after H6 payment status boundary completion.
+- Scope: verify Warehouse reservation choreography for payment success, payment failure/cancellation, approved order cancellation, and return exclusion.
+
+Implementation evidence:
+
+- Extended `WarehouseReservationClient` with config-gated `releaseOrderItems`, `fulfillOrderItems`, and `cancelOrderItems` lifecycle methods.
+- Wired `OrdersService.applyPaymentStatus` so `orders.payment-status.v1` `completed` updates call Warehouse `fulfill`, while `failed` and `cancelled` payment statuses call Warehouse `release`.
+- Wired approved `OrdersService.updateStatus(... cancelled ...)` to call Warehouse `cancel` after the Orders cancellation approval gate succeeds.
+- Kept return out of normal Orders status updates; synthetic return/refund statuses remain rejected by the status-transition verifier and Payments refund-like statuses remain rejected by the H6 boundary.
+
+Boundary decisions:
+
+- Warehouse remains stock truth and performs release, fulfill, cancel, expire, and return mutations.
+- Payments remains refund owner; Orders does not perform refund or return payment logic.
+- Handoff failures remain bounded `warehouseHandoff` metadata and do not expose raw Warehouse error text.
+
+Verification evidence:
+
+- `npm run verify:payment-boundary`: pass; paid payment triggers Warehouse fulfill metadata and failed payment triggers Warehouse release metadata.
+- `npm run verify:warehouse-handoff`: pass; release, fulfill, cancel, expire, and return payloads target the expected Warehouse endpoints and contain no sensitive data.
+
+Gate decision:
+
+- H5.5 readiness: accept.
+- Runtime deployment: not run in this chunk. Apply H5/H6 migrations and make an explicit release decision before enabling production Warehouse reservation calls.
+
+Next unfinished chunk:
+
+- Goal H7 admin operations console or owner-selected deployment/migration step.

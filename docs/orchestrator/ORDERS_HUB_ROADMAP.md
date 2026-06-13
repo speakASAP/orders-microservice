@@ -202,17 +202,17 @@ Verification stages:
 
 ### Goal H6 - Payments Callback And Status Boundary
 
-Status: pending
+Status: complete
 
 Intent: Align Orders with Payments status updates while Payments remains provider identity and reconciliation authority.
 
 Chunks:
 
-- [ ] H6.1 Decide whether Orders receives payment callbacks directly or via channel services.
-- [ ] H6.2 Define payment reference fields Orders may store.
-- [ ] H6.3 Define paid/failed/cancelled status transition rules.
-- [ ] H6.4 Add read-only payment status lookup or callback handler only after contract approval.
-- [ ] H6.5 Verify refund-like operations remain outside normal Orders status updates.
+- [x] H6.1 Decide whether Orders receives payment callbacks directly or via channel services.
+- [x] H6.2 Define payment reference fields Orders may store.
+- [x] H6.3 Define paid/failed/cancelled status transition rules.
+- [x] H6.4 Add bounded payment status update handler after contract approval.
+- [x] H6.5 Verify refund-like operations remain outside normal Orders status updates.
 
 Acceptance criteria:
 
