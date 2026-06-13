@@ -26,7 +26,7 @@ downstream:
 related_adrs: []
 current_goal: none
 current_chunk: none
-next_recommended_goal: Goal H3 chunk H3.5 verify FlipFlop and marketplace adapters can retry safely; follow-up hardening: database uniqueness for concurrent duplicate creates
+next_recommended_goal: Goal H3 chunk H3.5 verify FlipFlop and marketplace adapters can retry safely; then add database-level uniqueness hardening; follow-up hardening: database uniqueness for concurrent duplicate creates
 last_completed_goal: Goal 4 chunk 4.3 / Goal H3 chunks H3.2-H3.4 runtime idempotency protection
 blockers: []
 ```
@@ -49,13 +49,15 @@ Goal 3 remains complete. Sensitive logging regression checks are wired into `npm
 
 ## Current Evidence
 
-- Added `docs/orchestrator/ORDER_IDEMPOTENCY_CONTRACT.md`.
-- Updated `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md` to reference the full idempotency key and `channelAccountId` expectation.
-- Added `scripts/verify-idempotency-contract.js`.
-- Updated `package.json` so `npm test` runs `verify:idempotency-contract` after build, transition, sensitive logging, and create-order contract checks.
-- Updated `docs/orchestrator/GOALS.md`, `docs/orchestrator/ORDERS_HUB_ROADMAP.md`, and `docs/orchestrator/PLAN.md` for Goal 4.2 / H3.1 completion and the next duplicate-lookup chunk.
-- Preserved runtime behavior; no database schema, create-order duplicate behavior, status transition behavior, JWT/RBAC guard behavior, warehouse/catalog/payment ownership boundaries, or event publishing behavior changed in this documentation chunk.
-- DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs and the current create-order contract were sufficient for this bounded idempotency documentation chunk.
+- Added the order idempotency contract document and wired the create-order contract to the full key: contractVersion + channel + channelAccountId + externalOrderId.
+- Added runtime deterministic duplicate lookup before create-order insertion.
+- Exact same-key replay now returns the existing canonical order and does not insert duplicate order or item rows.
+- Same-key different-payload replay now rejects with HTTP 409 before inserts, event publishing, or side effects.
+- Added scripts/verify-idempotency-contract.js and scripts/verify-duplicate-order-protection.js.
+- Updated package.json so npm test runs the duplicate-order protection verification after the existing build, transition, sensitive logging, create-order, and idempotency checks.
+- Updated docs/orchestrator/GOALS.md and docs/orchestrator/ORDERS_HUB_ROADMAP.md to mark Goal 4.3 and H3.2-H3.4 complete.
+- Database-level uniqueness for simultaneous duplicate creates remains a hardening follow-up because this repository does not currently have a production migration path.
+- DocsRAG live query was not run because no session JWT_TOKEN was available; repository source-of-truth docs and the current create-order/idempotency contracts were sufficient for this bounded Orders-local runtime chunk.
 
 ## Next Action
 
@@ -63,20 +65,15 @@ Continue Goal H3 chunk H3.5: verify FlipFlop and marketplace adapters can retry 
 
 ## Verification State
 
-Goal 4 chunk 4.2 / Goal H3 chunk H3.1 verification completed:
+Goal 4 chunk 4.3 / Goal H3 chunks H3.2-H3.4 verification completed.
 
-```bash
-npm run verify:idempotency-contract
-npm test
-git diff --check
-missing-marker scan
-```
+Commands run: npm run verify:duplicate-order-protection; npm test; git diff --check; missing-marker scan.
 
 Verification results:
 
-- `npm run verify:idempotency-contract`: pass; `idempotency contract verification ok`.
-- `npm test`: pass; build completed, `status transition verification ok`, `sensitive logging verification ok`, `create order contract verification ok`, and `idempotency contract verification ok`.
-- `git diff --check`: pass.
-- Missing-marker scan: pass; no `[(MISSING|UNKNOWN):` markers found in IPS documentation scope.
+- npm run verify:duplicate-order-protection: pass; duplicate order protection verification ok.
+- npm test: pass; build completed, status transition verification ok, sensitive logging verification ok, create order contract verification ok, idempotency contract verification ok, and duplicate order protection verification ok.
+- git diff --check: pass.
+- Missing-marker scan: pass; no missing or unknown markers found in IPS documentation scope.
 
-Deployment was not run because this chunk does not change runtime behavior.
+Deployment was not run because the owner requested the implementation chunk only; deploy remains available after review.

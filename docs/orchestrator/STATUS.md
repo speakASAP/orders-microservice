@@ -958,3 +958,54 @@ Pre-coding gate:
 Known follow-up:
 
 - Add database-level uniqueness or another concurrency-safe guard for simultaneous duplicate creates. The current implementation prevents ordinary retries but does not fully eliminate concurrent insert races.
+
+
+Final verification evidence:
+
+- npm test: pass; build, status transition, sensitive logging, create-order contract, idempotency contract, and duplicate-order protection checks completed.
+- verify:duplicate-order-protection asserts exact duplicate replay returns the existing order without starting a transaction or publishing order.created.
+- verify:duplicate-order-protection asserts mismatched same-key replay rejects with HTTP 409 before inserts or event publishing.
+- Goal 4 chunk 4.3 and Goal H3 chunks H3.2-H3.4 are complete for deterministic duplicate lookup, stable replay response, and conflict rejection.
+
+Gate decision:
+
+- Runtime readiness: accept for normal retry duplicate protection.
+- Known hardening follow-up: add database-level uniqueness or another concurrency-safe guard once production migrations are available.
+
+Next unfinished chunk:
+
+- Goal H3 chunk H3.5: verify FlipFlop and marketplace adapters can retry safely.
+
+
+## 2026-06-13 - Goal 4.3 / H3 validation and deployment
+
+Commit:
+
+- `b28f311` - `Add channel order idempotency protection`
+
+Commands and checks:
+
+- `npm test`: pass; build, transition verification, sensitive logging verification, create-order contract verification, idempotency contract verification, and duplicate-order protection verification passed.
+- `git diff --check`: pass.
+- Missing-marker scan: pass.
+- Sensitive-pattern scan over docs, orchestrator artifacts, order source, and scripts: pass.
+- `npm run verify:duplicate-order-protection`: pass.
+
+Deployment evidence:
+
+- `./scripts/deploy.sh`: pass.
+- Built and pushed `localhost:5000/orders-microservice:b28f311` and `latest`.
+- Image digest: `sha256:a4149cc0c49929cc3f76ae2cf152fcf35bc8a45f0f74250bdb91ab2c539948cb`.
+- Deployment was pinned to immutable image `localhost:5000/orders-microservice:b28f311`.
+- Kubernetes rollout completed with `1/1` ready replicas.
+- Public health check `curl -I -H Cache-Control: no-cache https://orders.alfares.cz/health`: HTTP 200.
+- Unauthenticated `curl -i -H Cache-Control: no-cache https://orders.alfares.cz/api/orders`: HTTP 401, confirming protected API behavior remains active.
+
+Gate decision:
+
+- Integration readiness: accept.
+- Deployment readiness: accept with follow-up for database-level uniqueness/concurrency hardening.
+
+Next unfinished chunk:
+
+- Goal H3 chunk H3.5: verify FlipFlop and marketplace adapters can retry safely; then add database-level uniqueness hardening for simultaneous duplicate creates.
