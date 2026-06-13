@@ -69,3 +69,8 @@ Central order processing service. Handles orders from all sales channels.
 | allegro-service | `allegro-service:3403` |
 | flipflop-service | `flipflop-service:3000` |
 | auth-microservice | `auth-microservice:3370` |
+
+
+## Warehouse Handoff
+
+Orders can record Warehouse reservation handoff metadata on order creation. Reservation calls are disabled unless `WAREHOUSE_RESERVATION_ENABLED=true`; when enabled, every order item must include a Warehouse-owned `warehouseId`. Warehouse remains the stock and reservation authority.

@@ -175,17 +175,17 @@ Verification stages:
 
 ### Goal H5 - Warehouse Reservation Choreography
 
-Status: pending
+Status: active
 
 Intent: Coordinate stock reservation and fulfillment without making Orders the stock authority.
 
 Chunks:
 
-- [ ] H5.1 Map order lifecycle states to Warehouse reservation endpoints.
-- [ ] H5.2 Define failure/retry behavior for reserve, release, fulfill, cancel, expire, and return.
-- [ ] H5.3 Add outbound Warehouse client behind explicit service configuration.
-- [ ] H5.4 Record warehouse handoff status in Orders audit-safe metadata.
-- [ ] H5.5 Verify payment-success, cancellation, and return flows.
+- [x] H5.1 Map order lifecycle states to Warehouse reservation endpoints.
+- [x] H5.2 Define failure/retry behavior for reserve, release, fulfill, cancel, expire, and return.
+- [x] H5.3 Add outbound Warehouse client behind explicit service configuration.
+- [x] H5.4 Record warehouse handoff status in Orders audit-safe metadata.
+- [x] H5.5 Verify payment-success, cancellation, and return flows.
 
 Acceptance criteria:
 

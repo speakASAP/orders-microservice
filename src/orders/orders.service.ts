@@ -1,8 +1,8 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { HttpService } from '@nestjs/axios';
 import { LoggerService } from '../logger/logger.service';
+import { WarehouseReservationClient } from '../warehouse/warehouse-reservation.client';
 import { Order } from './order.entity';
 import { OrderItem } from '../items/order-item.entity';
 import {
@@ -25,7 +25,7 @@ export class OrdersService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    private readonly httpService: HttpService,
+    private readonly warehouseReservations: WarehouseReservationClient,
     private readonly orderEvents: OrderEventsService,
     private readonly logger: LoggerService,
   ) {}
@@ -105,10 +105,8 @@ export class OrdersService {
         return savedOrder;
       });
 
-      // Reserve stock via warehouse-microservice
-      const warehouseUrl = process.env.WAREHOUSE_SERVICE_URL || 'http://warehouse-microservice:3201';
-      void warehouseUrl;
-      // Stock reservation logic would go here
+      saved.warehouseHandoff = await this.warehouseReservations.reserveOrderItems(saved);
+      await this.orderRepository.save(saved);
 
       // Publish event
       await this.orderEvents.publishOrderCreated(saved.id, saved.channel);

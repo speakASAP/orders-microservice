@@ -1169,3 +1169,123 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal H5 warehouse reservation choreography, then Goal H6 payments callback boundary.
+
+## 2026-06-13 - Goal 4.3 / H3.2-H3.5 Channel Duplicate Protection Deployed
+
+Current focus:
+
+- Owner-approved continuation to deploy duplicate-order protection through channel adapters after runtime and database idempotency verification.
+- Scope: restore missing shared build dependencies where needed, rebuild affected channel service images, and verify Kubernetes rollout health.
+
+Implementation evidence:
+
+- FlipFlop, Allegro, Aukro, Bazos, and Heureka shared order clients send `contractVersion=orders.create.v1`, normalize `channelAccountId`, preserve retry payloads, and surface `ORDER_IDEMPOTENCY_CONFLICT` as HTTP 409.
+- FlipFlop checkout forwarding sends a stable `channelAccountId` using `ORDERS_CHANNEL_ACCOUNT_ID` with fallback `flipflop-storefront`.
+- Restored Aukro and Heureka shared build dependencies with `npm ci`; both shared builds now pass.
+- Patched `allegro-service/services/allegro-service/Dockerfile` so Prisma generation runs with OpenSSL available in the builder stage and a dummy `DATABASE_URL` during client generation.
+- Patched `allegro-service/k8s/deployment.yaml` so runtime-only `ENCRYPTION_KEY` and `JWT_SECRET` are read from Kubernetes secrets rather than image files.
+
+Deployment evidence:
+
+- Bazos deployed via its deploy script; pushed `localhost:5000/bazos-service:latest` digest `sha256:67e0ce2d98b413413fe7c55faab141af6317a142c0c997c4e60f0cbe365a36b9`.
+- FlipFlop deployed via its deploy script; the script timed out while images were pulling, but all six deployments subsequently rolled out. The order-service image digest was `sha256:926d9b1cbd88bcddc1077d89a3f4f6ce5c7d4892aca2b1ccede2f00d08e41aaa`.
+- Allegro initial rebuild exposed a Prisma/OpenSSL runtime mismatch; the deployment was rolled back, Dockerfile/config was corrected, and the final image digest was `sha256:c0085d9563032b3259ed069ba7f2ca11cbf25c525af88d4ead5df54473496a0b`.
+- Aukro rebuilt manually with the root Dockerfile and rolled out; final image digest was `sha256:bab7ad5a6db21b754c02e5e25bbe6ab08e46c713bac773223ead1bea94117f12`.
+- Heureka rebuilt manually with the root Dockerfile and rolled out; final image digest was `sha256:7f2c022bbe948a78205a3b7a0d48a312547ea2b884582a87aae32a89ffcdc887`.
+
+Verification evidence:
+
+- `npm ci`: pass in `aukro-service/shared` and `heureka-service/shared`; audit warnings remain in those dependency trees.
+- `npm run build`: pass in `aukro-service/shared` and `heureka-service/shared` after dependency restore.
+- Kubernetes rollout status: pass for `allegro-service`, `aukro-service`, `bazos-service`, `flipflop-service`, and `heureka-service` in namespace `statex-apps`.
+- Pod readiness check: all affected service pods were `1/1 Running` after rollout; one old Heureka pod was terminating during the final pod listing.
+- FlipFlop public checks: `/` and `/api/products?limit=1` returned successfully after deployment.
+
+Gate decision:
+
+- H3 channel deployment readiness: accept.
+- Residual follow-up: audit and reduce channel dependency vulnerabilities separately from this idempotency deployment chunk.
+
+Next unfinished chunk:
+
+- Goal H5 warehouse reservation choreography, then Goal H6 payments callback boundary.
+
+## 2026-06-13 - Goal H5.1-H5.4 Warehouse Reservation Choreography
+
+Current focus:
+
+- Owner-approved continuation after H4 event contracts and H3 channel duplicate protection deployment.
+- Scope: coordinate Warehouse reservation handoff without making Orders the stock authority.
+
+Implementation evidence:
+
+- Added `docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md` documenting lifecycle mapping for reserve, release, fulfill, cancel, expire, and return.
+- Added `src/warehouse/warehouse-reservation.client.ts` as an outbound Warehouse reservation client behind `WAREHOUSE_RESERVATION_ENABLED`.
+- Added `orders.warehouseHandoff` audit-safe metadata on the Orders entity and guarded migration `migrations/004_add_order_warehouse_handoff.sql`.
+- Wired order creation to call Warehouse reservation only after the canonical order and item rows are created, and only when the runtime flag is enabled.
+- Idempotent create replay returns before Warehouse handoff, so duplicate retry does not repeat reservation side effects.
+
+Boundary decisions:
+
+- Warehouse remains stock, availability, reservation, movement, fulfillment, expiry, cancellation reversal, and return authority.
+- Orders stores only handoff metadata: status, timestamps, item counts, reason code, actor, skip reason, and bounded failure code.
+- Orders does not store Warehouse response bodies, stock truth, availability calculations, customer data, address data, payment details, secrets, tokens, or tracking data in handoff metadata.
+- H5.5 remains pending because payment-success fulfillment, payment-failed release, approved cancellation, and returns need the H6 payment boundary and owner-approved return workflow before runtime triggers are added.
+
+Verification evidence:
+
+- `npm run verify:warehouse-handoff`: pass.
+- `npm test`: pass, including build, transitions, sensitive logging, create-order contract, idempotency, duplicate protection, event contracts, and warehouse handoff contract.
+
+Gate decision:
+
+- H5.1-H5.4 readiness: accept.
+- Runtime deployment: not run in this chunk. The new Warehouse call is disabled unless `WAREHOUSE_RESERVATION_ENABLED=true`; migration should be applied before enabling persistent handoff metadata in production.
+
+Next unfinished chunk:
+
+- Goal H5.5 after Goal H6 payment callback/status boundary decisions.
+
+## 2026-06-13 - Goal H5 Warehouse Reservation Choreography
+
+Current focus:
+
+- Owner-approved continuation after H4 event contract versioning.
+- Scope: map Orders lifecycle states to Warehouse reservation endpoints, add a safe outbound client, and record audit-safe handoff metadata without moving stock authority into Orders.
+
+Implementation evidence:
+
+- Added `docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md`.
+- Added `src/warehouse/warehouse-reservation.client.ts`.
+- Added `orders.warehouseHandoff` to `src/orders/order.entity.ts`.
+- Added `migrations/004_add_order_warehouse_handoff.sql` and updated the base schema migration.
+- Added `scripts/verify-warehouse-handoff-contract.js` and wired `npm test` to run `npm run verify:warehouse-handoff`.
+- Updated `OrdersService.create` to record warehouse handoff metadata after order/item persistence and before `orders.order.created.v1` publication.
+
+Contract decisions:
+
+- Reservation mutation is disabled unless `WAREHOUSE_RESERVATION_ENABLED=true`.
+- Orders skips reservation when any item lacks a Warehouse-owned `warehouseId`.
+- Warehouse failure does not expose raw error text and does not make Orders calculate stock; Orders records `failed` handoff metadata for operator retry/follow-up.
+- Release, fulfill, cancel, expire, and return payloads are verified against Warehouse endpoints, but payment-triggered runtime callers are deferred to H6.
+
+Database evidence:
+
+- Applied `migrations/004_add_order_warehouse_handoff.sql` to the live `orders` database.
+- Verified `orders.warehouseHandoff` exists with `jsonb` type.
+
+Verification evidence:
+
+- `npm run verify:warehouse-handoff`: pass.
+- `npm test`: pass.
+- `git diff --check`: pass.
+- Exact IPS unresolved-marker scan: pass.
+
+Gate decision:
+
+- H5 readiness: accept.
+- Deployment readiness: hold for explicit release decision because runtime behavior changes order creation metadata and optionally Warehouse reservation calls if enabled.
+
+Next unfinished chunk:
+
+- Goal H6 payments callback boundary.

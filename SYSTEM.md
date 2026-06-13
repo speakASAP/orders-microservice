@@ -59,3 +59,7 @@ Stage: production · Health: ok
 ## Known Issues
 <!-- AI-maintained -->
 - None
+
+## Warehouse Handoff
+
+`WAREHOUSE_RESERVATION_ENABLED=false` by default. When explicitly enabled, Orders calls Warehouse reservation endpoints and records audit-safe `warehouseHandoff` metadata; Warehouse remains stock truth.

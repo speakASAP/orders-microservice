@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { OrderItem } from '../items/order-item.entity';
+import { WarehouseHandoffSummary } from '../warehouse/warehouse-reservation.client';
 
 @Entity('orders')
 export class Order {
@@ -89,6 +90,9 @@ export class Order {
   // Items
   @OneToMany(() => OrderItem, (item) => item.order)
   items: OrderItem[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  warehouseHandoff: WarehouseHandoffSummary;
 
   @Column({ type: 'timestamp', nullable: true })
   orderedAt: Date;

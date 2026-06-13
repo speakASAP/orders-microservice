@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS orders (
   "shippingMethod" varchar(100),
   "customerNote" text,
   "internalNote" text,
+  "warehouseHandoff" jsonb,
   "orderedAt" timestamp,
   "createdAt" timestamp NOT NULL DEFAULT now(),
   "updatedAt" timestamp NOT NULL DEFAULT now()
