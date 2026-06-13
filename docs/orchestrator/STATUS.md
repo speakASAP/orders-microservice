@@ -1556,3 +1556,32 @@ Gate decision:
 Next unfinished chunk:
 
 - Post-deploy monitoring, or a future owner-approved candidate contract goal.
+
+## 2026-06-13 - Owner-Approved Warehouse Handoff Auth Hardening
+
+Current focus:
+
+- Owner approved using cross-project contracts, service APIs, and generated/runtime keys as needed.
+- Selected bounded gap: Orders already had Warehouse reservation handoff enabled and a runtime Warehouse service token configured, but the reservation client did not attach bearer authorization to Warehouse lifecycle requests.
+
+Source change:
+
+- Updated src/warehouse/warehouse-reservation.client.ts to normalize the Warehouse base URL and attach Authorization bearer auth from WAREHOUSE_SERVICE_TOKEN or WAREHOUSE_INTERNAL_SERVICE_TOKEN on reserve, release, fulfill, cancel, expire, and return calls.
+- Updated scripts/verify-warehouse-handoff-contract.js to prove both unprefixed and already-prefixed token env values are sent as bearer auth.
+- Updated docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md to record the runtime-only auth requirement.
+
+Sensitive-data handling:
+
+- No token value, JWT, customer data, address, payment data, or Warehouse response body was written to source or docs.
+- DocsRAG query was attempted for the cross-service handoff context, but returned no usable context output; checked-in Orders and Warehouse source-of-truth contracts were used as compensating evidence.
+
+Validation evidence:
+
+- npm run build: pass.
+- npm run verify:warehouse-handoff: pass.
+- npm test: pass.
+- git diff --check: pass.
+
+Next unfinished chunk:
+
+- Deploy Orders and run an owner-approved synthetic order reservation smoke against Warehouse using the existing synthetic stock fixture, then record runtime evidence.

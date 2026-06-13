@@ -66,6 +66,7 @@ The metadata must not include stock quantities beyond the order item quantity, W
 
 ## Runtime Guardrails
 
+- Orders sends Warehouse reservation lifecycle requests with Authorization bearer auth when WAREHOUSE_SERVICE_TOKEN or WAREHOUSE_INTERNAL_SERVICE_TOKEN is configured. Token values are runtime-only and must not be logged or documented.
 - Reservation calls are disabled unless `WAREHOUSE_RESERVATION_ENABLED=true`.
 - Orders skips reservation if any item lacks `warehouseId`.
 - Warehouse reservation failures do not make Orders the stock authority; Orders records `failed` handoff metadata for operator retry/follow-up.

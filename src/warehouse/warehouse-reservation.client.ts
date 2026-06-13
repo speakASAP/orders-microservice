@@ -67,7 +67,7 @@ export class WarehouseReservationClient {
     private readonly httpService: HttpService,
     private readonly logger: LoggerService,
   ) {
-    this.baseUrl = process.env.WAREHOUSE_SERVICE_URL || 'http://warehouse-microservice:3201';
+    this.baseUrl = (process.env.WAREHOUSE_SERVICE_URL || 'http://warehouse-microservice:3201').replace(/\/$/, '');
     this.enabled = process.env.WAREHOUSE_RESERVATION_ENABLED === 'true';
     this.ttlMinutes = this.resolveTtlMinutes(process.env.WAREHOUSE_RESERVATION_TTL_MINUTES);
   }
@@ -166,7 +166,7 @@ export class WarehouseReservationClient {
     action: WarehouseReservationAction,
     payload: ReservationLifecyclePayload | ReleasePayload,
   ): Promise<void> {
-    await firstValueFrom(this.httpService.post(this.baseUrl + '/api/reservations/' + action, payload));
+    await firstValueFrom(this.httpService.post(this.baseUrl + '/api/reservations/' + action, payload, this.buildRequestConfig()));
   }
 
   private async applyReservationAction(
@@ -228,7 +228,18 @@ export class WarehouseReservationClient {
 
   private async reserveItem(order: Order, item: OrderItem, expiresAt: string): Promise<void> {
     const payload = this.buildReservePayload(order, item, expiresAt);
-    await firstValueFrom(this.httpService.post(this.baseUrl + '/api/reservations/reserve', payload));
+    await firstValueFrom(this.httpService.post(this.baseUrl + '/api/reservations/reserve', payload, this.buildRequestConfig()));
+  }
+
+  private buildRequestConfig(): { headers?: Record<string, string> } {
+    const token = process.env.WAREHOUSE_SERVICE_TOKEN || process.env.WAREHOUSE_INTERNAL_SERVICE_TOKEN;
+    if (!token?.trim()) return {};
+
+    return {
+      headers: {
+        Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+      },
+    };
   }
 
   private hasWarehouseId(item: OrderItem): boolean {

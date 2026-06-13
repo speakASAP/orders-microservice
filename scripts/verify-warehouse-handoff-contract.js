@@ -44,11 +44,11 @@ async function run() {
     assert.equal(result.reservedCount, 0);
   });
 
-  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_RESERVATION_TTL_MINUTES: '30' }, async () => {
+  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_RESERVATION_TTL_MINUTES: '30', WAREHOUSE_SERVICE_TOKEN: 'test-warehouse-token' }, async () => {
     const calls = [];
     const client = new WarehouseReservationClient({
-      post(url, payload) {
-        calls.push({ url, payload });
+      post(url, payload, config) {
+        calls.push({ url, payload, config });
         return of({ data: { success: true } });
       },
     }, { warn() {} });
@@ -70,6 +70,7 @@ async function run() {
     ].sort());
     assert.equal(calls[0].payload.reasonCode, 'ORDER_CREATE_RESERVATION');
     assert.equal(calls[0].payload.actor, 'orders-microservice');
+    assert.equal(calls[0].config.headers.Authorization, 'Bearer test-warehouse-token');
   });
 
   await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true' }, async () => {
@@ -91,13 +92,13 @@ async function run() {
     assert.equal(JSON.stringify(result).includes('warehouse down'), false);
   });
 
-  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true' }, async () => {
+  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_INTERNAL_SERVICE_TOKEN: 'Bearer existing-prefix-token' }, async () => {
     const order = makeOrder();
     const item = order.items[0];
     const calls = [];
     const client = new WarehouseReservationClient({
-      post(url, payload) {
-        calls.push({ url, payload });
+      post(url, payload, config) {
+        calls.push({ url, payload, config });
         return of({ data: { success: true } });
       },
     }, { warn() {} });
@@ -132,6 +133,7 @@ async function run() {
       assert.equal(call.payload.orderId, 'order-1');
       assert.equal(call.payload.channel, 'flipflop');
       assert.equal(call.payload.reference, 'checkout-1');
+      assert.equal(call.config.headers.Authorization, 'Bearer existing-prefix-token');
       assert.equal(JSON.stringify(call.payload).includes('warehouse down'), false);
     }
   });
