@@ -15,147 +15,139 @@ upstream:
   - TASKS.md
   - docs/orchestrator/INTENT.md
   - docs/orchestrator/GOALS.md
-  - docs/orchestrator/ORDER_STATUS_TRANSITIONS.md
   - docs/orchestrator/PROJECT_INVARIANTS.md
   - docs/IMPLEMENTATION_STATE.md
 downstream:
-  - scripts/verify-status-transitions.js
-  - package.json
+  - docs/orchestrator/SENSITIVE_DATA_REVIEW.md
   - docs/orchestrator/STATUS.md
   - docs/IMPLEMENTATION_STATE.md
 related_adrs: []
-selected_goal: Goal 2 - Order Contract And State Machine Hardening
-selected_chunk: 2.4 - Tests or direct verification for transitions
+selected_goal: Goal 3 - Sensitive Customer Data And Audit Safety
+selected_chunk: 3.1 - Review sensitive fields
 gate_decision: pass-with-exception
 ```
 
 ## Metadata
 
-This plan covers Goal 2 chunk 2.4: add tests or direct API verification for allowed, rejected, and owner-approved transitions.
+This plan covers Goal 3 chunk 3.1: review order, item, shipment, pricing, event, and logger paths for sensitive fields.
 
-The chunk is intentionally limited to repeatable verification. Runtime transition behavior was implemented in chunks 2.2 and 2.3; this chunk adds a stable `npm test` path that builds the service and verifies the compiled transition helper.
+The chunk is documentation-only. It maps sensitive surfaces and defines follow-up hardening work without changing runtime behavior.
 
 ## Upstream Traceability
 
-- `BUSINESS.md`: cancellations and refunds require explicit human approval.
-- `SYSTEM.md`: order status transitions must follow the state machine.
-- `docs/orchestrator/INTENT.md`: state jumps, cancellations, refunds, and destructive corrections require explicit owner approval and audit evidence.
-- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`: defines normal, rejected, item fulfillment, and owner-approved cancellation paths.
-- `docs/IMPLEMENTATION_STATE.md`: next recommended goal is Goal 2 chunk 2.4.
+- `BUSINESS.md`: customer data, payment data, tokens, and secrets must not be logged or exposed.
+- `docs/orchestrator/INTENT.md`: sensitive customer data, shipping/billing addresses, payment details, tokens, and secrets must not be logged, copied into docs, or exposed in prompts.
+- `docs/orchestrator/GOALS.md`: Goal 3 chunk 3.1 is the selected chunk.
+- `docs/orchestrator/PROJECT_INVARIANTS.md`: `ORD-INV-004` requires sensitive-data scans and logging review.
 
 ## Goal Impact
 
-The implementation turns prior ad hoc direct helper checks into a committed verification command. It increases regression coverage without changing endpoint behavior, persistence, events, payment, warehouse, catalog, notification, CRM, pricing, auth, or shipment ownership.
+The review identifies concrete surfaces that need structured audit metadata, redaction, or no-log guarantees in chunks 3.2 through 3.4.
 
 ## Project Invariants
 
-- `ORD-INV-001`: Preserved; Orders remains the canonical lifecycle source.
-- `ORD-INV-002`: Strengthened; normal, rejected, item, and owner-approved cancellation transitions now have repeatable verification.
-- `ORD-INV-003`: Preserved; cross-service ownership boundaries remain unchanged.
-- `ORD-INV-004`: Preserved; verification uses synthetic actor identifiers and no customer/payment data.
-- `ORD-INV-005`: Preserved; no API/event contract changes were made.
-- `ORD-INV-006`: Not applicable; pricing behavior is unchanged.
+- `ORD-INV-001`: Preserved; Orders remains canonical lifecycle source.
+- `ORD-INV-002`: Preserved; state-machine behavior unchanged.
+- `ORD-INV-003`: Preserved; cross-service ownership unchanged.
+- `ORD-INV-004`: Strengthened; sensitive fields and logging/event/API surfaces are now documented.
+- `ORD-INV-005`: Preserved; no API/event contract changes.
+- `ORD-INV-006`: Preserved; pricing automation unchanged.
 - `ORD-INV-007`: Preserved by status and implementation-state updates.
-- `ORD-INV-008`: Pass with exception; no session `JWT_TOKEN` is available for DocsRAG.
+- `ORD-INV-008`: Pass with exception; no session `JWT_TOKEN` is available for DocsRAG, and this is a bounded local source review.
 
 ## Sensitive-Data Handling
 
-Classification: `synthetic`.
+Classification: `sensitive-source-review`.
 
-The verification script uses synthetic actor IDs, synthetic email domains, synthetic timestamps, reason codes, and boolean side-effect acknowledgements. It does not use production orders, customer addresses, payment details, bearer tokens, database secrets, or raw logs.
+The task reads source files only. It does not read production rows, logs, decoded secrets, bearer tokens, payment credentials, real customer addresses, or real shipment tracking values.
 
 ## Contract Validation Plan
 
-Verified behavior:
+Reviewed behavior:
 
-- Normal order transitions: `pending -> confirmed -> processing -> shipped -> delivered`.
-- Order item gating for shipped and delivered parent transitions.
-- Rejected order jumps, reverse/destructive terminal corrections, refund-like statuses, and unknown statuses.
-- Owner-approved cancellation from `pending`, `confirmed`, and `processing` with safe approval audit metadata.
-- Rejected cancellation without approval, with non-human approval, with invalid reason code, with missing side-effect acknowledgement, and after shipment.
-- Normal item fulfillment transitions: `pending -> reserved -> shipped -> delivered`.
-- Rejected item jumps, reversals, terminal changes, synthetic return/refund/cancellation values, and unknown statuses.
+- Core order API returns full order entities under JWT guard.
+- Item API returns operational line data without direct customer PII fields.
+- Shipment API returns tracking values.
+- Pricing service logs product-level diagnostics and error strings.
+- Order events avoid customer/address/payment fields except `order.shipped` includes tracking number.
+- Logger has no redaction boundary.
+- Admin detail exposes customer email and shipment tracking to authenticated admins.
 
 Unchanged contracts:
 
 - No endpoint response shape changes.
-- No state-machine behavior changes.
-- No event schema changes.
-- No warehouse, payment, catalog, notification, CRM, pricing, shipment, or auth ownership changes.
+- No event shape changes.
+- No auth, payment, warehouse, catalog, notification, CRM, pricing, shipment, or state-machine behavior changes.
 
 ## Scope
 
-- Add `scripts/verify-status-transitions.js`.
-- Add `npm test` and `npm run verify:transitions` scripts.
-- Build and run repeatable verification.
-- Record evidence, commit, and skip deployment because runtime behavior did not change.
+- Review source paths for sensitive fields.
+- Add `docs/orchestrator/SENSITIVE_DATA_REVIEW.md`.
+- Update Goal 3 chunk status and IPS handoff docs.
+- Run documentation readiness checks.
 
 ## Non-Goals
 
-- No database schema migration.
-- No endpoint or runtime behavior changes.
-- No persisted audit-log table.
-- No refund execution or payment reconciliation.
-- No warehouse stock release automation.
-- No notification delivery or CRM updates.
-- No terminal-state correction endpoint.
-- No item cancellation/refund/return schema changes.
+- No redaction implementation in chunk 3.1.
+- No audit-log implementation in chunk 3.1.
+- No response DTO or event schema changes.
+- No production data inspection.
+- No deployment.
 
 ## Files To Inspect
 
-- `src/orders/status-transitions.ts`
-- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`
-- `package.json`
+- `src/orders/*`
+- `src/items/*`
+- `src/shipments/*`
+- `src/pricing/*`
+- `src/logger/*`
+- `src/auth/jwt-roles.guard.ts`
+- `src/admin/*`
+- `src/main.ts`
+- `src/app.module.ts`
 
 ## Files To Modify
 
-- `scripts/verify-status-transitions.js`
-- `package.json`
+- `docs/orchestrator/SENSITIVE_DATA_REVIEW.md`
 - `docs/orchestrator/CONTEXT_PACKAGE.md`
 - `docs/orchestrator/EXECUTION_PLAN.md`
 - `docs/orchestrator/GOALS.md`
+- `docs/orchestrator/PLAN.md`
 - `docs/orchestrator/STATUS.md`
-- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`
 - `docs/IMPLEMENTATION_STATE.md`
+- `implementation-goals/README.md`
 
 ## Files To Protect
 
 - `.env*`, K8s secrets, Vault material, production logs, and production order table dumps.
-- Runtime transition implementation files unless a verification failure proves a bug.
-- Existing unrelated dirty files in the remote worktree.
+- Runtime source files for this review-only chunk.
 
 ## Implementation Steps
 
-1. Add a direct verification script against `dist/orders/status-transitions.js`.
-2. Cover allowed normal order and item fulfillment transitions.
-3. Cover rejected jumps, terminal corrections, refund-like values, synthetic item return/refund/cancellation values, and item gating.
-4. Cover owner-approved cancellation and missing/invalid approval rejection cases.
-5. Wire `npm test` to build and run verification.
-6. Run readiness checks and record evidence.
+1. Read IPS checkpoint and Goal 3 requirements.
+2. Scan source for sensitive field names, logging calls, event payloads, response surfaces, and auth/token handling.
+3. Read affected source files for concrete classification.
+4. Add a review report with findings and follow-ups.
+5. Update IPS docs and run readiness checks.
 
 ## Test Plan
 
-- `npm test`
-- `node --check dist/main.js`
 - Missing-marker scan over IPS docs.
-- Sensitive-pattern scan over docs, scripts, package metadata, and affected transition source.
-- `git diff --check`
+- Sensitive-literal scan over docs and reviewed source paths.
+- `git diff --check`.
 
 ## Gate Decision
 
-`pass-with-exception`: DocsRAG was not queried because no session service `JWT_TOKEN` is available. This is acceptable for this bounded Orders-local verification chunk because the transition contract and runtime helper are local source-of-truth files.
+`pass-with-exception`: DocsRAG was not queried because no session service `JWT_TOKEN` is available. This is acceptable for this local source review chunk because no cross-service contract or runtime behavior changes are made.
 
 ## Rollback Plan
 
-If verification fails, update only the verification script or stop and fix the previously implemented transition helper. Do not revert unrelated worktree changes.
+If the review is inaccurate, update only the review and IPS docs. Do not revert unrelated worktree changes.
 
 ## Completion Checklist
 
-- [x] Transition verification script added.
-- [x] `npm test` added.
-- [x] Allowed transitions covered.
-- [x] Rejected transitions covered.
-- [x] Owner-approved transitions covered.
-- [x] Build passes.
-- [x] Verification command passes.
+- [x] Sensitive fields reviewed.
+- [x] Logging/event/API surfaces reviewed.
+- [x] Findings documented.
+- [x] Follow-up chunks named.
 - [x] IPS status and implementation state updated.

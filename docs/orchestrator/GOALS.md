@@ -64,13 +64,13 @@ Acceptance criteria:
 
 ## Goal 3 - Sensitive Customer Data And Audit Safety
 
-Status: pending
+Status: active
 
 Intent: Orders must be observable without leaking customer addresses, payment data, tokens, or secrets.
 
 Chunks:
 
-- [ ] 3.1 Review order, item, shipment, pricing, event, and logger paths for sensitive fields.
+- [x] 3.1 Review order, item, shipment, pricing, event, and logger paths for sensitive fields.
 - [ ] 3.2 Add safe structured audit metadata for writes and status changes.
 - [ ] 3.3 Add redaction or no-log guarantees for customer, address, payment, token, and secret fields.
 - [ ] 3.4 Add regression checks or static scans for sensitive logging.

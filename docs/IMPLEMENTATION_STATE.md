@@ -6,7 +6,7 @@ status: ready
 owner: Orders owner
 created: 2026-06-12
 last_updated: 2026-06-13
-completeness_level: validated
+completeness_level: reviewed
 upstream:
   - AGENTS.md
   - BUSINESS.md
@@ -15,26 +15,26 @@ upstream:
   - TASKS.md
   - docs/orchestrator/INTENT.md
   - docs/orchestrator/GOALS.md
-  - docs/orchestrator/ORDER_STATUS_TRANSITIONS.md
-  - docs/orchestrator/PRODUCTION_READINESS_ROADMAP.md
+  - docs/orchestrator/PROJECT_INVARIANTS.md
+  - docs/orchestrator/SENSITIVE_DATA_REVIEW.md
 downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
-  - scripts/verify-status-transitions.js
-  - package.json
 related_adrs: []
 current_goal: none
 current_chunk: none
-next_recommended_goal: Goal 3 - Sensitive Customer Data And Audit Safety, chunk 3.1
-last_completed_goal: Goal 2 chunk 2.4 transition verification
+next_recommended_goal: Goal 3 - Sensitive Customer Data And Audit Safety, chunk 3.2
+last_completed_goal: Goal 3 chunk 3.1 sensitive field review
 blockers: []
 ```
 
 ## Current Checkpoint
 
-Goal 2 is complete. Chunk 2.4 added committed direct verification for allowed, rejected, and owner-approved order and item fulfillment transitions.
+Goal 3 chunk 3.1 is complete. The sensitive data review is documented in `docs/orchestrator/SENSITIVE_DATA_REVIEW.md`.
 
-Runtime validation still supports documented pre-shipment order cancellation only when explicit human approval evidence is supplied. Refund-like statuses and destructive terminal-state corrections remain blocked from the normal status endpoint. Item fulfillment remains constrained to the documented fulfillment state machine.
+The review found that core order APIs return full `Order` entities containing customer, address, note, and payment metadata under JWT guard; shipment APIs and admin detail expose tracking values; admin detail exposes customer email to authenticated admins; `order.shipped` events include tracking number; and the shared logger has no redaction boundary. Current reviewed logging call sites do not log raw order entities, customer JSON, address JSON, bearer tokens, JWT secrets, DB passwords, or production rows.
+
+Goal 2 remains complete. Runtime validation still supports documented pre-shipment order cancellation only when explicit human approval evidence is supplied. Refund-like statuses and destructive terminal-state corrections remain blocked from the normal status endpoint.
 
 The owner-selected orders admin frontend remains implemented and deployed. The production-readiness roadmap for making Orders available to FlipFlop and other ecosystem clients remains documented in `docs/orchestrator/PRODUCTION_READINESS_ROADMAP.md`.
 
@@ -44,27 +44,26 @@ The owner-selected orders admin frontend remains implemented and deployed. The p
 
 ## Current Evidence
 
-- Refreshed `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` for Goal 2 chunk 2.4 before closure.
-- Added `scripts/verify-status-transitions.js` with direct compiled-helper verification.
-- Added `npm test` and `npm run verify:transitions` to `package.json`.
-- Verification covers normal order transitions, item-gated shipping/delivery, rejected order jumps, terminal correction rejection, refund-like order rejection, unknown order status rejection, approved cancellation from `pending`, `confirmed`, and `processing`, missing/invalid approval rejection, missing side-effect rejection, shipped cancellation rejection, normal item fulfillment transitions, item jump/reversal/terminal rejection, synthetic item return rejection, and unknown item fulfillment rejection.
-- No endpoint, persistence, event, payment, warehouse, catalog, notification, CRM, pricing, auth, shipment, sensitive-data logging, schema migration, or production data dump changes were made.
-- DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth docs were sufficient for this bounded Orders-local verification chunk.
+- Refreshed `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` for Goal 3 chunk 3.1.
+- Added `docs/orchestrator/SENSITIVE_DATA_REVIEW.md`.
+- Reviewed order, item, shipment, pricing, event, logger, auth, admin, bootstrap, and database configuration source paths.
+- Classified sensitive fields and surfaces: customer JSON, shipping/billing addresses, notes, payment metadata, shipment tracking, bearer tokens/JWT secret names, approval actor identity, and arbitrary logger messages.
+- Recorded follow-ups for chunk 3.2 structured audit metadata, chunk 3.3 redaction/no-log guarantees, and chunk 3.4 regression scans.
+- No runtime source, endpoint behavior, event payload, database schema, auth, payment, warehouse, catalog, notification, CRM, pricing, shipment, or state-machine behavior changed.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; repository source-of-truth files were sufficient for this bounded local source review.
 
 ## Next Action
 
-Continue Goal 3, chunk 3.1: review order, item, shipment, pricing, event, and logger paths for sensitive fields.
+Continue Goal 3, chunk 3.2: add safe structured audit metadata for writes and status changes.
 
 ## Verification State
 
-Goal 2 chunk 2.4 verification completed:
+Goal 3 chunk 3.1 verification completed:
 
 ```bash
-npm test
-node --check dist/main.js
 missing-marker scan
 sensitive-literal scan
 git diff --check
 ```
 
-`npm test` passed and printed `status transition verification ok`. Deployment was not required because this chunk added verification and documentation only; runtime service behavior did not change.
+Deployment is not required because this chunk is documentation review only.

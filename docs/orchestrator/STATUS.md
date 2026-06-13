@@ -537,3 +537,56 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 3, chunk 3.1: review order, item, shipment, pricing, event, and logger paths for sensitive fields.
+
+## 2026-06-13 - Goal 3 Chunk 3.1 Sensitive Field Review
+
+Current focus:
+
+- Owner-selected task: continue the next recommended chunk.
+- Goal 3 - Sensitive Customer Data And Audit Safety.
+- Chunk 3.1 - Review order, item, shipment, pricing, event, and logger paths for sensitive fields.
+
+Context search evidence:
+
+- Read `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/PLAN.md`, `docs/orchestrator/PROJECT_INVARIANTS.md`, `docs/orchestrator/PRE_CODING_GATE.md`, and `docs/orchestrator/READINESS_GATES.md`.
+- Reviewed source paths under `src/orders`, `src/items`, `src/shipments`, `src/pricing`, `src/logger`, `src/auth`, `src/admin`, plus `src/main.ts` and `src/app.module.ts`.
+- Searched for logging calls, event publishing, response surfaces, customer/address/payment/tracking/token field names, and sensitive-literal patterns.
+- DocsRAG live query was not run because no session `JWT_TOKEN` was available; this was a local source review with no cross-service contract or runtime behavior changes.
+
+Implementation evidence:
+
+- Added `docs/orchestrator/SENSITIVE_DATA_REVIEW.md`.
+- Updated `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` for Goal 3 chunk 3.1.
+- Updated `docs/orchestrator/GOALS.md`, `docs/orchestrator/PLAN.md`, `implementation-goals/README.md`, and `docs/IMPLEMENTATION_STATE.md`.
+
+Review findings:
+
+- Core order API responses return full `Order` entities containing customer JSON, shipping/billing address JSON, customer/internal notes, payment method, and payment status under JWT guard.
+- Item API responses contain operational item and pricing data but no direct customer PII fields.
+- Shipment API responses expose tracking number and tracking URL, which are sensitive operational delivery data.
+- Pricing service logs are currently product-level diagnostics and do not include customer/address/payment fields, but upstream error messages should be treated as redactable in future hardening.
+- Order events avoid customer/address/payment fields except `order.shipped`, which includes tracking number.
+- `LoggerService` accepts raw string messages and has no centralized redaction boundary.
+- Admin JSON endpoints are JWT-protected, but detail responses expose customer email and shipment tracking values to authenticated admins; admin synthetic logs avoid raw notes but timeline context includes tracking numbers.
+- Auth guard does not log bearer token values and returns generic token errors.
+
+Follow-up named:
+
+- Goal 3 chunk 3.2: add safe structured audit metadata for writes and status changes.
+- Goal 3 chunk 3.3: add redaction or no-log guarantees for customer, address, payment, token, secret, tracking, and arbitrary upstream error fields.
+- Goal 3 chunk 3.4: add regression checks or static scans for sensitive logging.
+
+Final verification evidence:
+
+- Missing-marker scan: pass; no matches.
+- Sensitive literal audit: pass; no matches.
+- `git diff --check`: pass.
+
+Gate decision:
+
+- Documentation review readiness: accept.
+- Deployment not required because no runtime source changed.
+
+Next unfinished chunk:
+
+- Goal 3, chunk 3.2: add safe structured audit metadata for writes and status changes.

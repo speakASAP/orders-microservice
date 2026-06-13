@@ -70,7 +70,9 @@ Current chunk:
 - Goal 1 - Orders Intent Preservation Pack: done.
 - Goal 2 - Order Contract And State Machine Hardening: complete.
 - Goal 2 chunk 2.4 - Tests or direct API verification for allowed, rejected, and owner-approved transitions: done.
-- Next ready chunk: Goal 3 chunk 3.1 - Review order, item, shipment, pricing, event, and logger paths for sensitive fields.
+- Goal 3 - Sensitive Customer Data And Audit Safety: active.
+- Goal 3 chunk 3.1 - Review order, item, shipment, pricing, event, and logger paths for sensitive fields: done.
+- Next ready chunk: Goal 3 chunk 3.2 - Add safe structured audit metadata for writes and status changes.
 
 ## Verification Commands
 
