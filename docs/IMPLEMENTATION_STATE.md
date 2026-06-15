@@ -26,9 +26,9 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: pricing-suggestion-safety-hardening
-current_chunk: goal-6.1-6.2-deployed
-next_recommended_goal: continue Goal 6.3/6.4 pricing consolidation and event/catalog contract documentation
-last_completed_goal: Goal 6.1/6.2 pricing suggestion safety hardening
+current_chunk: goal-6.3-6.4-contract-complete
+next_recommended_goal: select owner-approved runtime follow-up G6-A/G6-B/G6-C or resume monitoring
+last_completed_goal: Goal 6 Pricing Suggestion Safety And Consolidation
 blockers:
   - candidate application contracts require owner approval before start
 ```
@@ -69,6 +69,9 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 2026-06-15: Goal 6.1/6.2 pricing suggestion safety hardening is implemented, validated, migrated, and deployed in production. Pricing routes now declare explicit `PRICING_ADMIN_ROLES`, approval/rejection receives the authenticated Auth actor from the request, `price_suggestion` stores bounded `approvedAt`, `approvedBy`, `rejectedAt`, and `rejectedBy` provenance, and `scripts/verify-pricing-safety.js` is wired into `npm test`. Added guarded migration `migrations/006_add_price_suggestion_approval_metadata.sql`. Validation passed: `npm run build`, `npm run verify:pricing-safety`, `npm test`, and `git diff --check`. Live migration applied `migrations/001_create_price_suggestion.sql` because the table was absent, then applied `migrations/006_add_price_suggestion_approval_metadata.sql`; post-check verified `approvedAt`, `approvedBy`, `rejectedAt`, and `rejectedBy`. Commit `2280b32` deployed as `localhost:5000/orders-microservice:2280b32`, rollout completed, and external `/health` returned HTTP 200.
 
+
+2026-06-15: Goal 6.3/6.4 pricing consolidation and event/Catalog contract review is complete. Added `docs/orchestrator/PRICING_CONSOLIDATION_AND_EVENT_CONTRACT.md` and `scripts/verify-pricing-consolidation-contract.js`, wired the verifier into `npm test`, and marked Goal 6 complete. Confirmed FlipFlop gateway routes `/api/pricing/*` to Orders, FlipFlop product-service reads prices from Catalog product/pricing data, Catalog owns current-price reads and guarded pricing writes through `/api/pricing`, and Orders currently emits legacy `pricing.price_changed` payloads on `pricing.events`. No runtime pricing adapter, event routing, Catalog credential, FlipFlop source, payment, cart, checkout, or product truth behavior changed in this chunk. Owner-approvable follow-ups are G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, and G6-C FlipFlop Local Pricing Publisher Decommission.
+
 ## Preserved Intent Summary
 
 `orders-microservice` is the canonical order processing and lifecycle service. It stores orders, order items, shipment records, order status, and order events for all sales channels. FlipFlop and marketplace services are clients of Orders, not duplicate order sources of truth. Catalog remains product truth, Warehouse remains stock truth, Payments remains payment identity/reconciliation truth, and Auth remains identity/RBAC truth.
@@ -101,10 +104,11 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 - Deployed the owner-approved H7/H8 runtime release from commit `2f82535`; Kubernetes reported `deployment/orders-microservice` successfully rolled out with one ready updated replica and the live health endpoint returned `{"status":"healthy","service":"orders-microservice"}`.
 - DocsRAG live query was not run because no session JWT_TOKEN was available; repository source-of-truth docs and the current create-order/idempotency contracts were sufficient for this bounded Orders-local runtime chunk.
 - Implemented Goal 6.1/6.2 pricing suggestion safety hardening: explicit pricing admin roles, bounded approval/rejection actor provenance, guarded migration `006_add_price_suggestion_approval_metadata.sql`, and `scripts/verify-pricing-safety.js` wired into `npm test`.
+- Added Goal 6.3/6.4 contract reconciliation in `docs/orchestrator/PRICING_CONSOLIDATION_AND_EVENT_CONTRACT.md` plus `scripts/verify-pricing-consolidation-contract.js` for FlipFlop pricing internals, current pricing event shape, Catalog pricing-write/read boundaries, and follow-up work packets.
 
 ## Next Action
 
-Continue Goal 6.3/6.4 for FlipFlop pricing consolidation review and pricing event/Catalog contract documentation. Continue normal Orders traffic monitoring after the pricing deployment. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
+Select the next owner-approved runtime follow-up: G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission. Otherwise resume normal Orders traffic monitoring. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
 
 ## Verification State
 
@@ -125,7 +129,7 @@ Verification results:
 - npm run verify:event-contracts: pass; fixture, builder, publisher route/header, and sensitive-field checks passed.
 - npm run verify:warehouse-handoff: pass; disabled, reserve, skip, failure, release, fulfill, cancel, expire, and return handoff checks passed.
 - npm run verify:payment-boundary: pass; bounded payment status, paid confirmation, warehouse fulfill, failed release, refund rejection, and provider-field rejection checks passed.
-- npm test: pass; build completed, status transition verification ok, sensitive logging verification ok, create order contract verification ok, idempotency contract verification ok, duplicate order protection verification ok, event contract verification ok, warehouse handoff verification ok, payment boundary verification ok, pricing safety verification ok, and admin operations console verification ok.
+- npm test: pass; build completed, status transition verification ok, sensitive logging verification ok, create order contract verification ok, idempotency contract verification ok, duplicate order protection verification ok, event contract verification ok, warehouse handoff verification ok, payment boundary verification ok, pricing safety verification ok, pricing consolidation contract verification ok, and admin operations console verification ok.
 - Channel compile checks: flipflop-service/shared, allegro-service/shared, aukro-service/shared, bazos-service/shared, heureka-service/shared, and flipflop-service/services/order-service builds passed. Aukro and Heureka dependencies were restored with npm ci before their shared builds.
 - Guarded base schema migration apply: pass; `orders`, `order_items`, and `shipments` were created in the live `orders` database.
 - Guarded idempotency migration apply: pass; `ux_orders_create_idempotency` is materialized on `orders`.

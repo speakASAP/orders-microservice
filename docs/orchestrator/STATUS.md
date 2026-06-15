@@ -1857,3 +1857,51 @@ Gate decision:
 Next unfinished chunk:
 
 - Continue Goal 6.3/6.4 for FlipFlop pricing consolidation review and pricing event/Catalog contract documentation, plus normal post-deploy traffic monitoring.
+
+## 2026-06-15 - Goal 6.3/6.4 Pricing Consolidation Contract Closure
+
+Current focus:
+
+- Owner approved proceeding further after DNS recovered.
+- Selected Goal 6.3/6.4 because Goal 6.1/6.2 were already implemented, migrated, deployed, committed, and pushed.
+
+Context evidence:
+
+- Orders source confirms approved suggestions publish current legacy `pricing.price_changed` payloads to exchange `pricing.events` only after Catalog/product update succeeds.
+- FlipFlop source confirms `/api/pricing/*` routes through the gateway to Orders via `ordersPricing`, and storefront/product-service price display reads Catalog product/pricing data.
+- FlipFlop still contains a local `PricingEventsPublisher`, but no active FlipFlop subscriber for Orders pricing events was found in the reviewed source.
+- Catalog source confirms guarded pricing writes live under `POST /api/pricing`, `POST /api/pricing/bulk`, and `PUT /api/pricing/:id`, and current-price reads live under `GET /api/pricing/product/:productId/current`.
+
+Implementation evidence:
+
+- Added `docs/orchestrator/PRICING_CONSOLIDATION_AND_EVENT_CONTRACT.md`.
+- Added `scripts/verify-pricing-consolidation-contract.js`.
+- Wired `npm run verify:pricing-consolidation-contract` into `npm test`.
+- Marked Goal 6.3 and Goal 6.4 complete in `docs/orchestrator/GOALS.md`; Goal 6 is now complete at the reviewed contract/reconciliation level.
+
+Boundary notes:
+
+- No runtime Orders pricing adapter change was made. The current `updateProductPrice` legacy fallback remains documented as a G6-A follow-up because replacing it requires approved Catalog service authentication and price-row semantics.
+- No pricing event routing-key change was made. Versioned `pricing.price_changed.v1` remains a G6-B follow-up because it requires consumer inventory and migration/dual-publish approval.
+- No FlipFlop source was changed. Decommissioning FlipFlop's local publisher remains G6-C and must run in a separate FlipFlop session.
+- No payment capture, provider identity, refund, cart price snapshot, checkout total, product truth, customer data, token, or secret behavior changed.
+
+Parallel execution notes:
+
+- G6-A, G6-B, and G6-C are dependency-gated and can later run in parallel only after their named blockers are cleared.
+- Coordinator owns shared Orders IPS state/status integration.
+
+Gate decision:
+
+- Integration readiness: accept for documentation/verifier contract closure.
+- Deployment readiness: not applicable; no runtime source or manifest changed.
+
+Verification evidence:
+
+- `npm run verify:pricing-consolidation-contract`: pass.
+- `npm test`: pass; includes pricing consolidation contract verification.
+- `git diff --check`: pass.
+
+Next unfinished chunk:
+
+- Select owner-approved runtime follow-up G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise resume normal Orders traffic monitoring.

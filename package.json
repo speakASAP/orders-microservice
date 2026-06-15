@@ -8,7 +8,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
-    "test": "npm run build && npm run verify:transitions && npm run verify:sensitive-logging && npm run verify:create-order-contract && npm run verify:idempotency-contract && npm run verify:duplicate-order-protection && npm run verify:event-contracts && npm run verify:warehouse-handoff && npm run verify:payment-boundary && npm run verify:pricing-safety && npm run verify:admin-operations-console",
+    "test": "npm run build && npm run verify:transitions && npm run verify:sensitive-logging && npm run verify:create-order-contract && npm run verify:idempotency-contract && npm run verify:duplicate-order-protection && npm run verify:event-contracts && npm run verify:warehouse-handoff && npm run verify:payment-boundary && npm run verify:pricing-safety && npm run verify:pricing-consolidation-contract && npm run verify:admin-operations-console",
     "verify:transitions": "node scripts/verify-status-transitions.js",
     "verify:sensitive-logging": "node scripts/verify-sensitive-logging.js",
     "verify:create-order-contract": "node scripts/verify-create-order-contract.js",
@@ -19,7 +19,8 @@
     "verify:warehouse-handoff": "node scripts/verify-warehouse-handoff-contract.js",
     "verify:payment-boundary": "node scripts/verify-payment-boundary.js",
     "verify:admin-operations-console": "node scripts/verify-admin-operations-console.js",
-    "verify:pricing-safety": "node scripts/verify-pricing-safety.js"
+    "verify:pricing-safety": "node scripts/verify-pricing-safety.js",
+    "verify:pricing-consolidation-contract": "node scripts/verify-pricing-consolidation-contract.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

@@ -135,7 +135,7 @@ Acceptance criteria:
 
 ## Goal 6 - Pricing Suggestion Safety And Consolidation
 
-Status: active
+Status: complete
 
 Intent: Product list-pricing suggestions in Orders must remain human-approved, bounded, and correctly separated from payment capture.
 
@@ -143,8 +143,8 @@ Chunks:
 
 - [x] 6.1 Review current `/pricing/*` and `/admin/pricing/*` behavior against business safety rules.
 - [x] 6.2 Confirm pending/approve/reject flows and 30 percent safety limit.
-- [ ] 6.3 Reconcile remaining FlipFlop order-service pricing internals slated for consolidation.
-- [ ] 6.4 Verify pricing events and catalog update boundaries.
+- [x] 6.3 Reconcile remaining FlipFlop order-service pricing internals slated for consolidation.
+- [x] 6.4 Verify pricing events and catalog update boundaries.
 
 Acceptance criteria:
 
