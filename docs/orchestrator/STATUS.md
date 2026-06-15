@@ -1744,3 +1744,45 @@ Verification evidence:
 Next unfinished chunk:
 
 - Continue normal traffic monitoring. Start a future candidate contract goal only when the owner approves a concrete application integration.
+
+
+## 2026-06-13 - Parallel Planning Refactor
+
+Current focus:
+
+- Owner request: refactor planning so future work is split into goals that can start in parallel across different sessions and agents.
+- Scope: IPS/orchestrator documentation and Codex planning preference only; no runtime code changed.
+
+Implementation evidence:
+
+- Updated `docs/IMPLEMENTATION_ORCHESTRATOR.md` so the session algorithm decomposes available work into independent chunks before assigning implementation.
+- Updated `docs/orchestrator/PLAN.md` with a parallel-first execution rule, `parallel-ready` and `integration` stages, coordinator duties, blocker rules, and a current parallel-ready work packet table.
+- Updated `docs/orchestrator/GOALS.md` with a reusable parallel planning rule for every goal.
+- Updated `implementation-goals/README.md` and `implementation-goals/templates/EXECUTION_PLAN.md` so delegated packets include lane owner, file ownership, blockers, dependencies, validation, and handoff evidence.
+- Updated `AGENTS.md` so project agents plan for maximum safe parallel execution while keeping shared state docs coordinator-owned.
+- Updated `docs/IMPLEMENTATION_STATE.md` with the compressed continuation state and current parallel packet list.
+
+Parallel-ready packets:
+
+- P1: Goal H2.1/H2.2 Auth-owned admin login contract and role policy documentation. Lane output: `implementation-goals/parallel/P1-auth-admin-contract-handoff.md`. Blocker: Auth source/docs access needed before UI implementation.
+- P2: Goal 6.1/6.2 pricing suggestion safety review. Lane output: `implementation-goals/parallel/P2-pricing-safety-handoff.md`. Blocker: runtime behavior changes require owner approval; review/documentation can start.
+- P4: normal Orders traffic monitoring evidence collection. Lane output: `implementation-goals/parallel/P4-monitoring-evidence-handoff.md`. Blocker: Kubernetes/log access required; must not print secrets or raw customer data.
+
+Blocked packet:
+
+- P3: future candidate application contract packet. Blocker: owner must approve a concrete application integration before contract work starts.
+
+Gate decision:
+
+- Documentation-only readiness: pass.
+
+Verification evidence:
+
+- Documentation presence check: pass; 28 markdown files found under docs/orchestrator and implementation-goals.
+- Missing-marker scan: pass; no unresolved placeholder markers found.
+- Sensitive literal scan: pass; no bearer token, secret, password, private key, JWT secret, or DB password literals detected in docs scope.
+- git diff --check: pass.
+
+Next unfinished chunk:
+
+- Start P1, P2, and P4 as separate agent lanes using non-overlapping handoff files; coordinator then integrates lane evidence into shared IPS docs.

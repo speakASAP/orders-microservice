@@ -8,6 +8,8 @@ status: draft
 owner: Orders owner
 created: YYYY-MM-DD
 last_updated: YYYY-MM-DD
+parallel_status: pending
+lane_owner: TBD
 completeness_level: skeletal
 upstream:
   - docs/orchestrator/INTENT.md
@@ -45,6 +47,10 @@ State API, JWT/RBAC, state-machine, RabbitMQ event, warehouse, payment, catalog,
 ## Replay/Determinism Plan
 
 State what evidence must be recorded so another agent can replay the decision and validation path.
+
+## Parallelization Plan
+
+State whether this chunk is `parallel-ready`, `sequential-only`, or `blocked`. Name lane owner/session, dependencies, blockers, files owned by this lane, files that conflict with other lanes, expected handoff evidence, and coordinator integration order.
 
 ## Scope
 
@@ -96,7 +102,7 @@ State how to back out if validation fails.
 
 ## Agent Handoff Prompt
 
-Provide the bounded prompt for the implementation agent.
+Provide the bounded prompt for the implementation agent. Include the lane name, allowed files, forbidden files, blockers, validation commands, and exact evidence to return to the coordinator.
 
 ## Completion Checklist
 
@@ -104,5 +110,6 @@ Provide the bounded prompt for the implementation agent.
 - [ ] Invariants evaluated.
 - [ ] Sensitive-data handling defined.
 - [ ] Contract impact defined.
+- [ ] Parallelization status, blockers, dependencies, and file ownership defined.
 - [ ] Validation plan defined.
 - [ ] Gate decision recorded.

@@ -5,7 +5,7 @@ id: ORDERS-IMPLEMENTATION-ORCHESTRATOR
 status: approved
 owner: Orders owner
 created: 2026-06-12
-last_updated: 2026-06-12
+last_updated: 2026-06-13
 completeness_level: validated
 upstream:
   - AGENTS.md
@@ -47,15 +47,18 @@ Query docs-rag-microservice before broad ecosystem or cross-service contract dec
 ## Session Algorithm
 
 1. Select the active checkpoint from `docs/IMPLEMENTATION_STATE.md`.
-2. If no active checkpoint exists, select the earliest active or pending goal from `docs/orchestrator/GOALS.md`, unless the owner explicitly selects another task.
-3. Restate the preserved orders intent and affected ownership boundary.
-4. Refresh `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` for the selected chunk before code changes.
-5. Run the pre-coding gate in `docs/orchestrator/PRE_CODING_GATE.md`.
-6. Implement the smallest complete chunk that satisfies the acceptance criteria.
-7. Run the relevant checks from `docs/orchestrator/READINESS_GATES.md`.
-8. Append dated evidence to `docs/orchestrator/STATUS.md`.
-9. Update `docs/IMPLEMENTATION_STATE.md` with compressed continuation state.
-10. Leave exactly one concrete next action.
+2. If no active checkpoint exists, select the earliest active or pending owner-approved goal from `docs/orchestrator/GOALS.md`, unless the owner explicitly selects another task.
+3. Restate the preserved Orders intent and affected ownership boundary.
+4. Before choosing a single implementer task, decompose available work into independently executable goals and chunks. For each candidate, record owner, files, contracts, dependencies, blockers, validation commands, and whether it can run in parallel with other candidates.
+5. Prefer parallel execution when chunks have disjoint write sets, independent contracts, and separate validation evidence. Assign each parallel chunk to a separate agent/session with a bounded handoff prompt.
+6. Keep a coordinator session responsible for conflict control, shared docs, integration ordering, and final readiness gates. Implementation agents must not edit the same source files or shared state docs concurrently unless the coordinator explicitly sequences the merge.
+7. Refresh `docs/orchestrator/CONTEXT_PACKAGE.md` and `docs/orchestrator/EXECUTION_PLAN.md` for each selected chunk before code changes.
+8. Run the pre-coding gate in `docs/orchestrator/PRE_CODING_GATE.md` for each selected chunk.
+9. Implement the smallest complete chunk that satisfies the acceptance criteria.
+10. Run the relevant checks from `docs/orchestrator/READINESS_GATES.md`.
+11. Append dated evidence to `docs/orchestrator/STATUS.md` and include the agent/session owner for delegated work.
+12. Update `docs/IMPLEMENTATION_STATE.md` with compressed continuation state, including active parallel lanes, blockers, and integration order.
+13. Leave exactly one concrete next action for the coordinator and, when useful, a list of parallel-ready next tasks for additional agents.
 
 ## Non-Negotiable Boundaries
 

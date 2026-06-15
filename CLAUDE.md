@@ -36,3 +36,7 @@ kubectl -n statex-apps exec deployment/orders-microservice -- curl -s -X POST ht
 - Secrets: Vault `secret/prod/orders-microservice` → see [`SYSTEM.md`](SYSTEM.md)
 - Events: `order.created`, `order.updated`, `order.shipped` → RabbitMQ
 - Consumers: flipflop-service, allegro-service, aukro-service, bazos-service, marketing-microservice
+
+## Central Instruction Source
+
+Shared agent rules now live in `/home/ssf/.claude/CLAUDE.md`, `/home/ssf/Documents/Github/CLAUDE.md`, `/home/ssf/.codex/AGENTS.md`, and `/home/ssf/.ai-agent-standards/CROSS_AGENT_AUTOMATION_STANDARD.md`. Keep this file for repository-specific Claude constraints only; do not duplicate shared operating rules here.

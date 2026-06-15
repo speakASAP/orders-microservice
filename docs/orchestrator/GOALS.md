@@ -5,7 +5,7 @@ id: ORDERS-GOAL-BACKLOG
 status: approved
 owner: Orders owner
 created: 2026-06-12
-last_updated: 2026-06-12
+last_updated: 2026-06-13
 completeness_level: validated
 upstream:
   - docs/orchestrator/INTENT.md
@@ -20,6 +20,19 @@ related_adrs: []
 
 
 Status values: `pending`, `active`, `done`, `blocked`.
+
+## Parallel Planning Rule
+
+Every goal must be evaluated for parallel execution before implementation starts. The coordinator must record:
+
+- independent chunks that can run in separate sessions;
+- chunks blocked by owner approval, missing credentials, cross-service contract decisions, deployment windows, or another lane's output;
+- file ownership and conflicts for each lane;
+- validation commands and evidence expected from each agent;
+- final integration order for shared docs, runtime changes, migrations, and deployments.
+
+A chunk is `parallel-ready` only when it has a bounded write set, no unresolved ownership boundary, no shared-file race, and validation that can run without depending on another in-progress lane.
+
 
 ## Goal 1 - Orders Intent Preservation Pack
 

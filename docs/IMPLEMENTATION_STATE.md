@@ -25,14 +25,17 @@ downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
-current_goal: none
-current_chunk: none
-next_recommended_goal: post-deploy monitoring or future approved candidate contract goal
-last_completed_goal: Owner-approved H7/H8 runtime deployment
-blockers: []
+current_goal: coordinator-traffic-monitoring
+current_chunk: parallel-packet-assignment-ready
+next_recommended_goal: coordinator traffic monitoring plus optional parallel packet assignment
+last_completed_goal: Parallel planning refactor
+blockers:
+  - candidate application contracts require owner approval before start
 ```
 
 ## Current Checkpoint
+
+2026-06-13 parallel planning refactor completed in the IPS operating docs. Future planning must maximize safe parallel agent execution by splitting work into independent goal lanes, recording blockers and dependencies, assigning non-overlapping file ownership, and listing all parallel-ready next tasks for separate Codex sessions. Coordinator-owned shared docs and integration gates remain sequential. Current startable packets: P1 Auth-owned admin login contract/role policy documentation, P2 pricing suggestion safety review, and P4 normal traffic monitoring evidence. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
 
 2026-06-13 post-deploy monitoring and deploy-timeout hardening is complete. Live Orders health is passing, the Kubernetes deployment has one ready replica with zero pod restarts, and the recent application log stream includes a safe successful `order.create` audit entry. `scripts/deploy.sh` now passes an Orders-scoped `ORDERS_ROLLOUT_TIMEOUT` value, defaulting to `300s`, to the shared rollout helper so slow init-container replacement has a longer bounded wait window.
 
@@ -97,7 +100,7 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 ## Next Action
 
-Continue monitoring normal Orders traffic with managed reservation handoff enabled. Start a future candidate contract goal only when an owner approves a concrete application integration.
+Continue normal Orders traffic monitoring with managed reservation handoff enabled. In parallel, separate agents may start P1 Auth-owned admin login contract/role policy documentation, P2 pricing suggestion safety review, and P4 monitoring evidence collection after the coordinator assigns non-overlapping `implementation-goals/parallel/*-handoff.md` lane files. The coordinator alone consolidates shared IPS state. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
 
 ## Verification State
 

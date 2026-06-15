@@ -24,6 +24,8 @@ The local goalkeeper application acts as the implementation orchestrator around 
 - The goalkeeper tracks active goals, sets or updates implementation goals, maintains plans, and records progress across runs.
 - When the user communicates through command line or chat, the orchestrator response should state what was completed during the last run and what concrete next step is needed.
 - Keep this project documentation synchronized when the orchestrator rules or operating approach changes.
+- Plan implementation work for maximum safe parallel agent execution: split owner-approved work into independent lanes, name blockers and dependencies, assign non-overlapping file ownership, and list all startable parallel tasks for separate Codex sessions.
+- Keep shared status/state docs coordinator-owned when multiple agents work in parallel; consolidate evidence after lane completion.
 - Every assistant response in this project context must end with a final line beginning `Next step:`. Use a specific next action when work remains, or `Next step: No action needed.` when the task is complete.
 
 ## Intent Preservation System
@@ -51,3 +53,11 @@ Future coding must not begin until the selected task has upstream traceability, 
 ## Active Agents
 <!-- Coordinator-maintained -->
 None.
+
+## Company Cross-Agent Standard
+
+This repository also follows `AGENT_OPERATIONS.md`, which points all AI agents to the company cross-agent automation model: readiness scanner, bounded worker agent, worker monitor, and integration validator. Use the validation-debt ledger for known out-of-scope validation failures and preserve the Intent Preservation chain.
+
+## Central Instruction Source
+
+Shared agent rules now live in `/home/ssf/.codex/AGENTS.md` and `/home/ssf/.ai-agent-standards/CROSS_AGENT_AUTOMATION_STANDARD.md`. Keep this file for repository-specific constraints only; do not duplicate shared operating rules here.
