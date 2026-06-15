@@ -1825,3 +1825,35 @@ Verification evidence:
 Next unfinished chunk:
 
 - Apply the guarded pricing approval metadata migration to the live Orders database and deploy the validated change after owner approval. Then continue Goal 6.3/6.4 for FlipFlop pricing consolidation review plus pricing event/Catalog contract documentation.
+
+## 2026-06-15 - Goal 6.1/6.2 Pricing Safety Migration And Deployment
+
+Current focus:
+
+- Owner approved proceeding with the live migration and deployment after validated implementation commit `2280b32`.
+
+Migration evidence:
+
+- Pre-check confirmed the live `orders` database was reachable and `public.price_suggestion` was absent.
+- Applied existing guarded base migration `migrations/001_create_price_suggestion.sql`; it created or confirmed the `price_suggestion` table and indexes.
+- Applied guarded metadata migration `migrations/006_add_price_suggestion_approval_metadata.sql`; it completed with `ALTER TABLE`.
+- Post-check verified `approvedAt`, `approvedBy`, `rejectedAt`, and `rejectedBy` on `public.price_suggestion` with bounded timestamp/varchar types.
+- No table rows, customer data, tokens, secrets, raw JWTs, or payment data were printed.
+
+Deployment evidence:
+
+- Deployed commit `2280b32` with `./scripts/deploy.sh 2280b32`.
+- Built and pushed `localhost:5000/orders-microservice:2280b32` and `latest` with digest `sha256:5d189feb7bcd10400b70129558852c2a7a918596f86a670feebcf2c447c5fec7`.
+- Kubernetes deployment `orders-microservice` rolled out successfully in namespace `statex-apps`.
+- Active deployment image is `localhost:5000/orders-microservice:2280b32`; new pod `orders-microservice-64f99996cc-bqqr2` is `Running` with `0` restarts at verification time.
+- In-pod health check passed during deploy.
+- External health check `https://orders.alfares.cz/health` returned HTTP 200 with body status `healthy` at `2026-06-15T10:09:01.721Z`.
+
+Gate decision:
+
+- Migration readiness: accept.
+- Deployment readiness: accept.
+
+Next unfinished chunk:
+
+- Continue Goal 6.3/6.4 for FlipFlop pricing consolidation review and pricing event/Catalog contract documentation, plus normal post-deploy traffic monitoring.

@@ -26,8 +26,8 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: pricing-suggestion-safety-hardening
-current_chunk: goal-6.1-6.2-validated-not-deployed
-next_recommended_goal: apply pricing approval metadata migration and deploy after owner approval; then continue Goal 6.3/6.4
+current_chunk: goal-6.1-6.2-deployed
+next_recommended_goal: continue Goal 6.3/6.4 pricing consolidation and event/catalog contract documentation
 last_completed_goal: Goal 6.1/6.2 pricing suggestion safety hardening
 blockers:
   - candidate application contracts require owner approval before start
@@ -67,7 +67,7 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 2026-06-13: Managed Orders-to-Warehouse reservation handoff credential wiring completed. Created a Vault-backed WAREHOUSE_SERVICE_TOKEN under secret/prod/orders-microservice without printing or committing token values, mapped it through k8s/external-secret.yaml, enabled WAREHOUSE_RESERVATION_ENABLED=true through k8s/configmap.yaml with the in-cluster Warehouse URL and 15 minute TTL, and changed scripts/deploy.sh to roll out the immutable commit image tag instead of mutable latest. Validation passed: Kubernetes server dry-run for ConfigMap/ExternalSecret, npm run verify:warehouse-handoff, npm test, and git diff --check. Runtime deployment and persistent production smoke are complete. Deployed commit 634d570 as localhost:5000/orders-microservice:634d570, verified ESO projected WAREHOUSE_SERVICE_TOKEN without printing values, and verified active runtime config shows WAREHOUSE_RESERVATION_ENABLED, WAREHOUSE_SERVICE_TOKEN, WAREHOUSE_SERVICE_URL, and JWT_SECRET present. Persistent smoke order 5c277990-acb6-411e-8895-89cd9826981e / external codex-reservation-persistent-1781373803 reserved one Warehouse reservation and cancellation returned warehouseHandoff status cancelled with reservedCount=1, failedCount=0.
 
 
-2026-06-15: Goal 6.1/6.2 pricing suggestion safety hardening is implemented and validated in the remote repository but not yet deployed. Pricing routes now declare explicit `PRICING_ADMIN_ROLES`, approval/rejection receives the authenticated Auth actor from the request, `price_suggestion` stores bounded `approvedAt`, `approvedBy`, `rejectedAt`, and `rejectedBy` provenance, and `scripts/verify-pricing-safety.js` is wired into `npm test`. Added guarded migration `migrations/006_add_price_suggestion_approval_metadata.sql`. Validation passed: `npm run build`, `npm run verify:pricing-safety`, `npm test`, and `git diff --check`. Live database migration and deployment remain pending.
+2026-06-15: Goal 6.1/6.2 pricing suggestion safety hardening is implemented, validated, migrated, and deployed in production. Pricing routes now declare explicit `PRICING_ADMIN_ROLES`, approval/rejection receives the authenticated Auth actor from the request, `price_suggestion` stores bounded `approvedAt`, `approvedBy`, `rejectedAt`, and `rejectedBy` provenance, and `scripts/verify-pricing-safety.js` is wired into `npm test`. Added guarded migration `migrations/006_add_price_suggestion_approval_metadata.sql`. Validation passed: `npm run build`, `npm run verify:pricing-safety`, `npm test`, and `git diff --check`. Live migration applied `migrations/001_create_price_suggestion.sql` because the table was absent, then applied `migrations/006_add_price_suggestion_approval_metadata.sql`; post-check verified `approvedAt`, `approvedBy`, `rejectedAt`, and `rejectedBy`. Commit `2280b32` deployed as `localhost:5000/orders-microservice:2280b32`, rollout completed, and external `/health` returned HTTP 200.
 
 ## Preserved Intent Summary
 
@@ -104,7 +104,7 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 ## Next Action
 
-Apply `migrations/006_add_price_suggestion_approval_metadata.sql` to the live Orders database and deploy the validated pricing safety hardening after owner approval. Then continue Goal 6.3/6.4 for FlipFlop pricing consolidation review and pricing event/Catalog contract documentation. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
+Continue Goal 6.3/6.4 for FlipFlop pricing consolidation review and pricing event/Catalog contract documentation. Continue normal Orders traffic monitoring after the pricing deployment. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
 
 ## Verification State
 
