@@ -1969,3 +1969,33 @@ Gate decision:
 Next unfinished chunk:
 
 - Select owner-approved runtime follow-up G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise select the next backlog goal.
+
+## 2026-06-15 - Pricing Rationale Bound Deployment
+
+Current focus:
+
+- Deploy and verify commit `b79e5d9` after the bounded rationale update passed the full Orders test suite.
+
+Deployment evidence:
+
+- Pushed `b79e5d9` to `origin/main`.
+- Deployed with `./scripts/deploy.sh b79e5d9`.
+- Built and pushed `localhost:5000/orders-microservice:b79e5d9` and `latest` with digest `sha256:7a30a11d9da094226c83b2b345b366e731bffcce163fc9c4bba0ac8addde4673`.
+- Kubernetes deployment `orders-microservice` rolled out successfully in namespace `statex-apps`.
+- Active deployment image is `localhost:5000/orders-microservice:b79e5d9`; new pod `orders-microservice-86c49fcd85-cs5hc` is `Running` with `0` restarts at verification time.
+- In-pod health check passed during deploy.
+- External health check `https://orders.alfares.cz/health` returned HTTP 200 with body status `healthy` at `2026-06-15T10:26:40.100Z`.
+- Redacted new-pod log sample showed pricing routes initialized and the known startup `Failed to connect to RabbitMQ` line before `Nest application successfully started`; no later sampled failure line was recorded.
+
+Sensitive-data handling:
+
+- No secrets, bearer tokens, raw JWTs, customer data, payment data, addresses, or table rows were captured.
+
+Gate decision:
+
+- Deployment readiness: accept.
+- Monitoring readiness: accept.
+
+Next unfinished chunk:
+
+- Select owner-approved runtime follow-up G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise select the next backlog goal.
