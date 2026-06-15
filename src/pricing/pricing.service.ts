@@ -15,6 +15,12 @@ type SuggestionResponse = {
   rationale: string;
 };
 
+type PricingActor = {
+  sub?: string;
+  email?: string;
+  roles?: string[];
+};
+
 @Injectable()
 export class PricingService {
   private static readonly CONTEXT = 'PricingService';
@@ -58,6 +64,10 @@ export class PricingService {
         rationale: row.rationale,
         status: row.status,
         createdAt: row.createdAt.toISOString(),
+        approvedAt: row.approvedAt ? row.approvedAt.toISOString() : null,
+        approvedBy: row.approvedBy,
+        rejectedAt: row.rejectedAt ? row.rejectedAt.toISOString() : null,
+        rejectedBy: row.rejectedBy,
         updatedAt: row.updatedAt.toISOString(),
       })),
       total,
@@ -155,8 +165,9 @@ export class PricingService {
     return { generated, skipped };
   }
 
-  async approveSuggestion(id: string) {
+  async approveSuggestion(id: string, actor?: PricingActor) {
     const startedAt = Date.now();
+    const actorId = this.toSafeActorId(actor);
     const suggestion = await this.priceSuggestionRepository.findOne({
       where: { id },
     });
@@ -227,7 +238,10 @@ export class PricingService {
         PricingService.CONTEXT,
       );
 
+      const approvedAt = new Date();
       suggestion.status = 'approved';
+      suggestion.approvedAt = approvedAt;
+      suggestion.approvedBy = actorId;
       await this.priceSuggestionRepository.save(suggestion);
 
       await this.orderEventsService.publishPricingPriceChanged({
@@ -236,7 +250,7 @@ export class PricingService {
         oldPrice: Number(suggestion.currentPrice || 0),
         newPrice: Number(suggestion.suggestedPrice || 0),
         changePercent,
-        approvedAt: new Date().toISOString(),
+        approvedAt: approvedAt.toISOString(),
         suggestionId: suggestion.id,
       });
 
@@ -253,6 +267,7 @@ export class PricingService {
           previousStatus,
           requestedStatus: 'approved',
           resultingStatus: suggestion.status,
+          actorId,
           outcome: 'success',
           durationMs: Date.now() - startedAt,
         },
@@ -279,8 +294,9 @@ export class PricingService {
     }
   }
 
-  async rejectSuggestion(id: string) {
+  async rejectSuggestion(id: string, actor?: PricingActor) {
     const startedAt = Date.now();
+    const actorId = this.toSafeActorId(actor);
     const suggestion = await this.priceSuggestionRepository.findOne({
       where: { id },
     });
@@ -307,6 +323,8 @@ export class PricingService {
 
     try {
       suggestion.status = 'rejected';
+      suggestion.rejectedAt = new Date();
+      suggestion.rejectedBy = actorId;
       await this.priceSuggestionRepository.save(suggestion);
       this.logger.audit(
         {
@@ -317,6 +335,7 @@ export class PricingService {
           previousStatus,
           requestedStatus: 'rejected',
           resultingStatus: suggestion.status,
+          actorId,
           outcome: 'success',
           durationMs: Date.now() - startedAt,
         },
@@ -340,6 +359,14 @@ export class PricingService {
       );
       throw error;
     }
+  }
+
+  private toSafeActorId(actor?: PricingActor): string {
+    const raw = actor?.sub || actor?.email || 'unknown-admin';
+    return String(raw)
+      .trim()
+      .replace(/[^a-zA-Z0-9@._:-]/g, '_')
+      .slice(0, 200) || 'unknown-admin';
   }
 
   private async loadCandidateProducts(): Promise<

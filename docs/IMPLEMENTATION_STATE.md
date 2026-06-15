@@ -25,10 +25,10 @@ downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
-current_goal: coordinator-traffic-monitoring
-current_chunk: parallel-packet-assignment-ready
-next_recommended_goal: coordinator traffic monitoring plus optional parallel packet assignment
-last_completed_goal: Parallel planning refactor
+current_goal: pricing-suggestion-safety-hardening
+current_chunk: goal-6.1-6.2-validated-not-deployed
+next_recommended_goal: apply pricing approval metadata migration and deploy after owner approval; then continue Goal 6.3/6.4
+last_completed_goal: Goal 6.1/6.2 pricing suggestion safety hardening
 blockers:
   - candidate application contracts require owner approval before start
 ```
@@ -66,6 +66,9 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 2026-06-13: Managed Orders-to-Warehouse reservation handoff credential wiring completed. Created a Vault-backed WAREHOUSE_SERVICE_TOKEN under secret/prod/orders-microservice without printing or committing token values, mapped it through k8s/external-secret.yaml, enabled WAREHOUSE_RESERVATION_ENABLED=true through k8s/configmap.yaml with the in-cluster Warehouse URL and 15 minute TTL, and changed scripts/deploy.sh to roll out the immutable commit image tag instead of mutable latest. Validation passed: Kubernetes server dry-run for ConfigMap/ExternalSecret, npm run verify:warehouse-handoff, npm test, and git diff --check. Runtime deployment and persistent production smoke are complete. Deployed commit 634d570 as localhost:5000/orders-microservice:634d570, verified ESO projected WAREHOUSE_SERVICE_TOKEN without printing values, and verified active runtime config shows WAREHOUSE_RESERVATION_ENABLED, WAREHOUSE_SERVICE_TOKEN, WAREHOUSE_SERVICE_URL, and JWT_SECRET present. Persistent smoke order 5c277990-acb6-411e-8895-89cd9826981e / external codex-reservation-persistent-1781373803 reserved one Warehouse reservation and cancellation returned warehouseHandoff status cancelled with reservedCount=1, failedCount=0.
 
+
+2026-06-15: Goal 6.1/6.2 pricing suggestion safety hardening is implemented and validated in the remote repository but not yet deployed. Pricing routes now declare explicit `PRICING_ADMIN_ROLES`, approval/rejection receives the authenticated Auth actor from the request, `price_suggestion` stores bounded `approvedAt`, `approvedBy`, `rejectedAt`, and `rejectedBy` provenance, and `scripts/verify-pricing-safety.js` is wired into `npm test`. Added guarded migration `migrations/006_add_price_suggestion_approval_metadata.sql`. Validation passed: `npm run build`, `npm run verify:pricing-safety`, `npm test`, and `git diff --check`. Live database migration and deployment remain pending.
+
 ## Preserved Intent Summary
 
 `orders-microservice` is the canonical order processing and lifecycle service. It stores orders, order items, shipment records, order status, and order events for all sales channels. FlipFlop and marketplace services are clients of Orders, not duplicate order sources of truth. Catalog remains product truth, Warehouse remains stock truth, Payments remains payment identity/reconciliation truth, and Auth remains identity/RBAC truth.
@@ -97,10 +100,11 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 - Applied/replayed the live H6 payment status boundary migration and verified `orders.paymentReferenceId`, `orders.paymentApplicationId`, and `orders.paymentUpdatedAt` exist with bounded varchar/timestamp types. The guarded replay emitted only expected existing-column notices.
 - Deployed the owner-approved H7/H8 runtime release from commit `2f82535`; Kubernetes reported `deployment/orders-microservice` successfully rolled out with one ready updated replica and the live health endpoint returned `{"status":"healthy","service":"orders-microservice"}`.
 - DocsRAG live query was not run because no session JWT_TOKEN was available; repository source-of-truth docs and the current create-order/idempotency contracts were sufficient for this bounded Orders-local runtime chunk.
+- Implemented Goal 6.1/6.2 pricing suggestion safety hardening: explicit pricing admin roles, bounded approval/rejection actor provenance, guarded migration `006_add_price_suggestion_approval_metadata.sql`, and `scripts/verify-pricing-safety.js` wired into `npm test`.
 
 ## Next Action
 
-Continue normal Orders traffic monitoring with managed reservation handoff enabled. In parallel, separate agents may start P1 Auth-owned admin login contract/role policy documentation, P2 pricing suggestion safety review, and P4 monitoring evidence collection after the coordinator assigns non-overlapping `implementation-goals/parallel/*-handoff.md` lane files. The coordinator alone consolidates shared IPS state. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
+Apply `migrations/006_add_price_suggestion_approval_metadata.sql` to the live Orders database and deploy the validated pricing safety hardening after owner approval. Then continue Goal 6.3/6.4 for FlipFlop pricing consolidation review and pricing event/Catalog contract documentation. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
 
 ## Verification State
 
@@ -121,7 +125,7 @@ Verification results:
 - npm run verify:event-contracts: pass; fixture, builder, publisher route/header, and sensitive-field checks passed.
 - npm run verify:warehouse-handoff: pass; disabled, reserve, skip, failure, release, fulfill, cancel, expire, and return handoff checks passed.
 - npm run verify:payment-boundary: pass; bounded payment status, paid confirmation, warehouse fulfill, failed release, refund rejection, and provider-field rejection checks passed.
-- npm test: pass; build completed, status transition verification ok, sensitive logging verification ok, create order contract verification ok, idempotency contract verification ok, duplicate order protection verification ok, event contract verification ok, warehouse handoff verification ok, payment boundary verification ok, and admin operations console verification ok.
+- npm test: pass; build completed, status transition verification ok, sensitive logging verification ok, create order contract verification ok, idempotency contract verification ok, duplicate order protection verification ok, event contract verification ok, warehouse handoff verification ok, payment boundary verification ok, pricing safety verification ok, and admin operations console verification ok.
 - Channel compile checks: flipflop-service/shared, allegro-service/shared, aukro-service/shared, bazos-service/shared, heureka-service/shared, and flipflop-service/services/order-service builds passed. Aukro and Heureka dependencies were restored with npm ci before their shared builds.
 - Guarded base schema migration apply: pass; `orders`, `order_items`, and `shipments` were created in the live `orders` database.
 - Guarded idempotency migration apply: pass; `ux_orders_create_idempotency` is materialized on `orders`.

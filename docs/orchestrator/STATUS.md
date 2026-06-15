@@ -1786,3 +1786,42 @@ Verification evidence:
 Next unfinished chunk:
 
 - Start P1, P2, and P4 as separate agent lanes using non-overlapping handoff files; coordinator then integrates lane evidence into shared IPS docs.
+
+## 2026-06-15 - Goal 6.1/6.2 Pricing Suggestion Safety Hardening
+
+Current focus:
+
+- Owner request: check plans and proceed to implementation.
+- Followed the active parallel plan: reviewed completed P1/P2/P4 lane handoffs, selected P2's next safe Goal 6 coding packet, and kept shared IPS docs coordinator-owned.
+
+Implementation evidence:
+
+- Added explicit `PRICING_ADMIN_ROLES` on `PricingController` so pricing routes no longer rely only on guard default roles.
+- Forwarded the authenticated Auth actor from pricing approve/reject endpoints into `PricingService`.
+- Added bounded pricing approval provenance fields: `approvedAt`, `approvedBy`, `rejectedAt`, and `rejectedBy`.
+- Added guarded migration `migrations/006_add_price_suggestion_approval_metadata.sql`.
+- Approval and rejection now persist safe actor identifiers only, capped at 200 characters and sanitized; no tokens, raw JWTs, payment data, or customer data are stored.
+- Added `scripts/verify-pricing-safety.js` and wired `npm test` to run `npm run verify:pricing-safety`.
+
+Boundary notes:
+
+- Payments remains payment capture, provider identity, reconciliation, webhook, refund, and variable-symbol owner.
+- Catalog/product update behavior was not expanded; existing bounded price update calls remain unchanged.
+- No live database migration or deployment was run in this pass.
+- Local `alfares` mDNS resolution failed during the run; direct SSH to the verified host `192.168.88.53` was used for remote repair and validation.
+
+Gate decision:
+
+- Integration readiness: accept.
+- Deployment readiness: pending live guarded migration and deploy.
+
+Verification evidence:
+
+- `npm run build`: pass.
+- `npm run verify:pricing-safety`: pass.
+- `npm test`: pass; build, transition, sensitive logging, create-order contract, idempotency contract, duplicate protection, event contracts, warehouse handoff, payment boundary, pricing safety, and admin operations console checks completed successfully.
+- `git diff --check`: pass.
+
+Next unfinished chunk:
+
+- Apply the guarded pricing approval metadata migration to the live Orders database and deploy the validated change after owner approval. Then continue Goal 6.3/6.4 for FlipFlop pricing consolidation review plus pricing event/Catalog contract documentation.

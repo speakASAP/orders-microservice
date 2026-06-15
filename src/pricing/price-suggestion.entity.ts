@@ -32,6 +32,18 @@ export class PriceSuggestion {
   @Column({ type: 'varchar', length: 20, default: 'pending' })
   status: string;
 
+  @Column({ type: 'timestamp', nullable: true })
+  approvedAt: Date | null;
+
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  approvedBy: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  rejectedAt: Date | null;
+
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  rejectedBy: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -1,7 +1,20 @@
-import { Controller, Get, Patch, Param, Post, Query } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Post, Query, Req } from '@nestjs/common';
+import { Request } from 'express';
+import { Roles } from '../auth/roles.decorator';
 import { PricingService } from './pricing.service';
 
+export const PRICING_ADMIN_ROLES = ['global:superadmin', 'internal:orders-microservice:admin'] as const;
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    sub?: string;
+    email?: string;
+    roles?: string[];
+  };
+}
+
 @Controller(['pricing', 'admin/pricing'])
+@Roles(...PRICING_ADMIN_ROLES)
 export class PricingController {
   constructor(private readonly pricingService: PricingService) {}
 
@@ -18,14 +31,14 @@ export class PricingController {
   }
 
   @Patch('suggestions/:id/approve')
-  async approveSuggestion(@Param('id') id: string) {
-    const data = await this.pricingService.approveSuggestion(id);
+  async approveSuggestion(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
+    const data = await this.pricingService.approveSuggestion(id, request.user);
     return { success: true, data };
   }
 
   @Patch('suggestions/:id/reject')
-  async rejectSuggestion(@Param('id') id: string) {
-    const data = await this.pricingService.rejectSuggestion(id);
+  async rejectSuggestion(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
+    const data = await this.pricingService.rejectSuggestion(id, request.user);
     return { success: true, data };
   }
 }
