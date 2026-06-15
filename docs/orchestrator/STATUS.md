@@ -1905,3 +1905,63 @@ Verification evidence:
 Next unfinished chunk:
 
 - Select owner-approved runtime follow-up G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise resume normal Orders traffic monitoring.
+
+## 2026-06-15 - Goal 6 Pricing Rationale Bound
+
+Current focus:
+
+- Owner approved proceeding further after DNS recovered.
+- Followed the existing Goal 6 contract state: Goal 6.1/6.2 and Goal 6.3/6.4 were already committed, so this pass closed the remaining P2 risk around unbounded AI rationale text without changing event routing, Catalog writes, payment behavior, or FlipFlop source.
+
+Implementation evidence:
+
+- Added `PricingService.MAX_RATIONALE_LENGTH = 280`.
+- Normalized AI rationale strings by replacing control characters and repeated whitespace before persistence.
+- Capped persisted rationale text to 280 characters.
+- Preserved the current legacy `pricing.price_changed` event shape and routing key because versioned pricing events remain dependency-gated by consumer migration approval.
+
+Boundary notes:
+
+- No payment capture, provider identity, refund, variable-symbol, provider webhook, customer data, token, or secret behavior changed.
+- No Catalog write adapter change was made.
+- No FlipFlop source changed.
+- Existing unrelated local modifications to `AGENTS.md` and `CLAUDE.md` were left untouched.
+
+Verification evidence:
+
+- `npm run build && npm run verify:pricing-safety`: pass.
+- `npm run verify:event-contracts`: pass.
+- `npm run verify:pricing-consolidation-contract`: pass.
+- `npm test`: pass; full Orders verification suite completed successfully.
+
+Next unfinished chunk:
+
+- Commit and deploy the bounded rationale update, then select owner-approved runtime follow-up G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise resume normal Orders traffic monitoring.
+
+## 2026-06-15 - Pricing Deployment Post-Deploy Monitoring
+
+Current focus:
+
+- Monitor normal Orders runtime after the deployed Goal 6.1/6.2 pricing safety release and Goal 6.3/6.4 contract closure.
+
+Monitoring evidence:
+
+- Kubernetes deployment `orders-microservice` is `READY 1/1`, `UP-TO-DATE 1`, `AVAILABLE 1`.
+- Active image remains `localhost:5000/orders-microservice:2280b32`.
+- Active pod `orders-microservice-64f99996cc-bqqr2` is `Running` with `0` restarts at observation time.
+- `kubectl rollout status deployment/orders-microservice --timeout=30s`: pass.
+- External health check `https://orders.alfares.cz/health`: HTTP 200 with body status `healthy` at `2026-06-15T10:23:47.199Z`.
+- Redacted log sample from the last 30 minutes showed PricingModule and pricing/admin-pricing routes initialized.
+- Redacted log sample showed the known startup `Failed to connect to RabbitMQ` line before `Nest application successfully started`; no later sampled application failure line was recorded.
+
+Sensitive-data handling:
+
+- No secrets, bearer tokens, raw JWTs, customer data, payment data, addresses, or table rows were captured in this status entry.
+
+Gate decision:
+
+- Monitoring readiness: accept.
+
+Next unfinished chunk:
+
+- Select owner-approved runtime follow-up G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise select the next backlog goal.

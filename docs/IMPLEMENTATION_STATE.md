@@ -5,7 +5,7 @@ id: ORDERS-IMPLEMENTATION-STATE
 status: ready
 owner: Orders owner
 created: 2026-06-12
-last_updated: 2026-06-13
+last_updated: 2026-06-15
 completeness_level: implemented
 upstream:
   - AGENTS.md
@@ -25,9 +25,9 @@ downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
-current_goal: pricing-suggestion-safety-hardening
-current_chunk: goal-6.3-6.4-contract-complete
-next_recommended_goal: select owner-approved runtime follow-up G6-A/G6-B/G6-C or resume monitoring
+current_goal: pricing-rationale-bound
+current_chunk: goal-6-rationale-cap-validated
+next_recommended_goal: commit and deploy pricing rationale cap, then select G6-A/G6-B/G6-C or resume monitoring
 last_completed_goal: Goal 6 Pricing Suggestion Safety And Consolidation
 blockers:
   - candidate application contracts require owner approval before start
@@ -72,6 +72,12 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 2026-06-15: Goal 6.3/6.4 pricing consolidation and event/Catalog contract review is complete. Added `docs/orchestrator/PRICING_CONSOLIDATION_AND_EVENT_CONTRACT.md` and `scripts/verify-pricing-consolidation-contract.js`, wired the verifier into `npm test`, and marked Goal 6 complete. Confirmed FlipFlop gateway routes `/api/pricing/*` to Orders, FlipFlop product-service reads prices from Catalog product/pricing data, Catalog owns current-price reads and guarded pricing writes through `/api/pricing`, and Orders currently emits legacy `pricing.price_changed` payloads on `pricing.events`. No runtime pricing adapter, event routing, Catalog credential, FlipFlop source, payment, cart, checkout, or product truth behavior changed in this chunk. Owner-approvable follow-ups are G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, and G6-C FlipFlop Local Pricing Publisher Decommission.
 
+
+2026-06-15: Pricing rationale bound validated. `PricingService` now normalizes AI rationale text, removes control characters/repeated whitespace, and caps persisted rationale to 280 characters. This preserves the existing approved pricing safety model without changing Catalog writes, payment boundaries, FlipFlop source, or the legacy `pricing.price_changed` event contract. Validation passed: `npm run build && npm run verify:pricing-safety`, `npm run verify:event-contracts`, `npm run verify:pricing-consolidation-contract`, and full `npm test`.
+
+
+2026-06-15: Post-deploy monitoring after pricing safety deployment passed. Kubernetes deployment `orders-microservice` is `1/1` ready on image `localhost:5000/orders-microservice:2280b32`, active pod `orders-microservice-64f99996cc-bqqr2` is running with zero restarts, external `https://orders.alfares.cz/health` returned HTTP 200 with body status `healthy`, and the redacted 30 minute log sample showed pricing routes initialized plus the known startup `Failed to connect to RabbitMQ` line before `Nest application successfully started`. No secrets, tokens, customer data, payment data, or table rows were captured.
+
 ## Preserved Intent Summary
 
 `orders-microservice` is the canonical order processing and lifecycle service. It stores orders, order items, shipment records, order status, and order events for all sales channels. FlipFlop and marketplace services are clients of Orders, not duplicate order sources of truth. Catalog remains product truth, Warehouse remains stock truth, Payments remains payment identity/reconciliation truth, and Auth remains identity/RBAC truth.
@@ -108,7 +114,7 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 ## Next Action
 
-Select the next owner-approved runtime follow-up: G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission. Otherwise resume normal Orders traffic monitoring. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
+Select the next owner-approved runtime follow-up: G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise select the next backlog goal. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
 
 ## Verification State
 

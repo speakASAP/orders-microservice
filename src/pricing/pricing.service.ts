@@ -25,6 +25,7 @@ type PricingActor = {
 export class PricingService {
   private static readonly CONTEXT = 'PricingService';
   private static readonly MAX_LIMIT = 50;
+  private static readonly MAX_RATIONALE_LENGTH = 280;
   private readonly aiServiceUrl =
     process.env.AI_SERVICE_URL || 'http://ai-microservice:3380';
   private readonly productServiceUrl =
@@ -467,10 +468,18 @@ export class PricingService {
     ) {
       return {
         suggestedPrice,
-        rationale: rationaleRaw.trim(),
+        rationale: this.toBoundedRationale(rationaleRaw),
       };
     }
     return null;
+  }
+
+  private toBoundedRationale(value: string): string {
+    return value
+      .replace(/[\u0000-\u001f\u007f]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, PricingService.MAX_RATIONALE_LENGTH);
   }
 
   private async updateProductPrice(productId: string, suggestedPrice: number) {
