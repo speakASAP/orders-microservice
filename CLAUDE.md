@@ -1,3 +1,18 @@
+# Claude Instructions
+
+Shared rules live here:
+
+- Claude profile: `/home/ssf/.claude/CLAUDE.md`
+- Shared ecosystem instructions: `/home/ssf/Documents/Github/CLAUDE.md`
+- Codex profile: `/home/ssf/.codex/AGENTS.md`
+- Cross-agent standard: `/home/ssf/.ai-agent-standards/CROSS_AGENT_AUTOMATION_STANDARD.md`
+- Repository operations: `AGENT_OPERATIONS.md`
+
+Read those first, then follow the repository-specific notes below and the current planning/status files.
+
+
+## Repository-Specific Notes
+
 # CLAUDE.md (orders-microservice)
 
 → Ecosystem: [../shared/CLAUDE.md](../shared/CLAUDE.md) | Reading order: `BUSINESS.md` → `SYSTEM.md` → `AGENTS.md` → `TASKS.md` → `STATE.json`
@@ -14,7 +29,6 @@ kubectl -n statex-apps exec deployment/orders-microservice -- curl -s -X POST ht
   -H "Authorization: Bearer $(cat ~/.claude/rag-token)" \
   -d '{"query": "YOUR QUESTION HERE", "maxTokens": 3000}'
 ```
-
 
 ---
 
@@ -36,7 +50,3 @@ kubectl -n statex-apps exec deployment/orders-microservice -- curl -s -X POST ht
 - Secrets: Vault `secret/prod/orders-microservice` → see [`SYSTEM.md`](SYSTEM.md)
 - Events: `order.created`, `order.updated`, `order.shipped` → RabbitMQ
 - Consumers: flipflop-service, allegro-service, aukro-service, bazos-service, marketing-microservice
-
-## Central Instruction Source
-
-Shared agent rules now live in `/home/ssf/.claude/CLAUDE.md`, `/home/ssf/Documents/Github/CLAUDE.md`, `/home/ssf/.codex/AGENTS.md`, and `/home/ssf/.ai-agent-standards/CROSS_AGENT_AUTOMATION_STANDARD.md`. Keep this file for repository-specific Claude constraints only; do not duplicate shared operating rules here.
