@@ -1933,10 +1933,14 @@ Verification evidence:
 - `npm run verify:event-contracts`: pass.
 - `npm run verify:pricing-consolidation-contract`: pass.
 - `npm test`: pass; full Orders verification suite completed successfully.
+- Commit `b79e5d9` created and deployed.
+- `./scripts/deploy.sh b79e5d9`: pass; image `localhost:5000/orders-microservice:b79e5d9` pushed with digest `sha256:7a30a11d9da094226c83b2b345b366e731bffcce163fc9c4bba0ac8addde4673`.
+- Kubernetes rollout: pass; deployment `orders-microservice` is `1/1` ready on image `localhost:5000/orders-microservice:b79e5d9`.
+- External health: pass; `https://orders.alfares.cz/health` returned HTTP 200 with body status `healthy` at `2026-06-15T10:26:35.908Z`.
 
 Next unfinished chunk:
 
-- Commit and deploy the bounded rationale update, then select owner-approved runtime follow-up G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise resume normal Orders traffic monitoring.
+- Select owner-approved runtime follow-up G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise resume normal Orders traffic monitoring.
 
 ## 2026-06-15 - Pricing Deployment Post-Deploy Monitoring
 
