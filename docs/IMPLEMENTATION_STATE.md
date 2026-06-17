@@ -78,6 +78,8 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 2026-06-15: Post-deploy monitoring after pricing rationale deployment passed. Kubernetes deployment `orders-microservice` is `1/1` ready on image `localhost:5000/orders-microservice:b79e5d9`, active pod `orders-microservice-86c49fcd85-cs5hc` is running with zero restarts, external `https://orders.alfares.cz/health` returned HTTP 200 with body status `healthy`, and the redacted log sample showed pricing routes initialized plus the known startup `Failed to connect to RabbitMQ` line before `Nest application successfully started`. No secrets, tokens, customer data, payment data, or table rows were captured.
 
+2026-06-15: Parallel P2/P4 handoffs are integrated. P2 pricing safety review is accepted and superseded by the deployed Goal 6 hardening/rationale-bound work. P4 monitoring evidence is accepted; startup RabbitMQ warning and missing explicit Warehouse reservation TTL are not release blockers, with RabbitMQ kept under normal monitoring and TTL recorded as low-priority Warehouse handoff config hygiene.
+
 ## Preserved Intent Summary
 
 `orders-microservice` is the canonical order processing and lifecycle service. It stores orders, order items, shipment records, order status, and order events for all sales channels. FlipFlop and marketplace services are clients of Orders, not duplicate order sources of truth. Catalog remains product truth, Warehouse remains stock truth, Payments remains payment identity/reconciliation truth, and Auth remains identity/RBAC truth.
@@ -114,7 +116,7 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 ## Next Action
 
-Select the next owner-approved runtime follow-up: G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise select the next backlog goal. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
+Select the next owner-approved runtime follow-up: G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise continue normal Orders monitoring or select the next backlog goal. P3 candidate application contract work remains blocked until owner approval names a concrete integration. P4 RabbitMQ startup warning remains under normal monitoring; explicit Warehouse reservation TTL is low-priority config hygiene.
 
 ## Verification State
 

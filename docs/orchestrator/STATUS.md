@@ -1999,3 +1999,31 @@ Gate decision:
 Next unfinished chunk:
 
 - Select owner-approved runtime follow-up G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise select the next backlog goal.
+
+## 2026-06-15 - Parallel Handoff Integration P2/P4
+
+Current focus:
+
+- Integrate completed parallel lane handoffs from P2 pricing suggestion safety review and P4 normal traffic monitoring evidence.
+
+P2 coordinator decision:
+
+- P2 review is accepted and superseded by later Goal 6 implementation/deployment work already recorded on 2026-06-15. The recommended pricing hardening packet was effectively approved and completed: explicit pricing roles, bounded approval/rejection actor provenance, pricing verifier coverage, Goal 6 contract documentation, and bounded AI rationale persistence are now implemented, validated, deployed, and monitored.
+- No additional P2 follow-up is needed for the original handoff. Remaining owner-approvable runtime follow-ups are G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, and G6-C FlipFlop Local Pricing Publisher Decommission.
+
+P4 coordinator decision:
+
+- P4 monitoring handoff is accepted. Live health passed, Kubernetes deployment was rolled out and ready, the active pod had zero restarts, Warehouse reservation handoff config and token presence were verified without printing secrets, and sampled logs showed sanitized successful order.create audit entries.
+- The startup RabbitMQ warning is not an immediate blocker because it occurred before Nest application startup and no later sampled RabbitMQ failure appeared. Keep it as normal monitoring unless repeated post-startup failures appear.
+- Missing explicit WAREHOUSE_RESERVATION_TTL_SECONDS is not an immediate blocker because managed handoff was enabled and live health passed. Track as low-priority config hygiene for the next Warehouse handoff review.
+- No Warehouse handoff log lines appeared in the sampled window; no side-effect conclusion is inferred from absence of sampled traffic.
+
+Validation evidence:
+
+- P2 lane: npm run build passed, sensitive literal scan passed, git diff --check passed.
+- P4 lane: sensitive literal scan outside fenced command blocks passed, git diff --check passed.
+- Coordinator verification on 2026-06-15: production deployment image remains localhost:5000/orders-microservice:b79e5d9, deployment is 1/1 ready, and external health returned HTTP 200 with status healthy.
+
+Next unfinished chunk:
+
+- Select owner-approved runtime follow-up G6-A, G6-B, or G6-C; otherwise continue normal Orders monitoring or select the next backlog goal. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
