@@ -28,8 +28,10 @@ export class PricingService {
   private static readonly MAX_RATIONALE_LENGTH = 280;
   private readonly aiServiceUrl =
     process.env.AI_SERVICE_URL || 'http://ai-microservice:3380';
-  private readonly productServiceUrl =
-    process.env.PRODUCT_SERVICE_URL || process.env.CATALOG_SERVICE_URL || '';
+  private readonly catalogServiceUrl =
+    process.env.CATALOG_SERVICE_URL || process.env.PRODUCT_SERVICE_URL || '';
+  private readonly catalogInternalServiceToken =
+    process.env.CATALOG_INTERNAL_SERVICE_TOKEN || '';
 
   constructor(
     private readonly httpService: HttpService,
@@ -483,35 +485,39 @@ export class PricingService {
   }
 
   private async updateProductPrice(productId: string, suggestedPrice: number) {
-    if (!this.productServiceUrl) {
+    if (!this.catalogServiceUrl) {
       throw new BadRequestException(
-        'PRODUCT_SERVICE_URL or CATALOG_SERVICE_URL must be configured for price updates',
+        'CATALOG_SERVICE_URL must be configured for Catalog pricing updates',
+      );
+    }
+    if (!this.catalogInternalServiceToken) {
+      throw new BadRequestException(
+        'CATALOG_INTERNAL_SERVICE_TOKEN must be configured for Catalog pricing updates',
       );
     }
 
-    const base = this.productServiceUrl.replace(/\/$/, '');
-    const candidates = [
-      { method: 'patch' as const, url: `${base}/admin/products/${productId}` },
-      { method: 'put' as const, url: `${base}/products/${productId}` },
-    ];
-
-    let lastError: string | null = null;
-    for (const candidate of candidates) {
-      try {
-        await this.httpService.axiosRef.request({
-          method: candidate.method,
-          url: candidate.url,
-          data: { price: suggestedPrice },
-          timeout: 5000,
-        });
-        return;
-      } catch {
-        lastError = 'upstream request failed';
-      }
+    const base = this.catalogServiceUrl.replace(/\/$/, '');
+    try {
+      await this.httpService.axiosRef.request({
+        method: 'post',
+        url: `${base}/api/pricing`,
+        data: {
+          productId,
+          basePrice: suggestedPrice,
+          currency: 'CZK',
+          priceType: 'regular',
+          isActive: true,
+        },
+        headers: {
+          'x-internal-service-token': this.catalogInternalServiceToken,
+          'x-service-name': 'orders-microservice',
+        },
+        timeout: 5000,
+      });
+    } catch {
+      throw new BadRequestException(
+        `Unable to update Catalog pricing for ${productId}: upstream request failed`,
+      );
     }
-
-    throw new BadRequestException(
-      `Unable to update product price for ${productId}: ${lastError || 'unknown error'}`,
-    );
   }
 }

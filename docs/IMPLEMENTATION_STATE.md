@@ -116,7 +116,7 @@ The owner-approved H7/H8 runtime deployment is complete. Commit `2f82535` was bu
 
 ## Next Action
 
-Select the next owner-approved runtime follow-up: G6-A Catalog Pricing Write Adapter, G6-B Pricing Event Versioning, or G6-C FlipFlop Local Pricing Publisher Decommission; otherwise continue normal Orders monitoring or select the next backlog goal. P3 candidate application contract work remains blocked until owner approval names a concrete integration. P4 RabbitMQ startup warning remains under normal monitoring; explicit Warehouse reservation TTL is low-priority config hygiene.
+G6-A Catalog Pricing Write Adapter is implemented in source. Runtime secret wiring maps `CATALOG_INTERNAL_SERVICE_TOKEN` from Catalog's Vault-backed `BAZOS_SERVICE_TOKEN` until a dedicated Catalog internal token property is available, then deploy and smoke approved pricing against Catalog. G6-B Pricing Event Versioning and G6-C FlipFlop Local Pricing Publisher Decommission remain dependency-gated. P3 candidate application contract work remains blocked until owner approval names a concrete integration. P4 RabbitMQ startup warning remains under normal monitoring; explicit Warehouse reservation TTL is low-priority config hygiene.
 
 ## Verification State
 

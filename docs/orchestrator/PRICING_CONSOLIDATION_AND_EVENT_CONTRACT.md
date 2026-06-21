@@ -135,7 +135,7 @@ Payments remains responsible for provider sessions, payment capture, variable sy
 
 ### G6-A Catalog Pricing Write Adapter
 
-Status: ready after owner approval.
+Status: implemented in source; runtime wiring maps `CATALOG_INTERNAL_SERVICE_TOKEN` from Catalog's Vault-backed `BAZOS_SERVICE_TOKEN` until a dedicated Catalog internal token property is available.
 
 Objective: Replace the legacy product-update fallback in `PricingService.updateProductPrice()` with a Catalog pricing-write adapter that calls `POST /api/pricing` using approved Catalog service authentication.
 
@@ -157,6 +157,12 @@ Forbidden outcomes:
 - no payment capture or provider fields;
 - no raw token logging;
 - no bulk/mass price update bypass.
+
+Implementation note, 2026-06-21:
+
+- Orders now writes approved suggestions to Catalog through `POST /api/pricing` with `productId`, `basePrice`, `currency="CZK"`, `priceType="regular"`, and `isActive=true`.
+- Orders sends Catalog service authentication through `x-internal-service-token` and `x-service-name=orders-microservice`; token values are not logged or persisted in pricing rows/events.
+- The legacy `/admin/products/:productId` and `/products/:productId` price fallback is removed.
 
 ### G6-B Pricing Event Versioning
 

@@ -75,7 +75,8 @@ function makeService(suggestion = makeSuggestion()) {
       },
     },
   );
-  service.productServiceUrl = 'http://catalog-service';
+  service.catalogServiceUrl = 'http://catalog-service';
+  service.catalogInternalServiceToken = 'test-catalog-token';
   return { service, suggestion, saved, audits, requests, events };
 }
 
@@ -109,7 +110,17 @@ function makeService(suggestion = makeSuggestion()) {
   assert.equal(approved.suggestion.approvedBy, 'orders-admin-1');
   assert.ok(approved.suggestion.approvedAt instanceof Date);
   assert.equal(approved.requests.length, 1);
-  assert.deepEqual(approved.requests[0].data, { price: 120 });
+  assert.equal(approved.requests[0].method, 'post');
+  assert.equal(approved.requests[0].url, 'http://catalog-service/api/pricing');
+  assert.deepEqual(approved.requests[0].data, {
+    productId: 'product-1',
+    basePrice: 120,
+    currency: 'CZK',
+    priceType: 'regular',
+    isActive: true,
+  });
+  assert.equal(approved.requests[0].headers['x-internal-service-token'], 'test-catalog-token');
+  assert.equal(approved.requests[0].headers['x-service-name'], 'orders-microservice');
   assert.equal(approved.events.length, 1);
   assert.equal(approved.events[0].suggestionId, 'suggestion-1');
   assert.equal(approved.audits.some((entry) => entry.operation === 'pricing.suggestion.approve' && entry.actorId === 'orders-admin-1' && entry.outcome === 'success'), true);
@@ -148,10 +159,20 @@ function makeService(suggestion = makeSuggestion()) {
   assert.equal(alreadyApproved.requests.length, 0);
   assert.equal(alreadyApproved.events.length, 0);
 
+  const missingCatalogToken = makeService(makeSuggestion({ id: 'suggestion-missing-token' }));
+  missingCatalogToken.service.catalogInternalServiceToken = '';
+  await assert.rejects(
+    () => missingCatalogToken.service.approveSuggestion('suggestion-missing-token', { sub: 'orders-admin-1' }),
+    BadRequestException,
+  );
+  assert.equal(missingCatalogToken.requests.length, 0);
+  assert.equal(missingCatalogToken.events.length, 0);
+
   const listed = await approved.service.listSuggestions('100', 'pending');
   assert.equal(listed.limit, 50);
   assert.equal(listed.items[0].approvedBy, 'orders-admin-1');
   assert.equal(JSON.stringify(listed).includes('Bearer '), false);
+  assert.equal(JSON.stringify(listed).includes('test-catalog-token'), false);
 
   console.log('pricing safety verification ok');
 })().catch((error) => {

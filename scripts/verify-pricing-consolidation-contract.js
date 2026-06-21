@@ -68,11 +68,18 @@ mustInclude(eventService, 'publishPricingPriceChanged', 'OrderEventsService');
 
 mustInclude(pricingService, 'Math.abs(changePercent) > 30', 'pricing service safety guard');
 mustInclude(pricingService, 'this.updateProductPrice', 'pricing service Catalog handoff');
+mustInclude(pricingService, 'CATALOG_INTERNAL_SERVICE_TOKEN', 'pricing service Catalog auth');
+mustInclude(pricingService, "'x-internal-service-token'", 'pricing service Catalog auth header');
+mustInclude(pricingService, "method: 'post'", 'pricing service Catalog write method');
+mustInclude(pricingService, '/api/pricing', 'pricing service Catalog write URL');
+mustInclude(pricingService, 'basePrice: suggestedPrice', 'pricing service Catalog price row');
+mustInclude(pricingService, "priceType: 'regular'", 'pricing service Catalog price type');
 mustInclude(pricingService, 'publishPricingPriceChanged', 'pricing service event publish');
 
 mustNotMatch(contract, /Authorization: Bearer [A-Za-z0-9_./+=:-]{12,}/, 'contract');
 mustNotMatch(contract, /(client[_-]?secret|private[_-]?key|jwt[_-]?secret|db[_-]?password)\s*[:=]\s*['"]?[A-Za-z0-9_./+=:-]{12,}/i, 'contract');
 mustNotMatch(eventService, /providerTransactionId|variableSymbol|cardNumber|refund|customerAddress|shippingAddress/, 'pricing event source');
 mustNotMatch(pricingService, /providerTransactionId|variableSymbol|cardNumber|refund/, 'pricing service');
+mustNotMatch(pricingService, /admin\/products|\/products\/\$\{productId\}|data: \{ price: suggestedPrice \}/, 'pricing service legacy product price update');
 
 console.log('pricing consolidation contract verification ok');
