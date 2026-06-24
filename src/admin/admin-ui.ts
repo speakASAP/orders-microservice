@@ -71,17 +71,9 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
     .title p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
     .session {
       display: grid;
-      grid-template-columns: minmax(220px, 390px) auto auto;
+      grid-template-columns: auto auto;
       align-items: center;
       gap: 8px;
-    }
-    .session input {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 9px 11px;
-      background: var(--surface-2);
-      font-size: 13px;
     }
     .btn {
       border: 1px solid var(--line);
@@ -240,13 +232,12 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
       <header class="topbar">
         <div class="title"><h1>Orders operations</h1><p>Canonical lifecycle visibility across channels, payments, fulfillment, and ecosystem signals.</p></div>
         <div class="session">
-          <input id="token" type="password" placeholder="Paste Auth-issued admin bearer token" autocomplete="off" />
-          <button class="btn primary" id="saveToken">Load admin data</button>
-          <button class="btn" id="clearToken">Clear</button>
+          <button class="btn primary" id="signInAuth">Sign in with Auth</button>
+          <button class="btn" id="clearToken">Sign out</button>
         </div>
       </header>
       <section class="content">
-        <div id="locked" class="notice visible">Admin visibility requires an Auth-issued JWT with <strong>global:superadmin</strong> or <strong>internal:orders-microservice:admin</strong>. The public shell is visible, but order data remains protected.</div>
+        <div id="locked" class="notice visible">Admin visibility requires an Auth session with <strong>global:superadmin</strong> or <strong>internal:orders-microservice:admin</strong>. The public shell is visible, but order data remains protected.</div>
         <div id="error" class="error"></div>
         <div class="ops-grid">
           <section class="panel">
@@ -329,17 +320,19 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
   </div>
   <script>
     const state = { orders: [], selectedId: null };
+    const AUTH_BASE = 'https://auth.alfares.cz';
+    const AUTH_CLIENT_ID = 'orders-microservice';
+    const AUTH_STATE_KEY = 'orders_admin_auth_state';
+    const ADMIN_TOKEN_KEY = 'ordersAdminToken';
     const money = new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK' });
     const dateFmt = new Intl.DateTimeFormat('cs-CZ', { dateStyle: 'medium', timeStyle: 'short' });
     const el = (id) => document.getElementById(id);
-    const tokenInput = el('token');
 
-    el('saveToken').addEventListener('click', () => loadDashboard());
+    el('signInAuth').addEventListener('click', () => { window.location.href = hostedAuthUrl('/login'); });
     el('clearToken').addEventListener('click', () => {
-      tokenInput.value = '';
+      clearSession();
       state.orders = [];
       state.selectedId = null;
-      sessionStorage.removeItem('ordersAdminToken');
       renderMetrics({});
       renderOrders();
       setError('');
@@ -356,8 +349,49 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
     el('diagForm').addEventListener('submit', (event) => { event.preventDefault(); loadDiagnostics(); });
     el('actionForm').addEventListener('submit', (event) => { event.preventDefault(); runApprovedAction(); });
 
+    function randomState() {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+      return 'orders-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+    }
+
+    function hostedAuthUrl(path) {
+      const nonce = randomState();
+      sessionStorage.setItem(AUTH_STATE_KEY, nonce);
+      const returnUrl = new URL('/admin/orders', window.location.origin);
+      const url = new URL(path, AUTH_BASE);
+      url.searchParams.set('client_id', AUTH_CLIENT_ID);
+      url.searchParams.set('return_url', returnUrl.toString());
+      url.searchParams.set('state', nonce);
+      return url.toString();
+    }
+
+    function consumeHostedAuthFragment() {
+      if (!window.location.hash || !window.location.hash.includes('access_token=')) return 'none';
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      const accessToken = params.get('access_token') || '';
+      const returnedState = params.get('state') || '';
+      const expectedState = sessionStorage.getItem(AUTH_STATE_KEY) || '';
+      const cleanUrl = window.location.pathname + window.location.search;
+
+      if (!accessToken || !expectedState || returnedState !== expectedState) {
+        sessionStorage.removeItem(AUTH_STATE_KEY);
+        window.history.replaceState(null, document.title, cleanUrl);
+        return 'rejected';
+      }
+
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, accessToken);
+      sessionStorage.removeItem(AUTH_STATE_KEY);
+      window.history.replaceState(null, document.title, cleanUrl);
+      return 'accepted';
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+      sessionStorage.removeItem(AUTH_STATE_KEY);
+    }
+
     function authHeaders() {
-      const token = tokenInput.value.trim() || sessionStorage.getItem('ordersAdminToken') || '';
+      const token = sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
       return token ? { Authorization: 'Bearer ' + token } : {};
     }
 
@@ -377,13 +411,12 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
 
     async function loadDashboard() {
       setError('');
-      const token = tokenInput.value.trim() || sessionStorage.getItem('ordersAdminToken') || '';
+      const token = sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
       if (!token) {
         setLocked(true);
-        setError('Provide an Auth-issued admin token before loading order data.');
+        setError('Sign in with an authorized Auth account before loading order data.');
         return;
       }
-      sessionStorage.setItem('ordersAdminToken', token);
       const params = new URLSearchParams(new FormData(el('filters')));
       params.set('limit', '150');
       try {
@@ -579,6 +612,13 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
 
     renderMetrics({});
     renderOrders();
+    const authFragmentState = consumeHostedAuthFragment();
+    if (authFragmentState === 'rejected') {
+      setLocked(true);
+      setError('Auth sign-in could not be verified. Please start sign-in again.');
+    } else if (authFragmentState === 'accepted' || sessionStorage.getItem(ADMIN_TOKEN_KEY)) {
+      loadDashboard();
+    }
   </script>
 </body>
 </html>`;

@@ -1,6 +1,27 @@
 const assert = require('assert/strict');
+const fs = require('fs');
+const path = require('path');
 const { of, throwError } = require('rxjs');
 const { WarehouseReservationClient } = require('../dist/warehouse/warehouse-reservation.client');
+
+const repoRoot = path.resolve(__dirname, '..');
+const clientSource = fs.readFileSync(path.join(repoRoot, 'src/warehouse/warehouse-reservation.client.ts'), 'utf8');
+const handoffContract = fs.readFileSync(path.join(repoRoot, 'docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md'), 'utf8');
+const authInventory = fs.readFileSync(path.join(repoRoot, 'docs/orchestrator/2026-06-24-aos-auth-static-inventory.md'), 'utf8');
+
+function assertAuthServiceJwtContract() {
+  assert.match(clientSource, /process\.env\.WAREHOUSE_SERVICE_TOKEN/);
+  assert.match(clientSource, /process\.env\.WAREHOUSE_INTERNAL_SERVICE_TOKEN/);
+  assert.match(clientSource, /Authorization:\s*token\.startsWith\('Bearer '\)\s*\?\s*token\s*:\s*`Bearer \$\{token\}`/);
+  assert.doesNotMatch(clientSource, /JwtService|jwtService\.sign|jwt\.sign|JWT_SECRET/);
+
+  for (const doc of [handoffContract, authInventory]) {
+    assert.match(doc, /Auth-compatible service JWT/);
+    assert.match(doc, /auth-microservice\/docs\/SERVICE_IDENTITY_CONSUMER_STANDARD\.md/);
+    assert.match(doc, /internal:warehouse-microservice:admin/);
+    assert.match(doc, /serviceName/);
+  }
+}
 
 function withEnv(values, fn) {
   const previous = {};
@@ -36,6 +57,8 @@ function makeOrder(overrides = {}) {
 }
 
 async function run() {
+  assertAuthServiceJwtContract();
+
   await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'false' }, async () => {
     const client = new WarehouseReservationClient({ post() { throw new Error('should not call'); } }, { warn() {} });
     const result = await client.reserveOrderItems(makeOrder());

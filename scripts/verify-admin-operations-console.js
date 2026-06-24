@@ -185,10 +185,34 @@ function makeQueryBuilder(matches) {
   assert.match(uiSource, /Integration health/);
   assert.match(uiSource, /Idempotency diagnostics/);
   assert.match(uiSource, /Approved actions/);
+  assert.match(uiSource, /Sign in with Auth/);
+  assert.match(uiSource, /https:\/\/auth\.alfares\.cz/);
+  assert.match(uiSource, /AUTH_CLIENT_ID = 'orders-microservice'/);
+  assert.match(uiSource, /url\.searchParams\.set\('client_id', AUTH_CLIENT_ID\)/);
+  assert.match(uiSource, /url\.searchParams\.set\('return_url', returnUrl\.toString\(\)\)/);
+  assert.match(uiSource, /url\.searchParams\.set\('state', nonce\)/);
+  assert.match(uiSource, /window\.location\.hash\.includes\('access_token='\)/);
+  assert.match(uiSource, /sessionStorage\.getItem\(AUTH_STATE_KEY\)/);
+  assert.match(uiSource, /window\.history\.replaceState\(null, document\.title, cleanUrl\)/);
+  assert.match(uiSource, /sessionStorage\.setItem\(ADMIN_TOKEN_KEY, accessToken\)/);
+  assert.doesNotMatch(uiSource, /Paste Auth-issued admin bearer token/);
+  assert.doesNotMatch(uiSource, /id="token" type="password"/);
   assert.match(uiSource, /id="runAction" disabled/);
   assert.match(uiSource, /\/api\/admin\/operations\/overview/);
   assert.match(uiSource, /\/api\/admin\/operations\/idempotency/);
   assert.match(uiSource, /\/api\/admin\/operations\/actions\/order-status/);
+
+  const guardSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/auth/jwt-roles.guard.ts'), 'utf8');
+  const authModuleSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/auth/auth.module.ts'), 'utf8');
+  assert.match(guardSource, /AUTH_SERVICE_URL/);
+  assert.match(guardSource, /http:\/\/auth-microservice:3370/);
+  assert.match(guardSource, /\/auth\/validate/);
+  assert.match(guardSource, /JSON\.stringify\(\{ token \}\)/);
+  assert.match(guardSource, /payload\?\.valid/);
+  assert.match(guardSource, /payload\.user/);
+  assert.doesNotMatch(guardSource, /auth-microservice:3000/);
+  assert.doesNotMatch(guardSource, /JwtService|jwtService\.verify|JWT_SECRET/);
+  assert.doesNotMatch(authModuleSource, /JwtModule|JWT_SECRET/);
 
   console.log('admin operations console verification ok');
 })().catch((error) => {

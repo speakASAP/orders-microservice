@@ -1,6 +1,6 @@
 /**
- * JWT Roles Guard
- * Validates Bearer JWT (same secret as auth-microservice) and enforces roles from payload.roles.
+ * Orders Auth Roles Guard
+ * Validates human Bearer tokens through auth-microservice and enforces Auth-owned roles.
  * Use @Roles('global:superadmin', 'internal:orders-microservice:admin') and @Public() for health.
  */
 
@@ -12,16 +12,22 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { ROLES_KEY, PUBLIC_KEY } from './roles.decorator';
 
+type AuthValidateResponse = {
+  valid?: boolean;
+  user?: {
+    id?: string;
+    sub?: string;
+    email?: string;
+    roles?: string[];
+  };
+};
+
 @Injectable()
 export class JwtRolesGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(PUBLIC_KEY, [
@@ -44,27 +50,45 @@ export class JwtRolesGuard implements CanActivate {
     }
 
     const token = authHeader.slice(7);
+    const user = await this.validateTokenWithAuth(token);
+    const userRoles: string[] = Array.isArray(user.roles) ? user.roles : [];
+
+    const hasRole = requiredRoles.some((r) => userRoles.includes(r));
+    if (!hasRole) {
+      throw new ForbiddenException('Insufficient permissions');
+    }
+
+    (request as Request & { user: unknown }).user = {
+      sub: user.sub || user.id,
+      email: user.email,
+      roles: userRoles,
+    };
+    return true;
+  }
+
+  private async validateTokenWithAuth(token: string): Promise<NonNullable<AuthValidateResponse['user']>> {
+    const authBaseUrl = (process.env.AUTH_SERVICE_URL || 'http://auth-microservice:3370').replace(/\/+$/, '');
+    let response: Response;
     try {
-      const payload = this.jwtService.verify<{ sub: string; email?: string; roles?: string[] }>(token, {
-        secret: process.env.JWT_SECRET,
+      response = await fetch(`${authBaseUrl}/auth/validate`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ token }),
       });
-      const userRoles: string[] = Array.isArray(payload.roles) ? payload.roles : [];
+    } catch {
+      throw new UnauthorizedException('Auth token validation failed');
+    }
 
-      const hasRole = requiredRoles.some((r) => userRoles.includes(r));
-      if (!hasRole) {
-        throw new ForbiddenException('Insufficient permissions');
-      }
-
-      (request as Request & { user: unknown }).user = {
-        sub: payload.sub,
-        email: payload.email,
-        roles: userRoles,
-      };
-      return true;
-    } catch (err) {
-      if (err instanceof UnauthorizedException || err instanceof ForbiddenException) throw err;
+    if (!response.ok) {
       throw new UnauthorizedException('Invalid token');
     }
+
+    const payload = (await response.json().catch(() => null)) as AuthValidateResponse | null;
+    if (!payload?.valid || !payload.user) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return payload.user;
   }
 
   private getDefaultRoles(): string[] {
