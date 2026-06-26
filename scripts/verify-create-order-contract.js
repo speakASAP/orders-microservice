@@ -1,4 +1,6 @@
 const assert = require('assert/strict');
+const fs = require('fs');
+const path = require('path');
 const {
   CREATE_ORDER_CONTRACT_VERSION,
   getCreateOrderIdempotencyKey,
@@ -104,7 +106,14 @@ assert.throws(
 );
 
 
-const contractDoc = require('fs').readFileSync(require('path').join(__dirname, '..', 'docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md'), 'utf8');
+const controllerSource = fs.readFileSync(path.join(__dirname, '..', 'src/orders/orders.controller.ts'), 'utf8');
+assert.match(controllerSource, /CHANNEL_ORDER_CREATE_ROLES/);
+assert.match(controllerSource, /internal:heureka-service:service/);
+assert.match(controllerSource, /@Roles\(\.\.\.CHANNEL_ORDER_CREATE_ROLES\)/);
+const guardSource = fs.readFileSync(path.join(__dirname, '..', 'src/auth/jwt-roles.guard.ts'), 'utf8');
+assert.match(guardSource, /HEUREKA_INTERNAL_SERVICE_TOKEN/);
+assert.match(guardSource, /internal:heureka-service:service/);
+const contractDoc = fs.readFileSync(path.join(__dirname, '..', 'docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md'), 'utf8');
 for (const required of [
   'items[].productId`: canonical `catalog-microservice` product ID',
   'Channel-local product, offer, ad, listing, or row IDs must not be sent as `productId`',

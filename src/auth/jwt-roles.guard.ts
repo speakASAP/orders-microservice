@@ -69,21 +69,31 @@ export class JwtRolesGuard implements CanActivate {
 
 
   private resolveInternalServiceActor(request: Request): NonNullable<AuthValidateResponse['user']> | null {
-    const configuredToken = process.env.CATALOG_INTERNAL_SERVICE_TOKEN?.trim();
-    if (!configuredToken) {
+    const providedToken = request.header('x-internal-service-token')?.trim();
+    const serviceName = request.header('x-service-name')?.trim();
+    if (!providedToken || !serviceName) {
       return null;
     }
 
-    const providedToken = request.header('x-internal-service-token')?.trim();
-    const serviceName = request.header('x-service-name')?.trim();
-    if (serviceName !== 'catalog-microservice' || !providedToken || !this.safeEqual(providedToken, configuredToken)) {
+    const configuredServices: Record<string, { token?: string; role: string }> = {
+      'catalog-microservice': {
+        token: process.env.CATALOG_INTERNAL_SERVICE_TOKEN?.trim(),
+        role: 'internal:catalog-microservice:service',
+      },
+      'heureka-service': {
+        token: process.env.HEUREKA_INTERNAL_SERVICE_TOKEN?.trim(),
+        role: 'internal:heureka-service:service',
+      },
+    };
+    const service = configuredServices[serviceName];
+    if (!service?.token || !this.safeEqual(providedToken, service.token)) {
       return null;
     }
 
     return {
-      sub: 'service:catalog-microservice',
-      email: 'catalog-microservice@internal.invalid',
-      roles: ['internal:catalog-microservice:service'],
+      sub: `service:${serviceName}`,
+      email: `${serviceName}@internal.invalid`,
+      roles: [service.role],
     };
   }
 

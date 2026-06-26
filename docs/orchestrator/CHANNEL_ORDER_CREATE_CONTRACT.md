@@ -31,10 +31,12 @@ related_adrs: []
 ```http
 POST /api/orders
 Authorization: Bearer <service-or-admin-jwt>
+x-internal-service-token: <runtime-only channel service token>
+x-service-name: heureka-service
 Content-Type: application/json
 ```
 
-The runtime DTO accepts the contract version `orders.create.v1`. A missing `contractVersion` is tolerated for backward compatibility during migration, but new FlipFlop and marketplace clients should send it.
+The endpoint is protected for admin/internal callers, including `internal:heureka-service:service` for Heureka ingestion. The runtime DTO accepts the contract version `orders.create.v1`. A missing `contractVersion` is tolerated for backward compatibility during migration, but new FlipFlop and marketplace clients should send it.
 
 ## Request Shape
 

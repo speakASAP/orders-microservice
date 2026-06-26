@@ -19,6 +19,12 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+export const CHANNEL_ORDER_CREATE_ROLES = [
+  'global:superadmin',
+  'internal:orders-microservice:admin',
+  'internal:heureka-service:service',
+] as const;
+
 export const PRODUCT_SALES_STATISTICS_READ_ROLES = [
   'global:superadmin',
   'internal:orders-microservice:admin',
@@ -61,6 +67,7 @@ export class OrdersController {
   }
 
   @Post()
+  @Roles(...CHANNEL_ORDER_CREATE_ROLES)
   async create(@Body() data: CreateOrderRequestDto) {
     const order = await this.ordersService.create(data);
     return { success: true, data: order };
