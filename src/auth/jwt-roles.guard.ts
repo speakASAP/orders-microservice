@@ -12,6 +12,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { timingSafeEqual } from 'crypto';
 import { Request } from 'express';
 import { ROLES_KEY, PUBLIC_KEY } from './roles.decorator';
 
@@ -43,14 +44,14 @@ export class JwtRolesGuard implements CanActivate {
     const requiredRoles = rolesMetadata?.roles?.length ? rolesMetadata.roles : this.getDefaultRoles();
 
     const request = context.switchToHttp().getRequest<Request>();
+    const internalUser = this.resolveInternalServiceActor(request);
     const authHeader = request.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!internalUser && (!authHeader || !authHeader.startsWith('Bearer '))) {
       throw new UnauthorizedException('Missing or invalid Authorization header');
     }
 
-    const token = authHeader.slice(7);
-    const user = await this.validateTokenWithAuth(token);
+    const user = internalUser || await this.validateTokenWithAuth(authHeader!.slice(7));
     const userRoles: string[] = Array.isArray(user.roles) ? user.roles : [];
 
     const hasRole = requiredRoles.some((r) => userRoles.includes(r));
@@ -64,6 +65,32 @@ export class JwtRolesGuard implements CanActivate {
       roles: userRoles,
     };
     return true;
+  }
+
+
+  private resolveInternalServiceActor(request: Request): NonNullable<AuthValidateResponse['user']> | null {
+    const configuredToken = process.env.CATALOG_INTERNAL_SERVICE_TOKEN?.trim();
+    if (!configuredToken) {
+      return null;
+    }
+
+    const providedToken = request.header('x-internal-service-token')?.trim();
+    const serviceName = request.header('x-service-name')?.trim();
+    if (serviceName !== 'catalog-microservice' || !providedToken || !this.safeEqual(providedToken, configuredToken)) {
+      return null;
+    }
+
+    return {
+      sub: 'service:catalog-microservice',
+      email: 'catalog-microservice@internal.invalid',
+      roles: ['internal:catalog-microservice:service'],
+    };
+  }
+
+  private safeEqual(a: string, b: string): boolean {
+    const left = Buffer.from(a);
+    const right = Buffer.from(b);
+    return left.length === right.length && timingSafeEqual(left, right);
   }
 
   private async validateTokenWithAuth(token: string): Promise<NonNullable<AuthValidateResponse['user']>> {
