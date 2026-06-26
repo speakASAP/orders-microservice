@@ -48,9 +48,9 @@ The endpoint is protected by the existing Orders global JWT role guard and expli
 - `internal:orders-microservice:operator`
 - `internal:catalog-microservice:service`
 
-For the deployed Catalog bridge, Orders accepts the dedicated Catalog internal service token from `CATALOG_INTERNAL_SERVICE_TOKEN` when sent as `x-internal-service-token` with `x-service-name: catalog-microservice`; the guard maps that request to `internal:catalog-microservice:service` and then enforces the same role list. Secret values remain runtime-only. The credential is sourced from Vault property `secret/prod/catalog-microservice#CATALOG_INTERNAL_SERVICE_TOKEN`, not from Bazos-owned credentials.
+For the deployed Catalog bridge, Orders accepts the dedicated Catalog internal service token from `CATALOG_INTERNAL_SERVICE_TOKEN` when sent as `x-internal-service-token` with `x-service-name: catalog-microservice`; the guard maps that request to `internal:catalog-microservice:service` and then enforces the same role list. Secret values remain runtime-only. The credential is sourced from Auth-owned Vault property `secret/prod/auth-microservice#CATALOG_INTERNAL_SERVICE_TOKEN`, not from Bazos-owned credentials.
 
-[MISSING: Auth-owned service-identity model for validating service JWTs through `/auth/validate`; current Auth validation requires an active user-backed `sub`.]
+Auth-owned service identity is resolved through the canonical internal-service-token contract, not `/auth/validate` user-token validation: service requests use `x-internal-service-token` with `x-service-name: catalog-microservice`, map to `internal:catalog-microservice:service`, and remain separate from Auth-issued user JWTs.
 
 ## Filters
 
@@ -120,4 +120,4 @@ Forbidden response fields include customer, email, phone, shippingAddress, billi
 - FX conversion is not performed by Orders.
 - Product existence validation remains Catalog-owned.
 - [MISSING: Catalog-owned consumer smoke against the live Catalog integration path after deployment approval.]
-- [MISSING: Auth-owned confirmation of the final Catalog service role contract.]
+- Auth-owned confirmation of the final Catalog service role contract is resolved by `secret/prod/auth-microservice#CATALOG_INTERNAL_SERVICE_TOKEN` plus `internal:catalog-microservice:service`.

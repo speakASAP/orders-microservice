@@ -200,7 +200,8 @@ function makeService(calls) {
     'Default: `confirmed`, `processing`, `shipped`, `delivered`',
     'grossItemRevenue',
     'No PII',
-    '[MISSING: Auth-owned confirmation',
+    'secret/prod/auth-microservice#CATALOG_INTERNAL_SERVICE_TOKEN',
+    'internal:catalog-microservice:service',
   ]) {
     assert.ok(contract.includes(required), `Missing Goal 17 contract text: ${required}`);
   }

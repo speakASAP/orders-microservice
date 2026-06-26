@@ -2,11 +2,11 @@
 
 ## 2026-06-27 - Dedicated Catalog Internal Service Token Runtime Wiring
 
-Change: switched Orders ExternalSecret `CATALOG_INTERNAL_SERVICE_TOKEN` mapping from Catalog's temporary `BAZOS_SERVICE_TOKEN` property to the dedicated Vault property `secret/prod/catalog-microservice#CATALOG_INTERNAL_SERVICE_TOKEN`. The Orders runtime guard still accepts Catalog calls only when `x-service-name` is `catalog-microservice` and the token matches the configured runtime key, mapping the actor to `internal:catalog-microservice:service`.
+Change: switched Orders ExternalSecret `CATALOG_INTERNAL_SERVICE_TOKEN` mapping from Catalog-owned storage to Auth-owned Vault property `secret/prod/auth-microservice#CATALOG_INTERNAL_SERVICE_TOKEN`. The Orders runtime guard still accepts Catalog calls only when `x-service-name` is `catalog-microservice` and the token matches the configured runtime key, mapping the actor to `internal:catalog-microservice:service`.
 
 Boundary decision: no token values, decoded JWTs, passwords, or raw secret material were printed, committed, or copied into docs. Auth `/auth/validate` currently requires an active user-backed `sub`, so this remains a machine-auth header contract rather than an arbitrary Auth-signed service JWT.
 
-Validation evidence: Kubernetes server dry-run passed for `k8s/external-secret.yaml`; the manifest was applied and force-reconciled; live Orders pod `orders-microservice-5d9fb5958b-t57bl` exposes `CATALOG_INTERNAL_SERVICE_TOKEN`; sanitized Catalog-to-Orders smoke through Catalog returned HTTP 200, `success=true`, `sourceStatus=available`, five channel rows, zero recent-history rows, and no customer/payment/address/provider markers.
+Validation evidence: Kubernetes server dry-run passed for `k8s/external-secret.yaml`; the manifest was applied and force-reconciled with `SecretSynced=True`; live Orders pod `orders-microservice-757696f875-8gprf` exposes `CATALOG_INTERNAL_SERVICE_TOKEN`; live Catalog pod `catalog-microservice-77b79bd855-5xj9t` completed sanitized Catalog-to-Orders smoke with health/products/sales HTTP 200, `success=true`, `sourceStatus=available`, five channel rows, zero recent-history rows, and no customer/payment/address/provider markers. Source validation passed: `git diff --check`, `npm run verify:product-sales-statistics`, and `npm run build`.
 
 Next action: monitor scheduled Catalog contract checks and keep Catalog/Bazos token rotation separate.
 
@@ -2074,7 +2074,7 @@ Validation evidence:
 Blockers and follow-ups:
 
 - [MISSING: Catalog-owned consumer smoke against the live Catalog integration path after deployment approval.]
-- [MISSING: Auth-owned confirmation that `internal:catalog-microservice:service` is the final Catalog service role; current implementation follows existing internal service role conventions.]
+- Auth-owned confirmation resolved: `internal:catalog-microservice:service` is the Catalog service actor for Orders product statistics when authenticated with `CATALOG_INTERNAL_SERVICE_TOKEN` from `secret/prod/auth-microservice#CATALOG_INTERNAL_SERVICE_TOKEN`.
 
 Next unfinished chunk:
 
