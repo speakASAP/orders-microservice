@@ -48,9 +48,9 @@ The endpoint is protected by the existing Orders global JWT role guard and expli
 - `internal:orders-microservice:operator`
 - `internal:catalog-microservice:service`
 
-For the deployed Catalog bridge, Orders also accepts the existing Catalog internal service token from `CATALOG_INTERNAL_SERVICE_TOKEN` when sent as `x-internal-service-token` with `x-service-name: catalog-microservice`; the guard maps that request to `internal:catalog-microservice:service` and then enforces the same role list. Secret values remain runtime-only.
+For the deployed Catalog bridge, Orders accepts the dedicated Catalog internal service token from `CATALOG_INTERNAL_SERVICE_TOKEN` when sent as `x-internal-service-token` with `x-service-name: catalog-microservice`; the guard maps that request to `internal:catalog-microservice:service` and then enforces the same role list. Secret values remain runtime-only. The credential is sourced from Vault property `secret/prod/catalog-microservice#CATALOG_INTERNAL_SERVICE_TOKEN`, not from Bazos-owned credentials.
 
-[MISSING: Auth-owned confirmation that `internal:catalog-microservice:service` is the final Catalog service JWT role.]
+[MISSING: Auth-owned service-identity model for validating service JWTs through `/auth/validate`; current Auth validation requires an active user-backed `sub`.]
 
 ## Filters
 
