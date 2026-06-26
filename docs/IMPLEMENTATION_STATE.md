@@ -5,7 +5,7 @@ id: ORDERS-IMPLEMENTATION-STATE
 status: ready
 owner: Orders owner
 created: 2026-06-12
-last_updated: 2026-06-15
+last_updated: 2026-06-26
 completeness_level: implemented
 upstream:
   - AGENTS.md
@@ -25,15 +25,17 @@ downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
-current_goal: post-deploy-monitoring
-current_chunk: pricing-rationale-bound-deployed
-next_recommended_goal: select owner-approved runtime follow-up G6-A/G6-B/G6-C or resume monitoring
+current_goal: Catalog Goal 17 Workstream A
+current_chunk: protected-product-sales-statistics-read-model-validated
+next_recommended_goal: coordinator handoff for Catalog Goal 17 Catalog integration and deployment approval
 last_completed_goal: Goal 6 Pricing Suggestion Safety And Consolidation
 blockers:
   - candidate application contracts require owner approval before start
 ```
 
 ## Current Checkpoint
+
+2026-06-26: Catalog Goal 17 Workstream A is implemented and validated. Orders added a protected product sales statistics read model for Catalog at `GET /api/orders/statistics/products/:productId` without moving product truth, payment truth, stock truth, or Auth ownership into Orders. The endpoint aggregates `order_items` joined to `orders` by canonical `order_items.productId`, defaults to non-cancelled sales lifecycle statuses, uses `grossItemRevenue` wording instead of paid/settled revenue, and groups mixed-currency data instead of flattening it. Validation passed: `git diff --check`, `npm run build`, `npm run verify:product-sales-statistics`, and `npm test`. Deployment was not run or approved in this workstream. Blockers: [MISSING: Catalog-owned consumer smoke after deployment approval] and [MISSING: Auth-owned confirmation of final Catalog service role contract].
 
 2026-06-13 parallel planning refactor completed in the IPS operating docs. Future planning must maximize safe parallel agent execution by splitting work into independent goal lanes, recording blockers and dependencies, assigning non-overlapping file ownership, and listing all parallel-ready next tasks for separate Codex sessions. Coordinator-owned shared docs and integration gates remain sequential. Current startable packets: P1 Auth-owned admin login contract/role policy documentation, P2 pricing suggestion safety review, and P4 normal traffic monitoring evidence. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
 

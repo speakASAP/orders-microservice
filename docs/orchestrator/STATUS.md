@@ -2027,3 +2027,45 @@ Validation evidence:
 Next unfinished chunk:
 
 - Select owner-approved runtime follow-up G6-A, G6-B, or G6-C; otherwise continue normal Orders monitoring or select the next backlog goal. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
+
+
+## 2026-06-26 - Catalog Goal 17 Product Sales Statistics Read Model
+
+Current focus:
+
+- Implement Workstream A for Catalog Goal 17: a protected Orders-owned product sales statistics read model for Catalog while preserving Orders as order truth, Catalog as product truth, Payments as payment truth, Warehouse as stock truth, and Auth as identity/RBAC truth.
+
+Pre-coding gate:
+
+- Decision: pass-with-exception.
+- Owner-selected task overrides the stale next-action pointer in `docs/IMPLEMENTATION_STATE.md`.
+- DocsRAG was not queried because no session `JWT_TOKEN` was available in this remote shell; this bounded work used repository source-of-truth docs and current Orders source instead.
+- Sensitive-data classification: aggregate order/item operational data only. No customer, address, payment provider/reference, token, secret, stock authority, or raw production row data is exposed.
+
+Implementation evidence:
+
+- Added `docs/orchestrator/GOAL17_PRODUCT_SALES_STATISTICS_CONTRACT.md` for the protected read model contract.
+- Added protected `GET /api/orders/statistics/products/:productId` under the existing `/api` prefix.
+- Aggregation joins canonical `order_items` to `orders` by `order_items.productId`.
+- Default statuses are `confirmed`, `processing`, `shipped`, and `delivered`; `cancelled` is excluded unless explicitly requested by the `status` filter.
+- Optional filters: `from`, `to`, `channel`, and comma-separated `status`.
+- Response envelope includes `success`, product ID, generated time, applied filters, summary, channel/status breakdowns, and bounded recent history.
+- Revenue wording is `grossItemRevenue`; mixed-currency data is grouped in `totalsByCurrency` and the top-level gross value is not flattened.
+- Auth roles include existing Orders read/admin/operator roles plus `internal:catalog-microservice:service`, following the existing internal service-role convention used by Payments.
+
+Validation evidence:
+
+- `git diff --check`: pass.
+- `npm run build`: pass.
+- `npm run verify:product-sales-statistics`: pass; verified route protection, explicit roles, response envelope, default cancelled exclusion, filter validation, mixed-currency grouping, gross item revenue wording, and sensitive-field exclusions.
+- `npm test`: pass; full Orders build and verifier chain passed, including create-order contract, payment boundary, warehouse handoff, pricing, product sales statistics, and admin operations checks.
+- Deployment: not run; this workstream does not approve deployment.
+
+Blockers and follow-ups:
+
+- [MISSING: Catalog-owned consumer smoke against the live Catalog integration path after deployment approval.]
+- [MISSING: Auth-owned confirmation that `internal:catalog-microservice:service` is the final Catalog service role; current implementation follows existing internal service role conventions.]
+
+Next unfinished chunk:
+
+- Hand off to the coordinator for Catalog-side integration and deployment approval. Do not deploy from this workstream.

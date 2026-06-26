@@ -60,6 +60,7 @@ assert.equal(normalized.items.length, 1);
 assert.equal(normalized.items[0].orderId, undefined);
 assert.equal(normalized.items[0].quantity, 2);
 assert.equal(normalized.items[0].fulfillmentStatus, 'pending');
+assert.equal(normalized.items[0].productId, 'catalog-product-1');
 assert.deepEqual(getCreateOrderIdempotencyKey(normalized), {
   channel: 'flipflop',
   externalOrderId: 'checkout-1001',
@@ -101,5 +102,16 @@ assert.throws(
   () => normalizeCreateOrderRequest({ ...validRequest, status: 'shipped' }),
   /Create order status must be pending or confirmed/,
 );
+
+
+const contractDoc = require('fs').readFileSync(require('path').join(__dirname, '..', 'docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md'), 'utf8');
+for (const required of [
+  'items[].productId`: canonical `catalog-microservice` product ID',
+  'Channel-local product, offer, ad, listing, or row IDs must not be sent as `productId`',
+  'product-level marketplace sales statistics',
+  'resolve offer/ad/listing IDs to canonical Catalog product IDs before calling Orders',
+]) {
+  assert.ok(contractDoc.includes(required), `Missing canonical Catalog product ID contract text: ${required}`);
+}
 
 console.log('create order contract verification ok');

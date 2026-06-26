@@ -19,6 +19,21 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+export const PRODUCT_SALES_STATISTICS_READ_ROLES = [
+  'global:superadmin',
+  'internal:orders-microservice:admin',
+  'internal:orders-microservice:readonly',
+  'internal:orders-microservice:operator',
+  'internal:catalog-microservice:service',
+] as const;
+
+interface ProductSalesStatisticsQuery {
+  from?: string;
+  to?: string;
+  channel?: string;
+  status?: string;
+}
+
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
@@ -27,6 +42,16 @@ export class OrdersController {
   async findAll(@Query('channel') channel?: string, @Query('status') status?: string) {
     const orders = await this.ordersService.findAll(channel, status);
     return { success: true, data: orders };
+  }
+
+  @Get('statistics/products/:productId')
+  @Roles(...PRODUCT_SALES_STATISTICS_READ_ROLES)
+  async getProductSalesStatistics(
+    @Param('productId') productId: string,
+    @Query() query: ProductSalesStatisticsQuery,
+  ) {
+    const data = await this.ordersService.getProductSalesStatistics(productId, query);
+    return { success: true, data };
   }
 
   @Get(':id')

@@ -24,6 +24,45 @@ import {
   validateOrderStatusTransitionWithAudit,
 } from './status-transitions';
 
+const PRODUCT_SALES_DEFAULT_STATUSES = ['confirmed', 'processing', 'shipped', 'delivered'] as const;
+const PRODUCT_SALES_ALLOWED_STATUSES: Set<string> = new Set(['pending', ...PRODUCT_SALES_DEFAULT_STATUSES, 'cancelled']);
+const PRODUCT_SALES_ALLOWED_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka']);
+const PRODUCT_SALES_HISTORY_LIMIT = 10;
+
+export interface ProductSalesStatisticsFilters {
+  from?: string;
+  to?: string;
+  channel?: string;
+  status?: string;
+}
+
+type NormalizedProductSalesStatisticsFilters = {
+  productId: string;
+  from?: Date;
+  to?: Date;
+  channel?: string;
+  statuses: string[];
+};
+
+type ProductSalesAggregateRawRow = {
+  currency?: string;
+  channel?: string;
+  status?: string;
+  orderCount?: string | number;
+  itemLineCount?: string | number;
+  quantitySold?: string | number;
+  grossItemRevenue?: string | number;
+  lastOrderAt?: string | Date;
+  lastorderat?: string | Date;
+};
+
+type ProductSalesHistoryRawRow = ProductSalesAggregateRawRow & {
+  orderId?: string;
+  orderid?: string;
+  orderedAt?: string | Date;
+  orderedat?: string | Date;
+};
+
 @Injectable()
 export class OrdersService {
   private static readonly CONTEXT = 'OrdersService';
@@ -56,6 +95,90 @@ export class OrdersService {
     });
     if (!order) throw new NotFoundException(`Order ${id} not found`);
     return order;
+  }
+
+  async getProductSalesStatistics(productId: string, filters: ProductSalesStatisticsFilters = {}) {
+    const normalized = this.normalizeProductSalesStatisticsFilters(productId, filters);
+
+    const currencyRows = await this.buildProductSalesBaseQuery(normalized)
+      .select('orders.currency', 'currency')
+      .addSelect('COUNT(DISTINCT orders.id)', 'orderCount')
+      .addSelect('COUNT(item.id)', 'itemLineCount')
+      .addSelect('COALESCE(SUM(item.quantity), 0)', 'quantitySold')
+      .addSelect('COALESCE(SUM(item.totalPrice), 0)', 'grossItemRevenue')
+      .addSelect('MAX(COALESCE(orders.orderedAt, orders.createdAt))', 'lastOrderAt')
+      .groupBy('orders.currency')
+      .orderBy('orders.currency', 'ASC')
+      .getRawMany<ProductSalesAggregateRawRow>();
+
+    const totalsByCurrency = currencyRows.map((row) => this.serializeProductSalesAggregate(row));
+    const summary = this.buildProductSalesSummary(totalsByCurrency);
+
+    const byChannelRows = await this.buildProductSalesBaseQuery(normalized)
+      .select('orders.channel', 'channel')
+      .addSelect('orders.currency', 'currency')
+      .addSelect('COUNT(DISTINCT orders.id)', 'orderCount')
+      .addSelect('COUNT(item.id)', 'itemLineCount')
+      .addSelect('COALESCE(SUM(item.quantity), 0)', 'quantitySold')
+      .addSelect('COALESCE(SUM(item.totalPrice), 0)', 'grossItemRevenue')
+      .addSelect('MAX(COALESCE(orders.orderedAt, orders.createdAt))', 'lastOrderAt')
+      .groupBy('orders.channel')
+      .addGroupBy('orders.currency')
+      .orderBy('orders.channel', 'ASC')
+      .addOrderBy('orders.currency', 'ASC')
+      .getRawMany<ProductSalesAggregateRawRow>();
+
+    const byStatusRows = await this.buildProductSalesBaseQuery(normalized)
+      .select('orders.status', 'status')
+      .addSelect('orders.currency', 'currency')
+      .addSelect('COUNT(DISTINCT orders.id)', 'orderCount')
+      .addSelect('COUNT(item.id)', 'itemLineCount')
+      .addSelect('COALESCE(SUM(item.quantity), 0)', 'quantitySold')
+      .addSelect('COALESCE(SUM(item.totalPrice), 0)', 'grossItemRevenue')
+      .addSelect('MAX(COALESCE(orders.orderedAt, orders.createdAt))', 'lastOrderAt')
+      .groupBy('orders.status')
+      .addGroupBy('orders.currency')
+      .orderBy('orders.status', 'ASC')
+      .addOrderBy('orders.currency', 'ASC')
+      .getRawMany<ProductSalesAggregateRawRow>();
+
+    const recentRows = await this.buildProductSalesBaseQuery(normalized)
+      .select('orders.id', 'orderId')
+      .addSelect('orders.channel', 'channel')
+      .addSelect('orders.status', 'status')
+      .addSelect('orders.currency', 'currency')
+      .addSelect('COUNT(item.id)', 'itemLineCount')
+      .addSelect('COALESCE(SUM(item.quantity), 0)', 'quantitySold')
+      .addSelect('COALESCE(SUM(item.totalPrice), 0)', 'grossItemRevenue')
+      .addSelect('MAX(COALESCE(orders.orderedAt, orders.createdAt))', 'orderedAt')
+      .groupBy('orders.id')
+      .addGroupBy('orders.channel')
+      .addGroupBy('orders.status')
+      .addGroupBy('orders.currency')
+      .orderBy('MAX(COALESCE(orders.orderedAt, orders.createdAt))', 'DESC')
+      .take(PRODUCT_SALES_HISTORY_LIMIT)
+      .getRawMany<ProductSalesHistoryRawRow>();
+
+    return {
+      productId: normalized.productId,
+      generatedAt: new Date().toISOString(),
+      filters: {
+        from: normalized.from?.toISOString() || null,
+        to: normalized.to?.toISOString() || null,
+        channel: normalized.channel || null,
+        statuses: normalized.statuses,
+      },
+      summary,
+      byChannel: byChannelRows.map((row) => ({
+        channel: row.channel || 'unknown',
+        ...this.serializeProductSalesAggregate(row),
+      })),
+      byStatus: byStatusRows.map((row) => ({
+        status: row.status || 'unknown',
+        ...this.serializeProductSalesAggregate(row),
+      })),
+      recentHistory: recentRows.map((row) => this.serializeProductSalesHistory(row)),
+    };
   }
 
   async create(data: CreateOrderRequestDto): Promise<Order> {
@@ -338,6 +461,145 @@ export class OrdersService {
       where: { externalOrderId, channel },
       relations: ['items'],
     });
+  }
+
+  private normalizeProductSalesStatisticsFilters(
+    productId: string,
+    filters: ProductSalesStatisticsFilters,
+  ): NormalizedProductSalesStatisticsFilters {
+    const normalizedProductId = this.normalizeProductSalesString(productId, 'productId');
+    const channel = filters.channel
+      ? this.normalizeProductSalesString(filters.channel, 'channel').toLowerCase()
+      : undefined;
+
+    if (channel && !PRODUCT_SALES_ALLOWED_CHANNELS.has(channel)) {
+      throw new BadRequestException(`Unsupported order channel filter: ${channel}`);
+    }
+
+    const statuses = filters.status
+      ? filters.status.split(',').map((status) => this.normalizeProductSalesString(status, 'status').toLowerCase())
+      : [...PRODUCT_SALES_DEFAULT_STATUSES];
+
+    const unsupportedStatus = statuses.find((status) => !PRODUCT_SALES_ALLOWED_STATUSES.has(status));
+    if (unsupportedStatus) {
+      throw new BadRequestException(`Unsupported order status filter: ${unsupportedStatus}`);
+    }
+
+    const uniqueStatuses = Array.from(new Set(statuses));
+    const from = this.normalizeProductSalesDate(filters.from, 'from');
+    const to = this.normalizeProductSalesDate(filters.to, 'to');
+    if (from && to && from.getTime() > to.getTime()) {
+      throw new BadRequestException('from must be before or equal to to');
+    }
+
+    return {
+      productId: normalizedProductId,
+      from,
+      to,
+      channel,
+      statuses: uniqueStatuses,
+    };
+  }
+
+  private buildProductSalesBaseQuery(filters: NormalizedProductSalesStatisticsFilters) {
+    const orderDateExpression = 'COALESCE(orders.orderedAt, orders.createdAt)';
+    const query = this.orderRepository
+      .createQueryBuilder('orders')
+      .innerJoin('orders.items', 'item')
+      .where('item.productId = :productId', { productId: filters.productId })
+      .andWhere('orders.status IN (:...statuses)', { statuses: filters.statuses });
+
+    if (filters.channel) {
+      query.andWhere('orders.channel = :channel', { channel: filters.channel });
+    }
+    if (filters.from) {
+      query.andWhere(`${orderDateExpression} >= :from`, { from: filters.from });
+    }
+    if (filters.to) {
+      query.andWhere(`${orderDateExpression} <= :to`, { to: filters.to });
+    }
+
+    return query;
+  }
+
+  private serializeProductSalesAggregate(row: ProductSalesAggregateRawRow) {
+    return {
+      currency: row.currency || 'UNKNOWN',
+      orderCount: this.toProductSalesInteger(row.orderCount),
+      itemLineCount: this.toProductSalesInteger(row.itemLineCount),
+      quantitySold: this.toProductSalesInteger(row.quantitySold),
+      grossItemRevenue: this.toProductSalesNumber(row.grossItemRevenue),
+      lastOrderAt: this.toProductSalesIso(row.lastOrderAt || row.lastorderat),
+    };
+  }
+
+  private serializeProductSalesHistory(row: ProductSalesHistoryRawRow) {
+    return {
+      orderId: row.orderId || row.orderid || null,
+      channel: row.channel || 'unknown',
+      status: row.status || 'unknown',
+      currency: row.currency || 'UNKNOWN',
+      itemLineCount: this.toProductSalesInteger(row.itemLineCount),
+      quantitySold: this.toProductSalesInteger(row.quantitySold),
+      grossItemRevenue: this.toProductSalesNumber(row.grossItemRevenue),
+      orderedAt: this.toProductSalesIso(row.orderedAt || row.orderedat),
+    };
+  }
+
+  private buildProductSalesSummary(totalsByCurrency: ReturnType<OrdersService['serializeProductSalesAggregate']>[]) {
+    const currencies = totalsByCurrency.map((row) => row.currency).sort();
+    const singleCurrency = totalsByCurrency.length === 1 ? totalsByCurrency[0] : null;
+    return {
+      orderCount: totalsByCurrency.reduce((sum, row) => sum + row.orderCount, 0),
+      itemLineCount: totalsByCurrency.reduce((sum, row) => sum + row.itemLineCount, 0),
+      quantitySold: totalsByCurrency.reduce((sum, row) => sum + row.quantitySold, 0),
+      grossItemRevenue: singleCurrency ? singleCurrency.grossItemRevenue : totalsByCurrency.length === 0 ? 0 : null,
+      currency: singleCurrency ? singleCurrency.currency : null,
+      currencies,
+      mixedCurrency: totalsByCurrency.length > 1,
+      totalsByCurrency,
+      lastOrderAt: totalsByCurrency
+        .map((row) => row.lastOrderAt)
+        .filter(Boolean)
+        .sort()
+        .pop() || null,
+    };
+  }
+
+  private normalizeProductSalesString(value: unknown, field: string): string {
+    if (typeof value !== 'string' || !value.trim()) {
+      throw new BadRequestException(`${field} is required`);
+    }
+    const normalized = value.trim();
+    if (normalized.length > 500) {
+      throw new BadRequestException(`${field} is too long`);
+    }
+    return normalized;
+  }
+
+  private normalizeProductSalesDate(value: string | undefined, field: string): Date | undefined {
+    if (!value) return undefined;
+    const date = new Date(value);
+    if (Number.isNaN(date.valueOf())) {
+      throw new BadRequestException(`${field} must be a valid ISO timestamp`);
+    }
+    return date;
+  }
+
+  private toProductSalesInteger(value: unknown): number {
+    const parsed = Number(value || 0);
+    return Number.isFinite(parsed) ? Math.trunc(parsed) : 0;
+  }
+
+  private toProductSalesNumber(value: unknown): number {
+    const parsed = Number(value || 0);
+    return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : 0;
+  }
+
+  private toProductSalesIso(value: unknown): string | null {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(String(value));
+    return Number.isNaN(date.valueOf()) ? null : date.toISOString();
   }
 
   private async findByCreateOrderIdempotencyKey(key: CreateOrderIdempotencyKey): Promise<Order | null> {

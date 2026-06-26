@@ -104,15 +104,16 @@ The runtime DTO accepts the contract version `orders.create.v1`. A missing `cont
 - `channelAccountId`: required by the idempotency contract for new clients; clients without a natural account partition should send a stable sentinel such as `default`.
 - `status`: optional and limited to `pending` or `confirmed` at create time; default is `pending`.
 - `items`: required non-empty array. Each line requires `productId`, `title`, positive integer `quantity`, and non-negative `unitPrice`. Missing `totalPrice` is calculated as `quantity * unitPrice`.
+- `items[].productId`: canonical `catalog-microservice` product ID. Channel-local product, offer, ad, listing, or row IDs must not be sent as `productId`; channel services must resolve them before forwarding or fail closed with a mapping error.
 - `totals.currency`: required ISO-4217-style three-letter code.
 - Unknown top-level fields are rejected.
 
 ## Persistence Mapping
 
 - `customer`, `shippingAddress`, `billingAddress`, totals, `payment.method`, `payment.status`, `shipping.method`, and `notes.customerNote` map to existing `orders` columns.
-- `items[]` maps to `order_items` rows in the same database transaction as the order row.
+- `items[]` maps to `order_items` rows in the same database transaction as the order row. `order_items.productId` stores the canonical Catalog product ID snapshot used for product-level marketplace sales statistics.
 - New item rows start with `fulfillmentStatus=pending`.
-- Orders stores product IDs, SKUs, titles, quantities, prices, and optional warehouse IDs for the order snapshot. Catalog remains product truth and Warehouse remains stock truth.
+- Orders stores canonical Catalog product IDs, SKUs, titles, quantities, prices, and optional warehouse IDs for the order snapshot. Catalog remains product truth and Warehouse remains stock truth.
 - Orders stores payment method/status metadata only. Payments remains owner of provider sessions, payment identity, variable symbols, refunds, and reconciliation.
 
 ## Response Shape
@@ -185,5 +186,5 @@ Current limitation:
 ## Client Expectations
 
 - FlipFlop should call this endpoint after checkout has enough customer, item, total, shipping, and payment-status metadata to create the canonical order.
-- Marketplace services should forward marketplace orders using their marketplace order ID as `externalOrderId` and their marketplace account/store as `channelAccountId`.
+- Marketplace services should forward marketplace orders using their marketplace order ID as `externalOrderId` and their marketplace account/store as `channelAccountId`. They must resolve offer/ad/listing IDs to canonical Catalog product IDs before calling Orders.
 - Channel services should store the returned Orders `id` as their canonical order reference and use Orders for lifecycle updates instead of duplicating status truth.
