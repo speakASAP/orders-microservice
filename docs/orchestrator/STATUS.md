@@ -1,5 +1,15 @@
 # Orders Orchestrator Status
 
+## 2026-06-27 - Dedicated Catalog Internal Service Token Runtime Wiring
+
+Change: switched Orders ExternalSecret `CATALOG_INTERNAL_SERVICE_TOKEN` mapping from Catalog's temporary `BAZOS_SERVICE_TOKEN` property to the dedicated Vault property `secret/prod/catalog-microservice#CATALOG_INTERNAL_SERVICE_TOKEN`. The Orders runtime guard still accepts Catalog calls only when `x-service-name` is `catalog-microservice` and the token matches the configured runtime key, mapping the actor to `internal:catalog-microservice:service`.
+
+Boundary decision: no token values, decoded JWTs, passwords, or raw secret material were printed, committed, or copied into docs. Auth `/auth/validate` currently requires an active user-backed `sub`, so this remains a machine-auth header contract rather than an arbitrary Auth-signed service JWT.
+
+Validation evidence: Kubernetes server dry-run passed for `k8s/external-secret.yaml`; the manifest was applied and force-reconciled; live Orders pod `orders-microservice-5d9fb5958b-t57bl` exposes `CATALOG_INTERNAL_SERVICE_TOKEN`; sanitized Catalog-to-Orders smoke through Catalog returned HTTP 200, `success=true`, `sourceStatus=available`, five channel rows, zero recent-history rows, and no customer/payment/address/provider markers.
+
+Next action: monitor scheduled Catalog contract checks and keep Catalog/Bazos token rotation separate.
+
 ```yaml
 id: ORDERS-ORCHESTRATOR-STATUS
 status: active
