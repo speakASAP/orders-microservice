@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LoggerService } from '../logger/logger.service';
-import { WarehouseReservationClient } from '../warehouse/warehouse-reservation.client';
+import { WarehouseHandoffSummary, WarehouseReservationClient } from '../warehouse/warehouse-reservation.client';
 import { Order } from './order.entity';
 import { OrderItem } from '../items/order-item.entity';
 import {
@@ -25,6 +25,7 @@ import {
 } from './status-transitions';
 
 const PRODUCT_SALES_DEFAULT_STATUSES = ['confirmed', 'processing', 'shipped', 'delivered'] as const;
+const SELLABLE_ORDER_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka']);
 const PRODUCT_SALES_ALLOWED_STATUSES: Set<string> = new Set(['pending', ...PRODUCT_SALES_DEFAULT_STATUSES, 'cancelled']);
 const PRODUCT_SALES_ALLOWED_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka']);
 const PRODUCT_SALES_HISTORY_LIMIT = 10;
@@ -231,13 +232,12 @@ export class OrdersService {
         const itemRows = normalized.items.map((item) => manager.create(OrderItem, { ...item, orderId: savedOrder.id }));
         const savedItems = await manager.save(OrderItem, itemRows);
         savedOrder.items = savedItems;
-        return savedOrder;
+        const handoff = await this.warehouseReservations.reserveOrderItems(savedOrder);
+        this.assertRequiredWarehouseReservation(savedOrder, handoff);
+        savedOrder.warehouseHandoff = handoff;
+        return manager.save(Order, savedOrder);
       });
 
-      saved.warehouseHandoff = await this.warehouseReservations.reserveOrderItems(saved);
-      await this.orderRepository.save(saved);
-
-      // Publish event
       await this.orderEvents.publishOrderCreated(saved.id, saved.channel);
 
       this.logger.audit(
@@ -270,6 +270,20 @@ export class OrdersService {
       );
       throw error;
     }
+  }
+
+  private assertRequiredWarehouseReservation(order: Order, handoff: WarehouseHandoffSummary): void {
+    if (!this.requiresWarehouseReservation(order.channel)) return;
+    if (handoff.status === 'reserved') return;
+
+    throw new BadRequestException(
+      `Warehouse reservation is required for sellable channel orders; handoff status ${handoff.status}`,
+    );
+  }
+
+  private requiresWarehouseReservation(channel?: string): boolean {
+    if (typeof channel !== 'string') return false;
+    return SELLABLE_ORDER_CHANNELS.has(channel.toLowerCase());
   }
 
   async updateStatus(id: string, status: string, context: OrderStatusTransitionContext = {}): Promise<Order> {

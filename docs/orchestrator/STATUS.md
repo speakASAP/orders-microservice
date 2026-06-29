@@ -1,5 +1,29 @@
 # Orders Orchestrator Status
 
+## 2026-06-29 - Sellable Channel Warehouse Reservation Fail-Closed Gate
+
+Intent chain:
+
+- Vision: Orders remains canonical order lifecycle owner while Warehouse remains stock authority.
+- Goal Impact: sellable channel creates no longer silently bypass Warehouse reservation when stock reservation is required for oversell prevention.
+- System: central Orders create flow gates FlipFlop, Allegro, Aukro, Bazos, and Heureka orders on Warehouse reservation success.
+- Feature: `POST /api/orders` persists and publishes a new sellable-channel order only when `WarehouseReservationClient.reserveOrderItems` returns `reserved`.
+- Task: reject `disabled`, `skipped`, and `failed` Warehouse handoff results before the create transaction commits and before `orders.order.created.v1` publishes.
+- Execution Plan: single coordinator-owned code/test/docs change; no parallel lane because the service create path, handoff contract, package test script, and shared status docs are coupled.
+- Coding Prompt: implement the smallest Orders-local fail-closed gate without direct DB edits, raw secret output, channel-service edits, or local stock truth.
+- Code: updated `src/orders/orders.service.ts`, `scripts/verify-order-reservation-gate.js`, `package.json`, and `docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md`.
+- Validation: passed on 2026-06-29: `git diff --check`, `npm run build && npm run verify:order-reservation-gate && npm run verify:warehouse-handoff`, and `npm test`.
+
+Parallel execution: final integration lane only. This change touches shared create behavior and shared IPS/status docs, so it was intentionally not split across agents.
+
+Current evidence:
+
+- Preflight remote worktree was clean on `main` at `ff820dd feat: allow Heureka order ingestion service role`.
+- Channel audit input from the Catalog cross-repo plan identified the previous skip path: `WAREHOUSE_RESERVATION_ENABLED=false`, missing item `warehouseId`, or Warehouse request failure could leave sellable-channel orders with non-reserved handoff metadata.
+- Orders now treats sellable channels as requiring Warehouse reservation at create time. `disabled`, `skipped`, and `failed` handoff statuses reject with a bounded BadRequest before created-event publication; no Warehouse response body, token, customer data, address, or payment data is included in the rejection.
+- Channel-specific follow-up remains outside this repo: sellable channel services must keep resolving canonical Catalog product IDs and `warehouseId` before calling Orders.
+- Deployment was not run in this handoff; source validation is clean and the committed change is deploy-ready for the next release step.
+
 ## 2026-06-27 - Dedicated Catalog Internal Service Token Runtime Wiring
 
 Change: switched Orders ExternalSecret `CATALOG_INTERNAL_SERVICE_TOKEN` mapping from Catalog-owned storage to Auth-owned Vault property `secret/prod/auth-microservice#CATALOG_INTERNAL_SERVICE_TOKEN`. The Orders runtime guard still accepts Catalog calls only when `x-service-name` is `catalog-microservice` and the token matches the configured runtime key, mapping the actor to `internal:catalog-microservice:service`.
