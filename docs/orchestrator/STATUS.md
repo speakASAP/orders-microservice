@@ -22,7 +22,7 @@ Current evidence:
 - Channel audit input from the Catalog cross-repo plan identified the previous skip path: `WAREHOUSE_RESERVATION_ENABLED=false`, missing item `warehouseId`, or Warehouse request failure could leave sellable-channel orders with non-reserved handoff metadata.
 - Orders now treats sellable channels as requiring Warehouse reservation at create time. `disabled`, `skipped`, and `failed` handoff statuses reject with a bounded BadRequest before created-event publication; no Warehouse response body, token, customer data, address, or payment data is included in the rejection.
 - Channel-specific follow-up remains outside this repo: sellable channel services must keep resolving canonical Catalog product IDs and `warehouseId` before calling Orders.
-- Deployment was not run in this handoff; source validation is clean and the committed change is deploy-ready for the next release step.
+- Deployment passed on 2026-06-29 with image `localhost:5000/orders-microservice:dba03dc`; rollout completed and in-pod `/health` returned `status=healthy`.
 
 ## 2026-06-27 - Dedicated Catalog Internal Service Token Runtime Wiring
 
