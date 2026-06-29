@@ -115,6 +115,24 @@ async function run() {
     assert.equal(JSON.stringify(result).includes('warehouse down'), false);
   });
 
+  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_SERVICE_TOKEN: 'test-warehouse-token' }, async () => {
+    const client = new WarehouseReservationClient({
+      post() {
+        const error = new Error('Warehouse rejected reservation because requested quantity exceeds available stock');
+        error.response = { status: 409, data: { code: 'INSUFFICIENT_STOCK', available: 1, requested: 2 } };
+        return throwError(() => error);
+      },
+    }, { warn() {} });
+    const result = await client.reserveOrderItems(makeOrder());
+    assert.equal(result.status, 'failed');
+    assert.equal(result.reservedCount, 0);
+    assert.equal(result.failedCount, 1);
+    assert.equal(result.failureCode, 'warehouse_request_failed');
+    assert.equal(JSON.stringify(result).includes('INSUFFICIENT_STOCK'), false);
+    assert.equal(JSON.stringify(result).includes('available'), false);
+    assert.equal(JSON.stringify(result).includes('requested quantity'), false);
+  });
+
   await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_INTERNAL_SERVICE_TOKEN: 'Bearer existing-prefix-token' }, async () => {
     const order = makeOrder();
     const item = order.items[0];
