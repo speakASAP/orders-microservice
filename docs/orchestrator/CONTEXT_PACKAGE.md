@@ -5,9 +5,9 @@ id: ORDERS-CONTEXT-PACKAGE
 status: active
 owner: Orders owner
 created: 2026-06-13
-last_updated: 2026-06-13
-selected_goal: Goal H3 - Channel Idempotency And Duplicate Protection / Goal 4 - Channel Order Ingestion Contract
-selected_chunk: H3.1-H3.4 / 4.2-4.3
+last_updated: 2026-06-30
+selected_goal: Goal 7 - Production Order Integration Rollout
+selected_chunk: 7.1 Orders create caller allowlist and production integration plan
 ```
 
 ## Included Context
@@ -16,6 +16,7 @@ selected_chunk: H3.1-H3.4 / 4.2-4.3
 - `BUSINESS.md`
 - `SYSTEM.md`
 - `README.md`
+- `STATE.json`
 - `docs/IMPLEMENTATION_ORCHESTRATOR.md`
 - `docs/IMPLEMENTATION_STATE.md`
 - `docs/orchestrator/INTENT.md`
@@ -23,24 +24,29 @@ selected_chunk: H3.1-H3.4 / 4.2-4.3
 - `docs/orchestrator/PROJECT_INVARIANTS.md`
 - `docs/orchestrator/PRE_CODING_GATE.md`
 - `docs/orchestrator/READINESS_GATES.md`
+- `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md`
+- `docs/orchestrator/ORDER_EVENT_CONTRACTS.md`
+- `docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md`
+- `docs/orchestrator/CANDIDATE_APPLICATION_INTEGRATION_DECISIONS.md`
+- `docs/orchestrator/PRODUCTION_ORDER_INTEGRATION_PLAN.md`
+- `src/auth/jwt-roles.guard.ts`
+- `src/orders/orders.controller.ts`
 - `src/orders/create-order.dto.ts`
 - `src/orders/orders.service.ts`
-- `src/orders/orders.controller.ts`
-- `src/orders/order.entity.ts`
-- `src/items/order-item.entity.ts`
 - `scripts/verify-create-order-contract.js`
 
 ## Ecosystem Context Used
 
-Sub-agent repository discovery on 2026-06-13 reviewed neighboring remote repositories for FlipFlop, Catalog, Warehouse, Payments, Notifications, Marketing, Leads, Auth, Speak ASAP, School Committee, Rentabox, and Marathon. DocsRAG live retrieval was not used because no session `JWT_TOKEN` was available.
+Read-only subagent audits on 2026-06-30 inspected channel services, event consumers, and non-marketplace candidate apps directly on Alfares. DocsRAG live retrieval was not used because no session `JWT_TOKEN` was available.
 
 ## Excluded Context
 
 - Raw environment values and secrets.
 - Production database contents.
-- Customer addresses, payment details, bearer tokens, JWT contents, and raw production customer data.
+- Customer addresses, payment details, bearer tokens, JWT contents, decoded credentials, and raw production customer data.
 - Runtime changes in neighboring repositories.
+- Deployment actions.
 
 ## Scope Boundary
 
-This chunk may define and implement create-order idempotency for `contractVersion + channel + channelAccountId + externalOrderId`. It may not add login/session ownership, user management, payment processing, stock authority, product truth, notification delivery, lead consent management, or CRM campaign logic inside Orders.
+This chunk may expand the Orders create-order role and machine-auth allowlist for already supported sellable channels and document the production integration plan. It may not mint or copy token values, create Vault secrets, deploy, add local product/stock/payment truth, implement Leads/Marketing campaigns, or integrate Marathon/SpeakASAP/School Committee/Rentabox without owner-approved per-application contracts.

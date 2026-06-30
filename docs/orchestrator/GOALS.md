@@ -153,6 +153,29 @@ Acceptance criteria:
 - Payments remains payment-capture-only.
 - Consolidation work is documented into owner-approvable chunks.
 
+## Goal 7 - Production Order Integration Rollout
+
+Status: active
+
+Intent: Prepare Orders for production use across supported sales channels and downstream consumers while preserving Catalog, Warehouse, Payments, Auth, Leads, Marketing, and application-domain ownership boundaries.
+
+Chunks:
+
+- [x] 7.1 Create the production integration plan and expand Orders create-order service-role/machine-auth allowlist for FlipFlop, Allegro, Aukro, Bazos, and Heureka.
+- [ ] 7.2 Wire and validate channel caller credentials and create-order headers in FlipFlop, Allegro, Aukro, Bazos, and Heureka without printing secrets.
+- [ ] 7.3 Run per-channel sanitized create/idempotency/warehouse-reservation smokes with canonical Catalog product IDs and `warehouseId`.
+- [ ] 7.4 Verify Leads, Marketing, and Notifications consume `orders.events` as read-only lifecycle signals or record exact consumer blockers.
+- [ ] 7.5 Decide Marathon and other non-marketplace applications through per-application contract gates; no app feeds Orders without explicit create-contract, idempotency, payment, warehouse, event, sensitive-data, rollback, and coexistence decisions.
+- [ ] 7.6 Run the integrated production readiness gate, deployment gate if runtime changes are deployed, and rollback evidence.
+
+Acceptance criteria:
+
+- Supported sales channels can authenticate to `POST /api/orders` with least-privilege service identity.
+- Every production create path sends `orders.create.v1`, stable `channelAccountId`, canonical Catalog `productId`, and Warehouse-owned `warehouseId` where reservation is required.
+- Leads, Marketing, and Notifications consume order lifecycle events without becoming order truth or receiving forbidden customer/payment/address/token data.
+- Marathon and other domain applications are integrated only through owner-approved per-application contracts or remain domain-local.
+- Evidence is recorded per service, including validation commands, deployment status when applicable, and next action.
+
 ## Orders Hub Program Goals
 
 The detailed roadmap for these goals lives in `docs/orchestrator/ORDERS_HUB_ROADMAP.md`.

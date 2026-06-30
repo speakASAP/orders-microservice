@@ -32,11 +32,23 @@ related_adrs: []
 POST /api/orders
 Authorization: Bearer <service-or-admin-jwt>
 x-internal-service-token: <runtime-only channel service token>
-x-service-name: heureka-service
+x-service-name: <flipflop-service|allegro-service|aukro-service|bazos-service|heureka-service>
 Content-Type: application/json
 ```
 
-The endpoint is protected for admin/internal callers, including `internal:heureka-service:service` for Heureka ingestion. The runtime DTO accepts the contract version `orders.create.v1`. A missing `contractVersion` is tolerated for backward compatibility during migration, but new FlipFlop and marketplace clients should send it.
+The endpoint is protected for admin/internal callers. The runtime DTO accepts the contract version `orders.create.v1`. A missing `contractVersion` is tolerated for backward compatibility during migration, but new FlipFlop and marketplace clients should send it.
+
+Supported create callers:
+
+| Service caller | Required role | Runtime token environment in Orders | Notes |
+| --- | --- | --- | --- |
+| `flipflop-service` | `internal:flipflop-service:service` | `FLIPFLOP_INTERNAL_SERVICE_TOKEN` | Planned machine-auth header caller for FlipFlop checkout/order-service. |
+| `allegro-service` | `internal:allegro-service:service` | `ALLEGRO_INTERNAL_SERVICE_TOKEN` | Planned machine-auth header caller for Allegro checkout/order ingestion. |
+| `aukro-service` | `internal:aukro-service:service` | `AUKRO_INTERNAL_SERVICE_TOKEN` | Planned machine-auth header caller for Aukro order ingestion. |
+| `bazos-service` | `internal:bazos-service:service` | `BAZOS_INTERNAL_SERVICE_TOKEN` | Planned machine-auth header caller for Bazos promoted lead/order ingestion. |
+| `heureka-service` | `internal:heureka-service:service` | `HEUREKA_INTERNAL_SERVICE_TOKEN` | Current machine-auth header caller wired in source. |
+
+Machine-auth requests use `x-internal-service-token` plus `x-service-name`; token values remain runtime-only and must not be logged, decoded, committed, or copied into docs. The role allowlist is now present in Orders, but each caller still needs runtime token wiring and a sanitized create smoke before production rollout.
 
 ## Request Shape
 
@@ -180,10 +192,9 @@ Current limitation:
 ## Explicit Deferrals
 
 - Database uniqueness for concurrent idempotency races remains deferred to a follow-up migration chunk.
-- Catalog product existence/SKU validation is deferred until the catalog boundary is added; Orders does not become product truth.
-- Warehouse reservation side effects are still placeholder behavior and remain Warehouse-owned.
+- Catalog product existence/SKU validation remains caller-owned unless an explicit Catalog validation boundary is added; Orders does not become product truth.
+- Channel service runtime token wiring and sanitized create smokes remain follow-up work for FlipFlop, Allegro, Aukro, and Bazos.
 - Payment provider identity, capture, refunds, variable symbols, and reconciliation remain Payments-owned.
-- Event payload versioning is deferred to Goal 5.
 
 ## Client Expectations
 

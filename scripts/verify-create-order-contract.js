@@ -108,12 +108,27 @@ assert.throws(
 
 const controllerSource = fs.readFileSync(path.join(__dirname, '..', 'src/orders/orders.controller.ts'), 'utf8');
 assert.match(controllerSource, /CHANNEL_ORDER_CREATE_ROLES/);
-assert.match(controllerSource, /internal:heureka-service:service/);
 assert.match(controllerSource, /@Roles\(\.\.\.CHANNEL_ORDER_CREATE_ROLES\)/);
 const guardSource = fs.readFileSync(path.join(__dirname, '..', 'src/auth/jwt-roles.guard.ts'), 'utf8');
-assert.match(guardSource, /HEUREKA_INTERNAL_SERVICE_TOKEN/);
-assert.match(guardSource, /internal:heureka-service:service/);
+const createServiceContracts = [
+  ['flipflop-service', 'FLIPFLOP_INTERNAL_SERVICE_TOKEN', 'internal:flipflop-service:service'],
+  ['allegro-service', 'ALLEGRO_INTERNAL_SERVICE_TOKEN', 'internal:allegro-service:service'],
+  ['aukro-service', 'AUKRO_INTERNAL_SERVICE_TOKEN', 'internal:aukro-service:service'],
+  ['bazos-service', 'BAZOS_INTERNAL_SERVICE_TOKEN', 'internal:bazos-service:service'],
+  ['heureka-service', 'HEUREKA_INTERNAL_SERVICE_TOKEN', 'internal:heureka-service:service'],
+];
+for (const [serviceName, tokenEnv, role] of createServiceContracts) {
+  assert.ok(controllerSource.includes(role), `Create order controller missing role ${role}`);
+  assert.ok(guardSource.includes(`'${serviceName}'`), `Guard missing service ${serviceName}`);
+  assert.ok(guardSource.includes(tokenEnv), `Guard missing env ${tokenEnv}`);
+  assert.ok(guardSource.includes(role), `Guard missing role ${role}`);
+}
 const contractDoc = fs.readFileSync(path.join(__dirname, '..', 'docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md'), 'utf8');
+for (const [serviceName, tokenEnv, role] of createServiceContracts) {
+  assert.ok(contractDoc.includes(serviceName), `Contract missing service ${serviceName}`);
+  assert.ok(contractDoc.includes(tokenEnv), `Contract missing token env ${tokenEnv}`);
+  assert.ok(contractDoc.includes(role), `Contract missing role ${role}`);
+}
 for (const required of [
   'items[].productId`: canonical `catalog-microservice` product ID',
   'Channel-local product, offer, ad, listing, or row IDs must not be sent as `productId`',

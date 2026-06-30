@@ -22,6 +22,10 @@ interface AuthenticatedRequest extends Request {
 export const CHANNEL_ORDER_CREATE_ROLES = [
   'global:superadmin',
   'internal:orders-microservice:admin',
+  'internal:flipflop-service:service',
+  'internal:allegro-service:service',
+  'internal:aukro-service:service',
+  'internal:bazos-service:service',
   'internal:heureka-service:service',
 ] as const;
 

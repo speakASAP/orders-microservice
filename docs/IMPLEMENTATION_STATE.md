@@ -5,7 +5,7 @@ id: ORDERS-IMPLEMENTATION-STATE
 status: ready
 owner: Orders owner
 created: 2026-06-12
-last_updated: 2026-06-26
+last_updated: 2026-06-30
 completeness_level: implemented
 upstream:
   - AGENTS.md
@@ -25,15 +25,20 @@ downstream:
   - docs/orchestrator/STATUS.md
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
-current_goal: Catalog Goal 17 Workstream A
-current_chunk: protected-product-sales-statistics-read-model-validated
-next_recommended_goal: coordinator handoff for Catalog Goal 17 Catalog integration and deployment approval
-last_completed_goal: Goal 6 Pricing Suggestion Safety And Consolidation
+current_goal: Goal 7 Production Order Integration Rollout
+current_chunk: 7.1 create caller allowlist and production integration plan
+next_recommended_goal: Goal 7.2 channel caller credential and warehouseId wiring
+last_completed_goal: Goal 7.1 Production integration plan and create caller allowlist
 blockers:
-  - candidate application contracts require owner approval before start
+  - DocsRAG session JWT unavailable for live RAG query
+  - Allegro, Aukro, and Bazos need channel auth plus warehouseId wiring before production create smokes
+  - Leads, Marketing, and Notifications have no verified orders.events consumers yet
+  - non-marketplace app contracts require owner approval before runtime integration
 ```
 
 ## Current Checkpoint
+
+2026-06-30: Goal 7.1 production order integration rollout planning is implemented and validated in source/docs. Orders create role and machine-auth allowlists now include FlipFlop, Allegro, Aukro, Bazos, and Heureka service actors, but runtime secret wiring for newly added channel tokens is not changed in this chunk. `docs/orchestrator/PRODUCTION_ORDER_INTEGRATION_PLAN.md` records the cross-app decisions and parallel workstreams. Read-only subagent audits found FlipFlop and Heureka closest to production create readiness; Allegro, Aukro, and Bazos still need accepted Orders auth headers plus Warehouse `warehouseId` forwarding; Leads, Marketing, and Notifications do not yet consume `orders.events`; Marathon, SpeakASAP, School Committee, and Rentabox remain domain-local pending owner-approved contracts. Validation passed: `git diff --check`, `npm run build`, `npm run verify:create-order-contract`, and `npm test`. Sensitive literal scan returned no matches. Missing-marker scan shows documented blockers including `[MISSING: DocsRAG session JWT]` plus pre-existing IPS handoff debt.
 
 2026-06-29: Sellable-channel Warehouse reservation fail-closed gate is implemented and validated. Orders create now requires `warehouseHandoff.status=reserved` for FlipFlop, Allegro, Aukro, Bazos, and Heureka before the create transaction commits or `orders.order.created.v1` publishes. `disabled`, `skipped`, and `failed` handoff results reject with bounded metadata, preserving Warehouse as stock authority and avoiding local stock truth. Validation passed: `git diff --check`, `npm run build && npm run verify:order-reservation-gate && npm run verify:warehouse-handoff`, and `npm test`. Deployment passed on 2026-06-29 as image `localhost:5000/orders-microservice:dba03dc`; in-pod `/health` returned `status=healthy`.
 

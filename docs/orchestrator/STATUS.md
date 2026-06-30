@@ -1,5 +1,37 @@
 # Orders Orchestrator Status
 
+## 2026-06-30 - Goal 7 Production Order Integration Planning And Create Caller Allowlist
+
+Intent chain:
+
+- Vision: Orders becomes the canonical order/statistics backbone for supported sellable channels while downstream services consume bounded lifecycle signals.
+- Goal Impact: production rollout is split into channel create readiness, event consumer readiness, and domain-local application decisions instead of forcing every application into Orders.
+- System: Orders owns create/idempotency/status/events; Catalog owns products; Warehouse owns stock/reservations; Payments owns provider payment identity; Auth owns service/user identity; Leads/Marketing/Notifications consume signals.
+- Feature: Goal 7 production order integration rollout.
+- Task: create the rollout plan, start Goal 7, and expand Orders create caller role/machine-auth allowlist for supported channels.
+- Execution Plan: coordinator-owned Orders slice; subagents ran read-only audits for channel services, event consumers, and non-marketplace candidates.
+- Coding Prompt: do not read or print secrets, do not query production DB, do not copy customer/payment/address data, and do not edit neighboring repos in this slice.
+- Code: updated `src/auth/jwt-roles.guard.ts`, `src/orders/orders.controller.ts`, `scripts/verify-create-order-contract.js`, `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md`, `docs/orchestrator/GOALS.md`, `docs/orchestrator/PRODUCTION_ORDER_INTEGRATION_PLAN.md`, `docs/orchestrator/CONTEXT_PACKAGE.md`, and `docs/orchestrator/EXECUTION_PLAN.md`.
+- Validation: passed. Commands: `git diff --check`, `npm run build`, `npm run verify:create-order-contract`, `npm test`, missing-marker scan with documented pre-existing/new blockers, and sensitive literal scan with no matches.
+
+Audit evidence:
+
+- Channel services: FlipFlop and Heureka are source-ready by current evidence; Allegro, Aukro, and Bazos are not production-ready for canonical Orders create because they need accepted Orders auth wiring and `warehouseId` forwarding before the fail-closed Warehouse reservation gate can pass.
+- Event consumers: Leads, Marketing, and Notifications do not currently subscribe to `orders.events` / `orders.order.*.v1`; each needs a queue binding, DTO/envelope mapper, idempotency/replay handling, and safe validation smoke before being marked integrated.
+- Non-marketplace apps: Marathon, SpeakASAP, School Committee, and Rentabox remain domain-local. Future integration must be a separate owner-approved contract and should usually be a bounded purchase/contribution/rental signal, not central Orders ownership.
+- DocsRAG: `[MISSING: DocsRAG session JWT]`; no RAG query was run in this session. This marker is an explicit blocker, not invented evidence.
+
+Parallel execution:
+
+- 7.1 Orders contract/RBAC slice: coordinator-owned and active.
+- 7.2 channel auth/warehouseId lanes: ready to split by repo after dirty worktree review.
+- 7.4 event consumer lanes: ready as separate Leads, Marketing, and Notifications design/implementation lanes.
+- 7.5 non-marketplace app contracts: blocked for coding until owner approves a concrete app contract.
+
+Next unfinished chunk:
+
+- Goal 7.2: wire and validate channel caller credentials and create-order headers, starting with Allegro/Aukro/Bazos `warehouseId` plus auth gaps and a controlled FlipFlop/Heureka smoke plan.
+
 ## 2026-06-29 - Sellable Channel Warehouse Reservation Fail-Closed Gate
 
 Intent chain:

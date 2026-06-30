@@ -77,11 +77,27 @@ export class JwtRolesGuard implements CanActivate {
 
     const configuredServices: Record<string, { token?: string; role: string }> = {
       'catalog-microservice': {
-        token: process.env.CATALOG_INTERNAL_SERVICE_TOKEN?.trim(),
+        token: this.resolveEnvToken('CATALOG_INTERNAL_SERVICE_TOKEN'),
         role: 'internal:catalog-microservice:service',
       },
+      'flipflop-service': {
+        token: this.resolveEnvToken('FLIPFLOP_INTERNAL_SERVICE_TOKEN'),
+        role: 'internal:flipflop-service:service',
+      },
+      'allegro-service': {
+        token: this.resolveEnvToken('ALLEGRO_INTERNAL_SERVICE_TOKEN'),
+        role: 'internal:allegro-service:service',
+      },
+      'aukro-service': {
+        token: this.resolveEnvToken('AUKRO_INTERNAL_SERVICE_TOKEN'),
+        role: 'internal:aukro-service:service',
+      },
+      'bazos-service': {
+        token: this.resolveEnvToken('BAZOS_INTERNAL_SERVICE_TOKEN'),
+        role: 'internal:bazos-service:service',
+      },
       'heureka-service': {
-        token: process.env.HEUREKA_INTERNAL_SERVICE_TOKEN?.trim(),
+        token: this.resolveEnvToken('HEUREKA_INTERNAL_SERVICE_TOKEN'),
         role: 'internal:heureka-service:service',
       },
     };
@@ -95,6 +111,11 @@ export class JwtRolesGuard implements CanActivate {
       email: `${serviceName}@internal.invalid`,
       roles: [service.role],
     };
+  }
+
+  private resolveEnvToken(name: string): string | undefined {
+    const token = process.env[name]?.trim();
+    return token || undefined;
   }
 
   private safeEqual(a: string, b: string): boolean {
