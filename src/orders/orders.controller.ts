@@ -65,6 +65,13 @@ export class OrdersController {
     return { success: true, data };
   }
 
+  @Post('validate-create')
+  @Roles(...CHANNEL_ORDER_CREATE_ROLES)
+  async validateCreate(@Body() data: CreateOrderRequestDto) {
+    const validation = await this.ordersService.validateCreate(data);
+    return { success: true, data: validation };
+  }
+
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const order = await this.ordersService.findOne(id);

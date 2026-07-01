@@ -272,6 +272,39 @@ export class OrdersService {
     }
   }
 
+  async validateCreate(data: CreateOrderRequestDto) {
+    const normalized = normalizeCreateOrderRequest(data);
+    const idempotencyKey = getCreateOrderIdempotencyKey(normalized);
+    const existing = await this.findByCreateOrderIdempotencyKey(idempotencyKey);
+    const idempotencyStatus = existing
+      ? (isMatchingCreateOrderReplay(existing, normalized) ? 'existing_matching_order' : 'existing_conflicting_order')
+      : 'available';
+
+    if (idempotencyStatus === 'existing_conflicting_order') {
+      throw new ConflictException(
+        'Order already exists for this channel, externalOrderId, and channelAccountId with different payload',
+      );
+    }
+
+    return {
+      valid: true,
+      mutation: false,
+      orderCreated: false,
+      warehouseMutation: false,
+      eventPublished: false,
+      channel: idempotencyKey.channel,
+      externalOrderId: idempotencyKey.externalOrderId,
+      channelAccountId: idempotencyKey.channelAccountId || null,
+      itemCount: normalized.items.length,
+      total: normalized.order.total,
+      currency: normalized.order.currency,
+      paymentMethod: normalized.order.paymentMethod || null,
+      shippingMethod: normalized.order.shippingMethod || null,
+      idempotencyStatus,
+      existingOrderId: existing?.id || null,
+    };
+  }
+
   private assertRequiredWarehouseReservation(order: Order, handoff: WarehouseHandoffSummary): void {
     if (!this.requiresWarehouseReservation(order.channel)) return;
     if (handoff.status === 'reserved') return;

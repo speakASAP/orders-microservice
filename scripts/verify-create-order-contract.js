@@ -7,6 +7,7 @@ const {
   isMatchingCreateOrderReplay,
   normalizeCreateOrderRequest,
 } = require('../dist/orders/create-order.dto');
+const { OrdersService } = require('../dist/orders/orders.service');
 
 const validRequest = {
   contractVersion: CREATE_ORDER_CONTRACT_VERSION,
@@ -136,6 +137,7 @@ assert.throws(
 const controllerSource = fs.readFileSync(path.join(__dirname, '..', 'src/orders/orders.controller.ts'), 'utf8');
 assert.match(controllerSource, /CHANNEL_ORDER_CREATE_ROLES/);
 assert.match(controllerSource, /@Roles\(\.\.\.CHANNEL_ORDER_CREATE_ROLES\)/);
+assert.match(controllerSource, /@Post\('validate-create'\)/);
 const guardSource = fs.readFileSync(path.join(__dirname, '..', 'src/auth/jwt-roles.guard.ts'), 'utf8');
 const createServiceContracts = [
   {
@@ -215,4 +217,83 @@ for (const required of [
   assert.ok(contractDoc.includes(required), `Missing canonical Catalog product ID contract text: ${required}`);
 }
 
-console.log('create order contract verification ok');
+const serviceSource = fs.readFileSync(path.join(__dirname, '..', 'src/orders/orders.service.ts'), 'utf8');
+assert.match(serviceSource, /async validateCreate\(data: CreateOrderRequestDto\)/);
+assert.match(serviceSource, /mutation:\s*false/);
+assert.match(serviceSource, /orderCreated:\s*false/);
+assert.match(serviceSource, /warehouseMutation:\s*false/);
+assert.match(serviceSource, /eventPublished:\s*false/);
+
+function makeReadOnlyQuery(existing = null) {
+  return {
+    leftJoinAndSelect() { return this; },
+    where() { return this; },
+    andWhere() { return this; },
+    async getOne() { return existing; },
+  };
+}
+
+(async () => {
+  const mutationCalls = [];
+  const service = new OrdersService(
+    {
+      createQueryBuilder() {
+        return makeReadOnlyQuery(null);
+      },
+      manager: {
+        async transaction() {
+          mutationCalls.push('transaction');
+          throw new Error('validateCreate must not open a write transaction');
+        },
+      },
+      async save() {
+        mutationCalls.push('save');
+        throw new Error('validateCreate must not save orders');
+      },
+    },
+    {
+      async reserveOrderItems() {
+        mutationCalls.push('warehouse.reserve');
+        throw new Error('validateCreate must not reserve warehouse stock');
+      },
+      async fulfillOrderItems() {
+        mutationCalls.push('warehouse.fulfill');
+        throw new Error('validateCreate must not fulfill warehouse stock');
+      },
+      async releaseOrderItems() {
+        mutationCalls.push('warehouse.release');
+        throw new Error('validateCreate must not release warehouse stock');
+      },
+      async cancelOrderItems() {
+        mutationCalls.push('warehouse.cancel');
+        throw new Error('validateCreate must not cancel warehouse reservations');
+      },
+    },
+    {
+      async publishOrderCreated() {
+        mutationCalls.push('event.created');
+        throw new Error('validateCreate must not publish events');
+      },
+    },
+    { audit() {} },
+  );
+
+  const validation = await service.validateCreate(validRequest);
+  assert.equal(validation.valid, true);
+  assert.equal(validation.mutation, false);
+  assert.equal(validation.orderCreated, false);
+  assert.equal(validation.warehouseMutation, false);
+  assert.equal(validation.eventPublished, false);
+  assert.equal(validation.channel, 'flipflop');
+  assert.equal(validation.externalOrderId, 'checkout-1001');
+  assert.equal(validation.itemCount, 1);
+  assert.equal(validation.total, 200);
+  assert.equal(validation.currency, 'CZK');
+  assert.equal(validation.idempotencyStatus, 'available');
+  assert.deepEqual(mutationCalls, []);
+
+  console.log('create order contract verification ok');
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
