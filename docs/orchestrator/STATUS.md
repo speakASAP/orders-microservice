@@ -1,5 +1,26 @@
 # Orders Orchestrator Status
 
+## 2026-07-01 - Cliplot Order Contract Support
+
+Intent chain:
+
+- Vision: Orders remains the canonical order lifecycle backbone for supported sellable channels.
+- Goal Impact: Cliplot can use the same Orders create contract and machine-auth pattern as existing channel services without changing payment, stock, or provider ownership.
+- System: Orders owns create/idempotency/status/events; Cliplot owns storefront checkout and caller headers; Auth owns service identity; Warehouse remains stock/reservation authority.
+- Feature: Minimal Cliplot order contract support.
+- Task: accept channel cliplot, accept internal caller cliplot-service, and wire the Orders-side token alias from Cliplot existing Orders token source.
+- Execution Plan: single-worker Orders patch only; no payment-provider code, destructive database work, secret value reads, or deployment.
+- Coding Prompt: do not revert other edits, do not print token values or customer/order rows, preserve existing channels and callers.
+- Code: updated Orders channel allowlists, create-order role allowlist, internal service-token guard, ExternalSecret alias, source docs, and contract verifier.
+- Validation: passed. Commands: git diff --check, npm run build, npm run verify:create-order-contract, npm test, and Kubernetes server dry-run for k8s/external-secret.yaml.
+
+Boundary notes:
+
+- No non-Orders repo was edited. cliplot-service was inspected read-only to confirm it already sends x-service-name: cliplot-service and has an ORDERS_SERVICE_TOKEN key name.
+- DocsRAG query was skipped because no session token was available: [MISSING: DocsRAG session JWT].
+- Cliplot live submission remains gated by owner-approved smoke evidence and runtime secret sync; no deploy was run in this worker patch.
+- [MISSING: Cliplot ORDERS_CREATE_PATH alignment]: read-only inspection found cliplot-service configured for /api/orders/guest, while this Orders patch preserves canonical POST /api/orders.
+
 ## 2026-07-01 - Goal 7.4A Orders Lead Attribution Event Contract For Leads
 
 Intent chain:

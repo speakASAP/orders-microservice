@@ -100,6 +100,10 @@ export class JwtRolesGuard implements CanActivate {
         token: this.resolveEnvToken('HEUREKA_INTERNAL_SERVICE_TOKEN'),
         role: 'internal:heureka-service:service',
       },
+      'cliplot-service': {
+        token: this.resolveEnvToken('CLIPLOT_ORDERS_SERVICE_TOKEN', 'CLIPLOT_SERVICE_TOKEN'),
+        role: 'internal:cliplot-service:service',
+      },
     };
     const service = configuredServices[serviceName];
     if (!service?.token || !this.safeEqual(providedToken, service.token)) {
@@ -113,9 +117,12 @@ export class JwtRolesGuard implements CanActivate {
     };
   }
 
-  private resolveEnvToken(name: string): string | undefined {
-    const token = process.env[name]?.trim();
-    return token || undefined;
+  private resolveEnvToken(...names: string[]): string | undefined {
+    for (const name of names) {
+      const token = process.env[name]?.trim();
+      if (token) return token;
+    }
+    return undefined;
   }
 
   private safeEqual(a: string, b: string): boolean {

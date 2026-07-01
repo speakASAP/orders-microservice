@@ -11,7 +11,7 @@ export class Order {
   @Column({ length: 200, nullable: true })
   externalOrderId: string;
 
-  // Sales channel: allegro, flipflop, aukro, heureka, bazos
+  // Sales channel: allegro, flipflop, aukro, heureka, bazos, cliplot
   @Column({ length: 100 })
   channel: string;
 

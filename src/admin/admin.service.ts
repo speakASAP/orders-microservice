@@ -63,6 +63,7 @@ const SOURCE_CATALOG: Record<string, { application: string; service: string }> =
   aukro: { application: 'Aukro Marketplace', service: 'aukro-service' },
   bazos: { application: 'Bazos Classifieds', service: 'bazos-service' },
   heureka: { application: 'Heureka Marketplace', service: 'heureka-service' },
+  cliplot: { application: 'Cliplot Storefront', service: 'cliplot-service' },
 };
 
 @Injectable()

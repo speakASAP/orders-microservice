@@ -36,7 +36,7 @@ contractVersion + channel + channelAccountId + externalOrderId
 Rules:
 
 - `contractVersion` is the create contract version, currently `orders.create.v1`.
-- `channel` is normalized to lowercase and must be one of `flipflop`, `allegro`, `aukro`, `bazos`, or `heureka`.
+- `channel` is normalized to lowercase and must be one of `flipflop`, `allegro`, `aukro`, `bazos`, `heureka`, or `cliplot`.
 - `channelAccountId` identifies the storefront, marketplace account, shop, tenant, or integration account that produced the order.
 - `externalOrderId` is the upstream checkout/order identifier assigned by the channel.
 - For channels with no meaningful account partition, clients must send a stable account sentinel such as `default` rather than omitting `channelAccountId`.
@@ -53,6 +53,7 @@ Rules:
 | `aukro` | Aukro seller account ID or integration account | Aukro order ID |
 | `bazos` | Bazos integration account or source mailbox/feed | Bazos lead/order reference promoted to order |
 | `heureka` | Heureka shop/account ID | Heureka order ID |
+| `cliplot` | Cliplot storefront or integration account, usually `cliplot-storefront` | Cliplot checkout/order ID |
 
 ## Safe Retry Behavior
 

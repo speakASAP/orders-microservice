@@ -123,7 +123,7 @@ const ALLOWED_CREATE_KEYS = new Set([
   'customerNote',
 ]);
 
-const ALLOWED_CHANNELS = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka']);
+const ALLOWED_CHANNELS = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka', 'cliplot']);
 const ALLOWED_INITIAL_STATUSES = new Set(['pending', 'confirmed']);
 
 export function normalizeCreateOrderRequest(input: CreateOrderRequestDto): NormalizedCreateOrder {

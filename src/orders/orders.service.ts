@@ -25,9 +25,9 @@ import {
 } from './status-transitions';
 
 const PRODUCT_SALES_DEFAULT_STATUSES = ['confirmed', 'processing', 'shipped', 'delivered'] as const;
-const SELLABLE_ORDER_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka']);
+const SELLABLE_ORDER_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka', 'cliplot']);
 const PRODUCT_SALES_ALLOWED_STATUSES: Set<string> = new Set(['pending', ...PRODUCT_SALES_DEFAULT_STATUSES, 'cancelled']);
-const PRODUCT_SALES_ALLOWED_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka']);
+const PRODUCT_SALES_ALLOWED_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka', 'cliplot']);
 const PRODUCT_SALES_HISTORY_LIMIT = 10;
 
 export interface ProductSalesStatisticsFilters {

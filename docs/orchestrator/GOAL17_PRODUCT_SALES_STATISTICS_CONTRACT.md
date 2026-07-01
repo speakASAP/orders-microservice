@@ -56,7 +56,7 @@ Auth-owned service identity is resolved through the canonical internal-service-t
 
 - `from`: optional ISO timestamp matched against `COALESCE(orders.orderedAt, orders.createdAt)`.
 - `to`: optional ISO timestamp matched against `COALESCE(orders.orderedAt, orders.createdAt)`.
-- `channel`: optional one of `flipflop`, `allegro`, `aukro`, `bazos`, `heureka`.
+- `channel`: optional one of `flipflop`, `allegro`, `aukro`, `bazos`, `heureka`, `cliplot`.
 - `status`: optional comma-separated order statuses. Default: `confirmed`, `processing`, `shipped`, `delivered`. `cancelled` is excluded by default and only included when explicitly requested.
 
 ## Response Shape

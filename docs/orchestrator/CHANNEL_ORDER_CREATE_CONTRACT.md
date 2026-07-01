@@ -32,7 +32,7 @@ related_adrs: []
 POST /api/orders
 Authorization: Bearer <service-or-admin-jwt>
 x-internal-service-token: <runtime-only channel service token>
-x-service-name: <flipflop-service|allegro-service|aukro-service|bazos-service|heureka-service>
+x-service-name: <flipflop-service|allegro-service|aukro-service|bazos-service|heureka-service|cliplot-service>
 Content-Type: application/json
 ```
 
@@ -47,6 +47,7 @@ Supported create callers:
 | `aukro-service` | `internal:aukro-service:service` | `AUKRO_INTERNAL_SERVICE_TOKEN` | `secret/prod/aukro-service#JWT_TOKEN` | Orders-side alias for Aukro service token; channel-side auth and `warehouseId` wiring still pending. |
 | `bazos-service` | `internal:bazos-service:service` | `BAZOS_INTERNAL_SERVICE_TOKEN` | `secret/prod/bazos-service#JWT_TOKEN` | Orders-side alias for Bazos service token; true order webhook support remains to be verified. |
 | `heureka-service` | `internal:heureka-service:service` | `HEUREKA_INTERNAL_SERVICE_TOKEN` | `secret/prod/heureka-service#JWT_TOKEN` | Existing Orders-side alias for Heureka service token; sanitized create smoke still pending. |
+| `cliplot-service` | `internal:cliplot-service:service` | `CLIPLOT_ORDERS_SERVICE_TOKEN` with code fallback to `CLIPLOT_SERVICE_TOKEN` | `secret/prod/cliplot-service#ORDERS_SERVICE_TOKEN` | Orders-side alias for the Cliplot-to-Orders caller token; Cliplot live order submit remains gated until owner-approved smoke evidence. |
 
 Machine-auth requests use `x-internal-service-token` plus `x-service-name`; token values remain runtime-only and must not be logged, decoded, committed, or copied into docs. The role allowlist and Orders-side runtime aliases are present in source, but each caller still needs channel-side header wiring plus a sanitized create/idempotency/Warehouse reservation smoke before production rollout.
 
@@ -118,7 +119,7 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
 
 ## Accepted Values
 
-- `channel`: `flipflop`, `allegro`, `aukro`, `bazos`, or `heureka`.
+- `channel`: `flipflop`, `allegro`, `aukro`, `bazos`, `heureka`, or `cliplot`.
 - `externalOrderId`: required channel order/checkout identifier.
 - `channelAccountId`: required by the idempotency contract for new clients; clients without a natural account partition should send a stable sentinel such as `default`.
 - `leadAttribution`: optional explicit attribution metadata with allowed fields `leadId`, `source`, and `campaignId`. Orders publishes it only on `orders.order.created.v1` when supplied; callers must not derive it from customer/contact/address/payment data.
@@ -200,12 +201,12 @@ Current limitation:
 
 - Database uniqueness for concurrent idempotency races remains deferred to a follow-up migration chunk.
 - Catalog product existence/SKU validation remains caller-owned unless an explicit Catalog validation boundary is added; Orders does not become product truth.
-- Channel service runtime token wiring and sanitized create smokes remain follow-up work for FlipFlop, Allegro, Aukro, and Bazos.
+- Channel service runtime token wiring and sanitized create smokes remain follow-up work for FlipFlop, Allegro, Aukro, Bazos, and Cliplot.
 - Payment provider identity, capture, refunds, variable symbols, and reconciliation remain Payments-owned.
 - `[MISSING: channel lead attribution source mapping]`: supported channel services still need an approved explicit source for `leadAttribution.leadId`, `leadAttribution.source`, and/or `leadAttribution.campaignId`. Orders will not infer attribution from PII, customer contact fields, addresses, notes, payment data, or channel payloads.
 
 ## Client Expectations
 
-- FlipFlop should call this endpoint after checkout has enough customer, item, total, shipping, and payment-status metadata to create the canonical order.
+- FlipFlop and Cliplot should call this endpoint after checkout has enough customer, item, total, shipping, and payment-status metadata to create the canonical order.
 - Marketplace services should forward marketplace orders using their marketplace order ID as `externalOrderId` and their marketplace account/store as `channelAccountId`. They must resolve offer/ad/listing IDs to canonical Catalog product IDs before calling Orders.
 - Channel services should store the returned Orders `id` as their canonical order reference and use Orders for lifecycle updates instead of duplicating status truth.

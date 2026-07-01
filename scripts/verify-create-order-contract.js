@@ -80,6 +80,13 @@ assert.deepEqual(getCreateOrderIdempotencyKey(normalized), {
 });
 const normalizedWithoutLeadAttribution = normalizeCreateOrderRequest({ ...validRequest, leadAttribution: undefined });
 assert.equal(normalizedWithoutLeadAttribution.leadAttribution, undefined);
+const normalizedCliplot = normalizeCreateOrderRequest({
+  ...validRequest,
+  channel: 'Cliplot',
+  externalOrderId: 'cliplot-order-1001',
+  channelAccountId: 'cliplot-storefront',
+});
+assert.equal(normalizedCliplot.order.channel, 'cliplot');
 
 const existingOrder = {
   ...normalized.order,
@@ -166,17 +173,27 @@ const createServiceContracts = [
     vaultKey: 'secret/prod/heureka-service',
     vaultProperty: 'JWT_TOKEN',
   },
+  {
+    serviceName: 'cliplot-service',
+    tokenEnv: 'CLIPLOT_ORDERS_SERVICE_TOKEN',
+    fallbackTokenEnv: 'CLIPLOT_SERVICE_TOKEN',
+    role: 'internal:cliplot-service:service',
+    vaultKey: 'secret/prod/cliplot-service',
+    vaultProperty: 'ORDERS_SERVICE_TOKEN',
+  },
 ];
-for (const { serviceName, tokenEnv, role } of createServiceContracts) {
+for (const { serviceName, tokenEnv, fallbackTokenEnv, role } of createServiceContracts) {
   assert.ok(controllerSource.includes(role), `Create order controller missing role ${role}`);
   assert.ok(guardSource.includes(`'${serviceName}'`), `Guard missing service ${serviceName}`);
   assert.ok(guardSource.includes(tokenEnv), `Guard missing env ${tokenEnv}`);
+  if (fallbackTokenEnv) assert.ok(guardSource.includes(fallbackTokenEnv), `Guard missing fallback env ${fallbackTokenEnv}`);
   assert.ok(guardSource.includes(role), `Guard missing role ${role}`);
 }
 const contractDoc = fs.readFileSync(path.join(__dirname, '..', 'docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md'), 'utf8');
-for (const { serviceName, tokenEnv, role, vaultKey, vaultProperty } of createServiceContracts) {
+for (const { serviceName, tokenEnv, fallbackTokenEnv, role, vaultKey, vaultProperty } of createServiceContracts) {
   assert.ok(contractDoc.includes(serviceName), `Contract missing service ${serviceName}`);
   assert.ok(contractDoc.includes(tokenEnv), `Contract missing token env ${tokenEnv}`);
+  if (fallbackTokenEnv) assert.ok(contractDoc.includes(fallbackTokenEnv), `Contract missing fallback token env ${fallbackTokenEnv}`);
   assert.ok(contractDoc.includes(role), `Contract missing role ${role}`);
   assert.ok(contractDoc.includes(vaultKey), `Contract missing runtime secret source ${vaultKey}`);
   assert.ok(contractDoc.includes(vaultProperty), `Contract missing runtime secret property ${vaultProperty}`);
