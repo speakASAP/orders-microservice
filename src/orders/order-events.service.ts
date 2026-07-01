@@ -9,6 +9,7 @@ import {
   buildOrderUpdatedEvent,
   ORDER_EVENT_TYPES,
   ORDER_EVENT_VERSION,
+  type OrderLeadAttribution,
 } from './order-event-contracts';
 
 interface OrderUpdatedMetadata {
@@ -59,8 +60,12 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async publishOrderCreated(orderId: string, channel: string) {
-    await this.publish(this.ordersExchangeName, ORDER_EVENT_TYPES.created, buildOrderCreatedEvent(orderId, channel));
+  async publishOrderCreated(orderId: string, channel: string, leadAttribution?: OrderLeadAttribution) {
+    await this.publish(
+      this.ordersExchangeName,
+      ORDER_EVENT_TYPES.created,
+      buildOrderCreatedEvent(orderId, channel, leadAttribution),
+    );
   }
 
   async publishOrderUpdated(orderId: string, status: string, metadata?: OrderUpdatedMetadata) {

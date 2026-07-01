@@ -26,17 +26,20 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: 7.4 orders.events consumer design for Leads, Marketing, and Notifications
-next_recommended_goal: Goal 7.4 orders.events consumer design for Leads, Marketing, and Notifications
-last_completed_goal: Goal 7.2 channel caller header/warehouseId wiring and sanitized smokes
+current_chunk: 7.4 Leads consumer implementation using Orders leadAttribution contract
+next_recommended_goal: Goal 7.4 Leads orders.events consumer lane using optional leadAttribution
+last_completed_goal: Goal 7.4A Orders lead-attribution event contract for Leads
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
+  - [MISSING: channel lead attribution source mapping]
   - Leads, Marketing, and Notifications have no verified orders.events consumers yet
   - non-marketplace app contracts require owner approval before runtime integration
   - Heureka service has unrelated dirty dashboard/feed/auth worktree changes that must remain isolated from Orders Goal 7 coordinator docs
 ```
 
 ## Current Checkpoint
+
+2026-07-01: Goal 7.4A Orders lead-attribution event contract for Leads is implemented and validated. Orders `orders.create.v1` accepts optional `leadAttribution` with bounded `leadId`, `source`, and `campaignId` fields; `orders.order.created.v1` publishes `payload.leadAttribution` only when supplied and otherwise preserves the existing `{ orderId, channel }` payload core. The created-event fixture, event contract verifier, create-order verifier, `ORDER_EVENT_CONTRACTS.md`, `CHANNEL_ORDER_CREATE_CONTRACT.md`, `CONTEXT_PACKAGE.md`, and `EXECUTION_PLAN.md` were updated. Validation passed: `git diff --check`, `npm run build`, `npm run verify:create-order-contract`, `npm run verify:event-contracts`, `npm test`, missing-marker scan, and added-line sensitive literal scan. No non-Orders repos, live consumers, DB data, deployments, secrets, decoded JWTs, customer payloads, production order rows, DB rows, or payment data were used. Automatic attribution remains blocked until channel callers provide an approved explicit source: `[MISSING: channel lead attribution source mapping]`.
 
 2026-07-01: Goal 7.2 channel caller header/warehouseId wiring and sanitized smokes are integrated at the Orders coordinator level. Remote status checks found Orders clean on `main`, deployed `localhost:5000/orders-microservice:43f9774`, and all relevant deployments ready `1/1`. Channel evidence: FlipFlop `reports/validation/orders-readiness-smoke/report-latest.json` passed with live smoke, auth accepted, HTTP 201, `orders.create.v1`, central order ID present, and Warehouse reservation status present; Allegro commit `ac56dc4` records successful Warehouse UUID smoke after `ec6f97a` forwarded a Warehouse-owned UUID; Aukro commits `4e11cdb`, `df8d16e`, and `12f445e` record runtime token mapping, live Orders smoke, and cleanup; Bazos commit `c028495` records owner-approved create/replay/cancel Warehouse reservation smoke with true live provider ingestion still `[UNKNOWN: live Bazos marketplace webhook support]`; Heureka commit `ac26098` records final sanitized Orders/Warehouse smoke pass with reservation status `reserved`. Heureka's current dirty worktree was classified read-only as separate dashboard/feed/admin work (`TASK-009`, feed mutation guard, dashboard module, JWT user context, Dockerfile/README/report updates), so it was not edited or used as an Orders credential-gate blocker. No token values, decoded JWTs, customer payloads, production order rows, DB rows, or payment data were printed.
 

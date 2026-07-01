@@ -23,9 +23,16 @@ export interface OrderEventEnvelope<TPayload extends object> {
   payload: TPayload;
 }
 
+export interface OrderLeadAttribution {
+  leadId?: string;
+  source?: string;
+  campaignId?: string;
+}
+
 interface OrderCreatedPayload {
   orderId: string;
   channel: string;
+  leadAttribution?: OrderLeadAttribution;
 }
 
 interface OrderUpdatedPayload {
@@ -85,8 +92,16 @@ export function toSafeApprovalMetadata(approval?: OrderStatusApprovalAudit): Saf
   };
 }
 
-export function buildOrderCreatedEvent(orderId: string, channel: string): OrderEventEnvelope<OrderCreatedPayload> {
-  return createEnvelope(ORDER_EVENT_TYPES.created, { orderId, channel });
+export function buildOrderCreatedEvent(
+  orderId: string,
+  channel: string,
+  leadAttribution?: OrderLeadAttribution,
+): OrderEventEnvelope<OrderCreatedPayload> {
+  return createEnvelope(ORDER_EVENT_TYPES.created, {
+    orderId,
+    channel,
+    ...(leadAttribution ? { leadAttribution } : {}),
+  });
 }
 
 export function buildOrderUpdatedEvent(

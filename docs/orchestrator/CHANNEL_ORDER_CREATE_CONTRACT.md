@@ -5,7 +5,7 @@ id: ORDERS-CHANNEL-ORDER-CREATE-CONTRACT
 status: implemented
 owner: Orders owner
 created: 2026-06-13
-last_updated: 2026-06-13
+last_updated: 2026-07-01
 completeness_level: implemented
 upstream:
   - BUSINESS.md
@@ -58,6 +58,11 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
   "channel": "flipflop",
   "externalOrderId": "checkout-1001",
   "channelAccountId": "flipflop-storefront",
+  "leadAttribution": {
+    "leadId": "lead-1001",
+    "source": "lead-form",
+    "campaignId": "campaign-1001"
+  },
   "orderedAt": "2026-06-13T08:00:00.000Z",
   "customer": {
     "name": "Example Customer",
@@ -116,6 +121,7 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
 - `channel`: `flipflop`, `allegro`, `aukro`, `bazos`, or `heureka`.
 - `externalOrderId`: required channel order/checkout identifier.
 - `channelAccountId`: required by the idempotency contract for new clients; clients without a natural account partition should send a stable sentinel such as `default`.
+- `leadAttribution`: optional explicit attribution metadata with allowed fields `leadId`, `source`, and `campaignId`. Orders publishes it only on `orders.order.created.v1` when supplied; callers must not derive it from customer/contact/address/payment data.
 - `status`: optional and limited to `pending` or `confirmed` at create time; default is `pending`.
 - `items`: required non-empty array. Each line requires `productId`, `title`, positive integer `quantity`, and non-negative `unitPrice`. Missing `totalPrice` is calculated as `quantity * unitPrice`.
 - `items[].productId`: canonical `catalog-microservice` product ID. Channel-local product, offer, ad, listing, or row IDs must not be sent as `productId`; channel services must resolve them before forwarding or fail closed with a mapping error.
@@ -129,6 +135,7 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
 - New item rows start with `fulfillmentStatus=pending`.
 - Orders stores canonical Catalog product IDs, SKUs, titles, quantities, prices, and optional warehouse IDs for the order snapshot. Catalog remains product truth and Warehouse remains stock truth.
 - Orders stores payment method/status metadata only. Payments remains owner of provider sessions, payment identity, variable symbols, refunds, and reconciliation.
+- `leadAttribution` is event-only metadata for downstream Leads attribution. It is not persisted as order truth in this chunk and is not part of the idempotency key.
 
 ## Response Shape
 
@@ -185,7 +192,7 @@ Current limitation:
 - `POST /api/orders` persists the order row and order item rows together.
 - Idempotent replay by `contractVersion + channel + channelAccountId + externalOrderId` returns the existing order when the normalized payload matches.
 - Conflicting replay with the same idempotency key and different payload is rejected with HTTP 409.
-- The endpoint publishes the existing `order.created` event after persistence.
+- The endpoint publishes `orders.order.created.v1` after persistence and includes optional `leadAttribution` only when supplied by the create request.
 - Audit logging records bounded operation metadata only and does not log customer/address/payment raw values.
 - The endpoint rejects unsupported channels, unsupported contract versions, unknown fields, empty item arrays, invalid totals, invalid currency, invalid timestamps, and create-time statuses outside `pending|confirmed`.
 
@@ -195,6 +202,7 @@ Current limitation:
 - Catalog product existence/SKU validation remains caller-owned unless an explicit Catalog validation boundary is added; Orders does not become product truth.
 - Channel service runtime token wiring and sanitized create smokes remain follow-up work for FlipFlop, Allegro, Aukro, and Bazos.
 - Payment provider identity, capture, refunds, variable symbols, and reconciliation remain Payments-owned.
+- `[MISSING: channel lead attribution source mapping]`: supported channel services still need an approved explicit source for `leadAttribution.leadId`, `leadAttribution.source`, and/or `leadAttribution.campaignId`. Orders will not infer attribution from PII, customer contact fields, addresses, notes, payment data, or channel payloads.
 
 ## Client Expectations
 

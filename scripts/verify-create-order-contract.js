@@ -13,6 +13,11 @@ const validRequest = {
   channel: 'flipflop',
   externalOrderId: 'checkout-1001',
   channelAccountId: 'flipflop-storefront',
+  leadAttribution: {
+    leadId: 'lead-1001',
+    source: 'lead-form',
+    campaignId: 'campaign-1001',
+  },
   orderedAt: '2026-06-13T08:00:00.000Z',
   customer: {
     name: 'Example Customer',
@@ -54,6 +59,11 @@ const validRequest = {
 const normalized = normalizeCreateOrderRequest(validRequest);
 assert.equal(normalized.order.channel, 'flipflop');
 assert.equal(normalized.order.externalOrderId, 'checkout-1001');
+assert.deepEqual(normalized.leadAttribution, {
+  leadId: 'lead-1001',
+  source: 'lead-form',
+  campaignId: 'campaign-1001',
+});
 assert.equal(normalized.order.status, 'pending');
 assert.equal(normalized.order.currency, 'CZK');
 assert.equal(normalized.order.paymentMethod, 'card');
@@ -68,6 +78,8 @@ assert.deepEqual(getCreateOrderIdempotencyKey(normalized), {
   externalOrderId: 'checkout-1001',
   channelAccountId: 'flipflop-storefront',
 });
+const normalizedWithoutLeadAttribution = normalizeCreateOrderRequest({ ...validRequest, leadAttribution: undefined });
+assert.equal(normalizedWithoutLeadAttribution.leadAttribution, undefined);
 
 const existingOrder = {
   ...normalized.order,
@@ -99,6 +111,14 @@ assert.throws(
 assert.throws(
   () => normalizeCreateOrderRequest({ ...validRequest, unexpected: true }),
   /Unsupported create order fields/,
+);
+assert.throws(
+  () => normalizeCreateOrderRequest({ ...validRequest, leadAttribution: { leadId: 'lead-1001', unexpected: 'x' } }),
+  /Unsupported leadAttribution fields/,
+);
+assert.throws(
+  () => normalizeCreateOrderRequest({ ...validRequest, leadAttribution: 'lead-1001' }),
+  /leadAttribution must be an object/,
 );
 assert.throws(
   () => normalizeCreateOrderRequest({ ...validRequest, status: 'shipped' }),
@@ -172,6 +192,8 @@ for (const required of [
   'Channel-local product, offer, ad, listing, or row IDs must not be sent as `productId`',
   'product-level marketplace sales statistics',
   'resolve offer/ad/listing IDs to canonical Catalog product IDs before calling Orders',
+  '`leadAttribution`: optional explicit attribution metadata with allowed fields `leadId`, `source`, and `campaignId`',
+  '[MISSING: channel lead attribution source mapping]',
 ]) {
   assert.ok(contractDoc.includes(required), `Missing canonical Catalog product ID contract text: ${required}`);
 }

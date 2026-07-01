@@ -1,3 +1,54 @@
+# Orders Orchestrator Status
+
+## 2026-07-01 - Goal 7.4A Orders Lead Attribution Event Contract For Leads
+
+Intent chain:
+
+- Vision: Orders remains the canonical order lifecycle and event producer while Leads consumes bounded read-only lifecycle signals.
+- Goal Impact: Leads Goal 7.4 is unblocked by a stable optional attribution field on `orders.order.created.v1`.
+- System: Orders owns create/idempotency/status/events; channel services own explicit source attribution mapping; Leads owns CRM attribution and may reject events without attribution; no downstream service becomes order truth.
+- Feature: Goal 7.4A Orders lead-attribution event contract for Leads.
+- Task: add a backwards-compatible optional `leadAttribution` contract to created events without inventing attribution from customer/contact/address/payment data.
+- Execution Plan: single-owner Orders source lane; update DTO normalization, event builder/publisher, created-event fixture, verifiers, contract docs, and IPS state; no deploy without coordinator approval.
+- Coding Prompt: do not edit non-Orders repos, add live consumers, mutate production DB data, print secrets/JWTs/DB rows/customer payloads, or infer CRM correlation from PII.
+- Code: `orders.create.v1` now accepts optional `leadAttribution` with `leadId`, `source`, and `campaignId`; `orders.order.created.v1` includes `payload.leadAttribution` only when supplied; events without attribution preserve the prior `{ orderId, channel }` core shape.
+- Validation: passed. Commands: `git diff --check`, `npm run build`, `npm run verify:create-order-contract`, `npm run verify:event-contracts`, `npm test`, missing-marker scan, and added-line sensitive literal scan.
+
+Contract:
+
+```ts
+payload: {
+  orderId: string;
+  channel: string;
+  leadAttribution?: {
+    leadId?: string;
+    source?: string;
+    campaignId?: string;
+  };
+}
+```
+
+Validation evidence:
+
+- Preflight remote status before edits: clean `main` with `## main...origin/main`.
+- `git diff --check`: pass.
+- `npm run build`: pass.
+- `npm run verify:create-order-contract`: pass; create order contract verification ok.
+- `npm run verify:event-contracts`: pass; event contract verification ok.
+- `npm test`: pass; build plus transition, sensitive logging, create-order, idempotency, duplicate protection, reservation gate, event, warehouse, payment, pricing, product statistics, and admin operations verifiers all passed.
+- Missing-marker scan: documented blockers only, including `[MISSING: DocsRAG session JWT]`, `[MISSING: channel lead attribution source mapping]`, pre-existing IPS/auth/monitoring debt, and Bazos provider-backed webhook unknown.
+- Added-line sensitive literal scan: pass; no raw secret, bearer/JWT, email-like, or password-like literals were added. A broader source scan still sees the pre-existing `process.env.DB_PASSWORD` environment reference, not a raw value.
+
+Boundary notes:
+
+- No Leads, Marketing, Notifications, channel, Warehouse, Catalog, Auth, marketplace, or non-Orders repo was edited.
+- No live consumer, deployment, DB mutation, runtime smoke, secret read, decoded JWT, customer payload, production order row, DB row, or payment data was used.
+- Current blocker for automatic attribution remains `[MISSING: channel lead attribution source mapping]`; channel callers must supply explicit approved attribution fields before Leads can attribute automatically.
+
+Next unfinished chunk:
+
+- Goal 7.4 Leads consumer lane: consume `orders.order.created.v1` as a read-only signal, use `payload.leadAttribution` when present, and reject/skip events without approved attribution.
+
 ## 2026-07-01 - Goal 7.2 Channel Smoke Integration
 
 Current focus:

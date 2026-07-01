@@ -51,11 +51,18 @@ export interface CreateOrderNotesDto {
   customerNote?: string;
 }
 
+export interface CreateOrderLeadAttributionDto {
+  leadId?: string;
+  source?: string;
+  campaignId?: string;
+}
+
 export interface CreateOrderRequestDto {
   contractVersion?: string;
   channel: string;
   externalOrderId: string;
   channelAccountId?: string;
+  leadAttribution?: CreateOrderLeadAttributionDto;
   orderedAt?: string;
   status?: string;
   customer?: CreateOrderCustomerDto;
@@ -80,6 +87,7 @@ export interface CreateOrderRequestDto {
 export interface NormalizedCreateOrder {
   order: Partial<Order>;
   items: Array<Partial<OrderItem>>;
+  leadAttribution?: CreateOrderLeadAttributionDto;
 }
 
 export interface CreateOrderIdempotencyKey {
@@ -93,6 +101,7 @@ const ALLOWED_CREATE_KEYS = new Set([
   'channel',
   'externalOrderId',
   'channelAccountId',
+  'leadAttribution',
   'orderedAt',
   'status',
   'customer',
@@ -190,6 +199,7 @@ export function normalizeCreateOrderRequest(input: CreateOrderRequestDto): Norma
       orderedAt,
     },
     items,
+    leadAttribution: normalizeLeadAttribution(input.leadAttribution),
   };
 }
 
@@ -335,6 +345,39 @@ function normalizeAddress(value?: CreateOrderAddressDto): Order['shippingAddress
     companyName: normalizeOptionalString(value.companyName),
     taxId: normalizeOptionalString(value.taxId),
   };
+}
+
+function normalizeLeadAttribution(value?: CreateOrderLeadAttributionDto): CreateOrderLeadAttributionDto | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new BadRequestException('leadAttribution must be an object');
+  }
+
+  const allowedKeys = new Set(['leadId', 'source', 'campaignId']);
+  const unknownKeys = Object.keys(value).filter((key) => !allowedKeys.has(key));
+  if (unknownKeys.length) {
+    throw new BadRequestException(`Unsupported leadAttribution fields: ${unknownKeys.join(', ')}`);
+  }
+
+  const leadAttribution: CreateOrderLeadAttributionDto = {};
+  const leadId = normalizeAttributionString(value.leadId, 'leadAttribution.leadId');
+  const source = normalizeAttributionString(value.source, 'leadAttribution.source');
+  const campaignId = normalizeAttributionString(value.campaignId, 'leadAttribution.campaignId');
+
+  if (leadId) leadAttribution.leadId = leadId;
+  if (source) leadAttribution.source = source;
+  if (campaignId) leadAttribution.campaignId = campaignId;
+
+  return Object.keys(leadAttribution).length ? leadAttribution : undefined;
+}
+
+function normalizeAttributionString(value: unknown, field: string): string | undefined {
+  const normalized = normalizeOptionalString(value);
+  if (!normalized) return undefined;
+  if (normalized.length > 200) {
+    throw new BadRequestException(`${field} is too long`);
+  }
+  return normalized;
 }
 
 function normalizeString(value: unknown, field: string): string {

@@ -90,14 +90,27 @@ const approval = {
   resultingStatus: 'cancelled',
 };
 
+const createdWithoutAttribution = buildOrderCreatedEvent('order-1001', 'flipflop');
+const createdWithAttribution = buildOrderCreatedEvent('order-1001', 'flipflop', {
+  leadId: 'lead-1001',
+  source: 'lead-form',
+  campaignId: 'campaign-1001',
+});
 const builtEvents = [
-  buildOrderCreatedEvent('order-1001', 'flipflop'),
+  createdWithoutAttribution,
   buildOrderUpdatedEvent('order-1001', 'processing', 'confirmed'),
   buildOrderPaidEvent('order-1001', 'payments-ref-1001'),
   buildOrderShippedEvent('order-1001', 'tracking-must-not-appear'),
   buildOrderCancelledEvent('order-1001', 'processing', approval),
 ];
 
+assert.equal(Object.prototype.hasOwnProperty.call(createdWithoutAttribution.payload, 'leadAttribution'), false);
+assert.deepEqual(createdWithAttribution.payload.leadAttribution, {
+  leadId: 'lead-1001',
+  source: 'lead-form',
+  campaignId: 'campaign-1001',
+});
+assertSafePayload(createdWithAttribution, 'created event with leadAttribution');
 assert.deepEqual(builtEvents.map((event) => event.type).sort(), expectedTypes);
 for (const event of builtEvents) {
   assertSafePayload(event, event.type);
@@ -120,7 +133,11 @@ async function verifyPublisherRoutes() {
     },
   };
 
-  await service.publishOrderCreated('order-1001', 'flipflop');
+  await service.publishOrderCreated('order-1001', 'flipflop', {
+    leadId: 'lead-1001',
+    source: 'lead-form',
+    campaignId: 'campaign-1001',
+  });
   await service.publishOrderUpdated('order-1001', 'processing', { previousStatus: 'confirmed' });
   await service.publishOrderPaid('order-1001', 'payments-ref-1001');
   await service.publishOrderShipped('order-1001', 'tracking-must-not-appear');
@@ -145,6 +162,13 @@ async function verifyPublisherRoutes() {
     assert.equal(message.event.type, message.routingKey);
     assertSafePayload(message.event, 'publisher ' + message.routingKey);
   }
+
+  const createdMessage = published.find((message) => message.routingKey === ORDER_EVENT_TYPES.created);
+  assert.deepEqual(createdMessage.event.payload.leadAttribution, {
+    leadId: 'lead-1001',
+    source: 'lead-form',
+    campaignId: 'campaign-1001',
+  });
 
   assert.equal(JSON.stringify(published).includes('tracking-must-not-appear'), false, 'publisher leaked tracking number');
   assert.equal(JSON.stringify(published).includes('operator@example.invalid'), false, 'publisher leaked approval identity');

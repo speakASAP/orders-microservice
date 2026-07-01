@@ -5,7 +5,7 @@ id: ORDERS-ORDER-EVENT-CONTRACTS
 status: implemented
 owner: Orders owner
 created: 2026-06-13
-last_updated: 2026-06-13
+last_updated: 2026-07-01
 completeness_level: implemented
 upstream:
   - docs/orchestrator/INTENT.md
@@ -52,6 +52,9 @@ RabbitMQ message headers repeat `eventType` and `eventVersion`.
 
 - `orderId`
 - `channel`
+- `leadAttribution.leadId`
+- `leadAttribution.source`
+- `leadAttribution.campaignId`
 - `status`
 - `previousStatus`
 - `paymentStatus`
@@ -62,6 +65,22 @@ RabbitMQ message headers repeat `eventType` and `eventVersion`.
 - `approval.reasonCode`
 - `approval.sideEffectsHandled`
 - `approval.approvedAt`
+
+## Created Event Lead Attribution
+
+`orders.order.created.v1` may include optional `payload.leadAttribution` only when an approved create-order caller supplies explicit attribution metadata:
+
+```json
+{
+  "leadAttribution": {
+    "leadId": "lead-1001",
+    "source": "lead-form",
+    "campaignId": "campaign-1001"
+  }
+}
+```
+
+Allowed nested fields are `leadId`, `source`, and `campaignId`. Orders must not infer lead attribution from customer names, email addresses, phone numbers, shipping or billing addresses, payment fields, notes, or channel-local payloads. If attribution is absent, Orders omits `leadAttribution` from the event payload. Current channel mapping remains blocked until each channel has an approved source field: `[MISSING: channel lead attribution source mapping]`.
 
 ## Forbidden Payload Fields
 
@@ -77,4 +96,4 @@ Fixtures live in `docs/orchestrator/event-fixtures/`. Run:
 npm run verify:event-contracts
 ```
 
-The verifier checks that all five versioned events exist, match the code-level contract helpers, include version metadata, and do not contain forbidden sensitive fields.
+The verifier checks that all five versioned events exist, match the code-level contract helpers, include version metadata, cover optional created-event lead attribution, preserve absence when attribution is not supplied, and do not contain forbidden sensitive fields.

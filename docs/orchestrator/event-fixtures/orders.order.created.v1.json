@@ -6,6 +6,11 @@
   "source": "orders-microservice",
   "payload": {
     "orderId": "order-1001",
-    "channel": "flipflop"
+    "channel": "flipflop",
+    "leadAttribution": {
+      "leadId": "lead-1001",
+      "source": "lead-form",
+      "campaignId": "campaign-1001"
+    }
   }
 }

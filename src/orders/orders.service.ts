@@ -238,7 +238,7 @@ export class OrdersService {
         return manager.save(Order, savedOrder);
       });
 
-      await this.orderEvents.publishOrderCreated(saved.id, saved.channel);
+      await this.orderEvents.publishOrderCreated(saved.id, saved.channel, normalized.leadAttribution);
 
       this.logger.audit(
         {
