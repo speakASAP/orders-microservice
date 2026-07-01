@@ -40,15 +40,15 @@ The endpoint is protected for admin/internal callers. The runtime DTO accepts th
 
 Supported create callers:
 
-| Service caller | Required role | Runtime token environment in Orders | Notes |
-| --- | --- | --- | --- |
-| `flipflop-service` | `internal:flipflop-service:service` | `FLIPFLOP_INTERNAL_SERVICE_TOKEN` | Planned machine-auth header caller for FlipFlop checkout/order-service. |
-| `allegro-service` | `internal:allegro-service:service` | `ALLEGRO_INTERNAL_SERVICE_TOKEN` | Planned machine-auth header caller for Allegro checkout/order ingestion. |
-| `aukro-service` | `internal:aukro-service:service` | `AUKRO_INTERNAL_SERVICE_TOKEN` | Planned machine-auth header caller for Aukro order ingestion. |
-| `bazos-service` | `internal:bazos-service:service` | `BAZOS_INTERNAL_SERVICE_TOKEN` | Planned machine-auth header caller for Bazos promoted lead/order ingestion. |
-| `heureka-service` | `internal:heureka-service:service` | `HEUREKA_INTERNAL_SERVICE_TOKEN` | Current machine-auth header caller wired in source. |
+| Service caller | Required role | Runtime token environment in Orders | Runtime secret source | Notes |
+| --- | --- | --- | --- | --- |
+| `flipflop-service` | `internal:flipflop-service:service` | `FLIPFLOP_INTERNAL_SERVICE_TOKEN` | `secret/prod/flipflop-service#ORDERS_SERVICE_TOKEN` | Orders-side alias for the dedicated FlipFlop-to-Orders token; channel-side header smoke still pending. |
+| `allegro-service` | `internal:allegro-service:service` | `ALLEGRO_INTERNAL_SERVICE_TOKEN` | `secret/prod/allegro-service#JWT_TOKEN` | Orders-side alias for Allegro service token; channel-side auth and `warehouseId` wiring still pending. |
+| `aukro-service` | `internal:aukro-service:service` | `AUKRO_INTERNAL_SERVICE_TOKEN` | `secret/prod/aukro-service#JWT_TOKEN` | Orders-side alias for Aukro service token; channel-side auth and `warehouseId` wiring still pending. |
+| `bazos-service` | `internal:bazos-service:service` | `BAZOS_INTERNAL_SERVICE_TOKEN` | `secret/prod/bazos-service#JWT_TOKEN` | Orders-side alias for Bazos service token; true order webhook support remains to be verified. |
+| `heureka-service` | `internal:heureka-service:service` | `HEUREKA_INTERNAL_SERVICE_TOKEN` | `secret/prod/heureka-service#JWT_TOKEN` | Existing Orders-side alias for Heureka service token; sanitized create smoke still pending. |
 
-Machine-auth requests use `x-internal-service-token` plus `x-service-name`; token values remain runtime-only and must not be logged, decoded, committed, or copied into docs. The role allowlist is now present in Orders, but each caller still needs runtime token wiring and a sanitized create smoke before production rollout.
+Machine-auth requests use `x-internal-service-token` plus `x-service-name`; token values remain runtime-only and must not be logged, decoded, committed, or copied into docs. The role allowlist and Orders-side runtime aliases are present in source, but each caller still needs channel-side header wiring plus a sanitized create/idempotency/Warehouse reservation smoke before production rollout.
 
 ## Request Shape
 

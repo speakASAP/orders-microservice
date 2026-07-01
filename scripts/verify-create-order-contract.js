@@ -111,23 +111,61 @@ assert.match(controllerSource, /CHANNEL_ORDER_CREATE_ROLES/);
 assert.match(controllerSource, /@Roles\(\.\.\.CHANNEL_ORDER_CREATE_ROLES\)/);
 const guardSource = fs.readFileSync(path.join(__dirname, '..', 'src/auth/jwt-roles.guard.ts'), 'utf8');
 const createServiceContracts = [
-  ['flipflop-service', 'FLIPFLOP_INTERNAL_SERVICE_TOKEN', 'internal:flipflop-service:service'],
-  ['allegro-service', 'ALLEGRO_INTERNAL_SERVICE_TOKEN', 'internal:allegro-service:service'],
-  ['aukro-service', 'AUKRO_INTERNAL_SERVICE_TOKEN', 'internal:aukro-service:service'],
-  ['bazos-service', 'BAZOS_INTERNAL_SERVICE_TOKEN', 'internal:bazos-service:service'],
-  ['heureka-service', 'HEUREKA_INTERNAL_SERVICE_TOKEN', 'internal:heureka-service:service'],
+  {
+    serviceName: 'flipflop-service',
+    tokenEnv: 'FLIPFLOP_INTERNAL_SERVICE_TOKEN',
+    role: 'internal:flipflop-service:service',
+    vaultKey: 'secret/prod/flipflop-service',
+    vaultProperty: 'ORDERS_SERVICE_TOKEN',
+  },
+  {
+    serviceName: 'allegro-service',
+    tokenEnv: 'ALLEGRO_INTERNAL_SERVICE_TOKEN',
+    role: 'internal:allegro-service:service',
+    vaultKey: 'secret/prod/allegro-service',
+    vaultProperty: 'JWT_TOKEN',
+  },
+  {
+    serviceName: 'aukro-service',
+    tokenEnv: 'AUKRO_INTERNAL_SERVICE_TOKEN',
+    role: 'internal:aukro-service:service',
+    vaultKey: 'secret/prod/aukro-service',
+    vaultProperty: 'JWT_TOKEN',
+  },
+  {
+    serviceName: 'bazos-service',
+    tokenEnv: 'BAZOS_INTERNAL_SERVICE_TOKEN',
+    role: 'internal:bazos-service:service',
+    vaultKey: 'secret/prod/bazos-service',
+    vaultProperty: 'JWT_TOKEN',
+  },
+  {
+    serviceName: 'heureka-service',
+    tokenEnv: 'HEUREKA_INTERNAL_SERVICE_TOKEN',
+    role: 'internal:heureka-service:service',
+    vaultKey: 'secret/prod/heureka-service',
+    vaultProperty: 'JWT_TOKEN',
+  },
 ];
-for (const [serviceName, tokenEnv, role] of createServiceContracts) {
+for (const { serviceName, tokenEnv, role } of createServiceContracts) {
   assert.ok(controllerSource.includes(role), `Create order controller missing role ${role}`);
   assert.ok(guardSource.includes(`'${serviceName}'`), `Guard missing service ${serviceName}`);
   assert.ok(guardSource.includes(tokenEnv), `Guard missing env ${tokenEnv}`);
   assert.ok(guardSource.includes(role), `Guard missing role ${role}`);
 }
 const contractDoc = fs.readFileSync(path.join(__dirname, '..', 'docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md'), 'utf8');
-for (const [serviceName, tokenEnv, role] of createServiceContracts) {
+for (const { serviceName, tokenEnv, role, vaultKey, vaultProperty } of createServiceContracts) {
   assert.ok(contractDoc.includes(serviceName), `Contract missing service ${serviceName}`);
   assert.ok(contractDoc.includes(tokenEnv), `Contract missing token env ${tokenEnv}`);
   assert.ok(contractDoc.includes(role), `Contract missing role ${role}`);
+  assert.ok(contractDoc.includes(vaultKey), `Contract missing runtime secret source ${vaultKey}`);
+  assert.ok(contractDoc.includes(vaultProperty), `Contract missing runtime secret property ${vaultProperty}`);
+}
+const externalSecretSource = fs.readFileSync(path.join(__dirname, '..', 'k8s/external-secret.yaml'), 'utf8');
+for (const { tokenEnv, vaultKey, vaultProperty } of createServiceContracts) {
+  assert.ok(externalSecretSource.includes(`secretKey: ${tokenEnv}`), `ExternalSecret missing ${tokenEnv}`);
+  assert.ok(externalSecretSource.includes(`key: ${vaultKey}`), `ExternalSecret missing ${vaultKey}`);
+  assert.ok(externalSecretSource.includes(`property: ${vaultProperty}`), `ExternalSecret missing property ${vaultProperty}`);
 }
 for (const required of [
   'items[].productId`: canonical `catalog-microservice` product ID',
