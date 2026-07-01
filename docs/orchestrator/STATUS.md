@@ -1,5 +1,32 @@
 # Orders Orchestrator Status
 
+## 2026-07-01 - Cliplot No-Mutation Order Create Validation
+
+Intent chain:
+
+- Vision: Orders remains the canonical order lifecycle backbone and does not expose live create as a validation shortcut.
+- Goal Impact: Cliplot can prove its `orders.create.v1` payload, caller identity, and idempotency shape before live order creation or Warehouse reservation is approved.
+- System: Orders owns create/idempotency/status/events; Cliplot owns guarded checkout; Warehouse remains stock/reservation authority; Auth owns service identity.
+- Feature: Protected no-mutation create-order validator.
+- Task: add `POST /api/orders/validate-create` with the same create-order roles as live `POST /api/orders`, but without transaction/save/Warehouse/event side effects.
+- Execution Plan: Orders-only endpoint and verifier first, then Cliplot guarded checkout integration.
+- Coding Prompt: do not print token values, customer payloads, production order rows, DB rows, or Warehouse response bodies; keep live create untouched.
+- Code: added `OrdersService.validateCreate`, controller route `POST /orders/validate-create`, and verifier coverage proving no transaction, save, Warehouse reservation, or event publish occurs.
+- Validation: passed. Commands: `git diff --check`, `npm run build`, `npm run verify:create-order-contract`, and full `npm test`.
+
+Deployment evidence:
+
+- Commit `0611e4c feat: validate order create payload without mutation` built and deployed as `localhost:5000/orders-microservice:0611e4c`.
+- `./scripts/deploy.sh` completed successfully; rollout passed and in-pod health returned `status=healthy`.
+- No-token smoke to `POST /api/orders/validate-create` returned HTTP `401`, proving the endpoint remains protected.
+- Cliplot pod smoke with `x-service-name=cliplot-service` and runtime `ORDERS_SERVICE_TOKEN` returned HTTP `201`, `success=true`, `valid=true`, `mutation=false`, `orderCreated=false`, `warehouseMutation=false`, `eventPublished=false`, `channel=cliplot`, `currency=CZK`, `paymentMethod=invoice`, and `idempotencyStatus=available`.
+
+Boundary notes:
+
+- No live order was created, no Warehouse reservation was attempted, and no `orders.order.created.v1` event was published by the validation endpoint.
+- Token values remained runtime-only and were not printed or documented.
+- Live Cliplot order creation still requires approved Warehouse reservation evidence and `ENABLE_LIVE_ORDER_SUBMIT=true` in Cliplot.
+
 ## 2026-07-01 - Cliplot Order Contract Support
 
 Intent chain:

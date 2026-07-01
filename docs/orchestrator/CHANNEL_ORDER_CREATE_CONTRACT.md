@@ -38,6 +38,22 @@ Content-Type: application/json
 
 The endpoint is protected for admin/internal callers. The runtime DTO accepts the contract version `orders.create.v1`. A missing `contractVersion` is tolerated for backward compatibility during migration, but new FlipFlop and marketplace clients should send it.
 
+No-mutation validation endpoint:
+
+```http
+POST /api/orders/validate-create
+Authorization: Bearer <service-or-admin-jwt>
+x-internal-service-token: <runtime-only channel service token>
+x-service-name: <flipflop-service|allegro-service|aukro-service|bazos-service|heureka-service|cliplot-service>
+Content-Type: application/json
+```
+
+`POST /api/orders/validate-create` uses the same role allowlist and request
+shape as live create. It normalizes `orders.create.v1` and checks idempotency
+state, but it does not create an order, save item rows, reserve Warehouse stock,
+or publish order events. It exists for guarded storefront readiness checks such
+as Cliplot checkout validation before live order creation is approved.
+
 Supported create callers:
 
 | Service caller | Required role | Runtime token environment in Orders | Runtime secret source | Notes |

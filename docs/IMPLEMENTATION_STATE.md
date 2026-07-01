@@ -26,8 +26,8 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Cliplot minimal order contract support
-next_recommended_goal: Validate and deploy Cliplot order contract support after owner-approved runtime smoke plan
+current_chunk: Cliplot no-mutation order create validation
+next_recommended_goal: Owner-approved Cliplot live create and Warehouse reservation smoke
 last_completed_goal: Goal 7.4A Orders lead-attribution event contract for Leads
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
@@ -39,6 +39,24 @@ blockers:
 ```
 
 ## Current Checkpoint
+
+2026-07-01: Cliplot no-mutation order create validation is implemented,
+validated, deployed, and smoke-tested. Orders now exposes protected
+`POST /api/orders/validate-create` with the same create-order roles as live
+`POST /api/orders`; it normalizes `orders.create.v1`, checks idempotency state,
+and returns bounded validation metadata without opening a write transaction,
+saving order/item rows, attempting Warehouse reservation, or publishing
+`orders.order.created.v1`. Validation passed: `git diff --check`,
+`npm run build`, `npm run verify:create-order-contract`, and `npm test`.
+Commit `0611e4c` deployed as
+`localhost:5000/orders-microservice:0611e4c`; rollout and health passed.
+Runtime smoke from the Cliplot pod returned HTTP `201`, `valid=true`,
+`mutation=false`, `orderCreated=false`, `warehouseMutation=false`,
+`eventPublished=false`, `channel=cliplot`, and
+`idempotencyStatus=available`. No secrets, token values, customer payloads,
+production rows, DB rows, live order creation, Warehouse mutation, or order
+events were printed or created. Cliplot live order creation remains blocked on
+approved Warehouse reservation evidence.
 
 2026-07-01: Minimal Cliplot order contract support is implemented and validated in source. Orders now accepts create channel `cliplot`, includes `cliplot` in sellable-channel Warehouse reservation and product-sales channel filters, accepts `cliplot-service` as an internal create-order caller, and maps the Orders-side `CLIPLOT_ORDERS_SERVICE_TOKEN` alias from `secret/prod/cliplot-service#ORDERS_SERVICE_TOKEN` with guard fallback support for `CLIPLOT_SERVICE_TOKEN`. Validation passed: `git diff --check`, `npm run build`, `npm run verify:create-order-contract`, and `npm test`. No secret values, decoded JWTs, customer payloads, production order rows, DB rows, payment provider code, destructive DB changes, non-Orders repo edits, or deployment were used. Cliplot runtime remains blocked until Vault sync and an owner-approved create/idempotency/Warehouse reservation smoke exist.
 
