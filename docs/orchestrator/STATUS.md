@@ -39,6 +39,14 @@ Validation evidence:
 - Missing-marker scan: documented blockers only, including `[MISSING: DocsRAG session JWT]`, `[MISSING: channel lead attribution source mapping]`, pre-existing IPS/auth/monitoring debt, and Bazos provider-backed webhook unknown.
 - Added-line sensitive literal scan: pass; no raw secret, bearer/JWT, email-like, or password-like literals were added. A broader source scan still sees the pre-existing `process.env.DB_PASSWORD` environment reference, not a raw value.
 
+Deployment evidence:
+
+- Owner approved continuation after source review; deployment was run with `./scripts/deploy.sh`.
+- Image built and pushed as `localhost:5000/orders-microservice:5e97a1d` with digest `sha256:77a7f4606a5c9ba42981c31f04761b124393d5a49dec4288af8b5a6d38bbb62d`; `latest` points to the same digest.
+- Kubernetes rollout completed successfully; in-pod `/health` returned `status=healthy` for `orders-microservice`.
+- Post-deploy deployment snapshot: image `localhost:5000/orders-microservice:5e97a1d`, replicas `1`, updated `1`, ready `1`, available `1`.
+- External health `https://orders.alfares.cz/health` returned `status=healthy`.
+
 Boundary notes:
 
 - No Leads, Marketing, Notifications, channel, Warehouse, Catalog, Auth, marketplace, or non-Orders repo was edited.
