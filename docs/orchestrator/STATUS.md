@@ -1,5 +1,49 @@
 # Orders Orchestrator Status
 
+## 2026-07-01 - Goal 7.2B Orders Warehouse Token Trim And Allegro Smoke
+
+Intent chain:
+
+- Vision: Orders remains the canonical lifecycle owner while Warehouse remains stock/reservation authority for sellable channels.
+- Goal Impact: Allegro can complete the first sanitized canonical create/idempotency/reservation smoke without Orders inventing local stock truth.
+- System: Auth owns service identity/RBAC; Orders owns create/idempotency/status; Warehouse owns reservation lifecycle; Allegro owns channel caller headers and payload mapping.
+- Feature: Goal 7.2B Allegro create-order runtime readiness.
+- Task: rotate/fix Orders-to-Warehouse runtime credential handling, deploy Orders, and rerun the owner-approved Allegro synthetic smoke.
+- Execution Plan: use Auth service principal provisioning without printing token values, store only `WAREHOUSE_SERVICE_TOKEN` in Vault, force ESO sync, deploy the smallest Orders client fix, then create/replay/cancel a synthetic Allegro order.
+- Coding Prompt: no raw Vault values, decoded JWTs, customer payloads, production order rows, DB row dumps, or payment data; record only bounded synthetic ids/statuses and env key names.
+- Code: `src/warehouse/warehouse-reservation.client.ts` now trims `WAREHOUSE_SERVICE_TOKEN` or `WAREHOUSE_INTERNAL_SERVICE_TOKEN` before building the Axios `Authorization` header; `scripts/verify-warehouse-handoff-contract.js` covers raw newline and prefixed newline token shapes.
+- Validation: passed. Commands/evidence: `git diff --check`, `npm run build`, `npm run verify:warehouse-handoff`, `npm run verify:order-reservation-gate`, `npm test`, Auth/Vault/Kubernetes secret key-name checks without values, post-deploy Axios reserve/cancel, and owner-approved Allegro create/replay/cancel smoke.
+
+Runtime credential evidence:
+
+- Auth service principal provisioning dry-run reported `wouldCreateUser=true`, `wouldAssignRole=true` for `orders-microservice` with `internal:warehouse-microservice:admin`.
+- Apply created service principal `orders-warehouse-service@internal.alfares.cz` as `userType=service`, assigned `internal:warehouse-microservice:admin`, emitted a JWT only to a `0600` temp file, and did not print the token.
+- Auth `/auth/validate` for the emitted token returned valid service identity with `serviceName=orders-microservice` and the Warehouse admin role.
+- Vault key `secret/prod/orders-microservice#WAREHOUSE_SERVICE_TOKEN` was patched from stdin without printing the value; ExternalSecret `orders-microservice-secret` synced and the Kubernetes Secret key validated as Auth-valid through an in-pod check.
+- Temp JWT files were removed from Auth, Allegro, and remote `/tmp` after smoke.
+
+Bug and fix:
+
+- Before the code fix, Warehouse protected reads and direct `fetch` reserve/cancel worked, but Axios reserve from Orders failed with `Invalid character in header content ["Authorization"]`.
+- Root cause: the runtime token value was valid but contained surrounding whitespace/newline; `WarehouseReservationClient` checked `token?.trim()` but used the untrimmed value in the Axios header.
+- Commit `43f9774 fix: trim warehouse reservation token` trims the selected runtime token before preserving a `Bearer ` prefix or adding one.
+
+Deployment evidence:
+
+- `./scripts/deploy.sh` built and pushed `localhost:5000/orders-microservice:43f9774` with digest `sha256:63407ca9b7bafce13798530a4dbef68f62a351a76f2b12f6c0e95980d4b3ff41`.
+- Rollout completed successfully after a slow local image pull; in-pod `/health` returned `status=healthy`.
+- Active deployment image is `localhost:5000/orders-microservice:43f9774`, ready `1/1`, updated `1`.
+- Post-deploy Axios reserve/cancel from the Orders pod succeeded for synthetic order `codex-axios-reserve-1782895016472` and returned stock to the prior available/reserved counts.
+
+Smoke evidence:
+
+- Owner-approved Allegro smoke from the live Allegro pod used `orders.create.v1`, `x-internal-service-token`, `x-service-name=allegro-service`, stable synthetic `channelAccountId=codex-allegro-smoke-account`, Catalog product `c0de0000-0000-4000-8000-000000000011`, Warehouse-owned `warehouseId=c0de0000-0000-4000-8000-000000000013`, quantity `1`, and synthetic external order id `codex-allegro-smoke-1782895044726`.
+- Create returned HTTP 201 with order `6898c3fa-e3e8-4eed-a723-11b58fc2ea3b`, `warehouseHandoff.status=reserved`, `reservedCount=1`, `failedCount=0`, `reasonCode=ORDER_CREATE_RESERVATION`.
+- Exact idempotent replay returned HTTP 201, `sameOrder=true`, and the same `warehouseHandoff.status=reserved`, proving no duplicate order/reservation side effect on replay.
+- Owner-approved cleanup cancellation returned HTTP 200 with order status `cancelled`, `warehouseHandoff.status=cancelled`, `reservedCount=1`, `failedCount=0`, `reasonCode=ORDER_CANCELLED`.
+- Warehouse readback for order `6898c3fa-e3e8-4eed-a723-11b58fc2ea3b` returned HTTP 200, `totalReservations=1`, `active=0`, `cancelled=1`.
+- Boundary: no Orders production customer data, production order rows, raw Allegro payloads, token values, decoded JWTs, or payment data were printed.
+
 ## 2026-07-01 - Goal 7.2 Orders Runtime Credential And Deploy Gate
 
 Intent chain:
