@@ -12,7 +12,9 @@ const authInventory = fs.readFileSync(path.join(repoRoot, 'docs/orchestrator/202
 function assertAuthServiceJwtContract() {
   assert.match(clientSource, /process\.env\.WAREHOUSE_SERVICE_TOKEN/);
   assert.match(clientSource, /process\.env\.WAREHOUSE_INTERNAL_SERVICE_TOKEN/);
+  assert.match(clientSource, /rawToken\?\.trim\(\)/);
   assert.match(clientSource, /Authorization:\s*token\.startsWith\('Bearer '\)\s*\?\s*token\s*:\s*`Bearer \$\{token\}`/);
+  assert.doesNotMatch(clientSource, /Authorization:\s*rawToken/);
   assert.doesNotMatch(clientSource, /JwtService|jwtService\.sign|jwt\.sign|JWT_SECRET/);
 
   for (const doc of [handoffContract, authInventory]) {
@@ -67,7 +69,7 @@ async function run() {
     assert.equal(result.reservedCount, 0);
   });
 
-  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_RESERVATION_TTL_MINUTES: '30', WAREHOUSE_SERVICE_TOKEN: 'test-warehouse-token' }, async () => {
+  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_RESERVATION_TTL_MINUTES: '30', WAREHOUSE_SERVICE_TOKEN: '  test-warehouse-token\n' }, async () => {
     const calls = [];
     const client = new WarehouseReservationClient({
       post(url, payload, config) {
@@ -133,7 +135,7 @@ async function run() {
     assert.equal(JSON.stringify(result).includes('requested quantity'), false);
   });
 
-  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_INTERNAL_SERVICE_TOKEN: 'Bearer existing-prefix-token' }, async () => {
+  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_INTERNAL_SERVICE_TOKEN: '\nBearer existing-prefix-token\n' }, async () => {
     const order = makeOrder();
     const item = order.items[0];
     const calls = [];
