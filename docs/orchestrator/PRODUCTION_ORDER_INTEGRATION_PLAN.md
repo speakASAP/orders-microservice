@@ -6,7 +6,7 @@ status: active
 owner: Orders owner
 created: 2026-06-30
 last_updated: 2026-07-01
-completeness_level: planning-plus-first-slice
+completeness_level: channel-smokes-integrated
 upstream:
   - docs/orchestrator/INTENT.md
   - docs/orchestrator/GOALS.md
@@ -53,15 +53,27 @@ Only secret key names and ExternalSecret sync status were inspected; no token va
 
 Channel repositories still own caller header implementation, `warehouseId` forwarding, and sanitized create/idempotency/Warehouse reservation smokes.
 
+## 2026-07-01 Channel Smoke Integration
+
+Goal 7.2 channel caller header/`warehouseId` wiring and sanitized smoke evidence is integrated:
+
+- FlipFlop: `reports/validation/orders-readiness-smoke/report-latest.json` passed with owner-approved live smoke, auth accepted, HTTP 201, `orders.create.v1`, central order ID present, and Warehouse reservation status present. Current repo is clean; later `bcd1eb6` is separate FlipFlop lifecycle work.
+- Heureka: commit `ac26098` records final sanitized Orders/Warehouse smoke pass with create/replay/cleanup, reservation status present, and status `reserved`. The current Heureka dirty worktree contains separate dashboard/feed/admin changes and is not part of Orders Goal 7.2.
+- Allegro: commit `ec6f97a` forwards the Warehouse-owned UUID, and `ac56dc4` records the successful Warehouse UUID smoke after the earlier non-UUID blocker.
+- Aukro: `4e11cdb`, `df8d16e`, and `12f445e` record runtime token mapping, live Orders smoke, and cleanup.
+- Bazos: `230c6b5` deployed runtime token fallback and `c028495` records owner-approved create/replay/cancel Warehouse reservation smoke. True live Bazos marketplace webhook support remains `[UNKNOWN: live Bazos marketplace webhook support]`.
+
+All relevant Kubernetes deployments were observed ready `1/1`. No raw token values, decoded JWTs, customer payloads, production order rows, DB rows, or payment data were printed. No channel source was edited by this coordinator integration pass.
+
 ## Application Decisions
 
 | Application or service | Current decision | Production requirement |
 | --- | --- | --- |
-| FlipFlop | Channel create path is source-ready, but repo has unrelated dirty files. | Keep as first production smoke once caller auth and dirty worktree are controlled. Must send `orders.create.v1`, stable `channelAccountId`, canonical Catalog product IDs, and `warehouseId`. |
-| Heureka | Channel create path is source-ready and clean. | Keep as second production smoke. It already sends machine-auth headers and derives/validates `warehouseId`. |
-| Allegro | Not ready for canonical Orders create. | Add accepted Orders auth headers/token wiring and include Warehouse `warehouseId` in forwarded items before enabling actual create. |
-| Aukro | Not ready for canonical Orders create. | Add accepted Orders auth headers/token wiring and include Warehouse `warehouseId`; forwarding failure must not silently count as production success. |
-| Bazos / Bazosh spelling | Only true sellable Bazos orders should feed Orders. | Resolve `[UNKNOWN: live Bazos marketplace webhook support]`; add auth headers and `warehouseId`; ad publishing/compliance remain Bazos-local. |
+| FlipFlop | Goal 7.2 smoke passed. | Keep `orders.create.v1`, stable `channelAccountId`, canonical Catalog product IDs, Warehouse-owned `warehouseId`, and dedicated Orders token path under regression coverage. |
+| Heureka | Goal 7.2 smoke passed; current repo dirty with separate dashboard/feed/admin lane. | Do not mix the dirty dashboard/feed work into Orders Goal 7. Keep machine-auth headers and Warehouse route derivation under regression coverage. |
+| Allegro | Goal 7.2B Warehouse UUID smoke passed. | Keep accepted Orders auth headers and Warehouse-owned UUID forwarding; do not regress to non-UUID stock warehouse names. |
+| Aukro | Goal 7.2B live Orders smoke and cleanup passed. | Keep accepted Orders auth headers, Warehouse route forwarding, and failure visibility under regression coverage. |
+| Bazos / Bazosh spelling | Goal 7.2B synthetic Orders/Warehouse smoke passed; provider-backed order ingestion still unknown. | Keep auth headers and `warehouseId` guard; resolve `[UNKNOWN: live Bazos marketplace webhook support]` before claiming true live provider-backed Bazos order ingestion. |
 | Catalog | Consumer of protected product sales statistics. | Continue using Auth-owned `CATALOG_INTERNAL_SERVICE_TOKEN`; Catalog remains product truth and never stores order truth. |
 | Warehouse | Stock and reservation authority. | Orders create must keep failing closed unless Warehouse reservation returns `reserved`. |
 | Payments | Payment identity and reconciliation authority. | Use bounded `orders.payment-status.v1`; no provider sessions, variable symbols, refunds, or reconciliation in Orders. |
@@ -78,15 +90,15 @@ Channel repositories still own caller header implementation, `warehouseId` forwa
 | Workstream | Status | Owner role | Scope | Allowed files | Forbidden files | Dependencies | Validation evidence | Handoff notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 7.1 Orders contract/RBAC | complete | coordinator | Orders create caller roles and IPS plan | `src/auth/jwt-roles.guard.ts`, `src/orders/orders.controller.ts`, `scripts/verify-create-order-contract.js`, Orders docs | Neighbor service files, secrets, DB data | None beyond remote access | `npm run build`, `npm run verify:create-order-contract`, `git diff --check`, `npm test` | Source allowlist completed in `d1c5a48`; runtime deploy completed through 7.2 gate `342f003`. |
-| 7.2A FlipFlop + Heureka smoke prep | ready now | channel integration agent | Verify/create caller auth headers, clean dirty risk, design sanitized create smoke | Channel repo verification scripts/docs only unless owner starts code lane | Orders shared docs, DB rows, secrets | Orders runtime credential gate deployed in `342f003` | Existing verifier plus sanitized no-secret smoke plan | FlipFlop should send the dedicated Orders token through `x-internal-service-token`; Heureka uses its service token alias. |
-| 7.2B Allegro/Aukro/Bazos auth + `warehouseId` | ready now | channel integration agent | Add auth headers and Warehouse route mapping in each channel | One channel repo per agent; shared order client in that repo only | Orders repo, other channel repos, shared public contract | Channel repo dirty worktree review; Orders runtime credential gate deployed in `342f003` | Focused mapper/client specs and build | Split into three agents to avoid cross-repo conflicts. |
+| 7.2A FlipFlop + Heureka smoke prep | complete | channel integration agent | Verify/create caller auth headers and sanitized create/replay/reservation smoke | Channel repo verification scripts/docs only unless owner starts code lane | Orders shared docs, DB rows, secrets | Orders runtime credential gate deployed in `342f003`; Orders Warehouse token trim deployed in `43f9774` | FlipFlop report-latest pass; Heureka `ac26098` pass | Heureka has unrelated dirty dashboard/feed/admin work; leave it isolated. |
+| 7.2B Allegro/Aukro/Bazos auth + `warehouseId` | complete with Bazos provider caveat | channel integration agent | Add auth headers and Warehouse route mapping in each channel, then smoke create/replay/cleanup | One channel repo per agent; shared order client in that repo only | Orders repo, other channel repos, shared public contract | Orders runtime credential gate deployed in `342f003`; Orders Warehouse token trim deployed in `43f9774` | Allegro `ac56dc4`, Aukro `12f445e`, Bazos `c028495` | Bazos provider-backed marketplace order support remains `[UNKNOWN: live Bazos marketplace webhook support]`; synthetic/internal smoke passed. |
 | 7.4 Leads/Marketing/Notifications consumers | ready as design lane | event consumer agent | Add or plan `orders.events` consumers | One consumer repo per agent | Orders create flow, channel adapters, campaign execution without owner policy | Queue naming and replay/idempotency decision | Consumer contract tests, event fixture tests, no raw payloads | Start with docs/contract if runtime queue standards are unclear. |
 | 7.5 Non-marketplace decisions | blocked for coding | domain integration owner | Marathon/SpeakASAP/School/Rentabox contract decisions | Per-app contract docs only | Runtime code, payment/provider data, participant/customer data | Owner approval per application | Decision doc with exact boundaries | Default is domain-local; no code until owner-approved contract. |
-| 7.6 Integration and deploy | final integration | coordinator | Combined readiness gate and deployment | Orders docs/status plus deploy scripts only if deploy is approved | Secrets, destructive DB operations, channel runtime mutation without lane evidence | 7.2 and 7.4 evidence | Build/test/smoke/deploy evidence | Deploy only after clean integrated evidence. |
+| 7.6 Integration and deploy | complete for 7.2 | coordinator | Combined channel readiness gate and deployment evidence | Orders docs/status plus deploy scripts only if deploy is approved | Secrets, destructive DB operations, channel runtime mutation without lane evidence | 7.2 evidence | Channel reports plus Orders health/deployment evidence | No Orders redeploy required for this docs-only integration pass. |
 
 ## Immediate Next Work
 
-1. Start channel-specific workers for FlipFlop, Heureka, Allegro, Aukro, and Bazos create-order headers plus `warehouseId` forwarding after each channel dirty worktree is classified.
-2. Run sanitized create/idempotency/Warehouse reservation smokes against live Orders now that the Orders-side runtime credential gate is deployed.
-3. Start consumer design for Leads, Marketing, and Notifications `orders.events` handling.
-4. Keep Marathon/SpeakASAP/School Committee/Rentabox out of Orders until separate owner-approved contracts exist.
+1. Start consumer design for Leads, Marketing, and Notifications `orders.events` handling.
+2. Keep Bazos provider-backed marketplace order ingestion marked `[UNKNOWN: live Bazos marketplace webhook support]` until a real provider contract exists.
+3. Keep Marathon/SpeakASAP/School Committee/Rentabox out of Orders until separate owner-approved contracts exist.
+4. Treat the current Heureka dirty dashboard/feed/admin worktree as a separate lane, not an Orders Goal 7.2 blocker.

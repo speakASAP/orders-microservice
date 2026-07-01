@@ -1,3 +1,55 @@
+## 2026-07-01 - Goal 7.2 Channel Smoke Integration
+
+Current focus:
+
+- Integrate the completed channel caller header, Warehouse `warehouseId`, and sanitized create/idempotency/reservation smoke evidence into Orders coordinator state.
+
+Intent Preservation Chain:
+
+- Vision: Orders remains the canonical order lifecycle and statistics backbone for supported sellable channels.
+- Goal Impact: FlipFlop, Heureka, Allegro, Aukro, and Bazos can authenticate to Orders, send `orders.create.v1`, preserve idempotency, and prove Warehouse reservation handoff without duplicating order truth.
+- System: Orders owns canonical order lifecycle and Warehouse handoff requirement; channel services own channel ingestion and caller headers; Warehouse owns stock/reservation truth; Auth owns service identity.
+- Feature: Goal 7.2 channel create caller readiness.
+- Task: classify current repo state, preserve dirty worktree boundaries, consolidate channel smoke evidence, and update Orders coordinator docs.
+- Execution Plan: inspect remote status/logs/reports read-only, do not edit channel repos, update only Orders coordinator docs, run docs validation.
+- Coding Prompt: remote-only on `alfares`; no local Orders source writes; no raw secrets, decoded JWTs, customer data, DB rows, production order rows, or payment data.
+- Code: `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/PRODUCTION_ORDER_INTEGRATION_PLAN.md`, `docs/orchestrator/STATUS.md`.
+- Validation: `git diff --check` for docs patch; no Orders build/deploy required because no runtime source changed.
+
+Read-only repo state:
+
+- `orders-microservice`: clean on `main`, latest `4abcaba`, deployed image observed as `localhost:5000/orders-microservice:43f9774`, deployment ready `1/1`.
+- `flipflop-service`: clean on `main`; Orders readiness smoke report is present and passing. Later head `bcd1eb6` is separate FlipFlop lifecycle work and not used as the Orders smoke evidence anchor.
+- `heureka-service`: dirty with dashboard/feed/admin/auth/report changes (`TASK-009`, feed mutation guard, dashboard module, JWT user context, Dockerfile/README/report updates). Classified as separate Heureka work, not an Orders Goal 7.2 credential-gate change.
+- `allegro-service`, `aukro-service`, and `bazos-service`: clean on `main` with Goal 7.2 smoke evidence commits recorded.
+
+Channel evidence:
+
+- FlipFlop `reports/validation/orders-readiness-smoke/report-latest.json`: `ok=true`, owner-approved live smoke, auth accepted, HTTP 201, central Orders ID present, `contractVersion=orders.create.v1`, and Warehouse reservation status present.
+- Heureka `ac26098 docs: record Heureka Orders smoke pass`: final sanitized smoke supersedes earlier reservation blockers; create/replay/cleanup evidence includes reservation status present and `reserved`.
+- Allegro `ec6f97a fix: use warehouse uuid for order forwarding` plus `ac56dc4 docs: record allegro orders warehouse uuid smoke`: smoke passed after forwarding a Warehouse-owned UUID instead of non-UUID stock warehouse name.
+- Aukro `4e11cdb fix: map aukro warehouse token to auth service credential`, `df8d16e docs: record aukro orders live smoke`, and `12f445e docs: record aukro live smoke cleanup`: live smoke and cleanup are recorded.
+- Bazos `230c6b5 fix: align Bazos Orders auth token runtime fallback` plus `c028495 docs: record Bazos warehouse reservation smoke pass`: owner-approved create/replay/cancel Warehouse reservation smoke passed. True provider-backed Bazos marketplace order ingestion remains `[UNKNOWN: live Bazos marketplace webhook support]`.
+
+Deployment evidence:
+
+- Kubernetes readiness snapshot showed Orders, FlipFlop order service, Heureka, Allegro, Aukro, Bazos, and Warehouse deployments ready `1/1`.
+- No deploy was run in this coordinator pass because the work is documentation-only and the runtime evidence was already deployed by the channel/Orders lanes.
+
+Sensitive-data handling:
+
+- No raw token values, decoded JWTs, customer payloads, production order rows, DB rows, Vault values, Warehouse response bodies beyond bounded smoke counters, or payment data were printed or changed.
+
+Gate decision:
+
+- Goal 7.2 channel caller header/`warehouseId` wiring and sanitized smokes: accept at the Orders coordinator level.
+- Remaining Goal 7 work moves to 7.4 `orders.events` consumer design for Leads, Marketing, and Notifications, plus separate owner-approved non-marketplace app contracts.
+- Heureka's current dirty dashboard/feed/admin worktree must stay isolated from this Orders coordinator docs integration.
+
+Next unfinished chunk:
+
+- Start Goal 7.4 design for Leads, Marketing, and Notifications `orders.events` consumers, or separately resolve the Heureka dashboard/feed lane outside Orders Goal 7.2.
+
 # Orders Orchestrator Status
 
 ## 2026-07-01 - Goal 7.2B Orders Warehouse Token Trim And Allegro Smoke
