@@ -5,7 +5,7 @@ id: ORDERS-PRODUCTION-ORDER-INTEGRATION-PLAN
 status: active
 owner: Orders owner
 created: 2026-06-30
-last_updated: 2026-06-30
+last_updated: 2026-07-01
 completeness_level: planning-plus-first-slice
 upstream:
   - docs/orchestrator/INTENT.md
@@ -39,6 +39,20 @@ Orders already has the core order backbone: `orders.create.v1`, deterministic id
 
 DocsRAG was not queried because this session has no `JWT_TOKEN`; this is recorded as `[MISSING: DocsRAG session JWT]`. Repository source-of-truth docs and remote read-only audits were used as compensating evidence.
 
+## 2026-07-01 Orders Runtime Credential Gate
+
+Orders-side runtime credential aliases are now mapped and deployed for all supported channel service callers:
+
+- `FLIPFLOP_INTERNAL_SERVICE_TOKEN` from `secret/prod/flipflop-service#ORDERS_SERVICE_TOKEN`.
+- `ALLEGRO_INTERNAL_SERVICE_TOKEN` from `secret/prod/allegro-service#JWT_TOKEN`.
+- `AUKRO_INTERNAL_SERVICE_TOKEN` from `secret/prod/aukro-service#JWT_TOKEN`.
+- `BAZOS_INTERNAL_SERVICE_TOKEN` from `secret/prod/bazos-service#JWT_TOKEN`.
+- `HEUREKA_INTERNAL_SERVICE_TOKEN` from `secret/prod/heureka-service#JWT_TOKEN`.
+
+Only secret key names and ExternalSecret sync status were inspected; no token values were printed, decoded, created, or committed. Commit `342f003` deployed the 7.1 allowlist plus this Orders-side runtime mapping as `localhost:5000/orders-microservice:342f003`, and runtime env-name presence confirmed all five aliases.
+
+Channel repositories still own caller header implementation, `warehouseId` forwarding, and sanitized create/idempotency/Warehouse reservation smokes.
+
 ## Application Decisions
 
 | Application or service | Current decision | Production requirement |
@@ -63,16 +77,16 @@ DocsRAG was not queried because this session has no `JWT_TOKEN`; this is recorde
 
 | Workstream | Status | Owner role | Scope | Allowed files | Forbidden files | Dependencies | Validation evidence | Handoff notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 7.1 Orders contract/RBAC | in progress | coordinator | Orders create caller roles and IPS plan | `src/auth/jwt-roles.guard.ts`, `src/orders/orders.controller.ts`, `scripts/verify-create-order-contract.js`, Orders docs | Neighbor service files, secrets, DB data, deployment manifests unless credential lane starts | None beyond remote access | `npm run build`, `npm run verify:create-order-contract`, `git diff --check`, `npm test` if time permits | This slice only allows configured service actors; it does not create token secrets. |
-| 7.2A FlipFlop + Heureka smoke prep | ready now | channel integration agent | Verify existing caller auth, clean dirty risk, design sanitized create smoke | Channel repo verification scripts/docs only unless owner starts code lane | Orders shared docs, DB rows, secrets | 7.1 merged/deployed for role allowlist if using machine-auth roles | Existing verifier plus sanitized no-secret smoke plan | FlipFlop dirty worktree must be resolved or isolated before deploy. |
-| 7.2B Allegro/Aukro/Bazos auth + `warehouseId` | ready after lane assignment | channel integration agent | Add auth headers and Warehouse route mapping in each channel | One channel repo per agent; shared order client in that repo only | Orders repo, other channel repos, shared public contract | Channel repo dirty worktree review | Focused mapper/client specs and build | Split into three agents to avoid cross-repo conflicts. |
+| 7.1 Orders contract/RBAC | complete | coordinator | Orders create caller roles and IPS plan | `src/auth/jwt-roles.guard.ts`, `src/orders/orders.controller.ts`, `scripts/verify-create-order-contract.js`, Orders docs | Neighbor service files, secrets, DB data | None beyond remote access | `npm run build`, `npm run verify:create-order-contract`, `git diff --check`, `npm test` | Source allowlist completed in `d1c5a48`; runtime deploy completed through 7.2 gate `342f003`. |
+| 7.2A FlipFlop + Heureka smoke prep | ready now | channel integration agent | Verify/create caller auth headers, clean dirty risk, design sanitized create smoke | Channel repo verification scripts/docs only unless owner starts code lane | Orders shared docs, DB rows, secrets | Orders runtime credential gate deployed in `342f003` | Existing verifier plus sanitized no-secret smoke plan | FlipFlop should send the dedicated Orders token through `x-internal-service-token`; Heureka uses its service token alias. |
+| 7.2B Allegro/Aukro/Bazos auth + `warehouseId` | ready now | channel integration agent | Add auth headers and Warehouse route mapping in each channel | One channel repo per agent; shared order client in that repo only | Orders repo, other channel repos, shared public contract | Channel repo dirty worktree review; Orders runtime credential gate deployed in `342f003` | Focused mapper/client specs and build | Split into three agents to avoid cross-repo conflicts. |
 | 7.4 Leads/Marketing/Notifications consumers | ready as design lane | event consumer agent | Add or plan `orders.events` consumers | One consumer repo per agent | Orders create flow, channel adapters, campaign execution without owner policy | Queue naming and replay/idempotency decision | Consumer contract tests, event fixture tests, no raw payloads | Start with docs/contract if runtime queue standards are unclear. |
 | 7.5 Non-marketplace decisions | blocked for coding | domain integration owner | Marathon/SpeakASAP/School/Rentabox contract decisions | Per-app contract docs only | Runtime code, payment/provider data, participant/customer data | Owner approval per application | Decision doc with exact boundaries | Default is domain-local; no code until owner-approved contract. |
 | 7.6 Integration and deploy | final integration | coordinator | Combined readiness gate and deployment | Orders docs/status plus deploy scripts only if deploy is approved | Secrets, destructive DB operations, channel runtime mutation without lane evidence | 7.2 and 7.4 evidence | Build/test/smoke/deploy evidence | Deploy only after clean integrated evidence. |
 
 ## Immediate Next Work
 
-1. Finish validating 7.1 in Orders.
-2. Start channel-specific workers for Allegro, Aukro, and Bazos `warehouseId` plus auth wiring after their dirty worktrees are classified.
+1. Start channel-specific workers for FlipFlop, Heureka, Allegro, Aukro, and Bazos create-order headers plus `warehouseId` forwarding after each channel dirty worktree is classified.
+2. Run sanitized create/idempotency/Warehouse reservation smokes against live Orders now that the Orders-side runtime credential gate is deployed.
 3. Start consumer design for Leads, Marketing, and Notifications `orders.events` handling.
 4. Keep Marathon/SpeakASAP/School Committee/Rentabox out of Orders until separate owner-approved contracts exist.

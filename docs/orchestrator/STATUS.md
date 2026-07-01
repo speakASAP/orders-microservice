@@ -1,5 +1,72 @@
 # Orders Orchestrator Status
 
+## 2026-07-01 - Goal 7.2 Orders Runtime Credential And Deploy Gate
+
+Intent chain:
+
+- Vision: Orders is the canonical order lifecycle and statistics backbone for supported sellable channels.
+- Goal Impact: channel services can authenticate to the live `POST /api/orders` guard with least-privilege service identities before per-channel create smokes.
+- System: Orders owns create/idempotency/status/events; Auth owns identity/RBAC; channel services own their caller tokens and header wiring; Warehouse remains stock/reservation authority.
+- Feature: Goal 7 production order integration rollout.
+- Task: prepare the Orders-side runtime credential and deploy gate for Goal 7.2 without editing channel repositories or printing token values.
+- Execution Plan: single-owner Orders manifest/verifier/docs update; deploy only after validation and Kubernetes dry-run; channel code and smoke lanes remain separate.
+- Coding Prompt: do not create or print Vault values, decoded JWTs, customer data, DB rows, or production orders; inspect only structural secret key names and runtime env-name presence.
+- Code: updated `k8s/external-secret.yaml`, `scripts/verify-create-order-contract.js`, `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md`, `docs/orchestrator/CONTEXT_PACKAGE.md`, and `docs/orchestrator/EXECUTION_PLAN.md`.
+- Validation: passed. Commands: `git diff --check`, `npm run build`, `npm run verify:create-order-contract`, `npm test`, Kubernetes server dry-run for `k8s/external-secret.yaml`, sensitive literal scan, missing-marker scan with documented blockers, `./scripts/deploy.sh`, rollout status, external `/health`, and runtime env-name presence check.
+
+Preflight and deployed-state evidence:
+
+- Remote source was clean on `main` at `d1c5a48 feat: plan production order integration`; `d1c5a48` was present and equal to `origin/main`.
+- Before this lane, Kubernetes deployed image was `localhost:5000/orders-microservice:dba03dc`, so the 7.1 allowlist commit was present in source but not deployed.
+- Before this lane, live Orders runtime exposed only `HEUREKA_INTERNAL_SERVICE_TOKEN` among the five requested channel token aliases; FlipFlop, Allegro, Aukro, and Bazos aliases were missing.
+- Existing channel ExternalSecrets were structurally ready without printing values: FlipFlop secret exposed key names `JWT_TOKEN` and `ORDERS_SERVICE_TOKEN`; Allegro, Aukro, Bazos, and Heureka exposed `JWT_TOKEN`; all five channel ExternalSecrets reported `SecretSynced=True`.
+- DocsRAG was not queried because no session `JWT_TOKEN` was available: `[MISSING: DocsRAG session JWT]`.
+
+Implementation evidence:
+
+- Orders ExternalSecret now maps `FLIPFLOP_INTERNAL_SERVICE_TOKEN` from `secret/prod/flipflop-service#ORDERS_SERVICE_TOKEN`.
+- Orders ExternalSecret now maps `ALLEGRO_INTERNAL_SERVICE_TOKEN`, `AUKRO_INTERNAL_SERVICE_TOKEN`, and `BAZOS_INTERNAL_SERVICE_TOKEN` from each channel service `JWT_TOKEN` property.
+- Existing `HEUREKA_INTERNAL_SERVICE_TOKEN` mapping remains `secret/prod/heureka-service#JWT_TOKEN`.
+- `scripts/verify-create-order-contract.js` now verifies the guard roles, contract doc, and ExternalSecret mappings for all five supported channel service callers.
+
+Validation evidence:
+
+- `git diff --check`: pass.
+- `npm run build`: pass.
+- `npm run verify:create-order-contract`: pass; create order contract verification ok.
+- `npm test`: pass; build plus transition, sensitive logging, create-order, idempotency, duplicate protection, reservation gate, event, warehouse, payment, pricing, product statistics, and admin operations verifiers all passed.
+- `kubectl apply --dry-run=server -f k8s/external-secret.yaml -n statex-apps`: pass; ExternalSecret configured in server dry-run.
+- Sensitive literal scan: pass; no raw secret/token literals reported.
+- Missing-marker scan: documented blockers only, including `[MISSING: DocsRAG session JWT]`, pre-existing parallel handoff debt, and existing non-current auth/monitoring markers.
+
+Deployment evidence:
+
+- Pre-applied `k8s/external-secret.yaml`, forced ESO reconcile, and verified the Kubernetes Secret exposes all five requested channel token key names without printing values.
+- Commit `342f003 chore: wire channel order caller tokens` was deployed with `./scripts/deploy.sh`.
+- Image built and pushed as `localhost:5000/orders-microservice:342f003` with digest `sha256:d864e64aecbc7bb939108524e870822c0b05669a7893409474ac031197b438be`; `latest` was pushed to the same digest.
+- Kubernetes rollout completed successfully in 254.51s; in-pod `/health` returned `status=healthy`.
+- Post-deploy rollout status passed; deployment spec is `1` replica, `1` updated, `1` ready, active image `localhost:5000/orders-microservice:342f003`.
+- External health `https://orders.alfares.cz/health` returned HTTP 200 with body `status=healthy` at `2026-07-01T06:46:39.616Z`.
+- Runtime env-name presence check in the new pod reported all five aliases present: `FLIPFLOP_INTERNAL_SERVICE_TOKEN`, `ALLEGRO_INTERNAL_SERVICE_TOKEN`, `AUKRO_INTERNAL_SERVICE_TOKEN`, `BAZOS_INTERNAL_SERVICE_TOKEN`, and `HEUREKA_INTERNAL_SERVICE_TOKEN`.
+- The prior `dba03dc` pod was observed terminating and no longer counted by the deployment replica status.
+
+Boundary notes:
+
+- No channel repositories were edited.
+- No Vault secret values were created, printed, decoded, copied, or committed.
+- No production database rows, customer data, payment data, order rows, or live create smokes were read or mutated.
+- The remote `main` branch has the runtime credential commit locally; push was not run because deployment did not require it and the lane instruction said not to push unless required.
+
+Parallel execution:
+
+- Orders runtime credential/deploy gate: complete in this coordinator thread.
+- Channel header plus `warehouseId` lanes remain separate and can now proceed without editing Orders files.
+- Event consumer lanes and non-marketplace app contract decisions remain separate from this credential gate.
+
+Next unfinished chunk:
+
+- Goal 7.2 channel lanes: wire/verify create-order headers and Warehouse `warehouseId` forwarding in channel repositories, then run sanitized create/idempotency/Warehouse reservation smokes without printing secrets.
+
 ## 2026-06-30 - Goal 7 Production Order Integration Planning And Create Caller Allowlist
 
 Intent chain:

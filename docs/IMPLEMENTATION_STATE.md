@@ -5,7 +5,7 @@ id: ORDERS-IMPLEMENTATION-STATE
 status: ready
 owner: Orders owner
 created: 2026-06-12
-last_updated: 2026-06-30
+last_updated: 2026-07-01
 completeness_level: implemented
 upstream:
   - AGENTS.md
@@ -26,9 +26,9 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: 7.1 create caller allowlist and production integration plan
-next_recommended_goal: Goal 7.2 channel caller credential and warehouseId wiring
-last_completed_goal: Goal 7.1 Production integration plan and create caller allowlist
+current_chunk: 7.2 channel caller header/warehouseId wiring and sanitized smokes
+next_recommended_goal: Goal 7.2 channel caller header/warehouseId wiring and sanitized smokes
+last_completed_goal: Goal 7.2 Orders-side runtime credential and deploy gate
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
   - Allegro, Aukro, and Bazos need channel auth plus warehouseId wiring before production create smokes
@@ -37,6 +37,8 @@ blockers:
 ```
 
 ## Current Checkpoint
+
+2026-07-01: Goal 7.2 Orders-side runtime credential and deploy gate is implemented, validated, and deployed. Preflight confirmed remote source was clean on `main` at `d1c5a48` and that Kubernetes still ran `localhost:5000/orders-microservice:dba03dc`, so the 7.1 allowlist was present in source but not deployed. Orders ExternalSecret now maps `FLIPFLOP_INTERNAL_SERVICE_TOKEN` from `secret/prod/flipflop-service#ORDERS_SERVICE_TOKEN`, and maps `ALLEGRO_INTERNAL_SERVICE_TOKEN`, `AUKRO_INTERNAL_SERVICE_TOKEN`, `BAZOS_INTERNAL_SERVICE_TOKEN`, and existing `HEUREKA_INTERNAL_SERVICE_TOKEN` from the respective channel service `JWT_TOKEN` properties. Channel ExternalSecrets were checked by status/key name only and all relevant source keys were `SecretSynced=True`; no token values were printed or created. Validation passed: `git diff --check`, `npm run build`, `npm run verify:create-order-contract`, `npm test`, Kubernetes server dry-run for `k8s/external-secret.yaml`, sensitive literal scan, and missing-marker scan with documented blockers. Deployed commit `342f003` as image `localhost:5000/orders-microservice:342f003`; rollout completed, external `/health` returned `status=healthy`, and runtime env-name presence confirmed all five channel aliases. No channel repositories, Vault values, DB rows, customer data, or production order rows were changed or printed. The remote branch is ahead of origin with the local runtime credential commit; push was not run because deployment did not require it. Next: channel repositories must wire/verify `x-internal-service-token` plus `x-service-name`, forward Warehouse `warehouseId`, and run sanitized create/idempotency/reservation smokes.
 
 2026-06-30: Goal 7.1 production order integration rollout planning is implemented and validated in source/docs. Orders create role and machine-auth allowlists now include FlipFlop, Allegro, Aukro, Bazos, and Heureka service actors, but runtime secret wiring for newly added channel tokens is not changed in this chunk. `docs/orchestrator/PRODUCTION_ORDER_INTEGRATION_PLAN.md` records the cross-app decisions and parallel workstreams. Read-only subagent audits found FlipFlop and Heureka closest to production create readiness; Allegro, Aukro, and Bazos still need accepted Orders auth headers plus Warehouse `warehouseId` forwarding; Leads, Marketing, and Notifications do not yet consume `orders.events`; Marathon, SpeakASAP, School Committee, and Rentabox remain domain-local pending owner-approved contracts. Validation passed: `git diff --check`, `npm run build`, `npm run verify:create-order-contract`, and `npm test`. Sensitive literal scan returned no matches. Missing-marker scan shows documented blockers including `[MISSING: DocsRAG session JWT]` plus pre-existing IPS handoff debt.
 
