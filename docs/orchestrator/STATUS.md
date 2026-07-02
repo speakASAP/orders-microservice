@@ -45,23 +45,22 @@ Validation evidence:
 
 Runtime findings:
 
-- Production `orders-microservice` and `payments-microservice` deployments are scaled to 0 replicas; external `/health` returns HTTP 503 `no available server`.
-- Production Warehouse health is HTTP 200, but `/api/fulfillment-orders/order/test` is HTTP 404 because WH-G16 fulfillment-order endpoints are not deployed.
+- Runtime recheck on 2026-07-02 found `orders-microservice` and `payments-microservice` deployments ready `1/1`; external `/health` returns HTTP 200 for both. This supersedes the earlier scale-to-zero finding.
+- Production Warehouse health is HTTP 200, but `/api/fulfillment-orders/order/<synthetic>` is HTTP 404 because WH-G16 fulfillment-order endpoints are not deployed.
 - Warehouse deploy script runs a Kubernetes migration job; WH-G16 deployment therefore needs explicit owner approval.
 - FlipFlop `/cart` and `/orders` are HTTP 200 after the transient 503 cleared, and the non-mutating guest checkout UI verifier passed.
 
 Blockers:
 
 - `[MISSING: owner approval for Warehouse WH-G16 deployment with database migration job.]`
-- `[MISSING: Orders and Payments deploy/scale-up wave after Warehouse WH-G16 is live.]`
-- `[MISSING: live end-to-end paid order smoke after deploy wave.]`
+- `[MISSING: live end-to-end paid order smoke after Warehouse WH-G16 deployment.]`
 - `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff.]`
-- `[MISSING: Notifications live broker queue/retry/DLQ/recipient contract.]`
+- `[MISSING: Notifications live broker queue/retry/DLQ/recipient contract.]` Source branch `codex/notifications-orders-lifecycle-event` adds `orders.order.lifecycle_changed.v1` validation/routing, but live consumer wiring remains dependency-gated.
 - `[MISSING: Bazos provider-backed order item and Warehouse warehouseId contract.]`
 
 Next command:
 
-- After owner approval: deploy `warehouse-microservice` WH-G16 first, then deploy/scale `orders-microservice` and `payments-microservice`, then rerun live create/payment/fulfillment/cabinet and Catalog product-statistics smoke.
+- After owner approval: deploy `warehouse-microservice` WH-G16 first, then rerun live create/payment/fulfillment/cabinet and Catalog product-statistics smoke while confirming Orders/Payments remain healthy.
 
 ## 2026-07-02 - O1 Orders Lifecycle Read Model And Fulfillment Handoff
 
