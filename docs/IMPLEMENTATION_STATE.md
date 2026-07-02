@@ -26,7 +26,7 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Orders event outbox source reliability lane
+current_chunk: Safe marketplace and Notifications runtime wave; Orders/Warehouse migration gates remain
 next_recommended_goal: Owner-approved Orders event outbox migration/deploy and Warehouse WH-G16 migration/deploy, then live end-to-end order/payment/fulfillment/cabinet/Catalog smoke while Orders and Payments remain healthy
 last_completed_goal: Orders event outbox source reliability lane
 blockers:
@@ -36,13 +36,15 @@ blockers:
   - [MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]
   - [MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots]
   - Warehouse WH-G16 fulfillment-order handoff is source-validated but not deployed; production deploy runs database migrations and requires explicit owner approval
-  - Notifications lifecycle-changed event support is implemented on branch `codex/notifications-orders-lifecycle-event`, but no approved live broker consumer/runtime queue/DLQ/recipient contract exists yet
+  - Notifications Orders events consumer is deployed disabled with queue/DLX readiness visible; [MISSING: production recipient route and owner-approved ORDERS_EVENTS_CONSUMER_ENABLED=true flip]
   - [MISSING: Orders event outbox migration/deploy approval and live /health/order-events readiness smoke]
   - non-marketplace app contracts require owner approval before runtime integration
   - Heureka service has unrelated dirty dashboard/feed/auth worktree changes that must remain isolated from Orders Goal 7 coordinator docs
 ```
 
 ## Current Checkpoint
+
+2026-07-02: Safe runtime deployment wave completed for non-migration services. Bazos is live on `localhost:5000/bazos-service:cdcd739`; FlipFlop was deployed from a detached clean `origin/main` worktree at `216264b` and rolled out service/frontend/product/cart/order/user images; Notifications is live on `localhost:5000/notifications-microservice:583da28` after hardening its deploy script to use immutable image tags. Heureka, Allegro, and Aukro were confirmed ready `1/1` on lifecycle commit-tag images `976a1a8`, `6c64a30`, and `ba61422`. Public root checks returned HTTP 200 for Bazos, FlipFlop, Heureka, Allegro, and Aukro; FlipFlop `/api/products?limit=1` returned HTTP 200; Notifications `/health/orders-events` returned HTTP 200 with the consumer disabled, disconnected, not consuming, and counters at zero. No Orders or Warehouse deployment/migration, production DB/customer/order row read, secret value print, raw Warehouse response dump, or live notification send was run. Remaining gates are owner-approved Orders event outbox migration/deploy, Warehouse WH-G16 migration/deploy, Notifications recipient/enablement flip, and live end-to-end paid order smoke.
 
 2026-07-02: Orders event outbox source lane is implemented and validated. Added `order_event_outbox` entity, guarded SQL migration, publisher bookkeeping so versioned Orders events are recorded as pending before RabbitMQ publish and marked published or failed after the publish attempt, a retry loop for pending/failed order events, and `GET /health/order-events` bounded readiness metadata. `pricing.events` remains outside the Orders outbox. Validation passed: `git diff --check`, `npm run build`, `npm run verify:event-contracts`, and full `npm test`. No deployment, production DB migration, secret read, DB/customer/order row read, or live event publish has been run.
 

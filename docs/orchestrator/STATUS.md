@@ -1,5 +1,37 @@
 # Orders Orchestrator Status
 
+## 2026-07-02 - Safe Marketplace And Notifications Runtime Wave
+
+Intent chain:
+
+- Vision: source-validated marketplace lifecycle views and notification routing should become live wherever deployment does not require database migrations or irreversible runtime flips.
+- Goal Impact: Bazos, FlipFlop, and Notifications were deployed safely; Heureka, Allegro, and Aukro were confirmed already running their lifecycle commit-tag images; Orders and Warehouse remain explicitly migration-gated.
+- System: Orders remains lifecycle/event source of truth; Warehouse remains reservation/fulfillment authority; marketplaces render Orders read models; Notifications is deployed with the Orders events RabbitMQ consumer disabled until recipient and enablement are owner-approved.
+- Feature: live marketplace customer/admin order lifecycle visibility and Notifications consumer readiness surface without enabling live notification consumption.
+- Task: deploy only non-migration services, preserve outbox/WH-G16 gates, verify readiness without secrets, row dumps, or live notification sends.
+- Execution Plan: audit deploy scripts first, deploy safe services, correct Notifications deploy immutability, verify live HTTP/deployment health, then update the coordinator state.
+- Coding Prompt: do not run Orders outbox migration/deploy or Warehouse WH-G16 migration/deploy without owner approval; do not query production customer/order rows or print secrets.
+- Code: Bazos `cdcd739`, FlipFlop `216264b` from detached clean `origin/main`, Notifications `583da28` deploy-script hardening plus previously merged consumer code/config; coordinator docs in Orders.
+- Validation: passed for runtime-safe scope.
+
+Deployment evidence:
+
+- Bazos deployed with `./scripts/deploy.sh`; deployment ready `1/1` on `localhost:5000/bazos-service:cdcd739`; public `https://bazos.alfares.cz/` returned HTTP 200.
+- FlipFlop deployed from detached clean `origin/main` at `216264b`; generated ignored `dist` artifacts in temporary worktree, then `./scripts/deploy.sh` rebuilt and rolled out `flipflop-service`, frontend, product, cart, order, and user services; public `/` and `/api/products?limit=1` returned HTTP 200.
+- Notifications deployed at `localhost:5000/notifications-microservice:583da28`; fixed `scripts/deploy.sh` to set the immutable image tag instead of mutable `latest`; `/health/orders-events` returned HTTP 200 with `enabled=false`, `connected=false`, `consuming=false`, queue `notifications.orders.lifecycle`, exchange `orders.events`, DLX/DLQ configured, and zero counters.
+- Heureka, Allegro, and Aukro runtime deployments were already ready `1/1` on lifecycle commit-tag images `976a1a8`, `6c64a30`, and `ba61422`; public root checks returned HTTP 200 for all three.
+- Source validation rerun in this wave: Bazos full service suite passed 10 suites / 125 tests; Notifications full suite passed 7 suites / 30 tests; FlipFlop clean worktree builds passed for shared plus api/product/cart/order/user services and Next frontend during deploy.
+
+Remaining blockers:
+
+- `[MISSING: owner approval for Orders event outbox migration/deploy and live /health/order-events readiness smoke.]`
+- `[MISSING: owner approval for Warehouse WH-G16 deployment with database migration job.]`
+- `[MISSING: live end-to-end paid order smoke after Orders outbox and Warehouse WH-G16 deployments.]`
+- `[MISSING: Notifications production recipient route or ORDERS_EVENTS_NOTIFICATION_RECIPIENT plus owner-approved ORDERS_EVENTS_CONSUMER_ENABLED=true flip.]`
+- `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff.]`
+
+Boundary notes: no Orders or Warehouse deployment/migration was run; no production DB/customer/order rows, token values, raw Warehouse response bodies, or live notification sends were used.
+
 ## 2026-07-02 - Orders Event Outbox Source Lane
 
 Intent chain:
