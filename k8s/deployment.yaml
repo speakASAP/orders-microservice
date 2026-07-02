@@ -34,7 +34,7 @@ spec:
       containers:
         - name: app
           image: localhost:5000/orders-microservice:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3203
               name: http
