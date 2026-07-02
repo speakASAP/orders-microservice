@@ -137,8 +137,7 @@ export class OrdersService {
       .leftJoinAndSelect('orders.items', 'items')
       .where('LOWER(orders.status) IN (:...statuses)', { statuses: ORDER_AFFINITY_REPLAY_STATUSES })
       .andWhere('LOWER(orders.paymentStatus) IN (:...paymentStatuses)', { paymentStatuses: ORDER_AFFINITY_REPLAY_PAYMENT_STATUSES })
-      .addSelect(orderDateExpression, 'orderAffinityReplayOrderDate')
-      .orderBy('orderAffinityReplayOrderDate', 'ASC')
+      .orderBy('orders.createdAt', 'ASC')
       .addOrderBy('orders.id', 'ASC')
       .take(normalized.limit);
 
