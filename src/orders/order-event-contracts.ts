@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { OrderStatusApprovalAudit } from './status-transitions';
+import type { OrderLifecycleChangedPayload } from './order-lifecycle';
 
 export const ORDER_EVENT_SOURCE = 'orders-microservice';
 export const ORDER_EVENT_VERSION = 1;
@@ -10,6 +11,7 @@ export const ORDER_EVENT_TYPES = {
   paid: 'orders.order.paid.v1',
   shipped: 'orders.order.shipped.v1',
   cancelled: 'orders.order.cancelled.v1',
+  lifecycleChanged: 'orders.order.lifecycle_changed.v1',
 } as const;
 
 export type OrderEventType = typeof ORDER_EVENT_TYPES[keyof typeof ORDER_EVENT_TYPES];
@@ -29,9 +31,19 @@ export interface OrderLeadAttribution {
   campaignId?: string;
 }
 
+export interface OrderCreatedItemSnapshot {
+  productId: string;
+  sku?: string;
+  quantity: number;
+  unitPrice?: number;
+  totalPrice?: number;
+}
+
 interface OrderCreatedPayload {
   orderId: string;
   channel: string;
+  items?: OrderCreatedItemSnapshot[];
+  currency?: string;
   leadAttribution?: OrderLeadAttribution;
 }
 
@@ -96,12 +108,30 @@ export function buildOrderCreatedEvent(
   orderId: string,
   channel: string,
   leadAttribution?: OrderLeadAttribution,
+  items?: OrderCreatedItemSnapshot[],
+  currency?: string,
 ): OrderEventEnvelope<OrderCreatedPayload> {
+  const safeItems = normalizeCreatedItemSnapshots(items);
   return createEnvelope(ORDER_EVENT_TYPES.created, {
     orderId,
     channel,
+    ...(safeItems.length ? { items: safeItems } : {}),
+    ...(currency ? { currency } : {}),
     ...(leadAttribution ? { leadAttribution } : {}),
   });
+}
+
+function normalizeCreatedItemSnapshots(items?: OrderCreatedItemSnapshot[]): OrderCreatedItemSnapshot[] {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((item) => ({
+      productId: String(item.productId || '').trim(),
+      ...(item.sku ? { sku: String(item.sku).trim() } : {}),
+      quantity: Number(item.quantity),
+      ...(item.unitPrice != null ? { unitPrice: Number(item.unitPrice) } : {}),
+      ...(item.totalPrice != null ? { totalPrice: Number(item.totalPrice) } : {}),
+    }))
+    .filter((item) => item.productId && Number.isFinite(item.quantity) && item.quantity > 0);
 }
 
 export function buildOrderUpdatedEvent(
@@ -147,4 +177,14 @@ export function buildOrderCancelledEvent(
     ...(previousStatus ? { previousStatus } : {}),
     ...(approval ? { approval: toSafeApprovalMetadata(approval) } : {}),
   });
+}
+
+
+export function buildOrderLifecycleChangedEvent(
+  payload: Omit<OrderLifecycleChangedPayload, 'eventId' | 'occurredAt'>,
+): OrderEventEnvelope<OrderLifecycleChangedPayload> {
+  const envelope = createEnvelope(ORDER_EVENT_TYPES.lifecycleChanged, payload as OrderLifecycleChangedPayload);
+  envelope.payload.eventId = envelope.eventId;
+  envelope.payload.occurredAt = envelope.occurredAt;
+  return envelope;
 }

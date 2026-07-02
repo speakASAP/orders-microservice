@@ -1,6 +1,6 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { LoggerService } from '../logger/logger.service';
 import { WarehouseHandoffSummary, WarehouseReservationClient } from '../warehouse/warehouse-reservation.client';
 import { Order } from './order.entity';
@@ -13,6 +13,7 @@ import {
   normalizeCreateOrderRequest,
 } from './create-order.dto';
 import { OrderEventsService } from './order-events.service';
+import { OrderFulfillmentHandoffClient } from './order-fulfillment-handoff.client';
 import {
   NormalizedPaymentStatusUpdate,
   PaymentStatusUpdateRequestDto,
@@ -23,6 +24,16 @@ import {
   OrderStatusTransitionContext,
   validateOrderStatusTransitionWithAudit,
 } from './status-transitions';
+import {
+  OrderLifecycleReadFilters,
+  buildLifecycleAggregates,
+  buildOrderLifecycleChangedPayload,
+  deriveOrderLifecycleState,
+  normalizeOrderLifecycleReadFilters,
+  serializeOrderLifecycleReadModel,
+  validateOrderLifecycleTransition,
+  type OrderLifecycleStage,
+} from './order-lifecycle';
 
 const PRODUCT_SALES_DEFAULT_STATUSES = ['confirmed', 'processing', 'shipped', 'delivered'] as const;
 const SELLABLE_ORDER_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka', 'cliplot']);
@@ -35,6 +46,12 @@ export interface ProductSalesStatisticsFilters {
   to?: string;
   channel?: string;
   status?: string;
+}
+
+export interface OrdersLifecycleActor {
+  sub?: string;
+  email?: string;
+  roles?: string[];
 }
 
 type NormalizedProductSalesStatisticsFilters = {
@@ -74,6 +91,7 @@ export class OrdersService {
     private readonly warehouseReservations: WarehouseReservationClient,
     private readonly orderEvents: OrderEventsService,
     private readonly logger: LoggerService,
+    private readonly fulfillmentHandoff?: OrderFulfillmentHandoffClient,
   ) {}
 
   async findAll(channel?: string, status?: string): Promise<Order[]> {
@@ -238,7 +256,20 @@ export class OrdersService {
         return manager.save(Order, savedOrder);
       });
 
-      await this.orderEvents.publishOrderCreated(saved.id, saved.channel, normalized.leadAttribution);
+      await this.orderEvents.publishOrderCreated(
+        saved.id,
+        saved.channel,
+        normalized.leadAttribution,
+        saved.items?.map((item) => ({
+          productId: item.productId,
+          sku: item.sku || undefined,
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+          totalPrice: Number(item.totalPrice),
+        })),
+        saved.currency,
+      );
+      await this.publishLifecycleChangedIfNeeded(saved, null);
 
       this.logger.audit(
         {
@@ -319,10 +350,62 @@ export class OrdersService {
     return SELLABLE_ORDER_CHANNELS.has(channel.toLowerCase());
   }
 
+  async getCustomerLifecycleOrders(actor: OrdersLifecycleActor = {}, filters: OrderLifecycleReadFilters = {}) {
+    const email = this.normalizeActorEmail(actor);
+    if (!email) {
+      throw new ForbiddenException('Authenticated customer email is required for customer order lifecycle reads');
+    }
+
+    const normalized = normalizeOrderLifecycleReadFilters(filters);
+    const query = this.buildLifecycleQuery(normalized)
+      .andWhere("LOWER(orders.customer ->> 'email') = :customerEmail", { customerEmail: email });
+    const orders = await query.getMany();
+    const models = this.filterLifecycleModels(
+      orders.map((order) => serializeOrderLifecycleReadModel(order, {
+        includeDeliveryAddress: true,
+        includeWarehouseHandoff: true,
+      })),
+      normalized.lifecycleStage,
+      normalized.limit,
+    );
+
+    return {
+      generatedAt: new Date().toISOString(),
+      actor: { email },
+      filters: this.serializeLifecycleFilters(normalized),
+      count: models.length,
+      orders: models,
+    };
+  }
+
+  async getAdminLifecycleOrders(filters: OrderLifecycleReadFilters = {}) {
+    const normalized = normalizeOrderLifecycleReadFilters(filters);
+    const query = this.buildLifecycleQuery(normalized);
+    const orders = await query.getMany();
+    const models = this.filterLifecycleModels(
+      orders.map((order) => serializeOrderLifecycleReadModel(order, {
+        includeCustomer: true,
+        includeDeliveryAddress: true,
+        includeWarehouseHandoff: true,
+      })),
+      normalized.lifecycleStage,
+      normalized.limit,
+    );
+
+    return {
+      generatedAt: new Date().toISOString(),
+      filters: this.serializeLifecycleFilters(normalized),
+      count: models.length,
+      aggregates: buildLifecycleAggregates(models),
+      orders: models,
+    };
+  }
+
   async updateStatus(id: string, status: string, context: OrderStatusTransitionContext = {}): Promise<Order> {
     const startedAt = Date.now();
     const order = await this.findOne(id);
     const previousStatus = order.status;
+    const previousLifecycleStage = deriveOrderLifecycleState(order).lifecycleStage;
     let transition;
 
     try {
@@ -354,6 +437,8 @@ export class OrdersService {
         updated.warehouseHandoff = await this.warehouseReservations.cancelOrderItems(updated);
         await this.orderRepository.save(updated);
       }
+
+      await this.publishLifecycleChangedIfNeeded(updated, previousLifecycleStage);
 
       await this.orderEvents.publishOrderUpdated(
         id,
@@ -415,6 +500,7 @@ export class OrdersService {
     const order = await this.findOne(id);
     const previousStatus = order.status;
     const previousPaymentStatus = order.paymentStatus;
+    const previousLifecycleStage = deriveOrderLifecycleState(order).lifecycleStage;
     let normalized: NormalizedPaymentStatusUpdate;
 
     try {
@@ -450,6 +536,13 @@ export class OrdersService {
       const paymentStatusChanged = previousPaymentStatus !== normalized.paymentStatus;
       if (normalized.paymentStatus === 'paid' && paymentStatusChanged) {
         updated.warehouseHandoff = await this.warehouseReservations.fulfillOrderItems(updated);
+        if (this.fulfillmentHandoff) {
+          const fulfillmentOrderHandoff = await this.fulfillmentHandoff.createAfterPaymentFulfillment(updated);
+          updated.warehouseHandoff = {
+            ...updated.warehouseHandoff,
+            fulfillmentOrderHandoff,
+          };
+        }
         await this.orderRepository.save(updated);
       } else if (
         (normalized.paymentStatus === 'failed' || normalized.paymentStatus === 'cancelled') &&
@@ -458,6 +551,8 @@ export class OrdersService {
         updated.warehouseHandoff = await this.warehouseReservations.releaseOrderItems(updated);
         await this.orderRepository.save(updated);
       }
+
+      await this.publishLifecycleChangedIfNeeded(updated, previousLifecycleStage);
 
       if (shouldConfirmOrder) {
         await this.orderEvents.publishOrderUpdated(id, 'confirmed', { previousStatus });
@@ -663,5 +758,71 @@ export class OrdersService {
     }
 
     return query.getOne();
+  }
+
+  private buildLifecycleQuery(filters: ReturnType<typeof normalizeOrderLifecycleReadFilters>): SelectQueryBuilder<Order> {
+    const query = this.orderRepository
+      .createQueryBuilder('orders')
+      .leftJoinAndSelect('orders.items', 'items')
+      .orderBy('COALESCE(orders.orderedAt, orders.createdAt)', 'DESC')
+      .take(filters.limit * (filters.lifecycleStage ? 3 : 1));
+
+    if (filters.channel) {
+      query.andWhere('LOWER(orders.channel) = :channel', { channel: filters.channel });
+    }
+    if (filters.status) {
+      query.andWhere('LOWER(orders.status) = :status', { status: filters.status });
+    }
+    if (filters.paymentStatus) {
+      query.andWhere('LOWER(orders.paymentStatus) = :paymentStatus', { paymentStatus: filters.paymentStatus });
+    }
+    if (filters.from) {
+      query.andWhere('COALESCE(orders.orderedAt, orders.createdAt) >= :from', { from: filters.from });
+    }
+    if (filters.to) {
+      query.andWhere('COALESCE(orders.orderedAt, orders.createdAt) <= :to', { to: filters.to });
+    }
+
+    return query;
+  }
+
+  private filterLifecycleModels(
+    models: ReturnType<typeof serializeOrderLifecycleReadModel>[],
+    lifecycleStage: OrderLifecycleStage | undefined,
+    limit: number,
+  ) {
+    const filtered = lifecycleStage
+      ? models.filter((model) => model.lifecycle.lifecycleStage === lifecycleStage)
+      : models;
+    return filtered.slice(0, limit);
+  }
+
+  private serializeLifecycleFilters(filters: ReturnType<typeof normalizeOrderLifecycleReadFilters>) {
+    return {
+      channel: filters.channel || null,
+      status: filters.status || null,
+      lifecycleStage: filters.lifecycleStage || null,
+      paymentStatus: filters.paymentStatus || null,
+      from: filters.from?.toISOString() || null,
+      to: filters.to?.toISOString() || null,
+      limit: filters.limit,
+    };
+  }
+
+  private normalizeActorEmail(actor: OrdersLifecycleActor): string | null {
+    if (!actor.email || typeof actor.email !== 'string') return null;
+    const normalized = actor.email.trim().toLowerCase();
+    if (!normalized || normalized.length > 320 || /[\r\n\t]/.test(normalized)) return null;
+    return normalized;
+  }
+
+  private async publishLifecycleChangedIfNeeded(
+    order: Order,
+    previousLifecycleStage: OrderLifecycleStage | null,
+  ): Promise<void> {
+    const payload = buildOrderLifecycleChangedPayload(order, previousLifecycleStage);
+    if (previousLifecycleStage === payload.lifecycleStage) return;
+    validateOrderLifecycleTransition(previousLifecycleStage, payload.lifecycleStage, { mode: 'coarse_projection' });
+    await this.orderEvents.publishOrderLifecycleChanged(payload);
   }
 }

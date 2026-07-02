@@ -282,6 +282,10 @@ function makeReadOnlyQuery(existing = null) {
         mutationCalls.push('event.created');
         throw new Error('validateCreate must not publish events');
       },
+      async publishOrderLifecycleChanged() {
+        mutationCalls.push('event.lifecycle');
+        throw new Error('validateCreate must not publish lifecycle events');
+      },
     },
     { audit() {} },
   );

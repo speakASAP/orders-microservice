@@ -126,6 +126,9 @@ function makeService(handoff) {
       async publishOrderCreated(orderId, channel) {
         published.push({ orderId, channel });
       },
+      async publishOrderLifecycleChanged(payload) {
+        published.push({ orderId: payload.orderId, lifecycleStage: payload.lifecycleStage });
+      },
     },
     {
       audit(metadata) {
@@ -156,7 +159,10 @@ async function assertRejectedHandoff(handoff) {
   const reserved = makeService(makeHandoff('reserved'));
   const created = await reserved.service.create(validRequest);
   assert.equal(created.warehouseHandoff.status, 'reserved');
-  assert.deepEqual(reserved.published, [{ orderId: 'order-1', channel: 'flipflop' }]);
+  assert.deepEqual(reserved.published, [
+    { orderId: 'order-1', channel: 'flipflop' },
+    { orderId: 'order-1', lifecycleStage: 'ordered_unpaid' },
+  ]);
   assert.equal(reserved.persistedOrders.length, 1);
   assert.equal(reserved.persistedOrders[0].warehouseHandoff.status, 'reserved');
   assert.equal(reserved.transactionEvents.some((event) => event.action === 'transaction-commit'), true);

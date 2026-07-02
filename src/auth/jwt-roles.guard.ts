@@ -52,9 +52,13 @@ export class JwtRolesGuard implements CanActivate {
     }
 
     const user = internalUser || await this.validateTokenWithAuth(authHeader!.slice(7));
+    const isInternalService = Boolean(internalUser);
     const userRoles: string[] = Array.isArray(user.roles) ? user.roles : [];
 
-    const hasRole = requiredRoles.some((r) => userRoles.includes(r));
+    const hasRole = requiredRoles.some((r) => userRoles.includes(r)
+      || r === 'authenticated'
+      || (r === 'authenticated:user' && !isInternalService)
+      || (r === 'authenticated:service' && isInternalService));
     if (!hasRole) {
       throw new ForbiddenException('Insufficient permissions');
     }

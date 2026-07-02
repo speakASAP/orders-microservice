@@ -4,13 +4,16 @@ import { OrderStatusApprovalAudit } from './status-transitions';
 import {
   buildOrderCancelledEvent,
   buildOrderCreatedEvent,
+  buildOrderLifecycleChangedEvent,
   buildOrderPaidEvent,
   buildOrderShippedEvent,
   buildOrderUpdatedEvent,
   ORDER_EVENT_TYPES,
   ORDER_EVENT_VERSION,
+  type OrderCreatedItemSnapshot,
   type OrderLeadAttribution,
 } from './order-event-contracts';
+import type { OrderLifecycleChangedPayload } from './order-lifecycle';
 
 interface OrderUpdatedMetadata {
   previousStatus?: string;
@@ -60,11 +63,17 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async publishOrderCreated(orderId: string, channel: string, leadAttribution?: OrderLeadAttribution) {
+  async publishOrderCreated(
+    orderId: string,
+    channel: string,
+    leadAttribution?: OrderLeadAttribution,
+    items?: OrderCreatedItemSnapshot[],
+    currency?: string,
+  ) {
     await this.publish(
       this.ordersExchangeName,
       ORDER_EVENT_TYPES.created,
-      buildOrderCreatedEvent(orderId, channel, leadAttribution),
+      buildOrderCreatedEvent(orderId, channel, leadAttribution, items, currency),
     );
   }
 
@@ -79,6 +88,14 @@ export class OrderEventsService implements OnModuleInit, OnModuleDestroy {
         buildOrderCancelledEvent(orderId, metadata?.previousStatus, metadata?.approval),
       );
     }
+  }
+
+  async publishOrderLifecycleChanged(payload: Omit<OrderLifecycleChangedPayload, 'eventId' | 'occurredAt'>) {
+    await this.publish(
+      this.ordersExchangeName,
+      ORDER_EVENT_TYPES.lifecycleChanged,
+      buildOrderLifecycleChangedEvent(payload),
+    );
   }
 
   async publishOrderPaid(orderId: string, paymentReferenceId?: string) {

@@ -100,7 +100,10 @@ function makeService(existing) {
   const service = new OrdersService(
     orderRepository,
     {},
-    { async publishOrderCreated() { publishedCreated += 1; } },
+    {
+      async publishOrderCreated() { publishedCreated += 1; },
+      async publishOrderLifecycleChanged() { throw new Error('idempotent replay must not publish lifecycle events'); },
+    },
     { audit() {} },
   );
   return { service, calls: () => ({ transactionCalls, publishedCreated }) };

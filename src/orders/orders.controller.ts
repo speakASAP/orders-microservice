@@ -39,6 +39,18 @@ export const PRODUCT_SALES_STATISTICS_READ_ROLES = [
   'internal:catalog-microservice:service',
 ] as const;
 
+export const ORDER_ADMIN_LIFECYCLE_READ_ROLES = [
+  'global:superadmin',
+  'internal:orders-microservice:admin',
+  'internal:orders-microservice:readonly',
+  'internal:orders-microservice:operator',
+] as const;
+
+export const ORDER_CUSTOMER_LIFECYCLE_READ_ROLES = [
+  'authenticated:user',
+  ...ORDER_ADMIN_LIFECYCLE_READ_ROLES,
+] as const;
+
 export const ORDER_DETAIL_READ_ROLES = [
   'global:superadmin',
   'internal:orders-microservice:admin',
@@ -50,6 +62,16 @@ interface ProductSalesStatisticsQuery {
   to?: string;
   channel?: string;
   status?: string;
+}
+
+interface OrderLifecycleQuery {
+  channel?: string;
+  status?: string;
+  lifecycleStage?: string;
+  paymentStatus?: string;
+  from?: string;
+  to?: string;
+  limit?: string;
 }
 
 @Controller('orders')
@@ -69,6 +91,20 @@ export class OrdersController {
     @Query() query: ProductSalesStatisticsQuery,
   ) {
     const data = await this.ordersService.getProductSalesStatistics(productId, query);
+    return { success: true, data };
+  }
+
+  @Get('customer/lifecycle')
+  @Roles(...ORDER_CUSTOMER_LIFECYCLE_READ_ROLES)
+  async getCustomerLifecycle(@Query() query: OrderLifecycleQuery, @Req() request: AuthenticatedRequest) {
+    const data = await this.ordersService.getCustomerLifecycleOrders(request.user, query);
+    return { success: true, data };
+  }
+
+  @Get('admin/lifecycle')
+  @Roles(...ORDER_ADMIN_LIFECYCLE_READ_ROLES)
+  async getAdminLifecycle(@Query() query: OrderLifecycleQuery) {
+    const data = await this.ordersService.getAdminLifecycleOrders(query);
     return { success: true, data };
   }
 

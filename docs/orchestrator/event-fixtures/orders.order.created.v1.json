@@ -11,6 +11,23 @@
       "leadId": "lead-1001",
       "source": "lead-form",
       "campaignId": "campaign-1001"
-    }
+    },
+    "items": [
+      {
+        "productId": "catalog-product-1001",
+        "sku": "SKU-1001",
+        "quantity": 1,
+        "unitPrice": 490,
+        "totalPrice": 490
+      },
+      {
+        "productId": "catalog-product-2002",
+        "sku": "SKU-2002",
+        "quantity": 2,
+        "unitPrice": 150,
+        "totalPrice": 300
+      }
+    ],
+    "currency": "CZK"
   }
 }

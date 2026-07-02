@@ -56,6 +56,9 @@ function makeService(order = makeOrder()) {
       async publishOrderPaid(orderId, paymentReferenceId) {
         events.push({ type: 'paid', orderId, paymentReferenceId });
       },
+      async publishOrderLifecycleChanged(payload) {
+        events.push({ type: 'lifecycle', orderId: payload.orderId, lifecycleStage: payload.lifecycleStage });
+      },
     },
     {
       audit(metadata) {
@@ -119,6 +122,7 @@ function makeService(order = makeOrder()) {
   assert.deepEqual(paid.warehouseCalls, [{ action: 'fulfill', orderId: 'order-1' }]);
   assert.equal(paidOrder.warehouseHandoff.status, 'fulfilled');
   assert.deepEqual(paid.events, [
+    { type: 'lifecycle', orderId: 'order-1', lifecycleStage: 'warehouse_fulfillment_requested' },
     { type: 'updated', orderId: 'order-1', status: 'confirmed' },
     { type: 'paid', orderId: 'order-1', paymentReferenceId: 'payment-1' },
   ]);
@@ -134,7 +138,7 @@ function makeService(order = makeOrder()) {
   assert.equal(failedOrder.status, 'confirmed');
   assert.deepEqual(failed.warehouseCalls, [{ action: 'release', orderId: 'order-1' }]);
   assert.equal(failedOrder.warehouseHandoff.status, 'released');
-  assert.equal(failed.events.length, 0);
+  assert.deepEqual(failed.events, [{ type: 'lifecycle', orderId: 'order-1', lifecycleStage: 'payment_failed' }]);
 
   const paidReplay = makeService(makeOrder({
     status: 'confirmed',
