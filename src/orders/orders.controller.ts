@@ -59,6 +59,13 @@ export const ORDER_DETAIL_READ_ROLES = [
   'internal:aukro-service:service',
 ] as const;
 
+export const ORDER_AFFINITY_REPLAY_READ_ROLES = [
+  'global:superadmin',
+  'internal:orders-microservice:admin',
+  'internal:orders-microservice:readonly',
+  'internal:marketing-microservice:service',
+] as const;
+
 interface ProductSalesStatisticsQuery {
   from?: string;
   to?: string;
@@ -76,6 +83,13 @@ interface OrderLifecycleQuery {
   limit?: string;
 }
 
+interface OrderAffinityReplayQuery {
+  channel?: string;
+  from?: string;
+  to?: string;
+  limit?: string;
+}
+
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
@@ -84,6 +98,13 @@ export class OrdersController {
   async findAll(@Query('channel') channel?: string, @Query('status') status?: string) {
     const orders = await this.ordersService.findAll(channel, status);
     return { success: true, data: orders };
+  }
+
+  @Get('internal/order-affinity/replay-candidates')
+  @Roles(...ORDER_AFFINITY_REPLAY_READ_ROLES)
+  async getOrderAffinityReplayCandidates(@Query() query: OrderAffinityReplayQuery) {
+    const data = await this.ordersService.getOrderAffinityReplayCandidates(query);
+    return { success: true, data };
   }
 
   @Get('statistics/products/:productId')

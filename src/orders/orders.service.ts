@@ -41,6 +41,10 @@ const PRODUCT_SALES_ALLOWED_STATUSES: Set<string> = new Set(['pending', ...PRODU
 const PRODUCT_SALES_ALLOWED_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka', 'cliplot']);
 const PRODUCT_SALES_HISTORY_LIMIT = 10;
 const PRODUCT_SALES_LIFECYCLE_ORDER_LIMIT = 1000;
+const ORDER_AFFINITY_REPLAY_DEFAULT_LIMIT = 100;
+const ORDER_AFFINITY_REPLAY_MAX_LIMIT = 500;
+const ORDER_AFFINITY_REPLAY_STATUSES = ['confirmed', 'processing', 'shipped', 'delivered'] as const;
+const ORDER_AFFINITY_REPLAY_PAYMENT_STATUSES = ['paid'] as const;
 
 export interface ProductSalesStatisticsFilters {
   from?: string;
@@ -53,6 +57,13 @@ export interface OrdersLifecycleActor {
   sub?: string;
   email?: string;
   roles?: string[];
+}
+
+export interface OrderAffinityReplayFilters {
+  from?: string;
+  to?: string;
+  channel?: string;
+  limit?: string;
 }
 
 type NormalizedProductSalesStatisticsFilters = {
@@ -115,6 +126,51 @@ export class OrdersService {
     });
     if (!order) throw new NotFoundException(`Order ${id} not found`);
     return order;
+  }
+
+
+  async getOrderAffinityReplayCandidates(filters: OrderAffinityReplayFilters = {}) {
+    const normalized = this.normalizeOrderAffinityReplayFilters(filters);
+    const orderDateExpression = 'COALESCE(orders.orderedAt, orders.createdAt)';
+    const query = this.orderRepository
+      .createQueryBuilder('orders')
+      .leftJoinAndSelect('orders.items', 'items')
+      .where('LOWER(orders.status) IN (:...statuses)', { statuses: ORDER_AFFINITY_REPLAY_STATUSES })
+      .andWhere('LOWER(orders.paymentStatus) IN (:...paymentStatuses)', { paymentStatuses: ORDER_AFFINITY_REPLAY_PAYMENT_STATUSES })
+      .orderBy(orderDateExpression, 'ASC')
+      .addOrderBy('orders.id', 'ASC')
+      .take(normalized.limit);
+
+    if (normalized.channel) {
+      query.andWhere('LOWER(orders.channel) = :channel', { channel: normalized.channel });
+    }
+    if (normalized.from) {
+      query.andWhere(`${orderDateExpression} >= :from`, { from: normalized.from });
+    }
+    if (normalized.to) {
+      query.andWhere(`${orderDateExpression} <= :to`, { to: normalized.to });
+    }
+
+    const orders = await query.getMany();
+    const events = orders
+      .map((order) => this.toOrderAffinityReplayEvent(order))
+      .filter((event): event is NonNullable<ReturnType<OrdersService['toOrderAffinityReplayEvent']>> => Boolean(event));
+
+    return {
+      sourceOwner: 'orders-microservice',
+      consumerOwner: 'marketing-microservice',
+      contract: 'orders.order_affinity_replay_candidates.v1',
+      filters: {
+        channel: normalized.channel ?? null,
+        from: normalized.from ? normalized.from.toISOString() : null,
+        to: normalized.to ? normalized.to.toISOString() : null,
+        limit: normalized.limit,
+        statuses: [...ORDER_AFFINITY_REPLAY_STATUSES],
+        paymentStatuses: [...ORDER_AFFINITY_REPLAY_PAYMENT_STATUSES],
+      },
+      count: events.length,
+      events,
+    };
   }
 
   async getProductSalesStatistics(productId: string, filters: ProductSalesStatisticsFilters = {}) {
@@ -870,6 +926,61 @@ export class OrdersService {
     if (!value) return null;
     const date = value instanceof Date ? value : new Date(String(value));
     return Number.isNaN(date.valueOf()) ? null : date.toISOString();
+  }
+
+
+  private normalizeOrderAffinityReplayFilters(filters: OrderAffinityReplayFilters) {
+    const channel = filters.channel ? String(filters.channel).trim().toLowerCase() : undefined;
+    if (channel && !PRODUCT_SALES_ALLOWED_CHANNELS.has(channel)) {
+      throw new BadRequestException(`channel must be one of: ${Array.from(PRODUCT_SALES_ALLOWED_CHANNELS).join(', ')}`);
+    }
+    const from = this.parseOptionalDate(filters.from, 'from');
+    const to = this.parseOptionalDate(filters.to, 'to');
+    if (from && to && from.getTime() > to.getTime()) {
+      throw new BadRequestException('from must be before or equal to to');
+    }
+    const parsedLimit = Number.parseInt(String(filters.limit || ''), 10);
+    const limit = Number.isFinite(parsedLimit)
+      ? Math.min(Math.max(parsedLimit, 1), ORDER_AFFINITY_REPLAY_MAX_LIMIT)
+      : ORDER_AFFINITY_REPLAY_DEFAULT_LIMIT;
+    return { channel, from, to, limit };
+  }
+
+  private toOrderAffinityReplayEvent(order: Order) {
+    const items = (order.items || [])
+      .map((item) => ({
+        productId: String(item.productId || '').trim(),
+        ...(item.sku ? { sku: String(item.sku).trim() } : {}),
+        quantity: this.toProductSalesInteger(item.quantity),
+        ...(item.unitPrice != null ? { unitPrice: this.toProductSalesNumber(item.unitPrice) } : {}),
+        ...(item.totalPrice != null ? { totalPrice: this.toProductSalesNumber(item.totalPrice) } : {}),
+      }))
+      .filter((item) => item.productId && item.quantity > 0);
+    const uniqueProductIds = new Set(items.map((item) => item.productId));
+    if (uniqueProductIds.size < 2) return null;
+    const occurredAt = (order.orderedAt || order.createdAt || new Date()).toISOString();
+    return {
+      type: 'orders.order.created.v1',
+      eventVersion: 1,
+      eventId: `orders.order.created.v1:historical:${order.id}`,
+      occurredAt,
+      source: 'orders-microservice',
+      payload: {
+        orderId: `historical:${order.id}`,
+        channel: String(order.channel || '').toLowerCase(),
+        items,
+        ...(order.currency ? { currency: order.currency } : {}),
+      },
+    };
+  }
+
+  private parseOptionalDate(value: string | undefined, field: string): Date | undefined {
+    if (!value) return undefined;
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.valueOf())) {
+      throw new BadRequestException(`${field} must be an ISO timestamp`);
+    }
+    return parsed;
   }
 
   private async findByCreateOrderIdempotencyKey(key: CreateOrderIdempotencyKey): Promise<Order | null> {
