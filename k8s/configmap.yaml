@@ -24,4 +24,4 @@ data:
   WAREHOUSE_SERVICE_URL: "http://warehouse-microservice.statex-apps.svc.cluster.local:3201"
   WAREHOUSE_RESERVATION_ENABLED: "true"
   WAREHOUSE_RESERVATION_TTL_MINUTES: "15"
-  RABBITMQ_URL: "amqp://guest:guest@host.k3s.internal:5672"
+  RABBITMQ_URL: "amqp://guest:guest@rabbitmq.statex-apps.svc.cluster.local:5672"

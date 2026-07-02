@@ -1,5 +1,26 @@
 # Orders Orchestrator Status
 
+## 2026-07-02 - Orders RabbitMQ URL Durable Source Repair
+
+Intent chain:
+
+- Vision: Orders lifecycle events should publish through the in-cluster RabbitMQ broker during paid-order smoke and normal Kubernetes runtime.
+- Goal Impact: downstream consumers such as invoices can receive `orders.order.created.v1` and `orders.order.paid.v1` without relying on a host-only RabbitMQ address.
+- System: Orders remains event producer; RabbitMQ remains broker; invoices remains a consumer.
+- Feature: durable source config for Orders RabbitMQ URL.
+- Task: align `k8s/configmap.yaml` with the live runtime repair that allowed the invoices final smoke to pass.
+- Execution Plan: update source ConfigMap only; do not deploy from this lane.
+- Coding Prompt: replace `host.k3s.internal` with the cluster service DNS name and record evidence.
+- Code: `k8s/configmap.yaml`.
+- Validation: source diff check plus live runtime evidence below.
+
+Evidence:
+
+- Live runtime was patched to `amqp://guest:guest@rabbitmq.statex-apps.svc.cluster.local:5672` and the active Orders pod exposed the same `RABBITMQ_URL`.
+- Active Orders pod logged `Connected to RabbitMQ` after the config-only restart.
+- The approved Cliplot invoices final-smoke fixture passed after this repair: `ORDER_ID=0a3e7eb8-244f-420b-bce7-67fe8f3d18f1`, `PAYMENT_APPLICATION_ID=cliplot`.
+- This source update does not deploy Orders, Warehouse, Notifications, or Invoices.
+
 ## 2026-07-02 - Orders Outbox Migration Applied; K3s Control-Plane Blocker
 
 Intent chain:
