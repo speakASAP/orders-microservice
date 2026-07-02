@@ -1,5 +1,7 @@
 2026-07-03: Warehouse fulfillment status projection deployed and live-smoked. Orders image `localhost:5000/orders-microservice:7bcfadd` rolled out healthy with `WAREHOUSE_INTERNAL_SERVICE_TOKEN` present. Warehouse image `localhost:5000/warehouse-microservice:65e53c6` then advanced smoke order `94ce9a4b-7c6a-4625-85c7-8d1b13228b2d` / fulfillment order `6ada14af-20f8-4928-9a37-94a331d97be2` from `requested` to `collecting`. Orders persisted `warehouseHandoff.fulfillmentOrderHandoff.warehouseStatus=collecting`, emitted an audit result `warehouse_collecting`, and `npm run verify:order-lifecycle-read-model` passed after deploy. Notifications Orders-events health showed `received=2`, `sent=2`, `failed=0`, proving the lifecycle event reached the notification pipeline.
 
+2026-07-03: Delivery-provider shipment-status discovery completed as a documentation-only slice. Remote repo-name discovery found no standalone delivery/courier/provider/tracking-source repository, and focused Orders/Warehouse/Notifications scans found no concrete provider-owned webhook or polling source. Orders has legacy shipment CRUD, Warehouse owns fulfillment-order status and bounded callback to Orders, and Notifications consumes bounded Orders lifecycle events, but no service owns courier credentials/raw tracking payloads. Implementation is blocked by `[MISSING: delivery-provider/courier owner repository or approved existing service]`, `[MISSING: provider webhook or polling contract and sample payloads]`, `[MISSING: provider-to-Warehouse status mapping after handed_to_delivery]`, `[MISSING: tracking number/URL sensitive-data policy]`, and `[MISSING: provider-owner runtime credential source]`. Agent-ready plan recorded in `docs/orchestrator/2026-07-03-delivery-provider-shipment-status-plan.md`.
+
 # Orders Implementation State
 
 ```yaml
@@ -28,9 +30,9 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Marketplace order cabinet polling rollout deployed after k3s recovery
-next_recommended_goal: Deploy Warehouse fulfillment-status projection and run live status smoke
-last_completed_goal: Orders event outbox source reliability lane
+current_chunk: Delivery-provider shipment-status contract discovery blocked pending provider source
+next_recommended_goal: Identify or approve delivery-provider/courier owner source before adapter implementation
+last_completed_goal: Warehouse fulfillment-status projection live smoke
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
@@ -38,10 +40,12 @@ blockers:
   - [MISSING: owner-approved FlipFlop auth-subject create/read smoke proving persisted customer.authSubject]
   - [MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]
   - non-marketplace app contracts require owner approval before runtime integration
+  - [MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source]
 ```
 
 ## Current Checkpoint
 
+2026-07-03: Delivery-provider shipment-status source discovery found no concrete provider-owned repo/service, webhook or polling contract, runtime credential source, or sample provider payload. No adapter was implemented because doing so would invent courier ownership inside Orders. Plan and agent-ready parallel workstreams are documented in `docs/orchestrator/2026-07-03-delivery-provider-shipment-status-plan.md`.
 2026-07-03: Warehouse fulfillment-status projection implemented in Orders source. Orders accepts internal Warehouse fulfillment status updates, stores bounded `warehouseHandoff.fulfillmentOrderHandoff` metadata, maps Warehouse progress statuses to lifecycle stages, and publishes lifecycle change events. Full `npm test` passed. Runtime deploy/smoke pending.
 2026-07-03: Notifications Orders events consumer is enabled and live for approved recipient `ssfskype@gmail.com`. Notifications image `866a49f` is deployed, `orders.lifecycle` channel policy was seeded by migration, `/health/orders-events` reports enabled/connected/consuming true, and synthetic event `codex-orders-lifecycle-smoke-1783034533137` produced counters `received=1 sent=1 failed=0` plus a sent notification row. Remaining cross-system blocker is delivery-provider shipment-status source after Warehouse handoff.
 

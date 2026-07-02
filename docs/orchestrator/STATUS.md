@@ -1,5 +1,50 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Delivery Provider Shipment Status Discovery
+
+Intent chain:
+
+- Vision: customers and admins should see accurate post-warehouse delivery progress without Orders becoming a courier system or exposing tracking secrets in events.
+- Goal Impact: the approved next slice after Warehouse fulfillment callbacks was narrowed to provider-source discovery and contract planning; implementation is blocked until a real provider owner/source exists.
+- System: Warehouse owns fulfillment and carrier handoff state; an as-yet-missing provider owner must own courier credentials/raw tracking payloads; Orders owns lifecycle projection/events; Notifications consumes bounded Orders events.
+- Feature: delivery-provider shipment/tracking status integration after Warehouse fulfillment status projection.
+- Task: discover repos/contracts, decide whether a bounded adapter can be safely implemented, and produce an agent-ready implementation plan.
+- Execution Plan: inspect remote repositories and existing Orders/Warehouse/Notifications boundaries; document the provider-owned contract and parallel workstreams; do not invent a provider adapter.
+- Coding Prompt: remote-only on Alfares; no local project files, deploys, DB migrations, secret changes, raw tracking data, fake simulators, or broad lifecycle schema changes.
+- Code: `docs/orchestrator/2026-07-03-delivery-provider-shipment-status-plan.md`, `docs/orchestrator/STATUS.md`, `docs/IMPLEMENTATION_STATE.md`.
+- Validation: documentation/diff validation only; implementation remains blocked by missing provider source.
+
+Evidence:
+
+- Remote repo-name discovery under `/home/ssf/Documents/Github` found no standalone delivery/courier/provider/tracking-source repo matching delivery/courier/carrier/shipment/shipping/tracking/provider/fulfillment.
+- Inspected current repo states: Orders `58f8a66` clean before this slice, Warehouse `8b16fdb` clean, Notifications `20cd12a` clean, Suppliers `9745f5f` clean, Catalog `5c6c033` with unrelated docs dirt, Allegro `ed0dedd` clean, Aukro `f0847cf` clean, Heureka `824465e` clean, Bazos `2d47d16` clean, FlipFlop `f758f94` clean.
+- Orders has legacy `src/shipments/*` CRUD for carrier/tracking/status records, but `ORDER_STATUS_TRANSITIONS.md` explicitly excludes shipment transitions as a separate contract and lifecycle docs still mark provider source missing.
+- Warehouse owns `fulfillment_orders` statuses through `handed_to_delivery`, `in_delivery`, `delivered`, `not_delivered`, and `returned`, and can already sync bounded status updates back to Orders.
+- Notifications can consume bounded Orders lifecycle/shipped events and rejects tracking fields; it is not a provider tracking source.
+
+Decision:
+
+- Implementation is blocked now. There is no safely discoverable concrete provider/status source, provider-owned repo, webhook/polling contract, credential source, or sample payload.
+
+Remaining blockers:
+
+- `[MISSING: delivery-provider/courier owner repository or approved existing service that owns courier credentials and raw tracking payloads.]`
+- `[MISSING: provider status source contract: webhook or polling, authentication method, idempotency key, timestamp semantics, retry/error semantics, and sample payloads.]`
+- `[MISSING: mapping from provider statuses to Warehouse fulfillment statuses and Orders lifecycle stages after handed_to_delivery.]`
+- `[MISSING: approved sensitive-data policy for tracking number/URL visibility by role and event exclusion.]`
+- `[MISSING: runtime credential source in Vault/ExternalSecret for the provider owner, not Orders.]`
+
+Parallel execution:
+
+- Ready now: provider discovery follow-up by orchestrator, limited to read-only repo/config discovery and product/provider owner confirmation.
+- Dependency-gated: Warehouse bounded provider-status intake contract under `warehouse-microservice/src/fulfillment/**` and docs after provider source exists.
+- Blocked: provider-owned adapter implementation in the owning provider repo.
+- Final integration: Orders verifier/doc update only after Warehouse/provider contract exists; Notifications copy/routing validation after bounded Orders event evidence exists.
+
+Next action:
+
+- Orchestrator must identify or approve the provider/courier owner/source before any adapter implementation.
+
 ## 2026-07-03 - Warehouse Fulfillment Status Projection
 
 Intent chain:
