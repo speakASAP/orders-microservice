@@ -1,5 +1,37 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Notifications Orders Events Consumer Enabled
+
+Intent chain:
+
+- Vision: Orders lifecycle events should reach an operational notification route after order lifecycle changes.
+- Goal Impact: the Notifications consumer gate is now closed for the approved recipient, with broker connection and one synthetic routed event proven live.
+- System: Orders remains lifecycle event producer; Notifications consumes `orders.events` and sends bounded lifecycle notifications through the approved `orders.lifecycle` email route.
+- Feature: enabled Notifications Orders events consumer with recipient `ssfskype@gmail.com`.
+- Task: approve recipient, seed channel policy, enable consumer, deploy, and smoke through RabbitMQ.
+- Execution Plan: validate source, apply ConfigMap before deploy, let startup migration seed `orders.lifecycle`, verify health, publish one synthetic lifecycle event, and read back bounded counters/status only.
+- Coding Prompt: no secrets, no customer data, no production order row dump; synthetic smoke only.
+- Code: Notifications `866a49f`.
+- Validation: passed live consumer health and synthetic routing smoke.
+
+Evidence:
+
+- Notifications deployed `localhost:5000/notifications-microservice:866a49f` and startup ran migration `SeedOrdersLifecycleChannel1746445300000`.
+- `orders.lifecycle` channel policy is active with `type=email`, `provider=ses`, `purposesAllowed=transactional`, and `applicationsAllowed=orders-microservice`.
+- Public `https://notifications.alfares.cz/health/orders-events` returned `enabled=true`, `connected=true`, `consuming=true`, and `lastErrorCode=null`.
+- Synthetic RabbitMQ event `codex-orders-lifecycle-smoke-1783034533137` produced consumer counters `received=1`, `sent=1`, `failed=0`.
+- Notifications DB readback for the smoke event returned status `sent`, channel `email`, recipient `ssfskype@gmail.com`, type `order_status_update`, and provider message id present.
+
+Remaining blockers:
+
+- `[MISSING: delivery-provider shipment status source after Warehouse fulfillment-order handoff.]`
+- `[MISSING: customer-facing Allegro order cabinet if product requirements require a buyer portal beyond the currently implemented admin/order dashboard surface.]`
+- `[MISSING: SSE/WebSocket push infrastructure if product requires server-pushed realtime beyond deployed bounded polling.]`
+
+Next action:
+
+- Continue with delivery-provider shipment-status contract and any product-confirmed Allegro buyer-cabinet scope.
+
 ## 2026-07-03 - Marketplace Order Cabinet Polling Rollout
 
 Intent chain:
@@ -26,7 +58,6 @@ Evidence:
 Remaining blockers:
 
 - `[MISSING: delivery-provider shipment status source after Warehouse fulfillment-order handoff.]`
-- `[MISSING: Notifications orders-events recipient/consumer gate; do not enable consumer until recipient route/config and broker runtime are verified.]`
 - `[MISSING: customer-facing Allegro order cabinet if product requirements require a buyer portal beyond the currently implemented admin/order dashboard surface.]`
 - `[MISSING: SSE/WebSocket push infrastructure; current deployed contract is bounded polling refresh rather than server-pushed realtime.]`
 
@@ -69,7 +100,6 @@ Operational notes:
 
 Remaining blockers:
 
-- `[MISSING: Notifications orders-events recipient/consumer gate; do not enable consumer until recipient route/config and broker runtime are verified.]`
 - `[MISSING: delivery-provider shipment status source after Warehouse fulfillment-order handoff.]`
 
 Next action:

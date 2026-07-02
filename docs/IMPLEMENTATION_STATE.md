@@ -27,7 +27,7 @@ downstream:
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
 current_chunk: Marketplace order cabinet polling rollout deployed after k3s recovery
-next_recommended_goal: Verify Notifications recipient/consumer enablement and define delivery-provider shipment-status source after Warehouse handoff
+next_recommended_goal: Define delivery-provider shipment-status source after Warehouse handoff
 last_completed_goal: Orders event outbox source reliability lane
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
@@ -36,12 +36,12 @@ blockers:
   - [MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]
   - [MISSING: owner-approved FlipFlop auth-subject create/read smoke proving persisted customer.authSubject]
   - [MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]
-  - Notifications Orders events consumer is deployed disabled with queue/DLX readiness visible; [MISSING: production recipient route and owner-approved ORDERS_EVENTS_CONSUMER_ENABLED=true flip]
   - non-marketplace app contracts require owner approval before runtime integration
 ```
 
 ## Current Checkpoint
 
+2026-07-03: Notifications Orders events consumer is enabled and live for approved recipient `ssfskype@gmail.com`. Notifications image `866a49f` is deployed, `orders.lifecycle` channel policy was seeded by migration, `/health/orders-events` reports enabled/connected/consuming true, and synthetic event `codex-orders-lifecycle-smoke-1783034533137` produced counters `received=1 sent=1 failed=0` plus a sent notification row. Remaining cross-system blocker is delivery-provider shipment-status source after Warehouse handoff.
 
 2026-07-03: Marketplace order cabinet polling rollout completed after k3s recovery. FlipFlop `3b99ed4`, Bazos `2d47d16`, Aukro `f0847cf`, Heureka `824465e`, and Allegro `c9ba31f` are built, pushed, deployed, and live with bounded visible-tab polling/background refresh for the audited order cabinet or order dashboard surfaces. Kubernetes verification showed FlipFlop, Bazos, Aukro, Heureka service/gateway, and Allegro service/api-gateway/settings/imports/frontend deployments ready `1/1`; public checks returned HTTP 200 for FlipFlop and Allegro. Current remaining gaps are Notifications recipient/consumer enablement, delivery-provider shipment-status source, and product confirmation for any separate Allegro buyer-facing cabinet beyond the existing dashboard.
 2026-07-02: Approved Orders outbox migration was applied live and Orders source validation passed (`npm run build`, `npm run verify:event-contracts`, `npm run verify:order-fulfillment-handoff`, `git diff --check`). The deploy wave built/pushed `localhost:5000/orders-microservice:4d9c917`; rollout exposed a local-registry pull-policy issue, so commit `bf74d38` changed the deployment source to `imagePullPolicy: IfNotPresent` and the live deployment template was patched to the immutable image with that policy. The Alfares k3s control-plane then became the active blocker: the deployment is correctly set to `replicas=1` on image `4d9c917`, but the replacement pod remains Pending with no pod IP, service endpoints are empty, and external Orders health returns HTTP 503 `no available server`. k3s logs show repeated `database is locked`, `Slow SQL`, EndpointSlice update timeouts, and node lease update timeouts. Non-interactive restart is unavailable to the current SSH user because `sudo -n systemctl restart k3s` requires a password and plain `systemctl restart k3s` requires interactive authentication. Warehouse WH-G16 deploy, paid-order smoke, and Notifications consumer enablement are paused until the platform/control-plane recovers and Orders `/health` plus `/health/order-events` pass.
