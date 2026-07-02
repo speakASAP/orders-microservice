@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Marketplace Order Cabinet Polling Rollout
+
+Intent chain:
+
+- Vision: every customer/admin order cabinet should reflect canonical Orders lifecycle changes after order creation, payment, warehouse handoff, and delivery progress without requiring a manual page reload.
+- Goal Impact: the previously missing frontend refresh lane is now implemented and deployed for the audited marketplace surfaces that had order cabinets or order dashboards in this wave.
+- System: Orders remains lifecycle source of truth; Warehouse remains stock/fulfillment authority; marketplace frontends poll their own bounded read models and render refreshed order state.
+- Feature: visible-tab 30s polling/background refresh for customer/admin order lists and details where those surfaces exist.
+- Task: implement, validate, push, deploy, and verify FlipFlop, Bazos, Aukro, Heureka, and Allegro order-status UI refresh.
+- Execution Plan: keep deploys serialized after k3s recovery, validate source first, deploy each marketplace, then verify Kubernetes readiness and public HTTP where available.
+- Coding Prompt: remote-only on Alfares; preserve existing branch/user work; do not mutate Orders/Warehouse data; do not invent realtime infrastructure where a bounded polling read model is the current safe contract.
+- Code: FlipFlop `3b99ed4`, Bazos `2d47d16`, Aukro `f0847cf`, Heureka `824465e`, Allegro `c9ba31f`.
+- Validation: passed for implemented marketplace polling wave; delivery-provider source remains dependency-gated.
+
+Evidence:
+
+- k3s was checked before continuing: node `alfares` was `Ready`; non-running pod noise was limited to unrelated batch/cron pods plus transient rollout pods.
+- FlipFlop implemented shared visible polling hook and customer/admin list/detail background refresh; `npm --prefix services/frontend run build` and `git diff --check` passed; deployed `3b99ed4`; all six FlipFlop deployments became `1/1`; `https://flipflop.alfares.cz/` returned HTTP 200.
+- Bazos implemented visible customer/admin UI order-status refresh in `services/aukro-service/src/ui/ui.assets.ts`; service build passed; deployed image `localhost:5000/bazos-service:2d47d16`; deployment `1/1`; repo clean.
+- Aukro implemented dashboard polling shell and tests; UI spec, service build, and diff hygiene passed; deployed image `localhost:5000/aukro-service:f0847cf`; deployment `1/1`; repo clean.
+- Heureka implemented public/dashboard polling and self-tests; service build and focused self-tests passed; deployed service and gateway images `824465e`; both deployments `1/1`; repo returned to clean `main`.
+- Allegro implemented bounded visible polling for the existing order dashboard; frontend build and diff hygiene passed; deployed service, api-gateway, settings, imports, and frontend images `c9ba31f`; all deployments `1/1`; `https://allegro.alfares.cz/` returned HTTP 200; repo returned to clean `main`.
+
+Remaining blockers:
+
+- `[MISSING: delivery-provider shipment status source after Warehouse fulfillment-order handoff.]`
+- `[MISSING: Notifications orders-events recipient/consumer gate; do not enable consumer until recipient route/config and broker runtime are verified.]`
+- `[MISSING: customer-facing Allegro order cabinet if product requirements require a buyer portal beyond the currently implemented admin/order dashboard surface.]`
+- `[MISSING: SSE/WebSocket push infrastructure; current deployed contract is bounded polling refresh rather than server-pushed realtime.]`
+
+Next action:
+
+- Continue with Notifications recipient/consumer readiness and delivery-provider shipment-status contract; add Allegro buyer-cabinet scope only after product confirms that Allegro needs a customer portal separate from the current dashboard.
+
 ## 2026-07-03 - K3s Recovery, Orders Event Health, Warehouse Fulfillment Handoff Smoke
 
 Intent chain:
@@ -36,7 +70,6 @@ Operational notes:
 Remaining blockers:
 
 - `[MISSING: Notifications orders-events recipient/consumer gate; do not enable consumer until recipient route/config and broker runtime are verified.]`
-- `[MISSING: realtime or polling refresh in customer/admin order cabinets across marketplace frontends; current status displays are not proven live-updating.]`
 - `[MISSING: delivery-provider shipment status source after Warehouse fulfillment-order handoff.]`
 
 Next action:
