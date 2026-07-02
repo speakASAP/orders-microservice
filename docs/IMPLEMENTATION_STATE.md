@@ -1,3 +1,5 @@
+2026-07-03: Warehouse fulfillment status projection deployed and live-smoked. Orders image `localhost:5000/orders-microservice:7bcfadd` rolled out healthy with `WAREHOUSE_INTERNAL_SERVICE_TOKEN` present. Warehouse image `localhost:5000/warehouse-microservice:65e53c6` then advanced smoke order `94ce9a4b-7c6a-4625-85c7-8d1b13228b2d` / fulfillment order `6ada14af-20f8-4928-9a37-94a331d97be2` from `requested` to `collecting`. Orders persisted `warehouseHandoff.fulfillmentOrderHandoff.warehouseStatus=collecting`, emitted an audit result `warehouse_collecting`, and `npm run verify:order-lifecycle-read-model` passed after deploy. Notifications Orders-events health showed `received=2`, `sent=2`, `failed=0`, proving the lifecycle event reached the notification pipeline.
+
 # Orders Implementation State
 
 ```yaml

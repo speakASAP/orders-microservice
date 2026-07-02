@@ -20,7 +20,15 @@ Evidence:
 - Lifecycle events remain bounded and continue omitting delivery addresses, tracking data, payment provider fields, tokens, and raw Warehouse bodies.
 - `internal:warehouse-microservice:service` is authorized only for the new fulfillment-status update boundary.
 
-Runtime evidence: [PENDING: deploy and live smoke]
+Runtime evidence:
+
+- Deployed Orders image `localhost:5000/orders-microservice:7bcfadd`; rollout passed and in-pod health returned `status=healthy`.
+- Runtime token check confirmed `WAREHOUSE_INTERNAL_SERVICE_TOKEN` is present in the Orders pod without printing the value.
+- Deployed Warehouse image `localhost:5000/warehouse-microservice:65e53c6`; Warehouse runtime has `ORDERS_SERVICE_URL=http://orders-microservice.statex-apps.svc.cluster.local:3203` and a service token present.
+- Live smoke order `94ce9a4b-7c6a-4625-85c7-8d1b13228b2d` advanced Warehouse fulfillment order `6ada14af-20f8-4928-9a37-94a331d97be2` from `requested` to `collecting` through `POST /api/fulfillment-orders/order/:orderId/status`.
+- Orders DB projection now stores `warehouseHandoff.fulfillmentOrderHandoff.warehouseStatus=collecting`, reason `CODEX_DELIVERY_STATUS_SMOKE`, and reference `codex-warehouse-status-smoke-1783035510`.
+- Orders pod audit log recorded `order.warehouse_fulfillment_status.update` with `previousStatus=warehouse_fulfillment_requested` and `resultingStatus=warehouse_collecting`.
+- `npm run verify:order-lifecycle-read-model` passed after deploy; Notifications Orders-events health showed `received=2`, `sent=2`, `failed=0`.
 
 ## 2026-07-03 - Notifications Orders Events Consumer Enabled
 
