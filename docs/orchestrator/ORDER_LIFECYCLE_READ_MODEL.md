@@ -71,9 +71,15 @@ Customer cabinet API:
 Admin cabinet API:
 
 - `GET /api/orders/admin/lifecycle`
-- Auth: `global:superadmin`, `internal:orders-microservice:admin`, `internal:orders-microservice:readonly`, or `internal:orders-microservice:operator`.
+- Auth: `global:superadmin`, `internal:orders-microservice:admin`, `internal:orders-microservice:readonly`, `internal:orders-microservice:operator`, or `internal:aukro-service:service`.
 - Filters: `channel`, `status`, `paymentStatus`, `lifecycleStage`, `from`, `to`, `limit`.
 - Output: lifecycle order read models plus aggregate counts by lifecycle stage, payment status, channel, delivery status, exception state, and totals by currency.
+
+Internal detail API for channel dashboards:
+
+- `GET /api/orders/:id`
+- Auth includes `internal:aukro-service:service` for Aukro central Orders hydration and `internal:invoices-microservice:service` for invoice generation.
+- Output remains the existing order detail snapshot; lifecycle-specific consumers should prefer `GET /api/orders/admin/lifecycle` when they need aggregates or filters.
 
 ## Transition Validation
 

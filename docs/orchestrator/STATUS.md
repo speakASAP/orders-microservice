@@ -17,7 +17,8 @@ Intent chain:
 Implementation notes:
 
 - Customer read surface: `GET /api/orders/customer/lifecycle`, protected by Auth-valid human users plus Orders read/admin roles, scoped to persisted `customer.email` until a stronger Auth subject-to-order mapping exists.
-- Admin read surface: `GET /api/orders/admin/lifecycle`, protected by Orders read/admin/operator roles, with filters and aggregate counts by lifecycle stage, payment status, channel, delivery status, exception state, and totals by currency.
+- Admin read surface: `GET /api/orders/admin/lifecycle`, protected by Orders read/admin/operator roles plus `internal:aukro-service:service`, with filters and aggregate counts by lifecycle stage, payment status, channel, delivery status, exception state, and totals by currency.
+- AU1 read boundary: `internal:aukro-service:service` is explicitly allowed through `ORDER_ADMIN_LIFECYCLE_READ_ROLES` and `ORDER_DETAIL_READ_ROLES` for `GET /api/orders/admin/lifecycle` and `GET /api/orders/:id`; no customer-scope bypass was added.
 - Event contract: `orders.order.lifecycle_changed.v1` is additive and does not replace existing created/updated/paid/shipped/cancelled events. Lifecycle events omit customer objects, delivery addresses, billing addresses, payment provider data, tracking data, tokens, raw Warehouse response bodies, raw reservation records, and item `warehouseId` values.
 - W1 handoff: after first paid transition and existing reservation `fulfill` calls, Orders reads fulfilled reservations by order id and posts `POST /api/fulfillment-orders` with the W1-approved dispatch payload. The bounded handoff summary is stored under `warehouseHandoff.fulfillmentOrderHandoff`.
 

@@ -15,6 +15,7 @@ const {
 const {
   ORDER_ADMIN_LIFECYCLE_READ_ROLES,
   ORDER_CUSTOMER_LIFECYCLE_READ_ROLES,
+  ORDER_DETAIL_READ_ROLES,
 } = require('../dist/orders/orders.controller');
 
 const PROJECT_ROOT = path.resolve(__dirname, '..');
@@ -177,7 +178,9 @@ assert.equal(aggregates.totalsByCurrency.CZK.orderCount, 3);
 
 assert.equal(ORDER_ADMIN_LIFECYCLE_READ_ROLES.includes('global:superadmin'), true);
 assert.equal(ORDER_ADMIN_LIFECYCLE_READ_ROLES.includes('internal:orders-microservice:readonly'), true);
+assert.equal(ORDER_ADMIN_LIFECYCLE_READ_ROLES.includes('internal:aukro-service:service'), true);
 assert.equal(ORDER_CUSTOMER_LIFECYCLE_READ_ROLES.includes('authenticated:user'), true);
+assert.equal(ORDER_DETAIL_READ_ROLES.includes('internal:aukro-service:service'), true);
 
 const controllerSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/orders/orders.controller.ts'), 'utf8');
 assert.match(controllerSource, /@Get\('customer\/lifecycle'\)/);

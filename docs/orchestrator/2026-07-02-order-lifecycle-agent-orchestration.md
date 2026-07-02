@@ -18,16 +18,17 @@ Implement reliable cross-service order lifecycle:
 
 | Lane | Agent | Scope | Status |
 | --- | --- | --- | --- |
-| O1 Orders core lifecycle | Singer `019f2366-8c98-7433-ba90-49bacea51827` | `orders-microservice` Orders lifecycle, events, APIs, validation | started |
-| F1 FlipFlop checkout/cabinets | Pascal `019f2366-af74-7ec0-b3f8-fefc4e8a2b09` | `flipflop` central Orders-first checkout and order UIs | started |
+| O1 Orders core lifecycle | Singer `019f2366-8c98-7433-ba90-49bacea51827` | `orders-microservice` Orders lifecycle, events, APIs, validation | completed, AU1 auth diff uncommitted |
+| F1 FlipFlop checkout/cabinets | Pascal `019f2366-af74-7ec0-b3f8-fefc4e8a2b09` | `flipflop` central Orders-first checkout and order UIs | completed, live smoke blocked |
 | W1 Warehouse handoff | Wegener `019f2366-cf00-7ae2-8103-421052479539` | `warehouse-microservice` fulfillment handoff/pick-ticket discovery or implementation | completed |
 | P1 Payments bridge | Plato `019f2366-ead6-7b42-b2fb-c2ac20910551` | `payments-microservice` Orders payment-status bridge verification/hardening | completed |
 | Marketplace status discovery | Epicurus `019f2367-0810-7fb2-a600-b0e0dff5d598` | `heureka`, `allegro`, `aukro`, `bazos` read-only order-status mapping | completed |
 | H1 Heureka read model | Rawls `019f236c-f393-79a2-b188-57c5cc09344b` | `heureka` central Orders lifecycle status in dashboard | completed |
 | A1 Allegro read model | Turing `019f236d-1f17-7c33-8dd4-73764944883a` | `allegro` central Orders lifecycle status in order UI | started |
-| AU1 Aukro read model | Ampere `019f2373-85d0-7f22-97e2-ed5d26d68c0c` | `aukro` central Orders lifecycle status in dashboard | started |
-| B1 Bazos read model | gated | `bazos` provider-backed order contract and UI surface | blocked |
+| AU1 Aukro read model | Ampere `019f2373-85d0-7f22-97e2-ed5d26d68c0c` | `aukro` central Orders lifecycle status in dashboard | completed |
+| B1 Bazos read model | Zeno `019f238b-f72e-7c32-9d3c-68b456c7c0a8` | `bazos` limited synthetic/internal central Orders status panel | started, provider-backed flow still blocked |
 | N1 Notifications discovery | Linnaeus `019f2367-2025-7272-bf2c-01924566748c` | `notifications-microservice` broker consumer dependency gate | completed, blocked |
+| C1 Catalog/admin statistics | Leibniz `019f238c-175b-7440-afba-2314547d357b` | `catalog-microservice` Orders-backed product/order/delivery stats | started |
 
 ## Coordination Rules
 
@@ -203,3 +204,98 @@ Caveat:
 
 - Unrelated concurrent `local-resale` dirty work causes `dashboard-list-products.self-test.ts` to fail; H1 left that lane untouched.
 - `[UNKNOWN: exact stable Orders lifecycle DTO field names.]`
+
+## Worker Completion Update: Aukro AU1
+
+Agent: Ampere `019f2373-85d0-7f22-97e2-ed5d26d68c0c`
+Status: completed
+
+Results:
+
+- Dashboard orders hydrate central Orders read model via `aukro_orders.orderId`.
+- Central status, lifecycle stage, payment, fulfillment, and delivery fields are exposed when read succeeds.
+- Local Aukro status remains separate as `localStatus`.
+- Missing central id and failed Orders reads render as `unknown/stale`.
+- UI sold-products panel now shows Orders status metrics/tags and preserves unforwarded visibility.
+
+Validation:
+
+- `git diff --check`: passed.
+- `npm --prefix shared run build`: passed.
+- focused `src/ui/ui.controller.spec.ts`: passed.
+- `npm --prefix services/aukro-service run test`: passed.
+- synthetic orders create smoke with non-secret synthetic token: passed.
+- `npm --prefix services/aukro-service run build`: passed.
+
+Handoff:
+
+- Orders O1 source contract is resolved: `internal:aukro-service:service` is authorized through `ORDER_ADMIN_LIFECYCLE_READ_ROLES` and `ORDER_DETAIL_READ_ROLES`.
+- `[UNKNOWN: real Aukro webhook payload shape.]`
+- Runtime Orders reads remain gated by a future Orders deploy/config rollout; O1 did not deploy.
+
+## Worker Completion Update: Orders O1
+
+Agent: Singer `019f2366-8c98-7433-ba90-49bacea51827`
+Status: O1 present on remote main at `55d7acd`; AU1 read authorization added as uncommitted remote diff
+
+Results:
+
+- Orders core lifecycle/read model/event contract implementation is on remote `origin/main`.
+- AU1 source-contract gap was addressed locally by adding `internal:aukro-service:service` to lifecycle/detail read roles.
+- `scripts/verify-order-lifecycle-read-model.js` now verifies Aukro service read access.
+
+Validation:
+
+- `npm run build`: passed.
+- `npm run verify:order-lifecycle-read-model`: passed.
+- `npm run verify:invoices-read-boundary`: passed.
+- `npm test`: passed.
+- `git diff --check`: passed.
+
+Remaining blockers:
+
+- `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff.]`
+- `[MISSING: Auth customer subject-to-order identity contract for non-email customer matching.]`
+- `[MISSING: channel lead attribution source mapping.]`
+- `[UNKNOWN: real Aukro webhook payload shape.]`
+
+## Worker Completion Update: FlipFlop F1
+
+Agent: Pascal `019f2366-af74-7ec0-b3f8-fefc4e8a2b09`
+Status: completed, not deployed
+
+Results:
+
+- Central Orders is accepted before payment creation.
+- Payments receives central Orders UUID while local FlipFlop ids remain metadata.
+- Central-owned payment success skips duplicate local Warehouse decrement/unreserve.
+- Customer and admin order pages render central lifecycle, totals, currency, address, and stale/error states.
+- Lifecycle adapter preserves compatibility with `[MISSING: Orders lifecycle read endpoint]`.
+
+Validation:
+
+- `cd shared && npm run build`: passed.
+- `cd services/order-service && npm run build`: passed.
+- `cd services/frontend && npm run build`: passed.
+- `npm run verify:orders-hub-integration`: passed.
+- `python3 scripts/pre_coding_gate.py --root .`: passed.
+- `python3 scripts/strict_doc_audit.py --root . --format markdown --fail-on-issues`: passed.
+- `git diff --check && git diff --cached --check`: passed.
+- `npm run verify:guest-checkout-ui`: blocked because live `https://flipflop.alfares.cz/cart` returns HTTP 503.
+
+Handoff:
+
+- Runtime smoke must wait until `/cart` returns HTTP 200 and Orders lifecycle read endpoint is deployed.
+- FlipFlop repo has concurrent staged/dirty checkout and validation files; integration owner must avoid mixing unrelated lanes.
+
+## Worker Start Update: Bazos B1 and Catalog C1
+
+Started:
+
+- Bazos limited read-model worker Zeno `019f238b-f72e-7c32-9d3c-68b456c7c0a8`.
+- Catalog/admin statistics worker Leibniz `019f238c-175b-7440-afba-2314547d357b`.
+
+Scope decisions:
+
+- Bazos worker is limited to synthetic/internal order status panel and docs; provider-backed Bazos order flow remains blocked until contracts are supplied.
+- Catalog worker must consume Orders-backed stats/read models only and must not touch concurrent product quality/manual override/product relation/local resale work unless unavoidable.

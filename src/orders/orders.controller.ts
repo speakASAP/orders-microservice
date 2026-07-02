@@ -44,6 +44,7 @@ export const ORDER_ADMIN_LIFECYCLE_READ_ROLES = [
   'internal:orders-microservice:admin',
   'internal:orders-microservice:readonly',
   'internal:orders-microservice:operator',
+  'internal:aukro-service:service',
 ] as const;
 
 export const ORDER_CUSTOMER_LIFECYCLE_READ_ROLES = [
@@ -55,6 +56,7 @@ export const ORDER_DETAIL_READ_ROLES = [
   'global:superadmin',
   'internal:orders-microservice:admin',
   'internal:invoices-microservice:service',
+  'internal:aukro-service:service',
 ] as const;
 
 interface ProductSalesStatisticsQuery {
