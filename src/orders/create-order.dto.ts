@@ -21,7 +21,10 @@ export interface CreateOrderAddressDto {
   postalCode?: string;
   country?: string;
   companyName?: string;
+  companyId?: string;
   taxId?: string;
+  vatId?: string;
+  email?: string;
 }
 
 export interface CreateOrderItemDto {
@@ -372,7 +375,10 @@ function normalizeAddress(value?: CreateOrderAddressDto): Order['shippingAddress
     postalCode: normalizeOptionalString(value.postalCode),
     country: normalizeOptionalString(value.country),
     companyName: normalizeOptionalString(value.companyName),
+    companyId: normalizeOptionalString(value.companyId),
     taxId: normalizeOptionalString(value.taxId),
+    vatId: normalizeOptionalString(value.vatId),
+    email: normalizeOptionalString(value.email),
   };
 }
 

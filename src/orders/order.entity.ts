@@ -52,7 +52,10 @@ export class Order {
     postalCode?: string;
     country?: string;
     companyName?: string;
+    companyId?: string;
     taxId?: string;
+    vatId?: string;
+    email?: string;
   };
 
   // Totals
@@ -114,4 +117,3 @@ export class Order {
   @UpdateDateColumn()
   updatedAt: Date;
 }
-

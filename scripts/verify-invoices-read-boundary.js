@@ -27,6 +27,11 @@ assert(externalSecret.includes('secretKey: INVOICES_INTERNAL_SERVICE_TOKEN'), 'o
 assert(externalSecret.includes('key: secret/prod/invoices-microservice'), 'orders ExternalSecret does not source invoices secret');
 assert(createDto.includes('authSubject?: string') && createDto.includes('normalizeCustomerAuthSubject'), 'create-order contract does not accept a stable Auth customer subject');
 assert(entity.includes('authUserId?: string') && entity.includes('subject?: string'), 'order customer snapshot does not persist Auth customer subject fields');
+for (const field of ['companyId', 'vatId', 'email']) {
+  assert(createDto.includes(`${field}?: string`), `create-order billing snapshot does not accept ${field}`);
+  assert(createDto.includes(`${field}: normalizeOptionalString(value.${field})`), `create-order normalization does not preserve ${field}`);
+  assert(entity.includes(`${field}?: string`), `order billing snapshot does not persist ${field}`);
+}
 assert(service.includes('applyCustomerIdentityScope') && service.includes("orders.customer ->> 'authUserId'"), 'customer lifecycle reads do not support Auth subject matching');
 
 console.log('Invoices read boundary verification passed');

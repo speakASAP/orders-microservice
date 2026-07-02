@@ -102,7 +102,10 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
     "postalCode": "11000",
     "country": "CZ",
     "companyName": "Example Company",
-    "taxId": "CZ00000000"
+    "companyId": "12345678",
+    "taxId": "TAX-12345678",
+    "vatId": "CZ12345678",
+    "email": "invoice@example.invalid"
   },
   "items": [
     {
@@ -146,6 +149,10 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
 - `items`: required non-empty array. Each line requires `productId`, `title`, positive integer `quantity`, and non-negative `unitPrice`. Missing `totalPrice` is calculated as `quantity * unitPrice`.
 - `items[].productId`: canonical `catalog-microservice` product ID. Channel-local product, offer, ad, listing, or row IDs must not be sent as `productId`; channel services must resolve them before forwarding or fail closed with a mapping error.
 - `totals.currency`: required ISO-4217-style three-letter code.
+- `billingAddress` may include invoice snapshot fields `companyName`,
+  `companyId`, `taxId`, `vatId`, and invoice recipient `email`. These are
+  immutable order snapshots only; reusable invoice profile truth remains owned
+  by `auth-microservice`.
 - Unknown top-level fields are rejected.
 
 ## Persistence Mapping

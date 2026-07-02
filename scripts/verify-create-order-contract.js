@@ -32,6 +32,18 @@ const validRequest = {
     postalCode: '11000',
     country: 'CZ',
   },
+  billingAddress: {
+    name: 'Example Customer',
+    street: 'Example Street 1',
+    city: 'Prague',
+    postalCode: '11000',
+    country: 'CZ',
+    companyName: 'Example Company',
+    companyId: '12345678',
+    taxId: 'TAX-12345678',
+    vatId: 'CZ12345678',
+    email: 'invoice@example.invalid',
+  },
   items: [
     {
       productId: 'catalog-product-1',
@@ -76,6 +88,18 @@ assert.deepEqual(normalized.order.customer, {
   name: 'Example Customer',
   email: 'customer@example.invalid',
   phone: undefined,
+});
+assert.deepEqual(normalized.order.billingAddress, {
+  name: 'Example Customer',
+  street: 'Example Street 1',
+  city: 'Prague',
+  postalCode: '11000',
+  country: 'CZ',
+  companyName: 'Example Company',
+  companyId: '12345678',
+  taxId: 'TAX-12345678',
+  vatId: 'CZ12345678',
+  email: 'invoice@example.invalid',
 });
 assert.equal(normalized.items.length, 1);
 assert.equal(normalized.items[0].orderId, undefined);
