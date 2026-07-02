@@ -34,7 +34,7 @@ blockers:
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
   - [MISSING: channel lead attribution source mapping]
   - [MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]
-  - [MISSING: Auth customer subject-to-order identity contract for non-email customer matching]
+  - [MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots]
   - Warehouse WH-G16 fulfillment-order handoff is source-validated but not deployed; production deploy runs database migrations and requires explicit owner approval
   - Notifications lifecycle-changed event support is implemented on branch `codex/notifications-orders-lifecycle-event`, but no approved live broker consumer/runtime queue/DLQ/recipient contract exists yet
   - [MISSING: Orders event outbox migration/deploy approval and live /health/order-events readiness smoke]
@@ -54,7 +54,7 @@ blockers:
 
 2026-07-02: AU1 Aukro lifecycle/detail read boundary was added to the O1 contract. Orders now allows `internal:aukro-service:service` through `ORDER_ADMIN_LIFECYCLE_READ_ROLES` and `ORDER_DETAIL_READ_ROLES` for `GET /api/orders/admin/lifecycle` and `GET /api/orders/:id`; the customer lifecycle endpoint remains human-auth scoped. Validation passed: `npm run build`, `npm run verify:order-lifecycle-read-model`, `npm run verify:invoices-read-boundary`, `git diff --check`, and full `npm test`. No deploy or push was run.
 
-2026-07-02: O1 Orders core lifecycle and contracts is implemented and validated in source. Orders now derives the authoritative UX lifecycle stage from existing canonical order status, payment status, item fulfillment status, and Warehouse handoff metadata while preserving the legacy coarse `status` field. Added protected `GET /api/orders/customer/lifecycle` and `GET /api/orders/admin/lifecycle` read models, additive `orders.order.lifecycle_changed.v1` event contract/fixture/publisher, lifecycle transition validation helper, and `scripts/verify-order-lifecycle-read-model.js`. W1 update was wired inside Orders: after first paid transition, Orders keeps the existing reservation `fulfill` calls, reads fulfilled reservations through `GET /api/reservations/order/:orderId`, and posts the approved `POST /api/fulfillment-orders` dispatch handoff with order, delivery, contact, and item reservation payload. Added `src/orders/order-fulfillment-handoff.client.ts` plus `scripts/verify-order-fulfillment-handoff.js`. Validation passed: `npm run build`, `npm run verify:order-lifecycle-read-model`, `npm run verify:order-fulfillment-handoff`, `npm run verify:event-contracts`, `npm run verify:payment-boundary`, `npm run verify:order-reservation-gate`, `git diff --check`, and full `npm test`. No deploy, push, production DB mutation, token value, customer payload dump, raw Warehouse response body, or non-Orders repo edit was used. Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: Auth customer subject-to-order identity contract for non-email customer matching]`, `[MISSING: channel lead attribution source mapping]`.
+2026-07-02: O1 Orders core lifecycle and contracts is implemented and validated in source. Orders now derives the authoritative UX lifecycle stage from existing canonical order status, payment status, item fulfillment status, and Warehouse handoff metadata while preserving the legacy coarse `status` field. Added protected `GET /api/orders/customer/lifecycle` and `GET /api/orders/admin/lifecycle` read models, additive `orders.order.lifecycle_changed.v1` event contract/fixture/publisher, lifecycle transition validation helper, and `scripts/verify-order-lifecycle-read-model.js`. W1 update was wired inside Orders: after first paid transition, Orders keeps the existing reservation `fulfill` calls, reads fulfilled reservations through `GET /api/reservations/order/:orderId`, and posts the approved `POST /api/fulfillment-orders` dispatch handoff with order, delivery, contact, and item reservation payload. Added `src/orders/order-fulfillment-handoff.client.ts` plus `scripts/verify-order-fulfillment-handoff.js`. Validation passed: `npm run build`, `npm run verify:order-lifecycle-read-model`, `npm run verify:order-fulfillment-handoff`, `npm run verify:event-contracts`, `npm run verify:payment-boundary`, `npm run verify:order-reservation-gate`, `git diff --check`, and full `npm test`. No deploy, push, production DB mutation, token value, customer payload dump, raw Warehouse response body, or non-Orders repo edit was used. Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots]`, `[MISSING: channel lead attribution source mapping]`.
 
 2026-07-02: Added source support for `invoices-microservice` to read full
 order snapshots through the existing internal service-token boundary. Orders
@@ -216,3 +216,13 @@ Verification results:
 - Missing-marker scan: pass; no missing or unknown markers found in IPS documentation scope.
 
 Application deployment completed for the affected channel services. Bazos and FlipFlop deploy scripts rebuilt and rolled out their images. Allegro was rebuilt with the service Dockerfile after fixing Prisma generation to run with OpenSSL in the builder stage and wiring ENCRYPTION_KEY and JWT_SECRET as Kubernetes secret references. Aukro and Heureka were manually rebuilt with their root Dockerfiles and rolled out after the standard deploy scripts were found to apply manifests without rebuilding images.
+
+2026-07-02: Added source-level Orders support for stable Auth customer subject
+snapshots required by invoices account matching. `orders.create.v1` now accepts
+`customer.authSubject` plus matching aliases, validates the value as UUID, and
+persists normalized `customer.authUserId`/`customer.subject` without adding
+customer identity to Orders RabbitMQ events. Customer lifecycle reads prefer
+Auth subject matching and retain email fallback for legacy rows. Validation
+passed: `npm test`, `npm run verify:invoices-read-boundary`, and
+`git diff --check`. No deploy, DB row read/write, migration, secret read, or
+customer/order row dump was run.

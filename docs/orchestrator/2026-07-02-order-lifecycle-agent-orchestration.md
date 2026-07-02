@@ -255,7 +255,7 @@ Validation:
 Remaining blockers:
 
 - `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff.]`
-- `[MISSING: Auth customer subject-to-order identity contract for non-email customer matching.]`
+- `[MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots.]`
 - `[MISSING: channel lead attribution source mapping.]`
 - `[UNKNOWN: real Aukro webhook payload shape.]`
 

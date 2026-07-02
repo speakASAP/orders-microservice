@@ -106,7 +106,7 @@ Boundary notes:
 
 - No deployment or push was run.
 - No production DB rows, token values, decoded JWTs, customer payload dumps, raw Warehouse response bodies, or non-Orders repo edits were used.
-- Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: Auth customer subject-to-order identity contract for non-email customer matching]`, and `[MISSING: channel lead attribution source mapping]`.
+- Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots]`, and `[MISSING: channel lead attribution source mapping]`.
 
 Next unfinished chunk:
 
@@ -2537,3 +2537,38 @@ Blockers and follow-ups:
 Next unfinished chunk:
 
 - Hand off to the coordinator for Catalog-side integration and deployment approval. Do not deploy from this workstream.
+
+
+## 2026-07-02 - Auth Subject Snapshot For Invoices
+
+Selected chunk: source-only Orders/Auth customer identity contract for invoices
+account matching.
+
+Intent chain:
+
+- Vision: authenticated customers can retrieve their invoices and order
+  lifecycle without relying only on mutable email matching.
+- Goal Impact: Invoices can match account access by stable Auth subject when
+  Orders snapshots carry one.
+- System: Auth remains identity owner; Orders stores only the bounded Auth user
+  UUID supplied by authenticated create callers; Invoices consumes the order
+  snapshot; RabbitMQ events remain trigger-only.
+- Feature: additive `customer.authSubject`/alias input normalized to
+  `customer.authUserId` and `customer.subject`.
+- Task: implement create-order normalization, persisted snapshot typing,
+  subject-first customer lifecycle read scope, verifiers, and docs.
+- Execution Plan: source-only remote edit; no deploy, no DB reads/writes, no
+  secret reads, no production customer/order rows.
+- Coding Prompt: do not infer identity from email; reject malformed UUIDs;
+  preserve legacy orders; keep customer identity out of order events.
+- Code: `src/orders/create-order.dto.ts`, `src/orders/order.entity.ts`,
+  `src/orders/orders.service.ts`, focused verifiers, and IPS docs.
+- Validation: `npm test`, `npm run verify:invoices-read-boundary`, and
+  `git diff --check` passed.
+- DocsRAG: `[MISSING: service JWT for docs-rag query in this session]`; work
+  proceeded from repository source-of-truth docs and read-only sub-agent source
+  audits.
+
+Blocker converted:
+
+- `[MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots]`

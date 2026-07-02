@@ -21,6 +21,7 @@ const validRequest = {
   },
   orderedAt: '2026-06-13T08:00:00.000Z',
   customer: {
+    authSubject: '11111111-1111-4111-8111-111111111111',
     name: 'Example Customer',
     email: 'customer@example.invalid',
   },
@@ -69,6 +70,13 @@ assert.equal(normalized.order.status, 'pending');
 assert.equal(normalized.order.currency, 'CZK');
 assert.equal(normalized.order.paymentMethod, 'card');
 assert.equal(normalized.order.shippingMethod, 'carrier');
+assert.deepEqual(normalized.order.customer, {
+  authUserId: '11111111-1111-4111-8111-111111111111',
+  subject: '11111111-1111-4111-8111-111111111111',
+  name: 'Example Customer',
+  email: 'customer@example.invalid',
+  phone: undefined,
+});
 assert.equal(normalized.items.length, 1);
 assert.equal(normalized.items[0].orderId, undefined);
 assert.equal(normalized.items[0].quantity, 2);
@@ -88,6 +96,20 @@ const normalizedCliplot = normalizeCreateOrderRequest({
   channelAccountId: 'cliplot-storefront',
 });
 assert.equal(normalizedCliplot.order.channel, 'cliplot');
+
+const normalizedWithAuthSubjectAliases = normalizeCreateOrderRequest({
+  ...validRequest,
+  externalOrderId: 'checkout-auth-subject-aliases',
+  customer: {
+    ...validRequest.customer,
+    authSubject: undefined,
+    authUserId: '22222222-2222-4222-8222-222222222222',
+    subject: '22222222-2222-4222-8222-222222222222',
+    sub: '22222222-2222-4222-8222-222222222222',
+  },
+});
+assert.equal(normalizedWithAuthSubjectAliases.order.customer.authUserId, '22222222-2222-4222-8222-222222222222');
+assert.equal(normalizedWithAuthSubjectAliases.order.customer.subject, '22222222-2222-4222-8222-222222222222');
 
 const existingOrder = {
   ...normalized.order,
@@ -131,6 +153,21 @@ assert.throws(
 assert.throws(
   () => normalizeCreateOrderRequest({ ...validRequest, status: 'shipped' }),
   /Create order status must be pending or confirmed/,
+);
+assert.throws(
+  () => normalizeCreateOrderRequest({ ...validRequest, customer: { ...validRequest.customer, authSubject: 'not-a-uuid' } }),
+  /customer\.authSubject must be a UUID/,
+);
+assert.throws(
+  () => normalizeCreateOrderRequest({
+    ...validRequest,
+    customer: {
+      ...validRequest.customer,
+      authSubject: '33333333-3333-4333-8333-333333333333',
+      authUserId: '44444444-4444-4444-8444-444444444444',
+    },
+  }),
+  /customer Auth subject fields must match/,
 );
 
 

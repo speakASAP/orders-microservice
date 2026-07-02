@@ -357,14 +357,15 @@ export class OrdersService {
   }
 
   async getCustomerLifecycleOrders(actor: OrdersLifecycleActor = {}, filters: OrderLifecycleReadFilters = {}) {
+    const subject = this.normalizeActorSubject(actor);
     const email = this.normalizeActorEmail(actor);
-    if (!email) {
-      throw new ForbiddenException('Authenticated customer email is required for customer order lifecycle reads');
+    if (!subject && !email) {
+      throw new ForbiddenException('Authenticated customer identity is required for customer order lifecycle reads');
     }
 
     const normalized = normalizeOrderLifecycleReadFilters(filters);
-    const query = this.buildLifecycleQuery(normalized)
-      .andWhere("LOWER(orders.customer ->> 'email') = :customerEmail", { customerEmail: email });
+    const query = this.buildLifecycleQuery(normalized);
+    this.applyCustomerIdentityScope(query, subject, email);
     const orders = await query.getMany();
     const models = this.filterLifecycleModels(
       orders.map((order) => serializeOrderLifecycleReadModel(order, {
@@ -377,7 +378,7 @@ export class OrdersService {
 
     return {
       generatedAt: new Date().toISOString(),
-      actor: { email },
+      actor: { subject, email },
       filters: this.serializeLifecycleFilters(normalized),
       count: models.length,
       orders: models,
@@ -934,6 +935,37 @@ export class OrdersService {
       to: filters.to?.toISOString() || null,
       limit: filters.limit,
     };
+  }
+
+  private applyCustomerIdentityScope(
+    query: SelectQueryBuilder<Order>,
+    subject: string | null,
+    email: string | null,
+  ): void {
+    if (subject && email) {
+      query.andWhere(
+        `(LOWER(orders.customer ->> 'authUserId') = :customerSubject OR LOWER(orders.customer ->> 'subject') = :customerSubject OR LOWER(orders.customer ->> 'email') = :customerEmail)`,
+        { customerSubject: subject, customerEmail: email },
+      );
+      return;
+    }
+
+    if (subject) {
+      query.andWhere(
+        `(LOWER(orders.customer ->> 'authUserId') = :customerSubject OR LOWER(orders.customer ->> 'subject') = :customerSubject)`,
+        { customerSubject: subject },
+      );
+      return;
+    }
+
+    query.andWhere("LOWER(orders.customer ->> 'email') = :customerEmail", { customerEmail: email });
+  }
+
+  private normalizeActorSubject(actor: OrdersLifecycleActor): string | null {
+    if (!actor.sub || typeof actor.sub !== 'string') return null;
+    const normalized = actor.sub.trim().toLowerCase();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(normalized)) return null;
+    return normalized;
   }
 
   private normalizeActorEmail(actor: OrdersLifecycleActor): string | null {

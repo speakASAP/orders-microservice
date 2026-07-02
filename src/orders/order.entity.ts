@@ -26,6 +26,8 @@ export class Order {
   // Customer info
   @Column({ type: 'jsonb', nullable: true })
   customer: {
+    authUserId?: string;
+    subject?: string;
     name?: string;
     email?: string;
     phone?: string;

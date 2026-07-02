@@ -12,6 +12,9 @@ function assert(condition, message) {
 
 const guard = read('src/auth/jwt-roles.guard.ts');
 const controller = read('src/orders/orders.controller.ts');
+const createDto = read('src/orders/create-order.dto.ts');
+const entity = read('src/orders/order.entity.ts');
+const service = read('src/orders/orders.service.ts');
 const externalSecret = read('k8s/external-secret.yaml');
 
 assert(guard.includes("'invoices-microservice'"), 'invoices service actor is not configured');
@@ -22,5 +25,8 @@ assert(controller.includes("'internal:invoices-microservice:service'"), 'orders 
 assert(controller.includes('@Roles(...ORDER_DETAIL_READ_ROLES)'), 'orders detail endpoint is not explicitly role scoped');
 assert(externalSecret.includes('secretKey: INVOICES_INTERNAL_SERVICE_TOKEN'), 'orders ExternalSecret does not project invoices token');
 assert(externalSecret.includes('key: secret/prod/invoices-microservice'), 'orders ExternalSecret does not source invoices secret');
+assert(createDto.includes('authSubject?: string') && createDto.includes('normalizeCustomerAuthSubject'), 'create-order contract does not accept a stable Auth customer subject');
+assert(entity.includes('authUserId?: string') && entity.includes('subject?: string'), 'order customer snapshot does not persist Auth customer subject fields');
+assert(service.includes('applyCustomerIdentityScope') && service.includes("orders.customer ->> 'authUserId'"), 'customer lifecycle reads do not support Auth subject matching');
 
 console.log('Invoices read boundary verification passed');

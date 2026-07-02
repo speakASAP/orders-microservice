@@ -190,6 +190,8 @@ assert.match(controllerSource, /@Roles\(\.\.\.ORDER_ADMIN_LIFECYCLE_READ_ROLES\)
 
 const serviceSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/orders/orders.service.ts'), 'utf8');
 assert.match(serviceSource, /getCustomerLifecycleOrders/);
+assert.match(serviceSource, /LOWER\(orders\.customer ->> 'authUserId'\)/);
+assert.match(serviceSource, /LOWER\(orders\.customer ->> 'subject'\)/);
 assert.match(serviceSource, /LOWER\(orders\.customer ->> 'email'\)/);
 assert.match(serviceSource, /getAdminLifecycleOrders/);
 assert.match(serviceSource, /publishLifecycleChangedIfNeeded/);
@@ -204,6 +206,7 @@ assert.match(contractDoc, /GET \/api\/orders\/customer\/lifecycle/);
 assert.match(contractDoc, /GET \/api\/orders\/admin\/lifecycle/);
 assert.match(contractDoc, /POST \/api\/fulfillment-orders/);
 assert.doesNotMatch(contractDoc, /\[MISSING: Warehouse-owned fulfillment order or pick-ticket contract/);
-assert.match(contractDoc, /\[MISSING: Auth customer subject-to-order identity contract/);
+assert.match(contractDoc, /customer\.authUserId/);
+assert.match(contractDoc, /runtime proof that authenticated channel create callers pass Auth subject/);
 
 console.log('order lifecycle read model verification ok');

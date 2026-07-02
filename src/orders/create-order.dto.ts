@@ -5,6 +5,10 @@ import { OrderItem } from '../items/order-item.entity';
 export const CREATE_ORDER_CONTRACT_VERSION = 'orders.create.v1';
 
 export interface CreateOrderCustomerDto {
+  authSubject?: string;
+  authUserId?: string;
+  subject?: string;
+  sub?: string;
   name?: string;
   email?: string;
   phone?: string;
@@ -327,11 +331,36 @@ function normalizeItems(items: CreateOrderItemDto[]): Array<Partial<OrderItem>> 
 
 function normalizeCustomer(value?: CreateOrderCustomerDto): Order['customer'] {
   if (!value) return undefined;
+  const authUserId = normalizeCustomerAuthSubject(value);
   return {
+    authUserId,
+    subject: authUserId,
     name: normalizeOptionalString(value.name),
     email: normalizeOptionalString(value.email),
     phone: normalizeOptionalString(value.phone),
   };
+}
+
+function normalizeCustomerAuthSubject(value: CreateOrderCustomerDto): string | undefined {
+  const candidates = [
+    value.authSubject,
+    value.authUserId,
+    value.subject,
+    value.sub,
+  ].map((candidate) => normalizeOptionalString(candidate)).filter((candidate): candidate is string => Boolean(candidate));
+
+  if (candidates.length === 0) return undefined;
+
+  const unique = Array.from(new Set(candidates.map((candidate) => candidate.toLowerCase())));
+  if (unique.length > 1) {
+    throw new BadRequestException('customer Auth subject fields must match');
+  }
+
+  const authSubject = unique[0];
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(authSubject)) {
+    throw new BadRequestException('customer.authSubject must be a UUID');
+  }
+  return authSubject;
 }
 
 function normalizeAddress(value?: CreateOrderAddressDto): Order['shippingAddress'] | Order['billingAddress'] {

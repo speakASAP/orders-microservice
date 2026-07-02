@@ -83,6 +83,7 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
   },
   "orderedAt": "2026-06-13T08:00:00.000Z",
   "customer": {
+    "authSubject": "11111111-1111-4111-8111-111111111111",
     "name": "Example Customer",
     "email": "customer@example.invalid",
     "phone": "+420000000000"
@@ -140,6 +141,7 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
 - `externalOrderId`: required channel order/checkout identifier.
 - `channelAccountId`: required by the idempotency contract for new clients; clients without a natural account partition should send a stable sentinel such as `default`.
 - `leadAttribution`: optional explicit attribution metadata with allowed fields `leadId`, `source`, and `campaignId`. Orders publishes it only on `orders.order.created.v1` when supplied; callers must not derive it from customer/contact/address/payment data.
+- `customer.authSubject`: optional stable Auth user UUID for authenticated checkouts. Orders also accepts alias fields `customer.authUserId`, `customer.subject`, and `customer.sub`, but all supplied aliases must match. The normalized persisted snapshot stores `customer.authUserId` and `customer.subject`; Orders never infers this value from email.
 - `status`: optional and limited to `pending` or `confirmed` at create time; default is `pending`.
 - `items`: required non-empty array. Each line requires `productId`, `title`, positive integer `quantity`, and non-negative `unitPrice`. Missing `totalPrice` is calculated as `quantity * unitPrice`.
 - `items[].productId`: canonical `catalog-microservice` product ID. Channel-local product, offer, ad, listing, or row IDs must not be sent as `productId`; channel services must resolve them before forwarding or fail closed with a mapping error.
@@ -148,7 +150,7 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
 
 ## Persistence Mapping
 
-- `customer`, `shippingAddress`, `billingAddress`, totals, `payment.method`, `payment.status`, `shipping.method`, and `notes.customerNote` map to existing `orders` columns.
+- `customer`, including normalized `authUserId`/`subject` when supplied, `shippingAddress`, `billingAddress`, totals, `payment.method`, `payment.status`, `shipping.method`, and `notes.customerNote` map to existing `orders` columns.
 - `items[]` maps to `order_items` rows in the same database transaction as the order row. `order_items.productId` stores the canonical Catalog product ID snapshot used for product-level marketplace sales statistics.
 - New item rows start with `fulfillmentStatus=pending`.
 - Orders stores canonical Catalog product IDs, SKUs, titles, quantities, prices, and optional warehouse IDs for the order snapshot. Catalog remains product truth and Warehouse remains stock truth.

@@ -65,7 +65,7 @@ Customer cabinet API:
 
 - `GET /api/orders/customer/lifecycle`
 - Auth: any Auth-valid human bearer token through `authenticated:user`, plus Orders admin/read/operator roles.
-- Scope: returns only orders whose persisted `customer.email` matches the authenticated actor email.
+- Scope: returns orders whose persisted `customer.authUserId` or `customer.subject` matches the authenticated actor `sub`; legacy rows may still match by `customer.email`.
 - Output: lifecycle stage, compatibility status, totals, item list, shipping method, delivery address, timeline, and audit-safe Warehouse handoff summary.
 
 Admin cabinet API:
@@ -93,6 +93,6 @@ Blocker: `[MISSING: Delivery provider or shipment-status source contract for aft
 
 - Lifecycle events never include full customer, shipping address, billing address, customer note, payment provider, tracking, token, secret, or raw Warehouse response data.
 - Authenticated read APIs may expose delivery address and order items because customer/admin UIs require them, but they do not log those payloads or include them in event fixtures.
-- Customer read filtering currently depends on `customer.email` because Orders has no persisted Auth subject field on legacy order rows.
+- Customer read filtering prefers persisted `customer.authUserId`/`customer.subject` when Auth supplies a stable `sub`, and falls back to `customer.email` for legacy order rows.
 
-Blocker: `[MISSING: Auth customer subject-to-order identity contract for non-email customer matching.]`
+Blocker: `[MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots.]`
