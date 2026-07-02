@@ -26,8 +26,8 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Orders/Warehouse migration gate preflight complete; owner approval required for DB-mutating deploys
-next_recommended_goal: Owner-approved Orders event outbox migration/deploy and Warehouse WH-G16 migration/deploy, then live end-to-end order/payment/fulfillment/cabinet/Catalog smoke while Orders and Payments remain healthy
+current_chunk: Orders outbox migration applied; deployment blocked by Alfares k3s datastore lock before Warehouse WH-G16 deploy
+next_recommended_goal: Restore Alfares k3s control-plane, verify Orders health and /health/order-events, then deploy Warehouse WH-G16 and run guarded paid-order lifecycle smoke
 last_completed_goal: Orders event outbox source reliability lane
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
@@ -41,9 +41,12 @@ blockers:
   - [MISSING: Orders event outbox migration/deploy approval and live /health/order-events readiness smoke]
   - non-marketplace app contracts require owner approval before runtime integration
   - Heureka service has unrelated dirty dashboard/feed/auth worktree changes that must remain isolated from Orders Goal 7 coordinator docs
+  - [MISSING: owner/platform k3s restart or equivalent Alfares control-plane recovery; Orders has no ready pod or endpoint]
 ```
 
 ## Current Checkpoint
+
+2026-07-02: Approved Orders outbox migration was applied live and Orders source validation passed (`npm run build`, `npm run verify:event-contracts`, `npm run verify:order-fulfillment-handoff`, `git diff --check`). The deploy wave built/pushed `localhost:5000/orders-microservice:4d9c917`; rollout exposed a local-registry pull-policy issue, so commit `bf74d38` changed the deployment source to `imagePullPolicy: IfNotPresent` and the live deployment template was patched to the immutable image with that policy. The Alfares k3s control-plane then became the active blocker: the deployment is correctly set to `replicas=1` on image `4d9c917`, but the replacement pod remains Pending with no pod IP, service endpoints are empty, and external Orders health returns HTTP 503 `no available server`. k3s logs show repeated `database is locked`, `Slow SQL`, EndpointSlice update timeouts, and node lease update timeouts. Non-interactive restart is unavailable to the current SSH user because `sudo -n systemctl restart k3s` requires a password and plain `systemctl restart k3s` requires interactive authentication. Warehouse WH-G16 deploy, paid-order smoke, and Notifications consumer enablement are paused until the platform/control-plane recovers and Orders `/health` plus `/health/order-events` pass.
 
 2026-07-02: Orders/Warehouse migration-gate preflight completed after the safe runtime wave. Orders source validation passed with build, event-contract, lifecycle read-model, fulfillment-handoff, and reservation-gate verifiers; live `/health/order-events` still returns HTTP 404 and read-only schema inspection found no `order_event_outbox` table. Warehouse commit `4d0fa85` hardens the build to a full non-incremental TypeScript emit so migration jobs include required TypeORM entity files; validation passed with build, data-source require check, focused fulfillment-orders spec, and diff hygiene. Live Warehouse read-only schema inspection found no `fulfillment_orders` / `fulfillment_order_lines` tables and migration history contains only the first three migrations, so `CreateFulfillmentOrders1781500000000` remains pending. No Orders or Warehouse deployment/migration, live stock/order mutation, secret value print, customer/order row dump, or notification send was run.
 

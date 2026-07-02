@@ -1,5 +1,44 @@
 # Orders Orchestrator Status
 
+## 2026-07-02 - Orders Outbox Migration Applied; K3s Control-Plane Blocker
+
+Intent chain:
+
+- Vision: the paid-order reliability wave must not leave Orders dependent on best-effort event publish or unavailable Warehouse handoff.
+- Goal Impact: the Orders outbox database gate has been applied and the source/deployment image was prepared, but live rollout is blocked by a cluster-control-plane datastore lock before a ready Orders pod could be restored.
+- System: Orders remains lifecycle/event source of truth; Warehouse WH-G16 deploy remains paused; Notifications remains disabled/drifted until producer and recipient gates are stable.
+- Feature: live Orders `order_event_outbox` schema and immutable image rollout preparation for `/health/order-events`.
+- Task: apply the approved outbox migration, validate source, deploy the image, repair local-registry image pull policy, and stop before Warehouse deploy because Orders has no live endpoint.
+- Execution Plan: restore k3s control-plane health first, verify Orders ready `1/1` and `/health/order-events`, then continue with Warehouse WH-G16 migration/deploy and paid-order smoke.
+- Coding Prompt: do not start Warehouse migration/deploy while Orders endpoint is unavailable; do not enable Notifications consumer without recipient and broker gates.
+- Code: `migrations/007_create_order_event_outbox.sql` applied live; `bf74d38` sets Orders local-registry `imagePullPolicy: IfNotPresent`; live deployment template patched to `localhost:5000/orders-microservice:4d9c917` with `IfNotPresent`.
+- Validation: source validation passed; runtime rollout is blocked by Alfares k3s datastore lock.
+
+Evidence:
+
+- Applied `migrations/007_create_order_event_outbox.sql` against the live `orders` database; PostgreSQL returned `CREATE TABLE` plus expected index creation.
+- Orders source validation passed after the migration gate: `npm run build`, `npm run verify:event-contracts`, `npm run verify:order-fulfillment-handoff`, and `git diff --check`.
+- `./scripts/deploy.sh` built and pushed `localhost:5000/orders-microservice:4d9c917`, but rollout stalled under local registry pull behavior; source fix `bf74d38` was committed and pushed to use `imagePullPolicy: IfNotPresent`.
+- Runtime deployment currently has the correct desired state: `spec.replicas=1`, image `localhost:5000/orders-microservice:4d9c917`, policy `IfNotPresent`.
+- Orders is not healthy live: pod `orders-microservice-6c54cf9765-67slg` is `Pending` with no pod IP, `orders-microservice` endpoints are empty, and external `https://orders.alfares.cz/health` returns HTTP 503 `no available server`.
+- Alfares k3s logs show repeated `database is locked`, `Slow SQL`, EndpointSlice update timeouts, and node lease update timeouts.
+- Non-interactive restart is unavailable for the current SSH user: `sudo -n systemctl restart k3s` fails with `sudo: a password is required`, and plain `systemctl restart k3s` requires interactive authentication.
+
+Remaining blockers:
+
+- `[MISSING: owner/platform k3s restart or equivalent Alfares control-plane recovery; Orders has no ready pod or endpoint.]`
+- `[MISSING: Orders live /health and /health/order-events readiness after control-plane recovery.]`
+- `[MISSING: Warehouse WH-G16 deployment/migration; intentionally paused while Orders is unavailable.]`
+- `[MISSING: single guarded paid-order smoke create/reserve/pay/outbox/fulfillment after Orders and Warehouse are both ready.]`
+- `[MISSING: Notifications consumer recipient/broker gate and drift repair after producer health is stable.]`
+- `[MISSING: realtime or polling refresh in customer/admin order cabinets across marketplace frontends.]`
+
+Next command after platform recovery:
+
+1. `kubectl get deploy,pods,endpoints -n statex-apps -l app=orders-microservice`
+2. `curl -k -fsS https://orders.alfares.cz/health && curl -k -fsS https://orders.alfares.cz/health/order-events`
+3. `cd /home/ssf/Documents/Github/warehouse-microservice && ./scripts/deploy.sh`
+
 ## 2026-07-02 - Orders Warehouse Migration Gate Preflight
 
 Intent chain:
