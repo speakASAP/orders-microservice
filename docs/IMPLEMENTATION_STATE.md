@@ -26,21 +26,25 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: O1 Orders core lifecycle and contracts
-next_recommended_goal: O0 integrate O1/W1 evidence, then start F1/H1/A1/AU1/B1 lifecycle consumers
-last_completed_goal: O1 Orders core lifecycle and Warehouse fulfillment-order handoff
+current_chunk: O0 validation and deployment gate
+next_recommended_goal: Owner-approved deployment wave: Warehouse WH-G16 migration/deploy, then Orders and Payments scale-up/deploy, then live end-to-end order lifecycle smoke
+last_completed_goal: O0 source validation and cross-repo lifecycle consumer integration
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
   - [MISSING: channel lead attribution source mapping]
   - [MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]
   - [MISSING: Auth customer subject-to-order identity contract for non-email customer matching]
-  - Leads, Marketing, and Notifications have no verified orders.events consumers yet
+  - Warehouse WH-G16 fulfillment-order handoff is source-validated but not deployed; production deploy runs database migrations and requires explicit owner approval
+  - Orders and Payments deployments are currently scaled to 0 replicas in production, so live payment-to-order handoff cannot be smoke-tested until deploy/scale-up
+  - Notifications has a verified router but no approved live broker consumer/runtime queue/DLQ/recipient contract yet
   - non-marketplace app contracts require owner approval before runtime integration
   - Heureka service has unrelated dirty dashboard/feed/auth worktree changes that must remain isolated from Orders Goal 7 coordinator docs
 ```
 
 ## Current Checkpoint
+
+2026-07-02: O0 cross-repo validation and deployment-readiness sweep completed after sub-agent integration. Repositories are clean and pushed except `notifications-microservice`, which is ahead by one unrelated invoices actor commit. Orders source validation passed with `npm run verify:order-lifecycle-read-model`, `npm run verify:warehouse-handoff`, `npm run verify:order-fulfillment-handoff`, `npm run verify:payment-boundary`, `npm run verify:order-reservation-gate`, and full `npm test`. Warehouse WH-G16 focused test and build passed. Payments bridge spec and build passed. FlipFlop Orders hub verifier, shared/order-service/frontend builds, and non-mutating `npm run verify:guest-checkout-ui` passed after the transient `/cart` 503 cleared. Heureka, Allegro, Aukro, Bazos, Catalog, and Notifications focused validations/builds passed except Aukro synthetic smoke is blocked by `[MISSING: ORDER_SYNTHETIC_SMOKE_TOKEN]`. Runtime gate: `https://orders.alfares.cz/health` and `https://payments.alfares.cz/health` return HTTP 503 because both deployments are scaled to 0; live Warehouse does not expose `/api/fulfillment-orders` yet because WH-G16 is not deployed. Next action is an owner-approved deployment wave, starting with Warehouse WH-G16 migration/deploy.
 
 2026-07-02: AU1 Aukro lifecycle/detail read boundary was added to the O1 contract. Orders now allows `internal:aukro-service:service` through `ORDER_ADMIN_LIFECYCLE_READ_ROLES` and `ORDER_DETAIL_READ_ROLES` for `GET /api/orders/admin/lifecycle` and `GET /api/orders/:id`; the customer lifecycle endpoint remains human-auth scoped. Validation passed: `npm run build`, `npm run verify:order-lifecycle-read-model`, `npm run verify:invoices-read-boundary`, `git diff --check`, and full `npm test`. No deploy or push was run.
 

@@ -1,5 +1,53 @@
 # Orders Orchestrator Status
 
+## 2026-07-02 - O0 Cross-Repo Validation And Deployment Gate
+
+Intent chain:
+
+- Vision: the full order lifecycle is reliable in source and can be proven live only after the required Warehouse and Orders/Payments runtime wave is deployed.
+- Goal Impact: O0 consolidated the sub-agent outputs, cleaned and pushed the remaining handoff commits, reran source validation across Orders, Warehouse, Payments, FlipFlop, Heureka, Allegro, Aukro, Bazos, Catalog, and Notifications, and identified the exact live blockers.
+- System: Orders is the lifecycle authority; Warehouse is the reservation and fulfillment-order authority; Payments is the payment authority; channel frontends render central Orders read models; Notifications remains router-only until broker runtime is approved.
+- Feature: deployment-readiness evidence for reservation, payment, fulfillment handoff, lifecycle read models, status propagation, admin stats, and bounded notifications routing.
+- Task: verify current remote state after sub-agent execution and record the deploy gate without running owner-approval-required migrations.
+- Execution Plan: clean dirty handoff files, push scoped commits, run targeted validators/builds, inspect production deployments and live endpoints read-only, then document blockers.
+- Coding Prompt: remote-only on `alfares`; do not run destructive actions, do not run Warehouse migrations without owner approval, and do not print secrets or customer data.
+- Code: documentation/state only in this O0 sweep; feature source changes were already present in the remote repos.
+- Validation: passed for source and contract scope; live end-to-end remains blocked by deployment state.
+
+Validation evidence:
+
+- Orders: `npm run verify:order-lifecycle-read-model`, `npm run verify:warehouse-handoff`, `npm run verify:order-fulfillment-handoff`, `npm run verify:payment-boundary`, `npm run verify:order-reservation-gate`, and full `npm test` passed.
+- Warehouse: `npm test -- --runInBand test/fulfillment-orders.service.spec.ts` and `npm run build` passed.
+- Payments: `npm test -- --runTestsByPath test/payments-orders-status-bridge.spec.ts` and `npm run build` passed.
+- FlipFlop: `npm run verify:orders-hub-integration`, shared/order-service/frontend builds, and non-mutating `npm run verify:guest-checkout-ui` passed.
+- Heureka: order ingestion verifier, runtime-readiness verifier, and service build passed.
+- Allegro: shared/order service specs plus service/frontend builds passed.
+- Aukro: service tests and build passed; synthetic smoke is blocked by `[MISSING: ORDER_SYNTHETIC_SMOKE_TOKEN]`.
+- Bazos: shared Orders client spec, shared build, focused order-service spec, and service build passed.
+- Catalog: focused product service spec, backend build, and frontend build passed.
+- Notifications: Orders event notification router spec and build passed; live consumer remains blocked.
+
+Runtime findings:
+
+- Production `orders-microservice` and `payments-microservice` deployments are scaled to 0 replicas; external `/health` returns HTTP 503 `no available server`.
+- Production Warehouse health is HTTP 200, but `/api/fulfillment-orders/order/test` is HTTP 404 because WH-G16 fulfillment-order endpoints are not deployed.
+- Warehouse deploy script runs a Kubernetes migration job; WH-G16 deployment therefore needs explicit owner approval.
+- FlipFlop `/cart` and `/orders` are HTTP 200 after the transient 503 cleared, and the non-mutating guest checkout UI verifier passed.
+
+Blockers:
+
+- `[MISSING: owner approval for Warehouse WH-G16 deployment with database migration job.]`
+- `[MISSING: Orders and Payments deploy/scale-up wave after Warehouse WH-G16 is live.]`
+- `[MISSING: live end-to-end paid order smoke after deploy wave.]`
+- `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff.]`
+- `[MISSING: Notifications live broker queue/retry/DLQ/recipient contract.]`
+- `[MISSING: Orders product-scoped lifecycle/payment/delivery aggregate stats endpoint for Catalog.]`
+- `[MISSING: Bazos provider-backed order item and Warehouse warehouseId contract.]`
+
+Next command:
+
+- After owner approval: deploy `warehouse-microservice` WH-G16 first, then deploy/scale `orders-microservice` and `payments-microservice`, then rerun live create/payment/fulfillment/cabinet smoke.
+
 ## 2026-07-02 - O1 Orders Lifecycle Read Model And Fulfillment Handoff
 
 Intent chain:
