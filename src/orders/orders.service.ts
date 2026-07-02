@@ -541,7 +541,7 @@ export class OrdersService {
           updated.warehouseHandoff = {
             ...updated.warehouseHandoff,
             fulfillmentOrderHandoff,
-          };
+          } as WarehouseHandoffSummary;
         }
         await this.orderRepository.save(updated);
       } else if (

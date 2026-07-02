@@ -348,7 +348,7 @@ function buildLifecycleTimeline(order: Order, state: OrderLifecycleState): Order
     entries.push({
       lifecycleStage: 'warehouse_fulfillment_requested',
       status: 'confirmed',
-      occurredAt: toIso((order.warehouseHandoff as Record<string, unknown>).completedAt) || toIso(order.updatedAt),
+      occurredAt: toIso((order.warehouseHandoff as unknown as Record<string, unknown>).completedAt) || toIso(order.updatedAt),
       source: 'warehouse.fulfill',
     });
   }
@@ -437,8 +437,8 @@ function sanitizeWarehouseHandoff(handoff: WarehouseHandoffSummary | null | unde
   return {
     ...handoff,
     status: handoff.status,
-    failureCode: handoff.failureCode ? normalizeOptionalString(handoff.failureCode) : undefined,
-    skipReason: handoff.skipReason ? normalizeOptionalString(handoff.skipReason) : undefined,
+    failureCode: handoff.failureCode,
+    skipReason: handoff.skipReason,
   };
 }
 

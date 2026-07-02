@@ -90,7 +90,7 @@ export class OrderFulfillmentHandoffClient {
       attemptedAt,
       itemCount: items.length,
       handedOffCount: 0,
-      reasonCode: PAYMENT_CONFIRMED_REASON,
+      reasonCode: PAYMENT_CONFIRMED_REASON as 'PAYMENT_CONFIRMED',
       actor: 'orders-microservice' as const,
     };
 
