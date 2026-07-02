@@ -2770,3 +2770,34 @@ Blockers converted:
 
 - `[MISSING: approved FlipFlop smoke:orders-auth-subject execution proving authenticated central order snapshots carry customer.authSubject]`
 - `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`
+
+
+## 2026-07-03 - Order Affinity Historical Replay Export
+
+Current focus: Orders-owned bounded historical export for Marketing order-affinity backfill.
+
+Intent Preservation Chain:
+
+- Vision: Real customer purchases can safely create product relationship evidence for related-product and future bundle surfaces.
+- Goal Impact: Marketing can replay historical paid Orders without reading Orders tables directly or receiving customer/address/payment details.
+- System: Orders owns order history and emits a redacted replay contract; Marketing owns affinity aggregation and Catalog publishing; Catalog owns persisted product relations.
+- Feature: Protected `orders.order_affinity_replay_candidates.v1` export.
+- Task: Add a guarded replay endpoint, paid/successful status filters, redacted Orders-created compatible envelopes, Marketing internal-service auth, and contract verifier coverage.
+- Execution Plan: Add only Orders-owned API/auth/config; no broad order list reuse, no PII fields, no direct Marketing DB access, no live Catalog writes from Orders.
+- Coding Prompt: Only expose `orderId`, channel, currency, and item product snapshots needed for co-purchase evidence; keep customer/address/billing/payment references out of the serializer.
+- Code: `src/orders/orders.controller.ts`, `src/orders/orders.service.ts`, `src/auth/jwt-roles.guard.ts`, `k8s/external-secret.yaml`, `.env.example`, and `scripts/verify-order-affinity-replay-contract.js`.
+- Validation: `npm run verify:order-affinity-replay`, `npm run build`, and `git diff --check` passed.
+
+Deployment and runtime evidence:
+
+- Commits pushed: `6154389` added the replay export; `43189fe` added Marketing internal auth; `9ead8f3` and `be9fee8` fixed runtime TypeORM sort compatibility.
+- Current deployed image: `localhost:5000/orders-microservice:be9fee8`.
+- Deploy completed successfully and `/health` returned `status=healthy`.
+- ExternalSecret `orders-microservice-secret` is `Ready=True` and maps `MARKETING_INTERNAL_SERVICE_TOKEN` from `secret/prod/marketing-microservice#JWT_TOKEN` without printing secret values.
+- Marketing live dry-run against `GET /api/orders/internal/order-affinity/replay-candidates?limit=50` succeeded after deployment.
+- Dry-run result: `inputRecords=0`, `aggregatePairs=0`, `candidates=[]`; no historical Catalog relation writes were performed.
+
+Remaining blockers:
+
+- `[MISSING: qualifying historical paid multi-product Orders rows for a non-empty historical backfill batch]`.
+- `[MISSING: owner-reviewed publish window if a future replay window returns non-zero candidates]`.
