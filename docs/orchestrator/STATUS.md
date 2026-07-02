@@ -174,7 +174,20 @@ Boundary notes:
 
 - No deployment or push was run.
 - No production DB rows, token values, decoded JWTs, customer payload dumps, raw Warehouse response bodies, or non-Orders repo edits were used.
-- Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]`, `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`, and `[MISSING: channel lead attribution source mapping]`.
+- Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: owner-approved FlipFlop auth-subject create/read smoke proving persisted customer.authSubject]`, `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`, and `[MISSING: channel lead attribution source mapping]`.
+
+2026-07-02 runtime update: FlipFlop `flipflop-order-service` now runs the
+Auth-subject forwarding marker from commit `23b22e0`. Because the normal
+Dockerfile rebuild path hit npm registry `ETIMEDOUT`, the deployed runtime was
+updated by a patch image overlaying the already built order-service/shared
+artifacts onto the current live image, then restarting only
+`deployment/flipflop-order-service`. Rollout succeeded; live pod grep found the
+`customer.authSubject` payload builder, public FlipFlop `/` and
+`/api/products?limit=1` returned HTTP 200, and the guarded smoke default
+preflight failed closed with `mutation=false`, `providerCall=false`, and only
+approval/confirmation env blockers. The remaining F1 invoice-account evidence
+gate is an owner-approved synthetic create/read smoke proving persisted
+`customer.authSubject`.
 
 Next unfinished chunk:
 

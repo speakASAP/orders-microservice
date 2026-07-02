@@ -34,7 +34,7 @@ blockers:
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
   - [MISSING: channel lead attribution source mapping]
   - [MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]
-  - [MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]
+  - [MISSING: owner-approved FlipFlop auth-subject create/read smoke proving persisted customer.authSubject]
   - [MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]
   - Warehouse WH-G16 fulfillment-order handoff is source-validated but not deployed; production deploy runs database migrations and requires explicit owner approval
   - Notifications Orders events consumer is deployed disabled with queue/DLX readiness visible; [MISSING: production recipient route and owner-approved ORDERS_EVENTS_CONSUMER_ENABLED=true flip]
@@ -239,7 +239,21 @@ c4f1332 537a103` exited `0`, and `npm run verify:invoices-read-boundary`
 plus `npm run verify:create-order-contract` passed in `orders-microservice`.
 FlipFlop authenticated checkout source now forwards the UUID-shaped local Auth
 user id to central Orders as `customer.authSubject` before payment creation.
-Remaining blockers are `[MISSING: FlipFlop runtime smoke proving authenticated
-central order snapshots carry customer.authSubject]` and `[MISSING: Cliplot
-hosted Auth callback/session contract before authenticated checkout can pass
-Auth subject]`.
+Remaining blockers are `[MISSING: owner-approved FlipFlop auth-subject
+create/read smoke proving persisted customer.authSubject]` and `[MISSING:
+Cliplot hosted Auth callback/session contract before authenticated checkout can
+pass Auth subject]`.
+
+2026-07-02 continuation: FlipFlop `flipflop-order-service` now has the
+Auth-subject forwarding runtime marker live. The normal Dockerfile rebuild path
+hit npm registry `ETIMEDOUT`, so the runtime update used a patch image based on
+the current live `localhost:5000/flipflop-order-service:latest` and overlaid the
+already built order-service/shared artifacts from commit `23b22e0`. Rollout
+completed in `statex-apps`; live pod grep found the `authSubject:
+this.isUuid(user?.id) ? user.id : undefined` payload builder in the runtime,
+public FlipFlop `/` and `/api/products?limit=1` returned HTTP 200, and
+`WRITE_AUTH_SUBJECT_SMOKE_REPORT=0 node scripts/smoke-orders-auth-subject.js`
+failed closed with `mutation=false`, `providerCall=false`, ready deployment
+preflight, and only approval/confirmation env blockers. No production order,
+DB row read/write, payment provider call, secret value print, or consumer
+enablement was run.
