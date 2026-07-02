@@ -27,7 +27,7 @@ Orders records order lifecycle and item snapshots. Warehouse remains the stock, 
 | Orders lifecycle state | Warehouse handoff | Endpoint | Reason code | Notes |
 | --- | --- | --- | --- | --- |
 | sellable channel order created, items have `warehouseId` | create or update active reservation | `POST /api/reservations/reserve` | `ORDER_CREATE_RESERVATION` | Create succeeds only when Warehouse returns `reserved`. |
-| sellable channel order created, reservation disabled, any item missing `warehouseId`, or Warehouse request failed, including insufficient available stock | reject create before `order.created` event | none or failed reserve attempt | `ORDER_CREATE_RESERVATION` | Sellable channel create requests fail closed; Warehouse remains stock authority and Orders does not invent local stock truth. |
+| sellable channel order created, reservation disabled, any item missing `warehouseId`, or Warehouse request failed, including insufficient available stock | reject create before `order.created` event | none or failed reserve attempt; release any previously reserved create lines | `ORDER_CREATE_RESERVATION`; compensation uses `ORDER_CREATE_RESERVATION_COMPENSATION` | Sellable channel create requests fail closed; Warehouse remains stock authority and Orders does not invent local stock truth. |
 | payment failed before fulfillment | release active reservation | `POST /api/reservations/release` | `PAYMENT_FAILED_RELEASE` | Implemented via the approved H6 payment status boundary for failed or cancelled payment statuses. |
 | payment confirmed | fulfill reservation | `POST /api/reservations/fulfill` | `PAYMENT_CONFIRMED` | Implemented via the approved H6 payment status boundary for completed payments; Warehouse performs stock decrement. |
 | owner-approved cancellation | cancel reservation | `POST /api/reservations/cancel` | `ORDER_CANCELLED` | Cancellation still requires side-effect acknowledgement in Orders status transition. |
@@ -59,6 +59,7 @@ Orders stores audit-safe `orders.warehouseHandoff` metadata:
 - status: `disabled`, `skipped`, `reserved`, or `failed`
 - attemptedAt and completedAt timestamps
 - itemCount, reservedCount, failedCount
+- optional compensatedCount and compensationFailedCount for create-time partial reservation failure
 - reasonCode and actor
 - skipReason or failureCode
 
@@ -72,6 +73,7 @@ The metadata must not include stock quantities beyond the order item quantity, W
 - Production maps `WAREHOUSE_SERVICE_TOKEN` from Vault path `secret/prod/orders-microservice` through External Secrets Operator and enables `WAREHOUSE_RESERVATION_ENABLED=true` through Kubernetes ConfigMap.
 - Reservation calls are disabled unless `WAREHOUSE_RESERVATION_ENABLED=true`.
 - Orders skips reservation if any item lacks `warehouseId`.
+- If one create-time item reservation succeeds and a later item reservation fails, Orders calls `POST /api/reservations/release` for each already reserved line before returning a failed handoff.
 - Sellable channel order create requires Warehouse handoff status `reserved`; `disabled`, `skipped`, or `failed` handoff results reject the create before publishing `orders.order.created.v1`.
 - Warehouse reservation failures, including insufficient-stock rejections, do not make Orders the stock authority; Orders records bounded failure metadata only for flows that already own a persisted order lifecycle and must not expose Warehouse response bodies, available quantities, requested quantities, or raw error text.
 - Idempotent order replay does not call Warehouse again because the create path returns the existing order before handoff.

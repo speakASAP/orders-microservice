@@ -19,6 +19,8 @@ export interface WarehouseHandoffSummary {
   actor: 'orders-microservice';
   skipReason?: 'reservation_disabled' | 'missing_order_items' | 'missing_warehouse_id';
   failureCode?: 'warehouse_request_failed';
+  compensatedCount?: number;
+  compensationFailedCount?: number;
 }
 
 interface ReservationLifecyclePayload {
@@ -41,6 +43,7 @@ interface ReleasePayload extends ReservationLifecyclePayload {
 }
 
 const RESERVE_REASON_CODE = 'ORDER_CREATE_RESERVATION';
+const RESERVATION_COMPENSATION_REASON_CODE = 'ORDER_CREATE_RESERVATION_COMPENSATION';
 const ACTION_STATUS: Record<WarehouseReservationAction, WarehouseHandoffStatus> = {
   release: 'released',
   fulfill: 'fulfilled',
@@ -97,28 +100,35 @@ export class WarehouseReservationClient {
     }
 
     const expiresAt = new Date(attemptedAt.getTime() + this.ttlMinutes * 60 * 1000).toISOString();
-    let reservedCount = 0;
+    const reservedItems: OrderItem[] = [];
     try {
       for (const item of items) {
         await this.reserveItem(order, item, expiresAt);
-        reservedCount += 1;
+        reservedItems.push(item);
       }
 
       return {
         ...base,
         status: 'reserved',
         completedAt: new Date().toISOString(),
-        reservedCount,
+        reservedCount: reservedItems.length,
       };
     } catch {
+      const compensation = await this.releaseReservedItems(
+        order,
+        reservedItems,
+        RESERVATION_COMPENSATION_REASON_CODE,
+      );
       this.logger.warn('Warehouse reservation handoff failed', 'WarehouseReservationClient');
       return {
         ...base,
         status: 'failed',
         completedAt: new Date().toISOString(),
-        reservedCount,
-        failedCount: items.length - reservedCount,
+        reservedCount: reservedItems.length,
+        failedCount: items.length - reservedItems.length,
         failureCode: 'warehouse_request_failed',
+        compensatedCount: compensation.succeeded,
+        compensationFailedCount: compensation.failed,
       };
     }
   }
@@ -229,6 +239,27 @@ export class WarehouseReservationClient {
   private async reserveItem(order: Order, item: OrderItem, expiresAt: string): Promise<void> {
     const payload = this.buildReservePayload(order, item, expiresAt);
     await firstValueFrom(this.httpService.post(this.baseUrl + '/api/reservations/reserve', payload, this.buildRequestConfig()));
+  }
+
+  private async releaseReservedItems(
+    order: Order,
+    items: OrderItem[],
+    reasonCode: string,
+  ): Promise<{ succeeded: number; failed: number }> {
+    let succeeded = 0;
+    let failed = 0;
+
+    for (const item of items) {
+      try {
+        await this.postReservationAction('release', this.buildReleasePayload(order, item, reasonCode));
+        succeeded += 1;
+      } catch {
+        failed += 1;
+        this.logger.warn('Warehouse reservation compensation release failed', 'WarehouseReservationClient');
+      }
+    }
+
+    return { succeeded, failed };
   }
 
   private buildRequestConfig(): { headers?: Record<string, string> } {

@@ -41,19 +41,21 @@ function withEnv(values, fn) {
     });
 }
 
+function makeItem(id, productId, quantity = 1) {
+  return {
+    id,
+    productId,
+    warehouseId: 'warehouse-1',
+    quantity,
+  };
+}
+
 function makeOrder(overrides = {}) {
   return {
     id: 'order-1',
     externalOrderId: 'checkout-1',
     channel: 'flipflop',
-    items: [
-      {
-        id: 'item-1',
-        productId: 'catalog-product-1',
-        warehouseId: 'warehouse-1',
-        quantity: 2,
-      },
-    ],
+    items: [makeItem('item-1', 'catalog-product-1', 2)],
     ...overrides,
   };
 }
@@ -130,9 +132,69 @@ async function run() {
     assert.equal(result.reservedCount, 0);
     assert.equal(result.failedCount, 1);
     assert.equal(result.failureCode, 'warehouse_request_failed');
+    assert.equal(result.compensatedCount, 0);
+    assert.equal(result.compensationFailedCount, 0);
     assert.equal(JSON.stringify(result).includes('INSUFFICIENT_STOCK'), false);
     assert.equal(JSON.stringify(result).includes('available'), false);
     assert.equal(JSON.stringify(result).includes('requested quantity'), false);
+  });
+
+  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_SERVICE_TOKEN: 'test-warehouse-token' }, async () => {
+    const calls = [];
+    const order = makeOrder({
+      items: [
+        makeItem('item-1', 'catalog-product-1', 1),
+        makeItem('item-2', 'catalog-product-2', 1),
+      ],
+    });
+    const client = new WarehouseReservationClient({
+      post(url, payload, config) {
+        calls.push({ url, payload, config });
+        if (url.endsWith('/api/reservations/reserve') && payload.productId === 'catalog-product-2') {
+          return throwError(() => new Error('last item unavailable'));
+        }
+        return of({ data: { success: true } });
+      },
+    }, { warn() {} });
+
+    const result = await client.reserveOrderItems(order);
+
+    assert.equal(result.status, 'failed');
+    assert.equal(result.reservedCount, 1);
+    assert.equal(result.failedCount, 1);
+    assert.equal(result.compensatedCount, 1);
+    assert.equal(result.compensationFailedCount, 0);
+    assert.deepEqual(calls.map((call) => `${call.url}:${call.payload.productId}:${call.payload.reasonCode}`), [
+      'http://warehouse-microservice:3201/api/reservations/reserve:catalog-product-1:ORDER_CREATE_RESERVATION',
+      'http://warehouse-microservice:3201/api/reservations/reserve:catalog-product-2:ORDER_CREATE_RESERVATION',
+      'http://warehouse-microservice:3201/api/reservations/release:catalog-product-1:ORDER_CREATE_RESERVATION_COMPENSATION',
+    ]);
+    assert.equal(calls[2].payload.quantity, 1);
+    assert.equal(calls[2].config.headers.Authorization, 'Bearer test-warehouse-token');
+  });
+
+  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true' }, async () => {
+    let reserveAttempts = 0;
+    const client = new WarehouseReservationClient({
+      post(url) {
+        if (url.endsWith('/api/reservations/release')) {
+          throw new Error('last-item failure must not release unreserved lines');
+        }
+        reserveAttempts += 1;
+        if (reserveAttempts === 1) return of({ data: { success: true } });
+        return throwError(() => new Error('warehouse rejected concurrent last item reservation'));
+      },
+    }, { warn() {} });
+
+    const first = await client.reserveOrderItems(makeOrder({ id: 'order-last-item-1' }));
+    const second = await client.reserveOrderItems(makeOrder({ id: 'order-last-item-2' }));
+
+    assert.equal(first.status, 'reserved');
+    assert.equal(second.status, 'failed');
+    assert.equal(second.reservedCount, 0);
+    assert.equal(second.failedCount, 1);
+    assert.equal(second.compensatedCount, 0);
+    assert.equal(second.compensationFailedCount, 0);
   });
 
   await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_INTERNAL_SERVICE_TOKEN: '\nBearer existing-prefix-token\n' }, async () => {
