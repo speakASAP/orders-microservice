@@ -100,6 +100,10 @@ export class JwtRolesGuard implements CanActivate {
         token: this.resolveEnvToken('HEUREKA_INTERNAL_SERVICE_TOKEN'),
         role: 'internal:heureka-service:service',
       },
+      'payments-microservice': {
+        token: this.resolveEnvToken('PAYMENTS_INTERNAL_SERVICE_TOKEN', 'PAYMENTS_ORDERS_SERVICE_TOKEN'),
+        role: 'internal:payments-microservice:service',
+      },
       'cliplot': {
         token: this.resolveEnvToken('CLIPLOT_ORDERS_SERVICE_TOKEN', 'CLIPLOT_SERVICE_TOKEN'),
         role: 'internal:cliplot:service',
