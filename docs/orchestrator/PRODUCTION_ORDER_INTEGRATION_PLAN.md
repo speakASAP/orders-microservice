@@ -48,7 +48,7 @@ Orders-side runtime credential aliases are now mapped and deployed for all suppo
 - `AUKRO_INTERNAL_SERVICE_TOKEN` from `secret/prod/aukro-service#JWT_TOKEN`.
 - `BAZOS_INTERNAL_SERVICE_TOKEN` from `secret/prod/bazos-service#JWT_TOKEN`.
 - `HEUREKA_INTERNAL_SERVICE_TOKEN` from `secret/prod/heureka-service#JWT_TOKEN`.
-- `CLIPLOT_ORDERS_SERVICE_TOKEN` from `secret/prod/cliplot-service#ORDERS_SERVICE_TOKEN`, with source-code fallback support for `CLIPLOT_SERVICE_TOKEN`.
+- `CLIPLOT_ORDERS_SERVICE_TOKEN` from `secret/prod/cliplot#ORDERS_SERVICE_TOKEN`, with source-code fallback support for `CLIPLOT_SERVICE_TOKEN`.
 
 Only secret key names and ExternalSecret sync status were inspected; no token values were printed, decoded, created, or committed. Commit `342f003` deployed the 7.1 allowlist plus this Orders-side runtime mapping as `localhost:5000/orders-microservice:342f003`, and runtime env-name presence confirmed all five aliases.
 

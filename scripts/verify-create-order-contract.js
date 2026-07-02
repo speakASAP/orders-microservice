@@ -176,11 +176,19 @@ const createServiceContracts = [
     vaultProperty: 'JWT_TOKEN',
   },
   {
+    serviceName: 'cliplot',
+    tokenEnv: 'CLIPLOT_ORDERS_SERVICE_TOKEN',
+    fallbackTokenEnv: 'CLIPLOT_SERVICE_TOKEN',
+    role: 'internal:cliplot:service',
+    vaultKey: 'secret/prod/cliplot',
+    vaultProperty: 'ORDERS_SERVICE_TOKEN',
+  },
+  {
     serviceName: 'cliplot-service',
     tokenEnv: 'CLIPLOT_ORDERS_SERVICE_TOKEN',
     fallbackTokenEnv: 'CLIPLOT_SERVICE_TOKEN',
     role: 'internal:cliplot-service:service',
-    vaultKey: 'secret/prod/cliplot-service',
+    vaultKey: 'secret/prod/cliplot',
     vaultProperty: 'ORDERS_SERVICE_TOKEN',
   },
 ];

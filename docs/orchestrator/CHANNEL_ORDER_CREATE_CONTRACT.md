@@ -32,7 +32,7 @@ related_adrs: []
 POST /api/orders
 Authorization: Bearer <service-or-admin-jwt>
 x-internal-service-token: <runtime-only channel service token>
-x-service-name: <flipflop-service|allegro-service|aukro-service|bazos-service|heureka-service|cliplot-service>
+x-service-name: <flipflop-service|allegro-service|aukro-service|bazos-service|heureka-service|cliplot>
 Content-Type: application/json
 ```
 
@@ -44,7 +44,7 @@ No-mutation validation endpoint:
 POST /api/orders/validate-create
 Authorization: Bearer <service-or-admin-jwt>
 x-internal-service-token: <runtime-only channel service token>
-x-service-name: <flipflop-service|allegro-service|aukro-service|bazos-service|heureka-service|cliplot-service>
+x-service-name: <flipflop-service|allegro-service|aukro-service|bazos-service|heureka-service|cliplot>
 Content-Type: application/json
 ```
 
@@ -63,7 +63,8 @@ Supported create callers:
 | `aukro-service` | `internal:aukro-service:service` | `AUKRO_INTERNAL_SERVICE_TOKEN` | `secret/prod/aukro-service#JWT_TOKEN` | Orders-side alias for Aukro service token; channel-side auth and `warehouseId` wiring still pending. |
 | `bazos-service` | `internal:bazos-service:service` | `BAZOS_INTERNAL_SERVICE_TOKEN` | `secret/prod/bazos-service#JWT_TOKEN` | Orders-side alias for Bazos service token; true order webhook support remains to be verified. |
 | `heureka-service` | `internal:heureka-service:service` | `HEUREKA_INTERNAL_SERVICE_TOKEN` | `secret/prod/heureka-service#JWT_TOKEN` | Existing Orders-side alias for Heureka service token; sanitized create smoke still pending. |
-| `cliplot-service` | `internal:cliplot-service:service` | `CLIPLOT_ORDERS_SERVICE_TOKEN` with code fallback to `CLIPLOT_SERVICE_TOKEN` | `secret/prod/cliplot-service#ORDERS_SERVICE_TOKEN` | Orders-side alias for the Cliplot-to-Orders caller token; Cliplot live order submit remains gated until owner-approved smoke evidence. |
+| `cliplot` | `internal:cliplot:service` | `CLIPLOT_ORDERS_SERVICE_TOKEN` with code fallback to `CLIPLOT_SERVICE_TOKEN` | `secret/prod/cliplot#ORDERS_SERVICE_TOKEN` | Primary Cliplot-to-Orders caller token after repository/runtime rename. |
+| `cliplot-service` | `internal:cliplot-service:service` | `CLIPLOT_ORDERS_SERVICE_TOKEN` with code fallback to `CLIPLOT_SERVICE_TOKEN` | `secret/prod/cliplot#ORDERS_SERVICE_TOKEN` | Temporary legacy alias for rollback during the Cliplot rename cutover. |
 
 Machine-auth requests use `x-internal-service-token` plus `x-service-name`; token values remain runtime-only and must not be logged, decoded, committed, or copied into docs. The role allowlist and Orders-side runtime aliases are present in source, but each caller still needs channel-side header wiring plus a sanitized create/idempotency/Warehouse reservation smoke before production rollout.
 

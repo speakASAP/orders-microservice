@@ -27,6 +27,7 @@ export const CHANNEL_ORDER_CREATE_ROLES = [
   'internal:aukro-service:service',
   'internal:bazos-service:service',
   'internal:heureka-service:service',
+  'internal:cliplot:service',
   'internal:cliplot-service:service',
 ] as const;
 
