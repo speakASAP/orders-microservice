@@ -26,7 +26,7 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Safe marketplace and Notifications runtime wave; Orders/Warehouse migration gates remain
+current_chunk: Orders/Warehouse migration gate preflight complete; owner approval required for DB-mutating deploys
 next_recommended_goal: Owner-approved Orders event outbox migration/deploy and Warehouse WH-G16 migration/deploy, then live end-to-end order/payment/fulfillment/cabinet/Catalog smoke while Orders and Payments remain healthy
 last_completed_goal: Orders event outbox source reliability lane
 blockers:
@@ -43,6 +43,8 @@ blockers:
 ```
 
 ## Current Checkpoint
+
+2026-07-02: Orders/Warehouse migration-gate preflight completed after the safe runtime wave. Orders source validation passed with build, event-contract, lifecycle read-model, fulfillment-handoff, and reservation-gate verifiers; live `/health/order-events` still returns HTTP 404 and read-only schema inspection found no `order_event_outbox` table. Warehouse commit `4d0fa85` hardens the build to a full non-incremental TypeScript emit so migration jobs include required TypeORM entity files; validation passed with build, data-source require check, focused fulfillment-orders spec, and diff hygiene. Live Warehouse read-only schema inspection found no `fulfillment_orders` / `fulfillment_order_lines` tables and migration history contains only the first three migrations, so `CreateFulfillmentOrders1781500000000` remains pending. No Orders or Warehouse deployment/migration, live stock/order mutation, secret value print, customer/order row dump, or notification send was run.
 
 2026-07-02: Safe runtime deployment wave completed for non-migration services. Bazos is live on `localhost:5000/bazos-service:cdcd739`; FlipFlop was deployed from a detached clean `origin/main` worktree at `216264b` and rolled out service/frontend/product/cart/order/user images; Notifications is live on `localhost:5000/notifications-microservice:583da28` after hardening its deploy script to use immutable image tags. Heureka, Allegro, and Aukro were confirmed ready `1/1` on lifecycle commit-tag images `976a1a8`, `6c64a30`, and `ba61422`. Public root checks returned HTTP 200 for Bazos, FlipFlop, Heureka, Allegro, and Aukro; FlipFlop `/api/products?limit=1` returned HTTP 200; Notifications `/health/orders-events` returned HTTP 200 with the consumer disabled, disconnected, not consuming, and counters at zero. No Orders or Warehouse deployment/migration, production DB/customer/order row read, secret value print, raw Warehouse response dump, or live notification send was run. Remaining gates are owner-approved Orders event outbox migration/deploy, Warehouse WH-G16 migration/deploy, Notifications recipient/enablement flip, and live end-to-end paid order smoke.
 

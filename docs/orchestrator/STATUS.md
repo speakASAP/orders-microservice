@@ -1,5 +1,41 @@
 # Orders Orchestrator Status
 
+## 2026-07-02 - Orders Warehouse Migration Gate Preflight
+
+Intent chain:
+
+- Vision: the final paid-order lifecycle wave should run only after the DB-mutating Orders and Warehouse changes have current non-mutating evidence.
+- Goal Impact: the remaining runtime gate is narrower: Orders outbox source is valid, WH-G16 source is valid, Warehouse migration build output is hardened, and live schema checks prove both required table sets are still pending.
+- System: Orders remains lifecycle/event source of truth; Warehouse remains fulfillment-order persistence and stock authority; Notifications remains deployed but disabled until the producer and recipient gates are live.
+- Feature: preflight evidence for Orders durable event outbox deployment and Warehouse WH-G16 fulfillment-order deployment.
+- Task: validate source/build contracts, inspect live schema read-only, and document exact owner-approval gates without running migrations.
+- Execution Plan: keep Orders migration and Warehouse deploy as explicit owner-approved DB-mutating steps; after approval, apply Orders outbox migration/deploy, deploy Warehouse WH-G16, run live paid-order smoke, and only then enable Notifications consumer.
+- Coding Prompt: no DB mutation, no deploy, no secret value print, no customer/order row dump in this preflight.
+- Code: Warehouse `4d0fa85` hardens `npm run build` to full non-incremental TypeScript emit so TypeORM migration jobs include required entity files; Orders source remains `0f1f959` with outbox code already merged from `f7abb42`.
+- Validation: passed for non-mutating preflight scope.
+
+Evidence:
+
+- Orders source validation passed: `git diff --check`, `npm run build`, `npm run verify:event-contracts`, `npm run verify:order-lifecycle-read-model`, `npm run verify:order-fulfillment-handoff`, and `npm run verify:order-reservation-gate`.
+- Orders live checks: `orders-microservice` is ready `1/1` on `localhost:5000/orders-microservice:537a103`; external `/health/order-events` returns HTTP 404; read-only schema check returned `0` for `public.order_event_outbox`.
+- Warehouse source validation passed after `4d0fa85`: `npm run build`, `node -e "require('./dist/src/database/typeorm-data-source.js')"`, `npm test -- --runInBand test/fulfillment-orders.service.spec.ts`, and `git diff --check`.
+- Warehouse live checks: `warehouse-microservice` is ready `1/1` on `localhost:5000/warehouse-microservice:salespoint-20260702165156b`; external `/api/fulfillment-orders/order/codex-synthetic-probe` returns HTTP 404; read-only schema check returned `0` for fulfillment tables; `warehouse_migrations` contains only `InitialWarehouseSchema1781200000000`, `StockEventOutbox1781300000000`, and `AddSupplierConflictReviewMetadata1781400000000`.
+
+Owner-approved commands still required:
+
+1. Orders outbox migration and deploy:
+   `ssh alfares "cd /home/ssf/Documents/Github/orders-microservice && kubectl exec -i -n statex-apps deploy/db-server-postgres -- psql -U dbadmin -d orders -v ON_ERROR_STOP=1 < migrations/007_create_order_event_outbox.sql && ./scripts/deploy.sh"`
+2. Warehouse WH-G16 migration/deploy:
+   `ssh alfares "cd /home/ssf/Documents/Github/warehouse-microservice && ./scripts/deploy.sh"`
+3. Post-deploy live smoke: create/replay paid order through a channel, verify Warehouse reservation and fulfillment order, customer cabinet lifecycle, admin stats, and Notifications `/health/orders-events` before enabling the consumer.
+
+Remaining blockers:
+
+- `[MISSING: owner approval for Orders event outbox migration/deploy.]`
+- `[MISSING: owner approval for Warehouse WH-G16 database migration deployment.]`
+- `[MISSING: live paid-order end-to-end smoke after both DB-mutating deploys.]`
+- `[MISSING: Notifications recipient route plus owner-approved ORDERS_EVENTS_CONSUMER_ENABLED=true flip.]`
+
 ## 2026-07-02 - Safe Marketplace And Notifications Runtime Wave
 
 Intent chain:
