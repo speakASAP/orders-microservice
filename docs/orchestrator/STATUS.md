@@ -1,5 +1,38 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Buyer Auth Ownership Audit Integrated
+
+Intent chain:
+
+- Vision: customer-facing order cabinets must show only orders owned by the authenticated customer while preserving Orders as lifecycle source.
+- Goal Impact: the Allegro buyer-cabinet blocker is now narrowed from a broad unknown to a concrete Auth/order ownership contract gap.
+- System: Auth owns user identity and profile; Allegro owns seller workspace data and marketplace buyer snapshots; Orders owns canonical lifecycle projection.
+- Feature: buyer Auth ownership audit for future Allegro personal order cabinet.
+- Task: inspect Auth and Allegro current source and record whether Auth identity can safely scope `AllegroOrder` buyer rows.
+- Execution Plan: read Auth contract and Allegro source; document implementable ownership models; do not create runtime buyer routes until ownership is approved.
+- Coding Prompt: do not use raw email equality as an authorization rule without product/Auth/security approval.
+- Code: Allegro commit `9ee7ff3 docs: audit allegro buyer auth ownership contract`.
+- Validation: remote source inspection, isolated clean main worktree, `git diff --check`, pre-commit, and push to Allegro `main`.
+
+Evidence:
+
+- Auth source proves canonical user identity via JWT `sub`, primary `email`, profile, checkout-data, delivery-address, and invoice-profile endpoints scoped to bearer subject.
+- Allegro source separates workspace/seller identity (`AllegroAccount.userId`, `UserSettings.userId`) from marketplace buyer snapshots (`AllegroOrder.buyerId`, `buyerEmail`, `buyerLogin`).
+- Current Allegro order read controller/service does not pass `req.user` into an ownership filter, so `/dashboard/orders` remains a seller/workspace surface, not a buyer personal cabinet.
+- The audit explicitly rejects `Auth.email == AllegroOrder.buyerEmail` as a production authorization rule until approved.
+- Original Allegro checkout currently has unrelated order-affinity dirty files; the audit was committed from isolated worktree `/tmp/allegro-doc-worktrees/buyer-auth-audit` onto `main` to avoid mixing changes.
+
+Remaining blockers:
+
+- `[MISSING: buyer-facing Allegro personal cabinet product requirement.]`
+- `[MISSING: approved Auth-to-Allegro-buyer ownership rule.]`
+- `[MISSING: stable persisted ownership field or verified buyer-link mapping.]`
+- `[MISSING: buyer-safe API response contract and isolation tests.]`
+
+Next action:
+
+- Product/Auth/security owner must approve one ownership model before Allegro buyer-cabinet API/UI implementation.
+
 ## 2026-07-03 - Parallel Worker Outcomes: Provider Tracking And Allegro Buyer Cabinet
 
 Intent chain:
