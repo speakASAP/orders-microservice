@@ -34,7 +34,8 @@ blockers:
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
   - [MISSING: channel lead attribution source mapping]
   - [MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]
-  - [MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots]
+  - [MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]
+  - [MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]
   - Warehouse WH-G16 fulfillment-order handoff is source-validated but not deployed; production deploy runs database migrations and requires explicit owner approval
   - Notifications Orders events consumer is deployed disabled with queue/DLX readiness visible; [MISSING: production recipient route and owner-approved ORDERS_EVENTS_CONSUMER_ENABLED=true flip]
   - [MISSING: Orders event outbox migration/deploy approval and live /health/order-events readiness smoke]
@@ -58,7 +59,7 @@ blockers:
 
 2026-07-02: AU1 Aukro lifecycle/detail read boundary was added to the O1 contract. Orders now allows `internal:aukro-service:service` through `ORDER_ADMIN_LIFECYCLE_READ_ROLES` and `ORDER_DETAIL_READ_ROLES` for `GET /api/orders/admin/lifecycle` and `GET /api/orders/:id`; the customer lifecycle endpoint remains human-auth scoped. Validation passed: `npm run build`, `npm run verify:order-lifecycle-read-model`, `npm run verify:invoices-read-boundary`, `git diff --check`, and full `npm test`. No deploy or push was run.
 
-2026-07-02: O1 Orders core lifecycle and contracts is implemented and validated in source. Orders now derives the authoritative UX lifecycle stage from existing canonical order status, payment status, item fulfillment status, and Warehouse handoff metadata while preserving the legacy coarse `status` field. Added protected `GET /api/orders/customer/lifecycle` and `GET /api/orders/admin/lifecycle` read models, additive `orders.order.lifecycle_changed.v1` event contract/fixture/publisher, lifecycle transition validation helper, and `scripts/verify-order-lifecycle-read-model.js`. W1 update was wired inside Orders: after first paid transition, Orders keeps the existing reservation `fulfill` calls, reads fulfilled reservations through `GET /api/reservations/order/:orderId`, and posts the approved `POST /api/fulfillment-orders` dispatch handoff with order, delivery, contact, and item reservation payload. Added `src/orders/order-fulfillment-handoff.client.ts` plus `scripts/verify-order-fulfillment-handoff.js`. Validation passed: `npm run build`, `npm run verify:order-lifecycle-read-model`, `npm run verify:order-fulfillment-handoff`, `npm run verify:event-contracts`, `npm run verify:payment-boundary`, `npm run verify:order-reservation-gate`, `git diff --check`, and full `npm test`. No deploy, push, production DB mutation, token value, customer payload dump, raw Warehouse response body, or non-Orders repo edit was used. Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots]`, `[MISSING: channel lead attribution source mapping]`.
+2026-07-02: O1 Orders core lifecycle and contracts is implemented and validated in source. Orders now derives the authoritative UX lifecycle stage from existing canonical order status, payment status, item fulfillment status, and Warehouse handoff metadata while preserving the legacy coarse `status` field. Added protected `GET /api/orders/customer/lifecycle` and `GET /api/orders/admin/lifecycle` read models, additive `orders.order.lifecycle_changed.v1` event contract/fixture/publisher, lifecycle transition validation helper, and `scripts/verify-order-lifecycle-read-model.js`. W1 update was wired inside Orders: after first paid transition, Orders keeps the existing reservation `fulfill` calls, reads fulfilled reservations through `GET /api/reservations/order/:orderId`, and posts the approved `POST /api/fulfillment-orders` dispatch handoff with order, delivery, contact, and item reservation payload. Added `src/orders/order-fulfillment-handoff.client.ts` plus `scripts/verify-order-fulfillment-handoff.js`. Validation passed: `npm run build`, `npm run verify:order-lifecycle-read-model`, `npm run verify:order-fulfillment-handoff`, `npm run verify:event-contracts`, `npm run verify:payment-boundary`, `npm run verify:order-reservation-gate`, `git diff --check`, and full `npm test`. No deploy, push, production DB mutation, token value, customer payload dump, raw Warehouse response body, or non-Orders repo edit was used. Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]`, `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`, `[MISSING: channel lead attribution source mapping]`.
 
 2026-07-02: Added source support for `invoices-microservice` to read full
 order snapshots through the existing internal service-token boundary. Orders
@@ -230,3 +231,15 @@ Auth subject matching and retain email fallback for legacy rows. Validation
 passed: `npm test`, `npm run verify:invoices-read-boundary`, and
 `git diff --check`. No deploy, DB row read/write, migration, secret read, or
 customer/order row dump was run.
+
+2026-07-02 continuation: Runtime proof now confirms deployed Orders includes
+the Auth-subject accepting contract: Kubernetes reports
+`localhost:5000/orders-microservice:537a103`, `git merge-base --is-ancestor
+c4f1332 537a103` exited `0`, and `npm run verify:invoices-read-boundary`
+plus `npm run verify:create-order-contract` passed in `orders-microservice`.
+FlipFlop authenticated checkout source now forwards the UUID-shaped local Auth
+user id to central Orders as `customer.authSubject` before payment creation.
+Remaining blockers are `[MISSING: FlipFlop runtime smoke proving authenticated
+central order snapshots carry customer.authSubject]` and `[MISSING: Cliplot
+hosted Auth callback/session contract before authenticated checkout can pass
+Auth subject]`.

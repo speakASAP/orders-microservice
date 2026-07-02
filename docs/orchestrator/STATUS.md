@@ -174,7 +174,7 @@ Boundary notes:
 
 - No deployment or push was run.
 - No production DB rows, token values, decoded JWTs, customer payload dumps, raw Warehouse response bodies, or non-Orders repo edits were used.
-- Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots]`, and `[MISSING: channel lead attribution source mapping]`.
+- Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]`, `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`, and `[MISSING: channel lead attribution source mapping]`.
 
 Next unfinished chunk:
 
@@ -2637,6 +2637,17 @@ Intent chain:
   proceeded from repository source-of-truth docs and read-only sub-agent source
   audits.
 
-Blocker converted:
+Runtime evidence:
 
-- `[MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots]`
+- Deployed Orders image is `localhost:5000/orders-microservice:537a103`.
+- `git merge-base --is-ancestor c4f1332 537a103` exited `0`, proving the
+  deployed image commit contains the Auth-subject accepting contract.
+- `npm run verify:invoices-read-boundary` and
+  `npm run verify:create-order-contract` passed in `orders-microservice`.
+- FlipFlop authenticated checkout source now forwards the UUID-shaped local
+  Auth user id as central Orders `customer.authSubject`.
+
+Blockers converted:
+
+- `[MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]`
+- `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`

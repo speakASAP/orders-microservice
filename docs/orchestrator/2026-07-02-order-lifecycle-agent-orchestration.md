@@ -255,7 +255,8 @@ Validation:
 Remaining blockers:
 
 - `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff.]`
-- `[MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots.]`
+- `[MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject.]`
+- `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject.]`
 - `[MISSING: channel lead attribution source mapping.]`
 - `[UNKNOWN: real Aukro webhook payload shape.]`
 

@@ -207,6 +207,7 @@ assert.match(contractDoc, /GET \/api\/orders\/admin\/lifecycle/);
 assert.match(contractDoc, /POST \/api\/fulfillment-orders/);
 assert.doesNotMatch(contractDoc, /\[MISSING: Warehouse-owned fulfillment order or pick-ticket contract/);
 assert.match(contractDoc, /customer\.authUserId/);
-assert.match(contractDoc, /runtime proof that authenticated channel create callers pass Auth subject/);
+assert.match(contractDoc, /FlipFlop runtime smoke proving authenticated central order snapshots carry customer\.authSubject/);
+assert.match(contractDoc, /Cliplot hosted Auth callback\/session contract before authenticated checkout can pass Auth subject/);
 
 console.log('order lifecycle read model verification ok');

@@ -95,4 +95,11 @@ Blocker: `[MISSING: Delivery provider or shipment-status source contract for aft
 - Authenticated read APIs may expose delivery address and order items because customer/admin UIs require them, but they do not log those payloads or include them in event fixtures.
 - Customer read filtering prefers persisted `customer.authUserId`/`customer.subject` when Auth supplies a stable `sub`, and falls back to `customer.email` for legacy order rows.
 
-Blocker: `[MISSING: runtime proof that authenticated channel create callers pass Auth subject into new Orders snapshots.]`
+Runtime evidence: deployed Orders image `localhost:5000/orders-microservice:537a103`
+contains `c4f1332`; `npm run verify:invoices-read-boundary` and
+`npm run verify:create-order-contract` passed in `orders-microservice`.
+
+Blockers:
+
+- `[MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]`
+- `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`
