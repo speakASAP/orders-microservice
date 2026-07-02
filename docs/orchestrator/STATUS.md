@@ -2646,8 +2646,11 @@ Runtime evidence:
   `npm run verify:create-order-contract` passed in `orders-microservice`.
 - FlipFlop authenticated checkout source now forwards the UUID-shaped local
   Auth user id as central Orders `customer.authSubject`.
+- FlipFlop commit `23b22e0 test: add auth subject orders smoke gate` added a
+  non-mutating-by-default `smoke:orders-auth-subject` runner for approved
+  runtime proof.
 
 Blockers converted:
 
-- `[MISSING: FlipFlop runtime smoke proving authenticated central order snapshots carry customer.authSubject]`
+- `[MISSING: approved FlipFlop smoke:orders-auth-subject execution proving authenticated central order snapshots carry customer.authSubject]`
 - `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`
