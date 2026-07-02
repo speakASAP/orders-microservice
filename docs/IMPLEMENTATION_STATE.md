@@ -5,7 +5,7 @@ id: ORDERS-IMPLEMENTATION-STATE
 status: ready
 owner: Orders owner
 created: 2026-06-12
-last_updated: 2026-07-01
+last_updated: 2026-07-02
 completeness_level: implemented
 upstream:
   - AGENTS.md
@@ -26,19 +26,23 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Cliplot no-mutation order create validation
-next_recommended_goal: Owner-approved Cliplot live create and Warehouse reservation smoke
-last_completed_goal: Goal 7.4A Orders lead-attribution event contract for Leads
+current_chunk: O1 Orders core lifecycle and contracts
+next_recommended_goal: O0 integrate O1/W1 evidence, then start F1/H1/A1/AU1/B1 lifecycle consumers
+last_completed_goal: O1 Orders core lifecycle and Warehouse fulfillment-order handoff
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
   - [MISSING: channel lead attribution source mapping]
+  - [MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]
+  - [MISSING: Auth customer subject-to-order identity contract for non-email customer matching]
   - Leads, Marketing, and Notifications have no verified orders.events consumers yet
   - non-marketplace app contracts require owner approval before runtime integration
   - Heureka service has unrelated dirty dashboard/feed/auth worktree changes that must remain isolated from Orders Goal 7 coordinator docs
 ```
 
 ## Current Checkpoint
+
+2026-07-02: O1 Orders core lifecycle and contracts is implemented and validated in source. Orders now derives the authoritative UX lifecycle stage from existing canonical order status, payment status, item fulfillment status, and Warehouse handoff metadata while preserving the legacy coarse `status` field. Added protected `GET /api/orders/customer/lifecycle` and `GET /api/orders/admin/lifecycle` read models, additive `orders.order.lifecycle_changed.v1` event contract/fixture/publisher, lifecycle transition validation helper, and `scripts/verify-order-lifecycle-read-model.js`. W1 update was wired inside Orders: after first paid transition, Orders keeps the existing reservation `fulfill` calls, reads fulfilled reservations through `GET /api/reservations/order/:orderId`, and posts the approved `POST /api/fulfillment-orders` dispatch handoff with order, delivery, contact, and item reservation payload. Added `src/orders/order-fulfillment-handoff.client.ts` plus `scripts/verify-order-fulfillment-handoff.js`. Validation passed: `npm run build`, `npm run verify:order-lifecycle-read-model`, `npm run verify:order-fulfillment-handoff`, `npm run verify:event-contracts`, `npm run verify:payment-boundary`, `npm run verify:order-reservation-gate`, `git diff --check`, and full `npm test`. No deploy, push, production DB mutation, token value, customer payload dump, raw Warehouse response body, or non-Orders repo edit was used. Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: Auth customer subject-to-order identity contract for non-email customer matching]`, `[MISSING: channel lead attribution source mapping]`.
 
 2026-07-02: Added source support for `invoices-microservice` to read full
 order snapshots through the existing internal service-token boundary. Orders

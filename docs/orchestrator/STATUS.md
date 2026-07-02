@@ -1,5 +1,36 @@
 # Orders Orchestrator Status
 
+## 2026-07-02 - O1 Orders Lifecycle Read Model And Fulfillment Handoff
+
+Intent chain:
+
+- Vision: every sellable order exposes one authoritative lifecycle to customer and admin frontends without moving Warehouse, Payments, Catalog, Auth, Notifications, Leads, or Marketing ownership into Orders.
+- Goal Impact: O1 gives channel frontends and admin dashboards a canonical Orders lifecycle read model and event contract, while W1 fulfillment handoff is now called from the paid transition.
+- System: Orders owns lifecycle stage derivation, compatibility status projection, read models, lifecycle events, and the client call to Warehouse fulfillment orders; Warehouse owns stock, reservations, fulfillment-order persistence, and dispatch state; Payments owns payment truth; Auth owns identities and RBAC.
+- Feature: additive lifecycle read model, `orders.order.lifecycle_changed.v1`, and Warehouse fulfillment-order dispatch handoff after payment fulfillment.
+- Task: implement the O1 lane from `docs/orchestrator/2026-07-02-order-lifecycle-warehouse-status-rollout-plan.md` and incorporate the W1 `POST /api/fulfillment-orders` contract update.
+- Execution Plan: keep existing coarse `status` backward-compatible, derive lifecycle from existing stored fields, add protected customer/admin reads, add lifecycle event contract/verifier, and wire the post-paid Warehouse fulfillment-order handoff without deploying.
+- Coding Prompt: remote-only on `alfares`, preserve dirty product-affinity/event work, do not edit other repos, do not print secrets or raw customer/production data, and document unresolved contracts with `[MISSING: ...]`.
+- Code: `src/orders/order-lifecycle.ts`, `src/orders/order-fulfillment-handoff.client.ts`, `src/orders/orders.service.ts`, `src/orders/orders.controller.ts`, `src/orders/order-event-contracts.ts`, `src/orders/order-events.service.ts`, `src/auth/jwt-roles.guard.ts`, event fixtures, verifiers, `package.json`, and lifecycle/event docs.
+- Validation: passed. Commands: `npm run build`, `npm run verify:order-lifecycle-read-model`, `npm run verify:order-fulfillment-handoff`, `npm run verify:event-contracts`, `npm run verify:payment-boundary`, `npm run verify:order-reservation-gate`, `git diff --check`, and full `npm test`.
+
+Implementation notes:
+
+- Customer read surface: `GET /api/orders/customer/lifecycle`, protected by Auth-valid human users plus Orders read/admin roles, scoped to persisted `customer.email` until a stronger Auth subject-to-order mapping exists.
+- Admin read surface: `GET /api/orders/admin/lifecycle`, protected by Orders read/admin/operator roles, with filters and aggregate counts by lifecycle stage, payment status, channel, delivery status, exception state, and totals by currency.
+- Event contract: `orders.order.lifecycle_changed.v1` is additive and does not replace existing created/updated/paid/shipped/cancelled events. Lifecycle events omit customer objects, delivery addresses, billing addresses, payment provider data, tracking data, tokens, raw Warehouse response bodies, raw reservation records, and item `warehouseId` values.
+- W1 handoff: after first paid transition and existing reservation `fulfill` calls, Orders reads fulfilled reservations by order id and posts `POST /api/fulfillment-orders` with the W1-approved dispatch payload. The bounded handoff summary is stored under `warehouseHandoff.fulfillmentOrderHandoff`.
+
+Boundary notes:
+
+- No deployment or push was run.
+- No production DB rows, token values, decoded JWTs, customer payload dumps, raw Warehouse response bodies, or non-Orders repo edits were used.
+- Remaining blockers: `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]`, `[MISSING: Auth customer subject-to-order identity contract for non-email customer matching]`, and `[MISSING: channel lead attribution source mapping]`.
+
+Next unfinished chunk:
+
+- O0 should integrate O1/W1 evidence, then unblock F1 FlipFlop central lifecycle UI and H1/A1/AU1/B1 marketplace lifecycle read-model consumers.
+
 ## 2026-07-02 - Invoices Service Read Boundary
 
 Added a minimal Orders read boundary for the new `invoices-microservice`.
