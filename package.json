@@ -19,6 +19,7 @@
     "verify:order-reservation-gate": "node scripts/verify-order-reservation-gate.js",
     "verify:warehouse-handoff": "node scripts/verify-warehouse-handoff-contract.js",
     "verify:payment-boundary": "node scripts/verify-payment-boundary.js",
+    "verify:invoices-read-boundary": "node scripts/verify-invoices-read-boundary.js",
     "verify:admin-operations-console": "node scripts/verify-admin-operations-console.js",
     "verify:pricing-safety": "node scripts/verify-pricing-safety.js",
     "verify:pricing-consolidation-contract": "node scripts/verify-pricing-consolidation-contract.js",

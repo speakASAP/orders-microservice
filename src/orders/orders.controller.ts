@@ -39,6 +39,12 @@ export const PRODUCT_SALES_STATISTICS_READ_ROLES = [
   'internal:catalog-microservice:service',
 ] as const;
 
+export const ORDER_DETAIL_READ_ROLES = [
+  'global:superadmin',
+  'internal:orders-microservice:admin',
+  'internal:invoices-microservice:service',
+] as const;
+
 interface ProductSalesStatisticsQuery {
   from?: string;
   to?: string;
@@ -74,6 +80,7 @@ export class OrdersController {
   }
 
   @Get(':id')
+  @Roles(...ORDER_DETAIL_READ_ROLES)
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const order = await this.ordersService.findOne(id);
     return { success: true, data: order };

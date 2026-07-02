@@ -1,5 +1,28 @@
 # Orders Orchestrator Status
 
+## 2026-07-02 - Invoices Service Read Boundary
+
+Added a minimal Orders read boundary for the new `invoices-microservice`.
+Orders now recognizes `x-service-name: invoices-microservice` with
+`INVOICES_INTERNAL_SERVICE_TOKEN`/`INVOICES_ORDERS_SERVICE_TOKEN` as
+`internal:invoices-microservice:service`, and `GET /api/orders/:id` explicitly
+allows that role through `ORDER_DETAIL_READ_ROLES`.
+
+Boundary decision: Orders events remain trigger-only and no customer, billing,
+address, provider, or payment-detail fields were added to event payloads. The
+new invoices service must use this internal read path to retrieve full order
+snapshots for legal invoice generation.
+
+Validation:
+
+- `npm run verify:invoices-read-boundary`: passed.
+- `npm run build`: passed.
+- `git diff --check`: passed.
+- `kubectl apply --dry-run=client -f k8s/external-secret.yaml -n statex-apps`: passed.
+
+Deployment was not run. Runtime remains blocked until Vault projects the
+invoices Orders service token and the new invoices service is deployed.
+
 ## 2026-07-01 - Cliplot No-Mutation Order Create Validation
 
 Intent chain:

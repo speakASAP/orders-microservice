@@ -40,6 +40,19 @@ blockers:
 
 ## Current Checkpoint
 
+2026-07-02: Added source support for `invoices-microservice` to read full
+order snapshots through the existing internal service-token boundary. Orders
+recognizes `invoices-microservice` as `internal:invoices-microservice:service`
+when the runtime token is projected, and `GET /api/orders/:id` now has an
+explicit `ORDER_DETAIL_READ_ROLES` list including that role. Orders event
+payloads remain trigger-only; no customer, billing, address, payment provider,
+or raw payment fields were added to RabbitMQ events. Runtime remains blocked
+until Vault projects `secret/prod/invoices-microservice#ORDERS_SERVICE_TOKEN`
+into both Orders and Invoices. Validation passed: `npm run
+verify:invoices-read-boundary`, `npm run build`, `git diff --check`, and
+client-side Kubernetes dry-run for `k8s/external-secret.yaml`. Deployment was
+not run.
+
 2026-07-01: Cliplot no-mutation order create validation is implemented,
 validated, deployed, and smoke-tested. Orders now exposes protected
 `POST /api/orders/validate-create` with the same create-order roles as live

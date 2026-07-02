@@ -104,6 +104,10 @@ export class JwtRolesGuard implements CanActivate {
         token: this.resolveEnvToken('PAYMENTS_INTERNAL_SERVICE_TOKEN', 'PAYMENTS_ORDERS_SERVICE_TOKEN'),
         role: 'internal:payments-microservice:service',
       },
+      'invoices-microservice': {
+        token: this.resolveEnvToken('INVOICES_INTERNAL_SERVICE_TOKEN', 'INVOICES_ORDERS_SERVICE_TOKEN'),
+        role: 'internal:invoices-microservice:service',
+      },
       'cliplot': {
         token: this.resolveEnvToken('CLIPLOT_ORDERS_SERVICE_TOKEN', 'CLIPLOT_SERVICE_TOKEN'),
         role: 'internal:cliplot:service',
