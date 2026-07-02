@@ -1,5 +1,27 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Warehouse Fulfillment Status Projection
+
+Intent chain:
+
+- Vision: post-payment warehouse/delivery progress should flow back into Orders lifecycle so customer/admin cabinets show current state.
+- Goal Impact: Orders now accepts bounded Warehouse fulfillment status updates and projects them into canonical lifecycle stages/events.
+- System: Warehouse owns fulfillment operational state; Orders owns lifecycle read models/events; frontends consume Orders lifecycle surfaces.
+- Feature: internal `PUT /api/orders/:id/warehouse-fulfillment-status` endpoint for `warehouse-microservice`.
+- Task: authorize Warehouse service token, normalize fulfillment status payloads, persist bounded summary under `warehouseHandoff.fulfillmentOrderHandoff`, update coarse order status projection, and publish lifecycle changed events.
+- Execution Plan: map Warehouse statuses to existing lifecycle stages without exposing delivery address/tracking/provider data.
+- Coding Prompt: do not move delivery-provider ownership into Orders; no raw Warehouse response bodies, tokens, tracking data, or customer data in events.
+- Code: Orders auth guard, ExternalSecret token mapping, controller/service endpoint, lifecycle projection, verifier coverage.
+- Validation: `npm test`, `npm run verify:event-contracts`, `npm run verify:payment-boundary`, and `git diff --check` passed.
+
+Evidence:
+
+- Warehouse `requested/collecting/forming/formed/handed_to_delivery/in_delivery/delivered/not_delivered/cancelled/returned` statuses map to existing Orders lifecycle stages.
+- Lifecycle events remain bounded and continue omitting delivery addresses, tracking data, payment provider fields, tokens, and raw Warehouse bodies.
+- `internal:warehouse-microservice:service` is authorized only for the new fulfillment-status update boundary.
+
+Runtime evidence: [PENDING: deploy and live smoke]
+
 ## 2026-07-03 - Notifications Orders Events Consumer Enabled
 
 Intent chain:
@@ -24,7 +46,6 @@ Evidence:
 
 Remaining blockers:
 
-- `[MISSING: delivery-provider shipment status source after Warehouse fulfillment-order handoff.]`
 - `[MISSING: customer-facing Allegro order cabinet if product requirements require a buyer portal beyond the currently implemented admin/order dashboard surface.]`
 - `[MISSING: SSE/WebSocket push infrastructure if product requires server-pushed realtime beyond deployed bounded polling.]`
 
@@ -57,7 +78,6 @@ Evidence:
 
 Remaining blockers:
 
-- `[MISSING: delivery-provider shipment status source after Warehouse fulfillment-order handoff.]`
 - `[MISSING: customer-facing Allegro order cabinet if product requirements require a buyer portal beyond the currently implemented admin/order dashboard surface.]`
 - `[MISSING: SSE/WebSocket push infrastructure; current deployed contract is bounded polling refresh rather than server-pushed realtime.]`
 
@@ -100,7 +120,6 @@ Operational notes:
 
 Remaining blockers:
 
-- `[MISSING: delivery-provider shipment status source after Warehouse fulfillment-order handoff.]`
 
 Next action:
 

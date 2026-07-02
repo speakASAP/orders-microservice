@@ -27,13 +27,12 @@ downstream:
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
 current_chunk: Marketplace order cabinet polling rollout deployed after k3s recovery
-next_recommended_goal: Define delivery-provider shipment-status source after Warehouse handoff
+next_recommended_goal: Deploy Warehouse fulfillment-status projection and run live status smoke
 last_completed_goal: Orders event outbox source reliability lane
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
   - [MISSING: channel lead attribution source mapping]
-  - [MISSING: Delivery provider or shipment-status source contract after Warehouse handoff]
   - [MISSING: owner-approved FlipFlop auth-subject create/read smoke proving persisted customer.authSubject]
   - [MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]
   - non-marketplace app contracts require owner approval before runtime integration
@@ -41,6 +40,7 @@ blockers:
 
 ## Current Checkpoint
 
+2026-07-03: Warehouse fulfillment-status projection implemented in Orders source. Orders accepts internal Warehouse fulfillment status updates, stores bounded `warehouseHandoff.fulfillmentOrderHandoff` metadata, maps Warehouse progress statuses to lifecycle stages, and publishes lifecycle change events. Full `npm test` passed. Runtime deploy/smoke pending.
 2026-07-03: Notifications Orders events consumer is enabled and live for approved recipient `ssfskype@gmail.com`. Notifications image `866a49f` is deployed, `orders.lifecycle` channel policy was seeded by migration, `/health/orders-events` reports enabled/connected/consuming true, and synthetic event `codex-orders-lifecycle-smoke-1783034533137` produced counters `received=1 sent=1 failed=0` plus a sent notification row. Remaining cross-system blocker is delivery-provider shipment-status source after Warehouse handoff.
 
 2026-07-03: Marketplace order cabinet polling rollout completed after k3s recovery. FlipFlop `3b99ed4`, Bazos `2d47d16`, Aukro `f0847cf`, Heureka `824465e`, and Allegro `c9ba31f` are built, pushed, deployed, and live with bounded visible-tab polling/background refresh for the audited order cabinet or order dashboard surfaces. Kubernetes verification showed FlipFlop, Bazos, Aukro, Heureka service/gateway, and Allegro service/api-gateway/settings/imports/frontend deployments ready `1/1`; public checks returned HTTP 200 for FlipFlop and Allegro. Current remaining gaps are Notifications recipient/consumer enablement, delivery-provider shipment-status source, and product confirmation for any separate Allegro buyer-facing cabinet beyond the existing dashboard.
