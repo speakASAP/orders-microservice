@@ -70,6 +70,13 @@ interface FulfillmentOrderPayload {
 
 const PAYMENT_CONFIRMED_REASON = 'PAYMENT_CONFIRMED';
 
+const COUNTRY_NAME_TO_ISO2: Record<string, string> = {
+  CZECHIA: 'CZ',
+  'CZECH REPUBLIC': 'CZ',
+  CESKO: 'CZ',
+  'CESKA REPUBLIKA': 'CZ',
+};
+
 @Injectable()
 export class OrderFulfillmentHandoffClient {
   private readonly baseUrl: string;
@@ -214,8 +221,8 @@ export class OrderFulfillmentHandoffClient {
     const street = this.normalizeOptionalString(address?.street);
     const city = this.normalizeOptionalString(address?.city);
     const postalCode = this.normalizeOptionalString(address?.postalCode);
-    const country = this.normalizeOptionalString(address?.country)?.toUpperCase();
-    if (!street || !city || !postalCode || !country || !/^[A-Z]{2}$/.test(country)) {
+    const country = this.normalizeCountry(address?.country);
+    if (!street || !city || !postalCode || !country) {
       return null;
     }
     return {
@@ -225,6 +232,15 @@ export class OrderFulfillmentHandoffClient {
       postalCode,
       country,
     };
+  }
+
+  private normalizeCountry(value?: string | null): string | undefined {
+    const normalized = this.normalizeOptionalString(value);
+    if (!normalized) return undefined;
+    const upper = normalized.toUpperCase();
+    if (/^[A-Z]{2}$/.test(upper)) return upper;
+
+    return COUNTRY_NAME_TO_ISO2[upper.replace(/[^A-Z]/g, ' ').replace(/\s+/g, ' ').trim()];
   }
 
   private normalizeCustomerContact(customer: Order['customer'] | null | undefined): FulfillmentOrderPayload['customerContact'] | null {

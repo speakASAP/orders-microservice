@@ -88,7 +88,15 @@ async function run() {
       },
     }, { warn() {} });
 
-    const result = await client.createAfterPaymentFulfillment(makeOrder());
+    const result = await client.createAfterPaymentFulfillment(makeOrder({
+      shippingAddress: {
+        name: 'Customer Name',
+        street: 'Main 1',
+        city: 'Prague',
+        postalCode: '11000',
+        country: 'Czech Republic',
+      },
+    }));
     assert.equal(result.status, 'requested');
     assert.equal(result.handedOffCount, 1);
     assert.equal(result.fulfillmentOrderId, 'fulfillment-order-1');
