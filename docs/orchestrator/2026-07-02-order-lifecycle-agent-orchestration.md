@@ -18,7 +18,7 @@ Implement reliable cross-service order lifecycle:
 
 | Lane | Agent | Scope | Status |
 | --- | --- | --- | --- |
-| O1 Orders core lifecycle | Singer `019f2366-8c98-7433-ba90-49bacea51827` | `orders-microservice` Orders lifecycle, events, APIs, validation | completed, AU1 auth diff uncommitted |
+| O1 Orders core lifecycle | Singer `019f2366-8c98-7433-ba90-49bacea51827` | `orders-microservice` Orders lifecycle, events, APIs, validation | completed on origin/main |
 | F1 FlipFlop checkout/cabinets | Pascal `019f2366-af74-7ec0-b3f8-fefc4e8a2b09` | `flipflop` central Orders-first checkout and order UIs | completed, live smoke blocked |
 | W1 Warehouse handoff | Wegener `019f2366-cf00-7ae2-8103-421052479539` | `warehouse-microservice` fulfillment handoff/pick-ticket discovery or implementation | completed |
 | P1 Payments bridge | Plato `019f2366-ead6-7b42-b2fb-c2ac20910551` | `payments-microservice` Orders payment-status bridge verification/hardening | completed |
@@ -26,9 +26,9 @@ Implement reliable cross-service order lifecycle:
 | H1 Heureka read model | Rawls `019f236c-f393-79a2-b188-57c5cc09344b` | `heureka` central Orders lifecycle status in dashboard | completed |
 | A1 Allegro read model | Turing `019f236d-1f17-7c33-8dd4-73764944883a` | `allegro` central Orders lifecycle status in order UI | started |
 | AU1 Aukro read model | Ampere `019f2373-85d0-7f22-97e2-ed5d26d68c0c` | `aukro` central Orders lifecycle status in dashboard | completed |
-| B1 Bazos read model | Zeno `019f238b-f72e-7c32-9d3c-68b456c7c0a8` | `bazos` limited synthetic/internal central Orders status panel | started, provider-backed flow still blocked |
+| B1 Bazos read model | Zeno `019f238b-f72e-7c32-9d3c-68b456c7c0a8` | `bazos` limited synthetic/internal central Orders status panel | completed, provider-backed flow still blocked |
 | N1 Notifications discovery | Linnaeus `019f2367-2025-7272-bf2c-01924566748c` | `notifications-microservice` broker consumer dependency gate | completed, blocked |
-| C1 Catalog/admin statistics | Leibniz `019f238c-175b-7440-afba-2314547d357b` | `catalog-microservice` Orders-backed product/order/delivery stats | started |
+| C1 Catalog/admin statistics | Leibniz `019f238c-175b-7440-afba-2314547d357b` | `catalog-microservice` Orders-backed product/order/delivery stats | completed, endpoint gap remains |
 
 ## Coordination Rules
 
@@ -236,12 +236,12 @@ Handoff:
 ## Worker Completion Update: Orders O1
 
 Agent: Singer `019f2366-8c98-7433-ba90-49bacea51827`
-Status: O1 present on remote main at `55d7acd`; AU1 read authorization added as uncommitted remote diff
+Status: O1 lifecycle implementation is on remote main; AU1 read authorization is included in `origin/main` at `a218f33`
 
 Results:
 
 - Orders core lifecycle/read model/event contract implementation is on remote `origin/main`.
-- AU1 source-contract gap was addressed locally by adding `internal:aukro-service:service` to lifecycle/detail read roles.
+- AU1 source-contract gap is resolved in `origin/main` by adding `internal:aukro-service:service` to lifecycle/detail read roles.
 - `scripts/verify-order-lifecycle-read-model.js` now verifies Aukro service read access.
 
 Validation:
@@ -299,3 +299,54 @@ Scope decisions:
 
 - Bazos worker is limited to synthetic/internal order status panel and docs; provider-backed Bazos order flow remains blocked until contracts are supplied.
 - Catalog worker must consume Orders-backed stats/read models only and must not touch concurrent product quality/manual override/product relation/local resale work unless unavoidable.
+
+## Worker Completion Update: Catalog C1
+
+Agent: Leibniz `019f238c-175b-7440-afba-2314547d357b`
+Status: completed
+
+Results:
+
+- Catalog consumes current Orders product stats shape: `byChannel`, `byStatus`, `grossItemRevenue`, `lastOrderAt`.
+- Admin product page renders product order status rows.
+- Lifecycle/payment/delivery panels are fail-soft and show `[MISSING: Orders stats endpoint]` until Orders provides aggregate stats.
+- Product quality/manual overrides/product relations/local resale/canonical JSON work was left untouched.
+
+Validation:
+
+- `npm test -- --runInBand src/products/products.service.spec.ts`: passed, 39 tests.
+- `git diff --check`: passed.
+- `npm run build`: passed.
+- `cd services/frontend && npm run build`: passed with existing multiple-lockfile warning.
+
+Handoff:
+
+- `[MISSING: Orders stats endpoint]` for product-scoped lifecycle/payment/delivery aggregates and channel-level delivery exception counts.
+- Catalog docs remain uncommitted while source/test files are already in remote `HEAD`; integration owner must review mixed state.
+
+## Worker Completion Update: Bazos B1
+
+Agent: Zeno `019f238b-f72e-7c32-9d3c-68b456c7c0a8`
+Status: completed for bounded synthetic/internal read model
+
+Results:
+
+- Stored `BazosOrder.orderId` drives central Orders status reads.
+- `/ui/orders` is user/admin scoped.
+- UI/read-model states cover `ok`, `unforwarded`, `unknown`, and `stale`.
+- Provider webhook, credentials, deploy, and push were not touched.
+
+Validation:
+
+- `git diff --check`: passed.
+- `npm --prefix shared test -- order-client.service.spec.ts`: passed, 1 suite, 3 tests.
+- `npm --prefix shared run build`: passed.
+- Bazos focused orders service spec: passed, 1 suite, 10 tests.
+- `npm --prefix services/aukro-service run build`: passed.
+
+Remaining blockers:
+
+- `[UNKNOWN: live Bazos marketplace webhook support.]`
+- `[MISSING: Bazos order item ingestion contract.]`
+- `[MISSING: Warehouse-owned warehouseId for Bazos order item.]`
+- `[MISSING: provider-backed customer/admin order UI requirements beyond the bounded synthetic/internal read model.]`
