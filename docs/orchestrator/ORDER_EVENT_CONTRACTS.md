@@ -30,7 +30,7 @@ Orders publishes versioned lifecycle events on the durable RabbitMQ exchange `or
 | --- | --- | --- |
 | `orders.order.created.v1` | A canonical order was persisted by Orders. | `publishOrderCreated` |
 | `orders.order.updated.v1` | The canonical order lifecycle status changed. | `publishOrderUpdated` |
-| `orders.order.paid.v1` | Orders observed a payment-success signal owned by Payments. | reserved helper, no current runtime caller |
+| `orders.order.paid.v1` | Orders observed a payment-success signal owned by Payments. | `publishOrderPaid` from `applyPaymentStatus` on the first paid transition |
 | `orders.order.shipped.v1` | Orders observed the order reached shipped state or shipment handoff. | `publishOrderShipped` |
 | `orders.order.cancelled.v1` | Orders accepted an owner-approved cancellation. | emitted by `publishOrderUpdated` when status is `cancelled` |
 | `orders.order.lifecycle_changed.v1` | Orders lifecycle stage changed for customer/admin read models. | `publishOrderLifecycleChanged` |
@@ -121,6 +121,15 @@ This snapshot is the approved producer-side source for related-products co-purch
 ```
 
 Allowed nested fields are `leadId`, `source`, and `campaignId`. Orders must not infer lead attribution from customer names, email addresses, phone numbers, shipping or billing addresses, payment fields, notes, or channel-local payloads. If attribution is absent, Orders omits `leadAttribution` from the event payload. Current channel mapping remains blocked until each channel has an approved source field: `[MISSING: channel lead attribution source mapping]`.
+
+## Paid Event
+
+`orders.order.paid.v1` is emitted only after Orders accepts an
+`orders.payment-status.v1` update from the Payments-owned boundary and observes
+the first transition to paid. The event is a trigger signal for downstream
+consumers such as invoices and notifications; consumers that need legal,
+customer, billing, or payment reconciliation details must read them through
+their approved internal Orders or Payments read contracts.
 
 ## Lifecycle Changed Event
 
