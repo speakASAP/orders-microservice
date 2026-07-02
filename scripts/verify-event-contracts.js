@@ -158,7 +158,17 @@ assert.equal(JSON.stringify(builtEvents).includes('operator@example.invalid'), f
 
 async function verifyPublisherRoutes() {
   const published = [];
-  const service = new OrderEventsService();
+  const outboxRows = [];
+  const outboxRepository = {
+    create(row) {
+      return { id: 'outbox-' + (outboxRows.length + 1), ...row };
+    },
+    async save(row) {
+      outboxRows.push({ ...row });
+      return row;
+    },
+  };
+  const service = new OrderEventsService(outboxRepository);
   service.channel = {
     publish(exchangeName, routingKey, buffer, options) {
       published.push({
@@ -181,8 +191,26 @@ async function verifyPublisherRoutes() {
   await service.publishOrderShipped('order-1001', 'tracking-must-not-appear');
   await service.publishOrderUpdated('order-1001', 'cancelled', { previousStatus: 'processing', approval });
   await service.publishOrderLifecycleChanged(lifecyclePayload);
+  await service.publishPricingPriceChanged({
+    productId: 'catalog-product-1001',
+    productName: 'Catalog Product',
+    oldPrice: 480,
+    newPrice: 490,
+    changePercent: 2.08,
+    approvedAt: '2026-07-02T08:00:00.000Z',
+    suggestionId: 'price-suggestion-1001',
+  });
 
-  const routingKeys = published.map((message) => message.routingKey).sort();
+  const orderMessages = published.filter((message) => message.exchangeName === 'orders.events');
+  const pricingMessages = published.filter((message) => message.exchangeName === 'pricing.events');
+  assert.equal(pricingMessages.length, 1, 'pricing event is still published');
+  assert.equal(pricingMessages[0].routingKey, 'pricing.price_changed');
+  assert.equal(pricingMessages[0].options.persistent, true);
+  assert.equal(pricingMessages[0].options.contentType, 'application/json');
+  assert.equal(pricingMessages[0].options.headers.eventType, 'pricing.price_changed');
+  assert.equal(pricingMessages[0].options.headers.eventVersion, 1);
+
+  const routingKeys = orderMessages.map((message) => message.routingKey).sort();
   assert.deepEqual(routingKeys, [
     ORDER_EVENT_TYPES.cancelled,
     ORDER_EVENT_TYPES.created,
@@ -193,7 +221,7 @@ async function verifyPublisherRoutes() {
     ORDER_EVENT_TYPES.updated,
   ].sort());
 
-  for (const message of published) {
+  for (const message of orderMessages) {
     assert.equal(message.exchangeName, 'orders.events');
     assert.equal(message.options.persistent, true);
     assert.equal(message.options.contentType, 'application/json');
@@ -203,7 +231,7 @@ async function verifyPublisherRoutes() {
     assertSafePayload(message.event, 'publisher ' + message.routingKey);
   }
 
-  const createdMessage = published.find((message) => message.routingKey === ORDER_EVENT_TYPES.created);
+  const createdMessage = orderMessages.find((message) => message.routingKey === ORDER_EVENT_TYPES.created);
   assert.deepEqual(createdMessage.event.payload.leadAttribution, {
     leadId: 'lead-1001',
     source: 'lead-form',
@@ -212,17 +240,117 @@ async function verifyPublisherRoutes() {
   assert.deepEqual(createdMessage.event.payload.items, safeItems);
   assert.equal(createdMessage.event.payload.currency, 'CZK');
 
-  const lifecycleMessage = published.find((message) => message.routingKey === ORDER_EVENT_TYPES.lifecycleChanged);
+  const lifecycleMessage = orderMessages.find((message) => message.routingKey === ORDER_EVENT_TYPES.lifecycleChanged);
   assert.equal(lifecycleMessage.event.payload.eventId, lifecycleMessage.event.eventId);
   assert.equal(lifecycleMessage.event.payload.previousLifecycleStage, 'ordered_unpaid');
 
-  assert.equal(JSON.stringify(published).includes('tracking-must-not-appear'), false, 'publisher leaked tracking number');
-  assert.equal(JSON.stringify(published).includes('operator@example.invalid'), false, 'publisher leaked approval identity');
+  const createdOutboxRows = outboxRows.filter((row) => row.status === 'pending');
+  const publishedOutboxRows = outboxRows.filter((row) => row.status === 'published');
+  assert.equal(createdOutboxRows.length, orderMessages.length, 'one pending outbox row per order event publish attempt');
+  assert.equal(publishedOutboxRows.length, orderMessages.length, 'one published outbox update per accepted order event publish');
+  assert.equal(outboxRows.some((row) => row.routingKey === 'pricing.price_changed'), false, 'pricing events are not stored in order outbox');
+
+  for (const row of publishedOutboxRows) {
+    assert.equal(row.exchangeName, 'orders.events');
+    assert.ok(expectedTypes.includes(row.routingKey), 'outbox routing key is versioned');
+    assert.equal(row.eventType, row.routingKey);
+    assert.equal(row.eventVersion, 1);
+    assert.match(row.eventId, /^[0-9a-f-]{36}$/i, 'outbox event id');
+    assert.equal(row.attempts, 1);
+    assert.ok(row.publishedAt instanceof Date, 'outbox publishedAt');
+    assert.equal(row.lastErrorCode, null);
+    assertSafePayload(row.payload, 'outbox ' + row.routingKey);
+  }
+
+  assert.equal(JSON.stringify(orderMessages).includes('tracking-must-not-appear'), false, 'publisher leaked tracking number');
+  assert.equal(JSON.stringify(orderMessages).includes('operator@example.invalid'), false, 'publisher leaked approval identity');
 }
 
-verifyPublisherRoutes().then(() => {
+async function verifyOutboxRetry() {
+  const rows = [];
+  const retryPublished = [];
+  const outboxRepository = {
+    create(row) {
+      const record = { id: 'retry-outbox-' + (rows.length + 1), createdAt: new Date(), ...row };
+      rows.push(record);
+      return record;
+    },
+    async save(row) {
+      return row;
+    },
+    async find() {
+      return rows.filter((row) => ['pending', 'failed'].includes(row.status) && row.attempts < 12);
+    },
+    async count(options) {
+      return rows.filter((row) => row.status === options.where.status).length;
+    },
+  };
+  const service = new OrderEventsService(outboxRepository);
+
+  await service.publishOrderPaid('order-2002', 'payments-ref-2002');
+  assert.equal(rows.length, 1, 'pending outbox row created when broker is unavailable');
+  assert.equal(rows[0].status, 'pending');
+  assert.equal(rows[0].attempts, 0);
+
+  const degradedReadiness = await service.getOutboxReadiness();
+  assert.equal(degradedReadiness.status, 'degraded');
+  assert.equal(degradedReadiness.brokerConnected, false);
+  assert.equal(degradedReadiness.pendingCount, 1);
+
+  service.channel = {
+    publish(exchangeName, routingKey, buffer, options) {
+      retryPublished.push({
+        exchangeName,
+        routingKey,
+        event: JSON.parse(buffer.toString('utf8')),
+        options,
+      });
+      return true;
+    },
+  };
+
+  await service.flushPendingOutbox();
+  assert.equal(retryPublished.length, 1, 'pending outbox row is retried');
+  assert.equal(retryPublished[0].exchangeName, 'orders.events');
+  assert.equal(retryPublished[0].routingKey, ORDER_EVENT_TYPES.paid);
+  assert.equal(rows[0].status, 'published');
+  assert.equal(rows[0].attempts, 1);
+  assert.ok(rows[0].publishedAt instanceof Date, 'retry marks publishedAt');
+
+  const readyReadiness = await service.getOutboxReadiness();
+  assert.equal(readyReadiness.status, 'ready');
+  assert.equal(readyReadiness.brokerConnected, true);
+  assert.equal(readyReadiness.pendingCount, 0);
+  assert.equal(readyReadiness.failedCount, 0);
+}
+
+function verifyOutboxSourceFiles() {
+  const entitySource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/orders/order-event-outbox.entity.ts'), 'utf8');
+  const migrationSource = fs.readFileSync(path.join(PROJECT_ROOT, 'migrations/007_create_order_event_outbox.sql'), 'utf8');
+  const moduleSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/orders/orders.module.ts'), 'utf8');
+  const eventServiceSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/orders/order-events.service.ts'), 'utf8');
+  const healthSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/health/health.controller.ts'), 'utf8');
+
+  assert.match(entitySource, /@Entity\('order_event_outbox'\)/);
+  assert.match(entitySource, /status: OrderEventOutboxStatus/);
+  assert.match(migrationSource, /CREATE TABLE IF NOT EXISTS order_event_outbox/);
+  assert.match(migrationSource, /"exchangeName" varchar\(100\) NOT NULL/);
+  assert.match(migrationSource, /"lastAttemptAt" timestamp NULL/);
+  assert.match(migrationSource, /CREATE UNIQUE INDEX IF NOT EXISTS idx_order_event_outbox_event_id/);
+  assert.match(moduleSource, /OrderEventOutbox/);
+  assert.match(eventServiceSource, /flushPendingOutbox/);
+  assert.match(eventServiceSource, /exchangeName === this\.ordersExchangeName/);
+  assert.match(healthSource, /health\/order-events/);
+}
+
+async function main() {
+  verifyOutboxSourceFiles();
+  await verifyPublisherRoutes();
+  await verifyOutboxRetry();
   console.log('event contract verification ok');
-}).catch((error) => {
+}
+
+main().catch((error) => {
   console.error(error);
   process.exit(1);
 });

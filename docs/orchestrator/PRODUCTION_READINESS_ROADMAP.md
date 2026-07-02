@@ -5,7 +5,7 @@ id: ORDERS-PRODUCTION-READINESS-ROADMAP
 status: proposed
 owner: Orders owner
 created: 2026-06-12
-last_updated: 2026-06-12
+last_updated: 2026-07-02
 completeness_level: planning
 upstream:
   - BUSINESS.md
@@ -36,7 +36,7 @@ Production-ready means other services can depend on Orders for order creation, i
 - Current public API surface includes order CRUD, item fulfillment updates, shipment updates, and pricing suggestion endpoints.
 - Current runtime gap: `PUT /api/orders/:id/status` and `PUT /api/items/:id/fulfillment` accept arbitrary status strings.
 - Current creation gap: `POST /api/orders` accepts partial entity payloads without a documented channel ingestion DTO, idempotency key, contract version, or full cross-service side-effect policy.
-- Current event gap: event payloads are minimal and not yet versioned or backed by consumer contract tests.
+- Current event gate: event payloads are versioned, source outbox-backed, and verifier-covered; production still requires owner-approved outbox migration/deploy plus live consumer/readiness smoke.
 - Current observability gap: logs and audit metadata are not yet documented as safe for customer/address/payment data.
 - DocsRAG dependency: Orders and ecosystem docs require querying `docs-rag-microservice` for broad cross-service decisions, but live retrieval is currently blocked until service access/JWT/GVT is fixed by the parallel session.
 

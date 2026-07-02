@@ -5,7 +5,7 @@ id: ORDERS-ORDER-EVENT-CONTRACTS
 status: implemented
 owner: Orders owner
 created: 2026-06-13
-last_updated: 2026-07-01
+last_updated: 2026-07-02
 completeness_level: implemented
 upstream:
   - docs/orchestrator/INTENT.md
@@ -14,6 +14,9 @@ upstream:
 downstream:
   - src/orders/order-event-contracts.ts
   - src/orders/order-events.service.ts
+  - src/orders/order-event-outbox.entity.ts
+  - migrations/007_create_order_event_outbox.sql
+  - src/health/health.controller.ts
   - docs/orchestrator/event-fixtures/*
 ```
 
@@ -48,6 +51,16 @@ Every event has this envelope:
 ```
 
 RabbitMQ message headers repeat `eventType` and `eventVersion`.
+
+## Durable Outbox And Readiness
+
+Orders records every versioned `orders.events` publish attempt in `order_event_outbox` before trying RabbitMQ. Rows start as `pending`, become `published` after an accepted publish, or become `failed` when the broker publish fails or is not accepted. Pending and failed rows are retried by `OrderEventsService` after broker recovery, bounded by `ORDER_EVENT_OUTBOX_MAX_ATTEMPTS`, `ORDER_EVENT_OUTBOX_RETRY_BATCH_SIZE`, and `ORDER_EVENT_OUTBOX_RETRY_INTERVAL_MS`.
+
+The outbox is scoped to Orders lifecycle events only. `pricing.events` continues to publish on its own exchange and must not be stored in `order_event_outbox`.
+
+`GET /health/order-events` exposes bounded readiness metadata: broker connection state, outbox repository configuration, retry loop state, pending/failed counts, retry settings, and last bounded retry error code. It does not expose event payloads, orders, customers, addresses, payment data, tokens, or broker credentials.
+
+Production use requires the guarded migration and deploy to be owner-approved. Until then, source is ready but live readiness remains `[MISSING: Orders event outbox migration/deploy approval and live /health/order-events readiness smoke]`.
 
 ## Allowed Payload Fields
 
@@ -133,4 +146,4 @@ Fixtures live in `docs/orchestrator/event-fixtures/`. Run:
 npm run verify:event-contracts
 ```
 
-The verifier checks that all five versioned events exist, match the code-level contract helpers, include version metadata, cover optional created-event lead attribution, preserve absence when attribution is not supplied, and do not contain forbidden sensitive fields.
+The verifier checks that all six versioned events exist, match the code-level contract helpers, include version metadata, cover optional created-event lead attribution, preserve absence when attribution is not supplied, do not contain forbidden sensitive fields, store only Orders events in the outbox, keep pricing events out of the Orders outbox, and retry a pending outbox row after broker recovery.

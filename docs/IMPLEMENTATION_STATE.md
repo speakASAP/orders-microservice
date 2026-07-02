@@ -26,9 +26,9 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: O0 validation and deployment gate
-next_recommended_goal: Owner-approved Warehouse WH-G16 migration/deploy, then live end-to-end order/payment/fulfillment/cabinet/Catalog smoke while Orders and Payments remain healthy
-last_completed_goal: Product-scoped lifecycle/payment/delivery aggregate source contract for Catalog
+current_chunk: Orders event outbox source reliability lane
+next_recommended_goal: Owner-approved Orders event outbox migration/deploy and Warehouse WH-G16 migration/deploy, then live end-to-end order/payment/fulfillment/cabinet/Catalog smoke while Orders and Payments remain healthy
+last_completed_goal: Orders event outbox source reliability lane
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
@@ -37,11 +37,14 @@ blockers:
   - [MISSING: Auth customer subject-to-order identity contract for non-email customer matching]
   - Warehouse WH-G16 fulfillment-order handoff is source-validated but not deployed; production deploy runs database migrations and requires explicit owner approval
   - Notifications lifecycle-changed event support is implemented on branch `codex/notifications-orders-lifecycle-event`, but no approved live broker consumer/runtime queue/DLQ/recipient contract exists yet
+  - [MISSING: Orders event outbox migration/deploy approval and live /health/order-events readiness smoke]
   - non-marketplace app contracts require owner approval before runtime integration
   - Heureka service has unrelated dirty dashboard/feed/auth worktree changes that must remain isolated from Orders Goal 7 coordinator docs
 ```
 
 ## Current Checkpoint
+
+2026-07-02: Orders event outbox source lane is implemented and validated. Added `order_event_outbox` entity, guarded SQL migration, publisher bookkeeping so versioned Orders events are recorded as pending before RabbitMQ publish and marked published or failed after the publish attempt, a retry loop for pending/failed order events, and `GET /health/order-events` bounded readiness metadata. `pricing.events` remains outside the Orders outbox. Validation passed: `git diff --check`, `npm run build`, `npm run verify:event-contracts`, and full `npm test`. No deployment, production DB migration, secret read, DB/customer/order row read, or live event publish has been run.
 
 2026-07-02: Runtime gate recheck found Orders and Payments no longer scaled to zero. `orders-microservice`, `payments-microservice`, `warehouse-microservice`, and `catalog-microservice` deployments are `1/1`, rolled out, and external health checks for Orders/Payments/Warehouse/Catalog return HTTP 200. Warehouse WH-G16 remains not deployed: `GET /api/fulfillment-orders/order/<synthetic>` returns HTTP 404. Notifications source branch `codex/notifications-orders-lifecycle-event` now validates and routes `orders.order.lifecycle_changed.v1` to the bounded Orders lifecycle notification path; live consumer runtime remains blocked by `[MISSING: Notifications-owned RabbitMQ consumer module or approved transport dependency]`, `[MISSING: Notifications runtime RABBITMQ_URL or broker secret source]`, queue/DLQ ownership, recipient policy, and deployment approval. No deployment, migration, secret read, DB/customer/order row read, or notification send was performed in this recheck.
 

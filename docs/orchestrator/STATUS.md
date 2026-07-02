@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-02 - Orders Event Outbox Source Lane
+
+Intent chain:
+
+- Vision: order lifecycle and status propagation should not depend only on an in-memory RabbitMQ publish attempt.
+- Goal Impact: Orders now has a source-level durable event outbox and retry/readiness model for versioned order lifecycle events, preserving the existing RabbitMQ routing keys and payload contracts.
+- System: Orders remains event producer and lifecycle source of truth; downstream consumers still consume `orders.events`; live consumer wiring remains service-owned.
+- Feature: `order_event_outbox` entity, guarded migration, publisher bookkeeping for pending/published/failed attempts, retry loop for pending/failed order events, and `GET /health/order-events` readiness metadata.
+- Task: record every Orders event publish attempt in an outbox row before RabbitMQ publish, update the row after accepted publish or failure, retry pending/failed rows after broker recovery, expose bounded readiness counts, and verify payload privacy/contract shape.
+- Execution Plan: keep routing keys and payloads unchanged, add source-only persistence model and migration, extend `verify:event-contracts`, and defer production migration/deploy execution until owner approval.
+- Coding Prompt: do not deploy, do not mutate production DB, do not print secrets/customer rows/order rows, and do not invent consumer queue ownership.
+- Code: `src/orders/order-event-outbox.entity.ts`, `src/orders/order-events.service.ts`, `src/orders/orders.module.ts`, `src/health/health.controller.ts`, `src/health/health.module.ts`, `migrations/007_create_order_event_outbox.sql`, `scripts/verify-event-contracts.js`, `docs/orchestrator/ORDER_EVENT_CONTRACTS.md`.
+- Validation: passed. Commands: `git diff --check`, `npm run build`, `npm run verify:event-contracts`, and full `npm test`.
+
+Runtime gate: outbox table and `GET /health/order-events` are source-ready, but production remains gated by owner-approved Orders migration/deploy and a live readiness smoke. No production DB migration, deployment, secret read, customer row read, order row read, or event publish was run in this source lane.
+
+Parallel execution: source lane is final-integration owned by Orders because it edits shared event producer files. Notifications, channel frontends, Warehouse WH-G16 deploy, and delivery-provider tracking remain dependency-gated parallel lanes with separate owners and must consume the unchanged `orders.events` contract after this lane is deployed.
+
 ## 2026-07-02 - Product Lifecycle Delivery Statistics For Catalog
 
 Intent chain:
