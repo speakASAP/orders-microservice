@@ -4,6 +4,7 @@ import { OrdersService } from './orders.service';
 import { OrderStatusApprovalInput } from './status-transitions';
 import { CreateOrderRequestDto } from './create-order.dto';
 import { PaymentStatusUpdateRequestDto } from '../payments/payment-status.dto';
+import { WarehouseFulfillmentStatusUpdateRequestDto } from './warehouse-fulfillment-status.dto';
 import { Roles } from '../auth/roles.decorator';
 
 interface OrderStatusUpdateBody {
@@ -57,6 +58,12 @@ export const ORDER_DETAIL_READ_ROLES = [
   'internal:orders-microservice:admin',
   'internal:invoices-microservice:service',
   'internal:aukro-service:service',
+] as const;
+
+export const ORDER_WAREHOUSE_FULFILLMENT_UPDATE_ROLES = [
+  'global:superadmin',
+  'internal:orders-microservice:admin',
+  'internal:warehouse-microservice:service',
 ] as const;
 
 export const ORDER_AFFINITY_REPLAY_READ_ROLES = [
@@ -160,6 +167,17 @@ export class OrdersController {
     @Req() request: AuthenticatedRequest,
   ) {
     const order = await this.ordersService.applyPaymentStatus(id, body, request.user);
+    return { success: true, data: order };
+  }
+
+  @Put(':id/warehouse-fulfillment-status')
+  @Roles(...ORDER_WAREHOUSE_FULFILLMENT_UPDATE_ROLES)
+  async updateWarehouseFulfillmentStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: WarehouseFulfillmentStatusUpdateRequestDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    const order = await this.ordersService.applyWarehouseFulfillmentStatus(id, body, request.user);
     return { success: true, data: order };
   }
 

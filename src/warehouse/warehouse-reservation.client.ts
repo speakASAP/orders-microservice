@@ -21,6 +21,15 @@ export interface WarehouseHandoffSummary {
   failureCode?: 'warehouse_request_failed';
   compensatedCount?: number;
   compensationFailedCount?: number;
+  fulfillmentOrderHandoff?: {
+    status?: string;
+    warehouseStatus?: string;
+    updatedAt?: string;
+    reasonCode?: string;
+    actor?: string;
+    reference?: string;
+    fulfillmentOrderId?: string;
+  };
 }
 
 interface ReservationLifecyclePayload {

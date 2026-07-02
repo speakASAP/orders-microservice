@@ -123,6 +123,18 @@ const COARSE_PROJECTION_EXTRA_TRANSITIONS: Partial<Record<OrderLifecycleStage, O
 const ORDER_LIFECYCLE_STAGE_SET = new Set<string>(ORDER_LIFECYCLE_STAGES);
 const TERMINAL_ORDER_STATUSES = new Set(['cancelled', 'delivered']);
 const FAILED_PAYMENT_STATUSES = new Set(['failed', 'cancelled']);
+const FULFILLMENT_STATUS_TO_LIFECYCLE: Record<string, OrderLifecycleStage> = {
+  requested: 'warehouse_fulfillment_requested',
+  collecting: 'warehouse_collecting',
+  forming: 'warehouse_forming',
+  formed: 'warehouse_formed',
+  handed_to_delivery: 'handed_to_delivery',
+  in_delivery: 'in_delivery',
+  delivered: 'received',
+  not_delivered: 'not_received',
+  cancelled: 'cancelled',
+  returned: 'returned',
+};
 
 export function normalizeOrderLifecycleStage(stage: string | undefined, field = 'lifecycleStage'): OrderLifecycleStage | undefined {
   if (!stage) return undefined;
@@ -193,12 +205,18 @@ export function deriveOrderLifecycleState(order: Order): OrderLifecycleState {
   const status = normalizeStoredStatus(order.status, 'pending');
   const paymentStatus = normalizeStoredStatus(order.paymentStatus, 'unpaid');
   const warehouseStatus = normalizeStoredStatus(order.warehouseHandoff?.status, 'not_requested');
+  const fulfillmentOrderStatus = normalizeStoredStatus(
+    (order.warehouseHandoff?.fulfillmentOrderHandoff as Record<string, unknown> | undefined)?.warehouseStatus,
+    '',
+  );
   const itemStatuses = normalizeItemStatuses(order.items || []);
   const allItemsShipped = itemStatuses.length > 0 && itemStatuses.every((value) => value === 'shipped' || value === 'delivered');
   const allItemsDelivered = itemStatuses.length > 0 && itemStatuses.every((value) => value === 'delivered');
 
   let lifecycleStage: OrderLifecycleStage = 'ordered_unpaid';
-  if (status === 'cancelled' || warehouseStatus === 'cancelled') {
+  if (fulfillmentOrderStatus && FULFILLMENT_STATUS_TO_LIFECYCLE[fulfillmentOrderStatus]) {
+    lifecycleStage = FULFILLMENT_STATUS_TO_LIFECYCLE[fulfillmentOrderStatus];
+  } else if (status === 'cancelled' || warehouseStatus === 'cancelled') {
     lifecycleStage = 'cancelled';
   } else if (warehouseStatus === 'returned') {
     lifecycleStage = 'returned';

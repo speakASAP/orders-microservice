@@ -34,6 +34,10 @@ import {
   validateOrderLifecycleTransition,
   type OrderLifecycleStage,
 } from './order-lifecycle';
+import {
+  WarehouseFulfillmentStatusUpdateRequestDto,
+  normalizeWarehouseFulfillmentStatusUpdate,
+} from './warehouse-fulfillment-status.dto';
 
 const PRODUCT_SALES_DEFAULT_STATUSES = ['confirmed', 'processing', 'shipped', 'delivered'] as const;
 const SELLABLE_ORDER_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka', 'cliplot']);
@@ -552,6 +556,59 @@ export class OrdersService {
       );
       throw error;
     }
+  }
+
+  async applyWarehouseFulfillmentStatus(
+    id: string,
+    data: WarehouseFulfillmentStatusUpdateRequestDto,
+    actor: OrdersLifecycleActor = {},
+  ): Promise<Order> {
+    const order = await this.findOne(id);
+    const previousLifecycleStage = deriveOrderLifecycleState(order).lifecycleStage;
+    const normalized = normalizeWarehouseFulfillmentStatusUpdate(data);
+    const fulfillmentOrderHandoff = {
+      ...(order.warehouseHandoff?.fulfillmentOrderHandoff || {}),
+      status: 'updated',
+      warehouseStatus: normalized.status,
+      updatedAt: normalized.occurredAt || new Date().toISOString(),
+      reasonCode: normalized.reasonCode || 'WAREHOUSE_FULFILLMENT_STATUS',
+      actor: normalized.actor || 'warehouse-microservice',
+      ...(normalized.reference ? { reference: normalized.reference } : {}),
+      ...(normalized.fulfillmentOrderId ? { fulfillmentOrderId: normalized.fulfillmentOrderId } : {}),
+    };
+
+    const updatedWarehouseHandoff = {
+      ...(order.warehouseHandoff || {
+        attemptedAt: new Date().toISOString(),
+        itemCount: order.items?.length || 0,
+        reservedCount: 0,
+        failedCount: 0,
+        reasonCode: 'WAREHOUSE_FULFILLMENT_STATUS',
+        actor: 'orders-microservice',
+      }),
+      fulfillmentOrderHandoff,
+    } as WarehouseHandoffSummary;
+
+    order.warehouseHandoff = updatedWarehouseHandoff;
+    const projected = deriveOrderLifecycleState(order).statusProjection;
+    order.status = projected;
+    const saved = await this.orderRepository.save(order);
+    await this.publishLifecycleChangedIfNeeded(saved, previousLifecycleStage);
+    this.logger.audit(
+      {
+        operation: 'order.warehouse_fulfillment_status.update',
+        resourceType: 'order',
+        resourceId: id,
+        actorId: actor?.sub,
+        actorEmail: actor?.email,
+        previousStatus: previousLifecycleStage,
+        requestedStatus: normalized.status,
+        resultingStatus: deriveOrderLifecycleState(saved).lifecycleStage,
+        outcome: 'success',
+      },
+      OrdersService.CONTEXT,
+    );
+    return saved;
   }
 
   async applyPaymentStatus(
