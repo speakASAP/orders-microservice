@@ -28,7 +28,7 @@ related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
 current_chunk: O0 validation and deployment gate
 next_recommended_goal: Owner-approved deployment wave: Warehouse WH-G16 migration/deploy, then Orders and Payments scale-up/deploy, then live end-to-end order lifecycle smoke
-last_completed_goal: O0 source validation and cross-repo lifecycle consumer integration
+last_completed_goal: Product-scoped lifecycle/payment/delivery aggregate source contract for Catalog
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
@@ -43,6 +43,8 @@ blockers:
 ```
 
 ## Current Checkpoint
+
+2026-07-02: Product-scoped lifecycle/payment/delivery aggregate statistics for Catalog are implemented and validated in Orders source. `GET /api/orders/statistics/products/:productId` now returns `lifecycleStatistics` and `orderDeliveryStatistics` with product-scoped lifecycle, payment, delivery, exception, and per-channel lifecycle counts derived from canonical Orders state, without exposing PII, addresses, payment-provider fields, Warehouse reservation bodies, or item-level Warehouse IDs. Validation passed: `git diff --check`, `npm run build`, `npm run verify:product-sales-statistics`, and full `npm test` in Orders; Catalog consumer revalidation passed with `npm test -- --runInBand src/products/products.service.spec.ts`, `npm run build`, and `cd services/frontend && npm run build`. No deployment or production DB mutation was run. Runtime remains gated by the owner-approved Warehouse WH-G16 deployment, Orders/Payments deploy or scale-up, and live Catalog product-statistics smoke.
 
 2026-07-02: O0 cross-repo validation and deployment-readiness sweep completed after sub-agent integration. Repositories are clean and pushed except `notifications-microservice`, which is ahead by one unrelated invoices actor commit. Orders source validation passed with `npm run verify:order-lifecycle-read-model`, `npm run verify:warehouse-handoff`, `npm run verify:order-fulfillment-handoff`, `npm run verify:payment-boundary`, `npm run verify:order-reservation-gate`, and full `npm test`. Warehouse WH-G16 focused test and build passed. Payments bridge spec and build passed. FlipFlop Orders hub verifier, shared/order-service/frontend builds, and non-mutating `npm run verify:guest-checkout-ui` passed after the transient `/cart` 503 cleared. Heureka, Allegro, Aukro, Bazos, Catalog, and Notifications focused validations/builds passed except Aukro synthetic smoke is blocked by `[MISSING: ORDER_SYNTHETIC_SMOKE_TOKEN]`. Runtime gate: `https://orders.alfares.cz/health` and `https://payments.alfares.cz/health` return HTTP 503 because both deployments are scaled to 0; live Warehouse does not expose `/api/fulfillment-orders` yet because WH-G16 is not deployed. Next action is an owner-approved deployment wave, starting with Warehouse WH-G16 migration/deploy.
 

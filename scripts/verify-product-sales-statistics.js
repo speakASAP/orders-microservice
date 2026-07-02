@@ -19,6 +19,7 @@ class ProductSalesQueryBuilder {
   }
 
   innerJoin(relation, alias) { this.calls.push({ method: 'innerJoin', relation, alias }); return this; }
+  innerJoinAndSelect(relation, alias) { this.calls.push({ method: 'innerJoinAndSelect', relation, alias }); return this; }
   where(clause, params) { this.calls.push({ method: 'where', clause, params }); return this; }
   andWhere(clause, params) { this.calls.push({ method: 'andWhere', clause, params }); return this; }
   select(selection, alias) { this.selection = selection; this.alias = alias; return this; }
@@ -28,6 +29,15 @@ class ProductSalesQueryBuilder {
   orderBy() { return this; }
   addOrderBy() { return this; }
   take(value) { this.takeValue = value; return this; }
+
+  async getMany() {
+    assert.equal(this.takeValue, 1000);
+    return [
+      { id: 'order-life-1', channel: 'allegro', status: 'confirmed', paymentStatus: 'paid', warehouseHandoff: { status: 'fulfilled' }, items: [{ productId: 'product-1', quantity: 1, fulfillmentStatus: 'reserved' }] },
+      { id: 'order-life-2', channel: 'flipflop', status: 'shipped', paymentStatus: 'paid', warehouseHandoff: { status: 'fulfilled' }, items: [{ productId: 'product-1', quantity: 1, fulfillmentStatus: 'shipped' }] },
+      { id: 'order-life-3', channel: 'flipflop', status: 'delivered', paymentStatus: 'paid', warehouseHandoff: { status: 'returned' }, items: [{ productId: 'product-1', quantity: 1, fulfillmentStatus: 'delivered' }] },
+    ];
+  }
 
   async getRawMany() {
     if (this.groups.includes('orders.id')) {
@@ -138,9 +148,36 @@ function makeService(calls) {
   assert.equal(result.recentHistory.length, 1);
   assert.equal(result.recentHistory[0].orderId, 'order-1');
   assert.equal(result.recentHistory[0].grossItemRevenue, 200.5);
+  assert.deepEqual(result.lifecycleStatistics.byLifecycleStage, {
+    warehouse_fulfillment_requested: 1,
+    handed_to_delivery: 1,
+    returned: 1,
+  });
+  assert.deepEqual(result.lifecycleStatistics.byPaymentStatus, { paid: 3 });
+  assert.deepEqual(result.lifecycleStatistics.byDeliveryStatus, {
+    not_started: 1,
+    handed_to_delivery: 1,
+    returned: 1,
+  });
+  assert.deepEqual(result.lifecycleStatistics.exceptionCounts, {
+    paymentFailed: 0,
+    notReceived: 0,
+    returned: 1,
+    cancelled: 0,
+    delayed: 0,
+    unfulfilled: 1,
+  });
+  assert.deepEqual(result.orderDeliveryStatistics, result.lifecycleStatistics);
+  assert.equal(result.lifecycleStatistics.channelLifecycle.length, 2);
+  assert.deepEqual(result.lifecycleStatistics.channelLifecycle[1].exceptionCounts, {
+    notReceived: 0,
+    returned: 1,
+    delayed: 0,
+    unfulfilled: 0,
+  });
 
   const statusCalls = calls.filter((call) => call.params?.statuses);
-  assert.ok(statusCalls.length >= 4);
+  assert.ok(statusCalls.length >= 5);
   for (const call of statusCalls) {
     assert.deepEqual(call.params.statuses, ['confirmed', 'processing', 'shipped', 'delivered']);
     assert.equal(call.params.statuses.includes('cancelled'), false);
@@ -199,6 +236,11 @@ function makeService(calls) {
     'canonical Catalog product ID',
     'Default: `confirmed`, `processing`, `shipped`, `delivered`',
     'grossItemRevenue',
+    'lifecycleStatistics',
+    'byLifecycleStage',
+    'byPaymentStatus',
+    'byDeliveryStatus',
+    'exceptionCounts',
     'No PII',
     'secret/prod/auth-microservice#CATALOG_INTERNAL_SERVICE_TOKEN',
     'internal:catalog-microservice:service',

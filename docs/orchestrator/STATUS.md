@@ -1,5 +1,21 @@
 # Orders Orchestrator Status
 
+## 2026-07-02 - Product Lifecycle Delivery Statistics For Catalog
+
+Intent chain:
+
+- Vision: Catalog can show product-level order, lifecycle, payment, delivery, and exception statistics without becoming order truth.
+- Goal Impact: the C1 Catalog/admin delivery statistics lane no longer depends on a missing Orders source contract.
+- System: Orders remains lifecycle/payment-status/delivery-status truth; Catalog remains product/admin UI truth; Warehouse remains stock and fulfillment-order truth.
+- Feature: product-scoped `lifecycleStatistics` and `orderDeliveryStatistics` on `GET /api/orders/statistics/products/:productId`.
+- Task: derive bounded aggregate lifecycle, payment, delivery, exception, and per-channel lifecycle counts from Orders that contain the requested Catalog product ID.
+- Execution Plan: reuse the existing product statistics filters, cap lifecycle sampling at 1000 matching orders, keep delivery delay at `0` until an approved delivery-provider timestamp/ETA source exists, and return aggregate counts only.
+- Coding Prompt: preserve privacy boundaries; do not expose PII, addresses, external IDs, payment-provider fields, raw Warehouse handoff details, item Warehouse IDs, tokens, or secrets.
+- Code: `src/orders/orders.service.ts`, `scripts/verify-product-sales-statistics.js`, and `docs/orchestrator/GOAL17_PRODUCT_SALES_STATISTICS_CONTRACT.md`.
+- Validation: passed. Commands: `git diff --check`, `npm run build`, `npm run verify:product-sales-statistics`, full `npm test`; Catalog consumer revalidation also passed with focused product-service tests, backend build, and frontend build.
+
+Runtime gate: source is ready, but live Catalog smoke still requires Orders production deploy/scale-up after the Warehouse WH-G16 fulfillment-order deployment gate is approved and completed.
+
 ## 2026-07-02 - O0 Cross-Repo Validation And Deployment Gate
 
 Intent chain:
@@ -41,12 +57,11 @@ Blockers:
 - `[MISSING: live end-to-end paid order smoke after deploy wave.]`
 - `[MISSING: Delivery provider or shipment-status source contract after Warehouse handoff.]`
 - `[MISSING: Notifications live broker queue/retry/DLQ/recipient contract.]`
-- `[MISSING: Orders product-scoped lifecycle/payment/delivery aggregate stats endpoint for Catalog.]`
 - `[MISSING: Bazos provider-backed order item and Warehouse warehouseId contract.]`
 
 Next command:
 
-- After owner approval: deploy `warehouse-microservice` WH-G16 first, then deploy/scale `orders-microservice` and `payments-microservice`, then rerun live create/payment/fulfillment/cabinet smoke.
+- After owner approval: deploy `warehouse-microservice` WH-G16 first, then deploy/scale `orders-microservice` and `payments-microservice`, then rerun live create/payment/fulfillment/cabinet and Catalog product-statistics smoke.
 
 ## 2026-07-02 - O1 Orders Lifecycle Read Model And Fulfillment Handoff
 
@@ -258,8 +273,6 @@ Gate decision:
 Next unfinished chunk:
 
 - Start Goal 7.4 design for Leads, Marketing, and Notifications `orders.events` consumers, or separately resolve the Heureka dashboard/feed lane outside Orders Goal 7.2.
-
-# Orders Orchestrator Status
 
 ## 2026-07-01 - Goal 7.2B Orders Warehouse Token Trim And Allegro Smoke
 

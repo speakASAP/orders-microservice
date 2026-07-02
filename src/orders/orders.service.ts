@@ -40,6 +40,7 @@ const SELLABLE_ORDER_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'au
 const PRODUCT_SALES_ALLOWED_STATUSES: Set<string> = new Set(['pending', ...PRODUCT_SALES_DEFAULT_STATUSES, 'cancelled']);
 const PRODUCT_SALES_ALLOWED_CHANNELS: Set<string> = new Set(['flipflop', 'allegro', 'aukro', 'bazos', 'heureka', 'cliplot']);
 const PRODUCT_SALES_HISTORY_LIMIT = 10;
+const PRODUCT_SALES_LIFECYCLE_ORDER_LIMIT = 1000;
 
 export interface ProductSalesStatisticsFilters {
   from?: string;
@@ -178,6 +179,9 @@ export class OrdersService {
       .take(PRODUCT_SALES_HISTORY_LIMIT)
       .getRawMany<ProductSalesHistoryRawRow>();
 
+    const lifecycleOrders = await this.buildProductSalesLifecycleQuery(normalized).getMany();
+    const lifecycleStatistics = this.buildProductSalesLifecycleStatistics(lifecycleOrders);
+
     return {
       productId: normalized.productId,
       generatedAt: new Date().toISOString(),
@@ -197,6 +201,8 @@ export class OrdersService {
         ...this.serializeProductSalesAggregate(row),
       })),
       recentHistory: recentRows.map((row) => this.serializeProductSalesHistory(row)),
+      lifecycleStatistics,
+      orderDeliveryStatistics: lifecycleStatistics,
     };
   }
 
@@ -662,6 +668,127 @@ export class OrdersService {
     }
 
     return query;
+  }
+
+
+  private buildProductSalesLifecycleQuery(filters: NormalizedProductSalesStatisticsFilters) {
+    const orderDateExpression = 'COALESCE(orders.orderedAt, orders.createdAt)';
+    const query = this.orderRepository
+      .createQueryBuilder('orders')
+      .innerJoinAndSelect('orders.items', 'item')
+      .where('item.productId = :productId', { productId: filters.productId })
+      .andWhere('orders.status IN (:...statuses)', { statuses: filters.statuses })
+      .orderBy(orderDateExpression, 'DESC')
+      .take(PRODUCT_SALES_LIFECYCLE_ORDER_LIMIT);
+
+    if (filters.channel) {
+      query.andWhere('orders.channel = :channel', { channel: filters.channel });
+    }
+    if (filters.from) {
+      query.andWhere(`${orderDateExpression} >= :from`, { from: filters.from });
+    }
+    if (filters.to) {
+      query.andWhere(`${orderDateExpression} <= :to`, { to: filters.to });
+    }
+
+    return query;
+  }
+
+  private buildProductSalesLifecycleStatistics(orders: Order[]) {
+    const byLifecycleStage: Record<string, number> = {};
+    const byPaymentStatus: Record<string, number> = {};
+    const byDeliveryStatus: Record<string, number> = {};
+    const channelLifecycle = new Map<string, {
+      byLifecycleStage: Record<string, number>;
+      exceptionCounts: Record<string, number>;
+    }>();
+    const exceptionCounts = {
+      paymentFailed: 0,
+      notReceived: 0,
+      returned: 0,
+      cancelled: 0,
+      delayed: 0,
+      unfulfilled: 0,
+    };
+
+    for (const order of orders) {
+      const state = deriveOrderLifecycleState(order);
+      const channel = this.normalizeProductSalesAggregateKey(order.channel, 'unknown');
+      this.incrementProductSalesCount(byLifecycleStage, state.lifecycleStage);
+      this.incrementProductSalesCount(byPaymentStatus, state.paymentStatus);
+      this.incrementProductSalesCount(byDeliveryStatus, state.deliveryStatus);
+
+      const channelRow = this.getProductSalesChannelLifecycle(channelLifecycle, channel);
+      this.incrementProductSalesCount(channelRow.byLifecycleStage, state.lifecycleStage);
+
+      if (state.lifecycleStage === 'payment_failed') exceptionCounts.paymentFailed += 1;
+      if (state.lifecycleStage === 'not_received') {
+        exceptionCounts.notReceived += 1;
+        channelRow.exceptionCounts.notReceived += 1;
+      }
+      if (state.lifecycleStage === 'returned') {
+        exceptionCounts.returned += 1;
+        channelRow.exceptionCounts.returned += 1;
+      }
+      if (state.lifecycleStage === 'cancelled') exceptionCounts.cancelled += 1;
+      if (this.isProductSalesUnfulfilledStage(state.lifecycleStage)) {
+        exceptionCounts.unfulfilled += 1;
+        channelRow.exceptionCounts.unfulfilled += 1;
+      }
+    }
+
+    return {
+      source: 'orders',
+      sourceStatus: 'available',
+      orderCount: orders.length,
+      sampledOrderLimit: PRODUCT_SALES_LIFECYCLE_ORDER_LIMIT,
+      byLifecycleStage,
+      byPaymentStatus,
+      byDeliveryStatus,
+      exceptionCounts,
+      channelLifecycle: Array.from(channelLifecycle.entries())
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([channel, value]) => ({
+          channel,
+          byLifecycleStage: value.byLifecycleStage,
+          exceptionCounts: value.exceptionCounts,
+        })),
+    };
+  }
+
+  private getProductSalesChannelLifecycle(
+    rows: Map<string, { byLifecycleStage: Record<string, number>; exceptionCounts: Record<string, number> }>,
+    channel: string,
+  ) {
+    const existing = rows.get(channel);
+    if (existing) return existing;
+    const created = {
+      byLifecycleStage: {} as Record<string, number>,
+      exceptionCounts: { notReceived: 0, returned: 0, delayed: 0, unfulfilled: 0 },
+    };
+    rows.set(channel, created);
+    return created;
+  }
+
+  private incrementProductSalesCount(target: Record<string, number>, rawKey: unknown): void {
+    const key = this.normalizeProductSalesAggregateKey(rawKey, 'unknown');
+    target[key] = (target[key] || 0) + 1;
+  }
+
+  private normalizeProductSalesAggregateKey(value: unknown, fallback: string): string {
+    if (typeof value !== 'string') return fallback;
+    const normalized = value.trim().toLowerCase();
+    return normalized || fallback;
+  }
+
+  private isProductSalesUnfulfilledStage(stage: OrderLifecycleStage): boolean {
+    return [
+      'paid_not_delivered',
+      'warehouse_fulfillment_requested',
+      'warehouse_collecting',
+      'warehouse_forming',
+      'warehouse_formed',
+    ].includes(stage);
   }
 
   private serializeProductSalesAggregate(row: ProductSalesAggregateRawRow) {
