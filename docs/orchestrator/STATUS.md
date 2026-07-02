@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Parallel Worker Outcomes: Provider Tracking And Allegro Buyer Cabinet
+
+Intent chain:
+
+- Vision: Orders lifecycle must be reliable across post-payment fulfillment, delivery visibility, and customer/admin marketplace cabinets.
+- Goal Impact: the next two requested lanes were split into independent worker threads and resolved to documented contract blockers rather than unsafe invented runtime behavior.
+- System: Orders remains canonical lifecycle source; Warehouse remains fulfillment/status authority; provider-owned delivery tracking and Allegro buyer-owned cabinet identity remain separate missing contracts.
+- Feature: orchestrated parallel continuation after Warehouse fulfillment callback and marketplace polling rollout.
+- Task: start and control two workers: delivery-provider tracking source discovery and Allegro buyer/customer cabinet scope.
+- Execution Plan: keep write scopes disjoint, allow documentation-only blockers, and avoid deploy/runtime mutation without concrete owner contracts.
+- Coding Prompt: remote-only on Alfares; do not fabricate courier adapters or buyer portals; mark unavailable contracts as `[MISSING: ...]`.
+- Code: Orders commit `bef9df0`; Allegro commit `b5f855a`.
+- Validation: remote git status, documentation diff hygiene from workers, and live baseline checks from orchestrator.
+
+Evidence:
+
+- Worker A thread `019f2539-e7fe-7c93-b80e-9c7e237011e1` inspected remote repos and found no standalone delivery/courier/provider/tracking source repository or approved provider contract. It committed `bef9df0 docs: plan delivery provider shipment status integration` in `orders-microservice`.
+- Worker A plan file: `docs/orchestrator/2026-07-03-delivery-provider-shipment-status-plan.md`. Decision: implementation blocked until a provider/courier owner repository or approved existing service, webhook/polling contract, credential source, status mapping, and sensitive-data policy exist.
+- Worker B thread `019f253a-29be-7e11-bc6b-206f99c07878` inspected remote Allegro and confirmed `/dashboard/orders` is an authenticated seller/workspace order dashboard that already polls central Orders lifecycle every 30 seconds, not a verified buyer personal cabinet. It committed `b5f855a docs: record allegro buyer order cabinet gap` in `allegro`.
+- Worker B plan file: `allegro/docs/orchestrator/2026-07-03-buyer-order-cabinet-gap-plan.md`. Decision: implementation blocked until product approves buyer cabinet scope and Auth-to-Allegro-buyer order ownership is defined.
+- Orchestrator live baseline after the workers: Orders `1/1` on `localhost:5000/orders-microservice:7bcfadd`, Warehouse `1/1` on `localhost:5000/warehouse-microservice:65e53c6`, Notifications `1/1` on `localhost:5000/notifications-microservice:866a49f`, Allegro service/frontend `1/1` on `c9ba31f`.
+
+Remaining blockers:
+
+- `[MISSING: delivery-provider/courier owner repository or approved existing service that owns courier credentials and raw tracking payloads.]`
+- `[MISSING: provider status source contract: webhook or polling, authentication method, idempotency key, timestamp semantics, retry/error semantics, and sample payloads.]`
+- `[MISSING: buyer-facing Allegro personal cabinet product requirement.]`
+- `[MISSING: buyer Auth/session contract mapping a signed-in user to AllegroOrder buyerId/buyerEmail/buyerLogin or another stable buyer identity.]`
+- `[MISSING: buyer-safe Allegro order API response contract and tests proving buyer A cannot see buyer B orders.]`
+
+Next action:
+
+- Continue with a contract-owner lane: either identify/approve the provider/courier owner for delivery tracking, or define the Allegro buyer Auth/order ownership contract before runtime implementation.
+
 ## 2026-07-03 - Delivery Provider Shipment Status Discovery
 
 Intent chain:
