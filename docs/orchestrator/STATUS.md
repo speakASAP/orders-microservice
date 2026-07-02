@@ -1,5 +1,48 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - K3s Recovery, Orders Event Health, Warehouse Fulfillment Handoff Smoke
+
+Intent chain:
+
+- Vision: paid Orders must reliably reserve stock, fulfill reservations, and create Warehouse fulfillment orders for delivery without depending on manual recovery.
+- Goal Impact: the previously blocked k3s runtime is healthy again; Orders and Warehouse are deployed with the event outbox and fulfillment-order schema live; a fresh FlipFlop paid-order smoke proved create -> reserve -> paid -> fulfill -> Warehouse fulfillment-order handoff after recovery.
+- System: Orders remains the canonical lifecycle/payment-status source; Warehouse remains stock/reservation/fulfillment-order authority; FlipFlop remains a channel client.
+- Feature: live `/health/order-events` readiness without `/api`, delivery-country normalization for Warehouse fulfillment handoff, and runtime proof for paid-order Warehouse issue handoff.
+- Task: verify k3s recovery, repair Orders health route, deploy Warehouse WH-G16, fix fulfillment delivery address normalization, deploy Orders, and run guarded live paid-order smoke.
+- Execution Plan: verify cluster first, then Orders/Warehouse health, then one fresh channel smoke and one internal payment-status transition, then Warehouse fulfillment-order readback.
+- Coding Prompt: remote-only on Alfares; do not edit local placeholder repo; do not print secrets; do not dump raw customer tables; do not enable Notifications consumer yet.
+- Code: Orders commits `af0a4ea` and `fff0314`; Warehouse runtime image `4d0fa85` with `CreateFulfillmentOrders1781500000000` migration applied.
+- Validation: passed for Orders/Warehouse paid-order core path; Notifications and frontend realtime remain dependency-gated.
+
+Evidence:
+
+- k3s recovered: node `alfares` is `Ready`; Orders, Warehouse, Auth, and Allegro deployments were observed `1/1` after the recovery wave.
+- Orders deployed `localhost:5000/orders-microservice:af0a4ea` to expose `https://orders.alfares.cz/health/order-events` without `/api`; post-deploy endpoint returned `status=ready`, `brokerConnected=true`, `pendingCount=0`, and `failedCount=0`.
+- Warehouse deployed `localhost:5000/warehouse-microservice:4d0fa85`; migration `CreateFulfillmentOrders1781500000000` applied and created `fulfillment_orders` plus `fulfillment_order_lines`.
+- Orders deployed `localhost:5000/orders-microservice:fff0314` after fixing delivery country normalization so `Czech Republic` maps to `CZ` before Warehouse fulfillment-order payload creation.
+- Source validation before deploy passed: `npm run build`, `npm run verify:event-contracts`, `npm run verify:payment-boundary`, `npm run verify:order-fulfillment-handoff`, and `git diff --check`.
+- Fresh FlipFlop live smoke created order `ORD-1783032147411-920` with central Orders id `94ce9a4b-7c6a-4625-85c7-8d1b13228b2d` and accepted central contract `orders.create.v1`.
+- Internal Payments boundary transition returned HTTP 200 and set `paymentStatus=paid`, `status=confirmed`, `warehouseHandoff.status=fulfilled`, and `warehouseHandoff.fulfillmentOrderHandoff.status=requested`.
+- Warehouse fulfillment-order readback returned id `6ada14af-20f8-4928-9a37-94a331d97be2`, status `requested`, one line, requestedBy `service:orders-microservice`, and delivery address country `CZ`.
+- Warehouse DB check confirmed one fulfillment order line for order `94ce9a4b-7c6a-4625-85c7-8d1b13228b2d`.
+- Orders event outbox health after smoke remained ready with pending/failed `0`; DB status count showed `published|42`.
+
+Operational notes:
+
+- During k3s recovery there was a transient mass rollout/dependency wave; one payment smoke against `37eadfc3-f467-4395-8ba8-c82a1b256737` failed Warehouse lifecycle at the same time, but the identical Warehouse fulfill payload succeeded manually and the subsequent fresh smoke passed end to end after deployments stabilized.
+- Warehouse reservation expiry CronJob initially showed 401/Error during recovery, then later completed with `expire-due` summary `examined=0 expired=0 failed=0` after runtime stabilization.
+- Existing unrelated dirty changes remain in Orders repo and were not touched by this lane: `package.json`, `src/orders/orders.controller.ts`, `src/orders/orders.service.ts`, and `scripts/verify-order-affinity-replay-contract.js`.
+
+Remaining blockers:
+
+- `[MISSING: Notifications orders-events recipient/consumer gate; do not enable consumer until recipient route/config and broker runtime are verified.]`
+- `[MISSING: realtime or polling refresh in customer/admin order cabinets across marketplace frontends; current status displays are not proven live-updating.]`
+- `[MISSING: delivery-provider shipment status source after Warehouse fulfillment-order handoff.]`
+
+Next action:
+
+- Continue with Notifications recipient/consumer readiness and frontend realtime/polling status propagation lanes, keeping Orders/Warehouse core path as the verified baseline.
+
 ## 2026-07-02 - Orders RabbitMQ URL Durable Source Repair
 
 Intent chain:
