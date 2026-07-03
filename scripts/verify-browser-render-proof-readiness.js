@@ -10,6 +10,7 @@ const statusPath = path.join(root, 'docs/orchestrator/STATUS.md');
 const implementationStatePath = path.join(root, 'docs/IMPLEMENTATION_STATE.md');
 const packagePath = path.join(root, 'package.json');
 const smokeOrderPath = path.join(root, 'docs/orchestrator/2026-07-03-channel-browser-smoke-order.md');
+const flipflopReadinessPath = path.join(root, 'docs/orchestrator/2026-07-03-flipflop-browser-proof-readiness-evidence.md');
 
 const runRouteSmoke = process.env.RUN_BROWSER_RENDER_PROOF_ROUTE_SMOKE === '1';
 const routeSmokeApproved = process.env.BROWSER_RENDER_PROOF_ROUTE_SMOKE_APPROVED === '1';
@@ -90,6 +91,7 @@ async function main() {
   const implementationState = read(implementationStatePath);
   const pkg = JSON.parse(read(packagePath));
   const smokeOrder = read(smokeOrderPath);
+  const flipflopReadiness = read(flipflopReadinessPath);
 
   const handoffMarkers = [
     'Recommended first browser proof lane: FlipFlop only.',
@@ -122,6 +124,23 @@ async function main() {
     'Status: waiting for proof-mode approval.',
   ];
   smokeOrderMarkers.forEach((marker) => assertIncludes(smokeOrder, marker, 'channel browser smoke order'));
+
+
+  const flipflopReadinessMarkers = [
+    'Status: `ready_for_approved_browser_proof`',
+    'This packet does not prove rendered lifecycle propagation.',
+    'Mode: non-mutating route/source readiness only',
+    'FlipFlop source checkout:',
+    'Commit: `3110c6a feat: improve orders lifecycle UI reliability`',
+    '`https://flipflop.alfares.cz/orders` returned `200`',
+    '`https://flipflop.alfares.cz/admin/orders` returned `200`',
+    'Customer cabinet route: `services/frontend/app/orders/page.tsx`',
+    'Admin cabinet route: `services/frontend/app/admin/orders/page.tsx`',
+    'Refresh mechanism for the first proof lane: manual refresh plus visible polling every 30 seconds.',
+    '[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]',
+    'This packet must not be treated as browser-render proof.',
+  ];
+  flipflopReadinessMarkers.forEach((marker) => assertIncludes(flipflopReadiness, marker, 'FlipFlop browser proof readiness evidence'));
 
   assertIncludes(
     implementationState,
@@ -156,6 +175,7 @@ async function main() {
       lifecycleMutationSmokeScriptPresent: true,
       recommendedFirstLane: 'flipflop',
       smokeOrderMarkersVerified: smokeOrderMarkers.length,
+      flipflopReadinessMarkersVerified: flipflopReadinessMarkers.length,
     },
     routeSmoke,
     remainingGates: [

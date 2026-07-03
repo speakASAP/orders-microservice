@@ -2,7 +2,7 @@
 
 Date: 2026-07-03
 Repository of record: `orders-microservice`
-Current Orders evidence commit: `a331f5b test: reconcile lifecycle runtime evidence gates`
+Current Orders evidence commit: `22eeae7 docs: record flipflop browser proof readiness`
 
 ## Audit Scope
 
@@ -47,6 +47,7 @@ This audit does not mark the goal complete. It records the current proof boundar
   - admin lifecycle read HTTP `200`
   - both customer/admin read-models saw `warehouse_collecting`
 - Deployed channel UI route coverage exists for FlipFlop, Heureka, Bazos, Aukro, and Allegro.
+- FlipFlop first browser lane readiness is recorded in `docs/orchestrator/2026-07-03-flipflop-browser-proof-readiness-evidence.md`: `/orders` and `/admin/orders` return HTML `200`, customer/admin source uses central lifecycle display data, and refresh is manual plus 30-second visible polling. This is readiness evidence only, not rendered lifecycle proof.
 - Orders service identity lifecycle list endpoints return HTTP `200` for FlipFlop, Allegro, Aukro, Bazos, and Heureka.
 
 ## Remaining Gates

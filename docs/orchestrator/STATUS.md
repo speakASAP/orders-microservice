@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - FlipFlop Readiness Verifier Coverage Added
+
+Intent chain:
+
+- Vision: Orders evidence packets should be automatically checked so readiness claims do not drift as work continues.
+- Goal Impact: the FlipFlop first-lane readiness packet is now part of the browser proof readiness verifier and full Orders test chain.
+- System: Orders remains the evidence owner; no channel repository, runtime deployment, browser session, provider call, DB read, or order mutation was used.
+- Feature: browser proof readiness verifier coverage.
+- Task: extend `verify:browser-render-proof-readiness` to assert the FlipFlop readiness evidence packet and update stale audit commit references.
+- Execution Plan: add marker checks for `docs/orchestrator/2026-07-03-flipflop-browser-proof-readiness-evidence.md`, refresh the completion audit evidence commit, and validate through targeted verifier plus full `npm test`.
+- Coding Prompt: Orders-only docs/verifier change; keep rendered browser proof and proof-mode gates open.
+- Code: `scripts/verify-browser-render-proof-readiness.js`, `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`, and `docs/orchestrator/2026-07-03-flipflop-browser-proof-readiness-evidence.md`.
+- Validation: `node --check scripts/verify-browser-render-proof-readiness.js`, `node scripts/verify-browser-render-proof-readiness.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. Browser/session/provider route smoke remains gated and was not run.
+
+Remaining gate:
+
+- `[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]`
+- `[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]`
 
 ## 2026-07-03 - FlipFlop Browser Proof Readiness Evidence Recorded
 

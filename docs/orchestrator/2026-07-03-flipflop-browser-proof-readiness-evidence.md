@@ -19,8 +19,8 @@ Orders evidence worktree:
 
 - Path: `/tmp/orders-worktrees/orders-integrate-warehouse-checkout-mapping`
 - Branch: `codex/orders-integrate-warehouse-checkout-mapping`
-- Commit: `005fbf4 docs: define channel browser smoke order`
-- Remote parity: `HEAD == origin/main` at `005fbf431a6e5918c58c207d95b13aeea09ed64c`
+- Commit at inspection time: `22eeae7 docs: record flipflop browser proof readiness`
+- Remote parity at inspection time: `HEAD == origin/main` at `22eeae7`
 
 FlipFlop source checkout:
 
