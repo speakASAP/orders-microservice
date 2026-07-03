@@ -1,5 +1,53 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Goal 24 Central Orders Affinity Evidence Refresh
+
+Intent chain:
+
+- Vision: central Orders purchase history can safely provide bounded co-purchase evidence for Catalog relations without exposing customer, address, payment, provider, or raw order payloads.
+- Goal Impact: the central Orders Goal 24 source blocker moved from missing qualifying rows to a concrete non-empty dry-run window for owner review.
+- System: Orders owns historical order and item snapshots; Marketing owns aggregation, ledger, and optional Catalog publish; Catalog owns relation persistence.
+- Feature: protected orders.order_affinity_replay_candidates.v1 replay evidence for Marketing order-affinity backfill.
+- Task: run read-only Orders source/runtime diagnostics, classify current live Orders history, and prepare a sanitized future publish-window proposal without publishing.
+- Execution Plan: inspect Orders replay contract and Catalog contracts, query only aggregate live Orders counts, run one Marketing dry-run for the candidate window, avoid raw order/customer/address/payment/provider output, and keep source edits to Orders docs.
+- Coding Prompt: preserve sensitive boundaries and mark publish prerequisites as missing instead of treating non-empty dry-run evidence as publish approval.
+- Code: no runtime code changed; documentation evidence only in docs/orchestrator/STATUS.md, docs/orchestrator/VALIDATION_REPORT.md, and docs/IMPLEMENTATION_STATE.md.
+- Validation: aggregate SQL diagnostics, deployed Marketing dry-run, npm run verify:order-affinity-replay, and git diff --check.
+
+Evidence:
+
+- Mandatory docs read: Orders AGENTS.md, /home/ssf/.codex/AGENTS.md, AGENT_OPERATIONS.md, /home/ssf/.ai-agent-standards/CROSS_AGENT_AUTOMATION_STANDARD.md, Catalog product-relations contract, and Catalog marketplace-affinity backfill contract.
+- Orders source contract still exposes GET /api/orders/internal/order-affinity/replay-candidates, Marketing service read role, paid-only payment filter, non-cancelled lifecycle filters, item snapshot join, Orders-created compatible replay envelopes, and serializer checks excluding customer, shipping, billing, and payment-reference fields.
+- Runtime state at diagnostics: Orders deployment ready 1/1 on image localhost:5000/orders-microservice:7bcfadd; orders-microservice repo clean before docs edits; branch goal24-orders-affinity-evidence-20260703 created for this evidence update.
+- Aggregate live Orders SQL returned total_orders=44, orders_with_items=44, paid_orders=14, paid_noncancelled_orders=14, paid_noncancelled_multi_product_orders=2, paid_noncancelled_single_product_orders=12, no_item_orders=0, item_orders_without_catalog_product_ids=0, multi_catalog_product_orders=3.
+- Qualifying central Orders source window: source=orders-microservice, channel=flipflop, from=2026-07-03T04:26:06.127Z, to=2026-07-03T04:27:26.351Z, expected qualifying Orders replay records=2.
+- Aggregate pair diagnostic for that window returned directed_pair_count=2 and total_pair_evidence=4.
+- Deployed Marketing dry-run command returned inputRecords=2, acceptedCreatedEvents=2, rejectedRecords=0, skippedEvents=0, aggregatePairs=2, totalPairEvidence=4, byChannel.flipflop=2, and two directed Catalog product candidates only.
+- Dry-run command used: kubectl -n statex-apps exec deploy/marketing-microservice -- node dist/order-affinity-backfill.js --orders-url http://orders-microservice.statex-apps.svc.cluster.local:3203 --channel=flipflop --from=2026-07-03T04:26:06.127Z --to=2026-07-03T04:27:26.351Z --limit=50 --dry-run --pretty.
+
+Resolved blockers:
+
+- [RESOLVED: qualifying historical paid multi-product Orders rows for non-empty replay evidence exist in central Orders; current aggregate count is 2 for the FlipFlop window above.]
+- [RESOLVED: current live Orders history does contain paid non-cancelled multi-product rows with at least two distinct Catalog product ids; upstream capture is not empty for this bounded window.]
+
+Remaining blockers and publish guardrails:
+
+- [MISSING: owner-reviewed source/window approval for any future central Orders non-empty --publish run beyond already recorded external approvals.]
+- [MISSING: integration-owner confirmation that dependent Marketing and Catalog readiness evidence is current at publish time.]
+- [MISSING: owner-approved retention, decay, or replacement policy before using replace-window or pruning stale affinity rows.]
+- Candidate future publish command must be reviewed before use: kubectl -n statex-apps exec deploy/marketing-microservice -- node dist/order-affinity-backfill.js --orders-url http://orders-microservice.statex-apps.svc.cluster.local:3203 --channel=flipflop --from=2026-07-03T04:26:06.127Z --to=2026-07-03T04:27:26.351Z --limit=50 --run-id central-orders-flipflop-20260703T042606Z-042726Z --publish --pretty.
+- Publish preconditions: dry-run rerun immediately before publish returns inputRecords=2, rejectedRecords=0, aggregatePairs=2, totalPairEvidence=4; Marketing runtime has ORDERS_SERVICE_TOKEN, CATALOG_INTERNAL_SERVICE_TOKEN, ORDER_AFFINITY_RUN_LEDGER_ENABLED=true, and ORDER_AFFINITY_CATALOG_PUBLISH_ENABLED=true by key/presence only; Catalog product-relations ingestion health and authorization are verified; owner accepts the exact source/window/run-id; no raw events or sensitive payloads are printed.
+- Rollback and retention notes: Catalog batch endpoint is upsert-only and does not delete; rollback of an accidental publish is not an Orders mutation and must be owned by Catalog/Marketing through approved relation deletion/replacement policy. Until stale-row policy is approved, prefer no publish or an explicit upsert-only batch with documented idempotency key and readback.
+
+Scope deviation:
+
+- The deployed Marketing dry-run recorded a Marketing ledger row because ORDER_AFFINITY_RUN_LEDGER_ENABLED is true in runtime. No Orders data, Catalog relations, source files, manifests, migrations, deploy scripts, secrets, or raw payloads were mutated or printed.
+
+Next action:
+
+- Hand this Orders evidence to the Goal 24 integration owner for owner-reviewed source/window approval and dependent Marketing/Catalog readiness verification before any future publish.
+
+
 ## 2026-07-03 - Allegro Buyer Cabinet Runtime Gate Closed
 
 Intent chain:
