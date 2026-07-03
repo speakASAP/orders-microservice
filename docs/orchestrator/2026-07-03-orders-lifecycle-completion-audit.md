@@ -76,7 +76,7 @@ The goal is not complete until these are closed or explicitly descoped by produc
 2. Heureka optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient.
 3. Aukro approved human/admin bearer or bounded fixture for protected customer/admin lifecycle proof.
 4. Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.
-5. Bazos paid replay source is deployed, but live paid multi-product evidence and approved customer/admin lifecycle proof remain missing.
+5. Bazos paid replay source is deployed, but current aggregate has totalOrders=0; live paid multi-product evidence and approved customer/admin lifecycle proof remain missing.
 6. Warehouse/Allegro shipment-status runtime enablement gates:
    - Approval to enable `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true`.
    - Warehouse URL/token configuration projected into Allegro runtime.
@@ -89,7 +89,7 @@ The goal is not complete until these are closed or explicitly descoped by produc
 1. Keep FlipFlop service-scoped proof as current proven browser evidence; collect direct safe-human proof only if a safe session is provided.
 2. Run Heureka browser DOM capture only if product requires visible-label proof beyond the API-backed dashboard lifecycle proof.
 3. Provide an approved Aukro human/admin bearer or approved bounded fixture, then rerun protected customer/admin lifecycle proof.
-4. Bazos after a real eligible paid multi-product Bazos order or approved bounded fixture exists, then authenticated customer/admin lifecycle proof can run.
+4. Bazos after a real eligible paid multi-product Bazos order or approved bounded fixture exists; current aggregate has totalOrders=0, then authenticated customer/admin lifecycle proof can run.
 5. Allegro buyer proof only after real subject-bound buyer order row and bearer are approved.
 6. Shipment-status runtime proof after Allegro enablement, Warehouse URL/token config, safe live smoke, sanitized readback, and mutation approvals.
 

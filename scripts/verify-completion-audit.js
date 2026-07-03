@@ -94,7 +94,7 @@ const missingGateMarkers = [
   'Heureka optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient.',
   'Aukro approved human/admin bearer or bounded fixture for protected customer/admin lifecycle proof.',
   'Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.',
-  'Bazos paid replay source is deployed, but live paid multi-product evidence and approved customer/admin lifecycle proof remain missing.',
+  'Bazos paid replay source is deployed, but current aggregate has totalOrders=0; live paid multi-product evidence and approved customer/admin lifecycle proof remain missing.',
   'Warehouse/Allegro shipment-status runtime enablement gates:',
   'FlipFlop service-scoped browser-render proof is proven, but remaining channel browser/data/auth proofs and provider-backed late shipment lifecycle proof are still missing.',
   'Status: incomplete.',

@@ -1,4 +1,14 @@
 
+## 2026-07-03 - Bazos Paid Replay Zero-Order Evidence
+
+IPS: Vision -> reliable Orders lifecycle across channel services; Goal Impact -> Bazos replay source is proven healthy while the live-data blocker is narrowed to zero local Bazos orders; System -> Bazos owns local paid-order projection/replay, Orders owns lifecycle evidence gates; Feature -> Bazos paid multi-product replay evidence; Task -> refresh protected replay and aggregate live-data proof; Execution Plan -> Orders-only evidence/docs/verifier update, no Bazos source edit, no deploy, no provider call, no mutation; Coding Prompt -> do not print token values, raw order ids, customer data, provider payloads, payment refs, tracking values, raw DOM, or DB rows; Code -> `reports/validation/channel-lifecycle-runtime-evidence/bazos-provider-source-blocked.json`, `scripts/verify-channel-lifecycle-runtime-evidence.js`, completion audit/state docs; Validation -> passed: npm run verify:channel-lifecycle-runtime-evidence, npm run verify:completion-audit, git diff --check.
+
+Live evidence: protected `/internal/bazos/order-affinity/replay-candidates?limit=50` returned HTTP `200`, `success=true`, contract `marketplace.order_affinity_candidate.v1`, `count=0`, `eventsLength=0`, `skippedRecords=0`, `failClosed=false`, and no blockers. Unauthenticated `/orders` and `/orders/webhook` returned HTTP `401`; `/health` returned HTTP `200`.
+
+Aggregate DB proof read counts only: `totalOrders=0`, `forwardedOrders=0`, `paidEligibleStatusRows=0`, `rowsWithPaidAt=0`, `rowsWithItemSnapshots=0`, and `paidEligibleMultiProductRows=0`. No raw rows or identifiers were printed.
+
+Remaining Bazos gate: `[MISSING: live Bazos paid multi-product order replay evidence; current aggregate has totalOrders=0]`.
+
 ## 2026-07-03 - Allegro Buyer Route Probe Refreshed
 
 IPS: Vision -> reliable Orders lifecycle across channel services; Goal Impact -> Allegro buyer cabinet proof remains tied to a real subject-bound buyer order instead of a seller/service scoped token; System -> Allegro owns buyer cabinet auth and local buyer binding, Orders owns lifecycle evidence gates; Feature -> Allegro buyer lifecycle route proof; Task -> refresh live route evidence without source edits or mutation; Execution Plan -> Orders-only evidence/docs/verifier update, no Allegro source edit, no deploy, no DB dump, no provider call; Coding Prompt -> do not print token values, raw order ids, buyer data, provider payloads, payment refs, tracking values, or raw DOM; Code -> `reports/validation/channel-lifecycle-runtime-evidence/allegro-buyer-real-order-blocked.json`, `scripts/verify-channel-lifecycle-runtime-evidence.js`, state docs; Validation -> passed: npm run verify:channel-lifecycle-runtime-evidence, npm run verify:completion-audit, git diff --check.

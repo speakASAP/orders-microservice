@@ -1,6 +1,6 @@
 {
   "schemaVersion": "orders.channel_runtime_blocker.v1",
-  "checkedAt": "2026-07-03T12:58:00.000Z",
+  "checkedAt": "2026-07-03T13:48:00.000Z",
   "channel": "bazos",
   "status": "paid_replay_source_deployed_live_evidence_blocked",
   "runtimeProbe": {
@@ -21,7 +21,11 @@
     "marketingAcceptedCreatedEvents": 0,
     "marketingCandidateCount": 0,
     "unauthOrdersHttpStatus": 401,
-    "unauthWebhookHttpStatus": 401
+    "unauthWebhookHttpStatus": 401,
+    "checkedAt": "2026-07-03T13:48:00.000Z",
+    "healthHttpStatus": 200,
+    "replaySkippedRecords": 0,
+    "replayBlockerCount": 0
   },
   "sourceEvidence": {
     "liveWebhookSupport": "[UNKNOWN: live Bazos marketplace webhook support]",
@@ -36,16 +40,34 @@
     "evidenceReport": "bazos:reports/validation/2026-07-03-goal24-bazos-paid-order-source-implementation.md"
   },
   "blockers": [
-    "[MISSING: live Bazos paid multi-product order replay evidence]",
+    "[MISSING: live Bazos paid multi-product order replay evidence; current aggregate has totalOrders=0.]",
     "[MISSING: owner approval to activate recurring Bazos affinity publish after live dry-run evidence]",
     "[UNKNOWN: live Bazos marketplace webhook support]",
     "[MISSING: approved authenticated Bazos customer/admin lifecycle proof backed by a real eligible Bazos order]"
   ],
-  "nextAction": "Wait for a real eligible paid multi-product Bazos order or approved bounded fixture, then rerun provider-backed customer/admin lifecycle proof before treating Bazos as complete.",
+  "nextAction": "Create or ingest a real eligible paid multi-product Bazos order, or approve a bounded fixture, then rerun the protected replay endpoint and customer/admin lifecycle proof.",
   "redacted": true,
   "rawRowsPrinted": false,
   "customerPrinted": false,
   "providerPayloadPrinted": false,
   "databaseDump": false,
-  "providerCall": false
+  "providerCall": false,
+  "liveAggregateProbe": {
+    "schemaVersion": "bazos.paid_replay_aggregate.v1",
+    "checkedAt": "2026-07-03T13:48:00.000Z",
+    "podScopedProbe": true,
+    "databaseRead": "aggregate_counts_and_snapshot_shape_only",
+    "totalOrders": 0,
+    "forwardedOrders": 0,
+    "paidEligibleStatusRows": 0,
+    "rowsWithPaidAt": 0,
+    "rowsWithItemSnapshots": 0,
+    "paidEligibleRowsSampled": 0,
+    "paidEligibleRowsWithSnapshots": 0,
+    "paidEligibleMultiProductRows": 0,
+    "printedRawIds": false,
+    "printedCustomerPii": false,
+    "printedProviderPayload": false,
+    "databaseDump": false
+  }
 }
