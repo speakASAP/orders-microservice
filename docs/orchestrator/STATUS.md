@@ -1,5 +1,35 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Shipment Runtime Gate Reconciled After k3s Recovery
+
+Intent chain:
+
+- Vision: shipment-provider status ingestion must only advance Orders lifecycle after Warehouse/Allegro runtime correlation is deployed, disabled safely by default, and proven without raw tracking/customer/provider exposure.
+- Goal Impact: the stale deploy/migration blockers are replaced with current runtime evidence: k3s is recovered, Warehouse and Allegro deployments are ready, Warehouse migrations are applied, and Allegro correlation posting remains intentionally disabled until owner-approved live smoke.
+- System: Orders owns the verifier, redacted runtime gate artifact, and IPS status; Warehouse/Allegro source, runtime config, providers, databases, secrets, and fulfillment rows were not changed in this lane.
+- Feature: Allegro shipment-status to Warehouse correlation runtime gate.
+- Task: reconcile completed worker handoffs and live k3s evidence into Orders validation so follow-up agents do not rerun completed source/deploy loops.
+- Execution Plan: verify live deployment images/readiness and Warehouse in-pod migration state read-only, assert Allegro disabled-gate policy from current runtime/docs evidence, update Orders-owned machine-checkable gate report, then validate.
+- Coding Prompt: do not print credentials, raw order rows, customer PII, provider payloads, tracking values, waybills, shipment ids, raw DB rows, or token values.
+- Code: `reports/validation/shipment-runtime-readiness/allegro-warehouse-runtime-gate-current.json`, `scripts/verify-shipment-runtime-readiness.js`, and IPS status/state docs.
+- Validation: `kubectl -n statex-apps get deploy warehouse-microservice allegro-service` showed Warehouse `localhost:5000/warehouse-microservice:174f92e` and Allegro `localhost:5000/allegro-service:ae9d381` ready `1/1`. In-pod `npm run migration:show:prod` showed all six Warehouse migrations applied, including `CreateFulfillmentProviderStatusObservations1781600000000` and `CreateFulfillmentProviderShipmentCorrelations1781700000000`. Allegro disabled-gate evidence remains `posted=0`, `disabled=1`, reason `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED_NOT_TRUE`.
+
+Integrated child-lane results:
+
+- Frontend-A landed source commits: FlipFlop `3110c6a`, Heureka `358fba9`; source validation/builds passed, no deploy from this Orders lane.
+- Frontend-B landed source commits: Allegro `529a71d`, Bazos `26af3ae`, Aukro `f6502bb`; source validation/builds passed, no deploy from this Orders lane.
+- Provider/courier P3 was integrated in Orders at `5efa4c9`; raw tracking display remains blocked by product-approved visibility matrix.
+- Warehouse Worker F landed `warehouse-microservice` `f104202` docs for fulfillment provider status intake; runtime mutation remains gated.
+- Provider/courier runtime remains blocked on approved Allegro correlation enablement, Warehouse URL/token runtime config projection, safe order selection, real token-source smoke boundaries, and sanitized Warehouse/Orders readback.
+
+Remaining gates:
+
+- `[MISSING: owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true for bounded live smoke.]`
+- `[MISSING: Allegro runtime Warehouse URL/token configuration before correlation posting can succeed.]`
+- `[MISSING: owner-approved safe order selection and real token-source smoke boundaries.]`
+- `[MISSING: end-to-end readback proving Warehouse correlation registration and no raw provider/customer fields enter Orders events.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or Orders lifecycle callback smoke.]`
+
 ## 2026-07-03 - Allegro Buyer Real Order Lifecycle Blocker Recorded
 
 Intent chain:

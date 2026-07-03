@@ -262,7 +262,7 @@ const CHANNELS = {
     remainingGates: [
       'real buyer Auth bearer plus approved subject-bound Allegro order row',
       'real forwarded Allegro order lifecycle display smoke; live admin statistics currently show centralForwarded=0',
-      'shipment provider runtime correlation remains gated by migration/deploy/enablement approvals',
+      'shipment provider runtime correlation is deployed with Warehouse migrations applied, but remains gated by Allegro enablement, Warehouse URL/token config, safe live smoke, and sanitized readback',
     ],
   },
   aukro: {
@@ -411,7 +411,7 @@ const result = {
     'real subject-bound Allegro order row and buyer bearer before Allegro cabinet lifecycle can be called live-complete; current live admin statistics show centralForwarded=0',
     'Heureka dashboard orders API route must be fixed or exposed before rendered lifecycle proof can pass',
     'Aukro rendered central lifecycle cabinet hydration proof remains blocked by live data lacking a non-stale canonical Orders lifecycle stage',
-    'Warehouse/Allegro shipment-status deploy, migration, env enablement, and safe live smoke approvals',
+    'Warehouse/Allegro shipment-status runtime is deployed with migrations applied; remaining gates are Allegro enablement, Warehouse URL/token config, safe live smoke, sanitized readback, and approved fulfillment/Orders callback mutation',
     'provider-backed Bazos marketplace webhook/order source is live-fail-closed pending a real paid order ingestion and persisted item snapshot contract',
   ],
 };

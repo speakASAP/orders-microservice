@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "orders.shipment_runtime_gate.v1",
+  "status": "runtime_deployed_correlation_disabled",
+  "checkedAt": "2026-07-03T12:23:23.818Z",
+  "runtimeEvidence": {
+    "k3s": "recovered_verified",
+    "deployments": {
+      "warehouse": {
+        "name": "warehouse-microservice",
+        "namespace": "statex-apps",
+        "image": "localhost:5000/warehouse-microservice:174f92e",
+        "readyReplicas": 1,
+        "replicas": 1
+      },
+      "allegro": {
+        "name": "allegro-service",
+        "namespace": "statex-apps",
+        "image": "localhost:5000/allegro-service:ae9d381",
+        "readyReplicas": 1,
+        "replicas": 1
+      }
+    },
+    "warehouse": {
+      "migrationShowSource": "in_pod_migration_show_prod",
+      "appliedMigrations": [
+        "InitialWarehouseSchema1781200000000",
+        "StockEventOutbox1781300000000",
+        "AddSupplierConflictReviewMetadata1781400000000",
+        "CreateFulfillmentOrders1781500000000",
+        "CreateFulfillmentProviderStatusObservations1781600000000",
+        "CreateFulfillmentProviderShipmentCorrelations1781700000000"
+      ],
+      "apiHealth": "HTTP 200",
+      "correlationEndpointSource": "verified",
+      "correlationEndpointCompiled": "verified",
+      "fulfillmentMutation": "not_run"
+    },
+    "allegro": {
+      "shipmentRuntimeCompiled": "verified",
+      "deadLetterEnv": "set",
+      "correlationEnabledEnv": "missing",
+      "warehouseServiceUrlEnv": "missing",
+      "warehouseInternalServiceTokenEnv": "missing",
+      "providerRead": "not_run",
+      "disabledGateSmoke": {
+        "posted": 0,
+        "disabled": 1,
+        "reason": "ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED_NOT_TRUE"
+      }
+    }
+  },
+  "policy": {
+    "rawTrackingDisplayed": false,
+    "rawProviderPayloadDisplayed": false,
+    "customerPiiDisplayed": false,
+    "secretsDisplayed": false,
+    "productionFulfillmentMutation": false
+  },
+  "remainingGates": [
+    "owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true for bounded live smoke",
+    "Allegro runtime must receive Warehouse URL/token configuration before correlation posting can succeed",
+    "owner-approved safe order selection and real token-source smoke boundaries",
+    "end-to-end readback proving Warehouse correlation registration and no raw provider/customer fields enter Orders events",
+    "owner approval before runtime fulfillment status mutation or Orders lifecycle callback smoke"
+  ]
+}
