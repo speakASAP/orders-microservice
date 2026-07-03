@@ -29,7 +29,7 @@ A valid report is JSON with these top-level fields:
 
 Each `routes[]` entry must include:
 
-- `url`: route tested.
+- `url`: route tested; for `status=proven`, the URL must use `https`, its host must match the declared `channel`, and its path must target an order lifecycle surface.
 - `httpStatus`: numeric HTTP status.
 - `surface`: one of `customer_cabinet`, `admin_cabinet`, or `admin_dashboard`.
 - `renderedLifecycleLabel`: localized visible lifecycle text or status shown in the UI.
@@ -71,6 +71,8 @@ Required `evidencePolicy` booleans:
 - At least one route must include `authContext=safe_human_session` or `authContext=service_scoped_proxy`.
 - Route `authContext` values must match report-level `proofMode`. route authContext must match report proofMode for proven browser reports.
 - Public shell routes, anonymous DOM snapshots, and route-only HTML checks cannot satisfy `status=proven`. Backing API `401`/`403` responses also cannot satisfy `status=proven`.
+- Route URL host must match report channel for proven browser reports. route url host must match report channel for proven browser reports.
+- Route URL path must target an order lifecycle surface for proven browser reports. route url path must target an order lifecycle surface for proven browser reports.
 
 ## Default Verifier Mode
 
@@ -94,5 +96,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-proof-mode-mismatch.json` must be rejected because route `authContext` does not match report-level `proofMode`.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-head-commit.json` must be rejected because `ordersEvidenceCommit=HEAD` is not immutable proof evidence.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-expected-commit-mismatch.json` must be rejected because `ordersEvidenceCommit` does not match `BROWSER_RENDER_PROOF_EXPECTED_COMMIT`.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-route-channel-mismatch.json` must be rejected because route URLs belong to a different marketplace host than the declared report `channel`.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

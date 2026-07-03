@@ -15,6 +15,7 @@ const invalidUnknownChannelFixturePath = path.join(root, 'docs/orchestrator/brow
 const invalidProofModeMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-proof-mode-mismatch.json');
 const invalidHeadCommitFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-head-commit.json');
 const invalidExpectedCommitMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-expected-commit-mismatch.json');
+const invalidRouteChannelMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-route-channel-mismatch.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -29,6 +30,14 @@ const requiredPolicyFlags = [
 const allowedStatuses = new Set(['proven', 'incomplete', 'blocked']);
 const allowedChannels = new Set(['flipflop', 'heureka', 'bazos', 'aukro', 'allegro']);
 const allowedProofModes = new Set(['safe_human_session', 'service_scoped_proxy']);
+const allowedChannelHosts = new Map([
+  ['flipflop', new Set(['flipflop.alfares.cz'])],
+  ['heureka', new Set(['heureka.alfares.cz'])],
+  ['bazos', new Set(['bazos.alfares.cz'])],
+  ['aukro', new Set(['aukro.alfares.cz'])],
+  ['allegro', new Set(['allegro.alfares.cz'])],
+]);
+const orderRoutePathPattern = /\b(admin\/)?orders?\b|\bobjednavk/i;
 const allowedRefreshMechanisms = new Set(['manual_refresh', 'visible_polling_30s', 'full_reload', 'api_backed_render_probe']);
 const allowedSurfaces = new Set(['customer_cabinet', 'admin_cabinet', 'admin_dashboard']);
 const allowedAuthContexts = new Set(['safe_human_session', 'service_scoped_proxy']);
@@ -84,6 +93,27 @@ function isPublicShellArtifact(kind) {
   return /public[_-]?shell|anonymous|route[_-]?only|html[_-]?shell/i.test(String(kind || ''));
 }
 
+function parseRouteUrl(rawUrl, index) {
+  let parsed;
+  assert.doesNotThrow(() => {
+    parsed = new URL(rawUrl);
+  }, `route ${index} url must be absolute and parseable`);
+  assert.equal(parsed.protocol, 'https:', `route ${index} url must use https`);
+  return parsed;
+}
+
+function assertRouteMatchesChannel(route, index, channel) {
+  const parsed = parseRouteUrl(route.url, index);
+  const allowedHosts = allowedChannelHosts.get(channel);
+  assert.equal(Boolean(allowedHosts), true, `channel host allowlist missing for ${channel}`);
+  assert.equal(allowedHosts.has(parsed.hostname), true, `route ${index} url host must match report channel ${channel}`);
+  assert.equal(
+    orderRoutePathPattern.test(decodeURIComponent(parsed.pathname)),
+    true,
+    `route ${index} url path must target an order lifecycle surface`,
+  );
+}
+
 function validateContract() {
   const contract = read(contractPath);
   [
@@ -103,6 +133,8 @@ function validateContract() {
     '[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]',
     '[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]',
     'ordersEvidenceCommit must be an immutable git commit hash for proven reports',
+    'route url host must match report channel for proven browser reports',
+    'route url path must target an order lifecycle surface for proven browser reports',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -168,6 +200,11 @@ function validateFixtures() {
     /ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports/,
     'invalid expected-commit mismatch fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidRouteChannelMismatchFixturePath)),
+    /route 0 url host must match report channel flipflop/,
+    'invalid route-channel mismatch fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -177,6 +214,7 @@ function validateFixtures() {
     invalidProofModeMismatchFixture: path.relative(root, invalidProofModeMismatchFixturePath),
     invalidHeadCommitFixture: path.relative(root, invalidHeadCommitFixturePath),
     invalidExpectedCommitMismatchFixture: path.relative(root, invalidExpectedCommitMismatchFixturePath),
+    invalidRouteChannelMismatchFixture: path.relative(root, invalidRouteChannelMismatchFixturePath),
   };
 }
 
@@ -242,6 +280,7 @@ function validateReport(rawReport, options = {}) {
       );
     }
     assert.equal(report.centralReadModelBacked, true, 'proven report must be centralReadModelBacked');
+    report.routes.forEach((route, index) => assertRouteMatchesChannel(route, index, report.channel));
     assert.equal(report.routes.some((route) => route.httpStatus >= 200 && route.httpStatus < 400), true, 'proven report needs a 2xx/3xx route');
     assert.equal(report.routes.some((route) => route.renderedLifecycleLabel.trim()), true, 'proven report needs rendered lifecycle label');
     assert.equal(report.routes.some((route) => route.renderedLifecycleStage.trim()), true, 'proven report needs rendered lifecycle stage');

@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Channel Route Guard Added
+
+Intent chain:
+
+- Vision: rendered lifecycle proof must be tied to the actual marketplace channel whose customer/admin cabinet is being validated.
+- Goal Impact: future `orders.browser_render_proof.v1` reports cannot close the browser gate by submitting URLs from another marketplace host or from a non-order route.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: channel-route binding for browser proof reports.
+- Task: require proven report route URLs to use the declared channel host and an order lifecycle route path; add a negative mismatch fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/state docs, validate without runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, route-channel mismatch fixture, proof contract, status/state docs.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-report.js`, `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report whose route URLs match the declared marketplace channel and rendered customer/admin lifecycle stage.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
 ## 2026-07-03 - Goal 24 Central Orders Affinity Publish Completed
 
 Intent chain:
