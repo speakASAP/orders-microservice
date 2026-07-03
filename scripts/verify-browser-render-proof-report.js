@@ -8,6 +8,7 @@ const contractPath = path.join(root, 'docs/orchestrator/2026-07-03-browser-rende
 const reportPath = String(process.env.BROWSER_RENDER_PROOF_REPORT_PATH || '').trim();
 const validFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/valid-flipflop-service-scoped.json');
 const invalidSensitiveFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-sensitive-key.json');
+const invalidPublicShellFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-public-shell-route.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -23,6 +24,7 @@ const allowedStatuses = new Set(['proven', 'incomplete', 'blocked']);
 const allowedProofModes = new Set(['safe_human_session', 'service_scoped_proxy']);
 const allowedRefreshMechanisms = new Set(['manual_refresh', 'visible_polling_30s', 'full_reload', 'api_backed_render_probe']);
 const allowedSurfaces = new Set(['customer_cabinet', 'admin_cabinet', 'admin_dashboard']);
+const allowedAuthContexts = new Set(['safe_human_session', 'service_scoped_proxy']);
 const forbiddenSensitiveKeys = new Set([
   'token',
   'tokens',
@@ -71,6 +73,10 @@ function assertNoSensitiveKeysOrValues(value, trail = 'report') {
   }
 }
 
+function isPublicShellArtifact(kind) {
+  return /public[_-]?shell|anonymous|route[_-]?only|html[_-]?shell/i.test(String(kind || ''));
+}
+
 function validateContract() {
   const contract = read(contractPath);
   [
@@ -78,6 +84,9 @@ function validateContract() {
     '`status`: one of `proven`, `incomplete`, or `blocked`.',
     '`proofMode`: one of `safe_human_session` or `service_scoped_proxy`.',
     '`centralReadModelBacked`: boolean proving the rendered state came from Orders lifecycle read model or a channel API backed by it.',
+    '`authContext`: optional route-level proof context; if present it must be `safe_human_session` or `service_scoped_proxy`.',
+    '`dataSourceStatus`: optional numeric backing Orders/channel API status; `status=proven` cannot include `401` or `403` data-source statuses.',
+    'Public shell routes, anonymous DOM snapshots, and route-only HTML checks cannot satisfy `status=proven`.',
     '`BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`',
     '[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]',
     '[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]',
@@ -93,9 +102,15 @@ function validateFixtures() {
     /sensitive key is not allowed/,
     'invalid sensitive-key fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidPublicShellFixturePath)),
+    /public shell or anonymous route evidence cannot prove rendered lifecycle/,
+    'invalid public-shell fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
+    invalidPublicShellFixture: path.relative(root, invalidPublicShellFixturePath),
   };
 }
 
@@ -128,6 +143,13 @@ function validateReport(rawReport) {
     assert.equal(typeof route.renderedLifecycleStage, 'string', `route ${index} renderedLifecycleStage is required`);
     assert.equal(route.artifact && typeof route.artifact === 'object', true, `route ${index} artifact is required`);
     assert.equal(route.artifact.redacted, true, `route ${index} artifact.redacted must be true`);
+    if (route.authContext !== undefined) {
+      assert.equal(allowedAuthContexts.has(route.authContext), true, `route ${index} authContext is invalid`);
+    }
+    if (route.dataSourceStatus !== undefined) {
+      assert.equal(typeof route.dataSourceStatus, 'number', `route ${index} dataSourceStatus must be numeric`);
+      assert.equal(route.dataSourceStatus >= 100 && route.dataSourceStatus < 600, true, `route ${index} dataSourceStatus must be valid`);
+    }
     assert.equal(Boolean(route.artifact.sha256 || route.artifact.path), true, `route ${index} artifact sha256 or path is required`);
   }
   if (report.status === 'proven') {
@@ -135,6 +157,16 @@ function validateReport(rawReport) {
     assert.equal(report.routes.some((route) => route.httpStatus >= 200 && route.httpStatus < 400), true, 'proven report needs a 2xx/3xx route');
     assert.equal(report.routes.some((route) => route.renderedLifecycleLabel.trim()), true, 'proven report needs rendered lifecycle label');
     assert.equal(report.routes.some((route) => route.renderedLifecycleStage.trim()), true, 'proven report needs rendered lifecycle stage');
+    assert.equal(
+      report.routes.some((route) => route.authContext === 'safe_human_session' || route.authContext === 'service_scoped_proxy'),
+      true,
+      'proven report needs safe human session or service-scoped proxy route evidence',
+    );
+    assert.equal(
+      report.routes.some((route) => route.dataSourceStatus === 401 || route.dataSourceStatus === 403 || isPublicShellArtifact(route.artifact.kind) || route.authContext === 'anonymous'),
+      false,
+      'public shell or anonymous route evidence cannot prove rendered lifecycle',
+    );
   }
   return report;
 }

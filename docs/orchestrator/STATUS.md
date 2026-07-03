@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
++## 2026-07-03 - Browser Proof Public Shell Guard Added
++
++Intent chain:
++
++- Vision: rendered lifecycle proof must show authorized lifecycle data, not just public HTML shell availability.
++- Goal Impact: future browser reports cannot close the goal using anonymous routes or backing API `401`/`403` evidence.
++- System: Orders owns the proof report contract and verifier; channel repos remain untouched.
++- Feature: browser proof public-shell rejection guard.
++- Task: add a negative fixture and verifier checks for anonymous/public-shell evidence.
++- Execution Plan: extend `verify:browser-render-proof-report`, update the contract, record IPS status, and validate through targeted plus full Orders tests.
++- Coding Prompt: do not use credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits.
++- Code: `scripts/verify-browser-render-proof-report.js`, browser proof contract, negative fixture, completion audit/status/state docs.
++- Validation: `node --check scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-report.js`, `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
++
++Remaining gate:
++
++- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
++- `[MISSING: real sanitized orders.browser_render_proof.v1 report after lifecycle mutation.]`
++
 ## 2026-07-03 - Channel Browser Gate Reconciliation Recorded
 
 Intent chain:

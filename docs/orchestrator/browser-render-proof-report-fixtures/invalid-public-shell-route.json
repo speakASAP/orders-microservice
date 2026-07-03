@@ -3,31 +3,30 @@
   "status": "proven",
   "channel": "flipflop",
   "proofMode": "service_scoped_proxy",
-  "checkedAt": "2026-07-03T09:30:00.000Z",
+  "checkedAt": "2026-07-03T09:40:00.000Z",
   "ordersEvidenceCommit": "HEAD",
   "mutationEvidence": {
-    "source": "smoke:lifecycle-mutation",
-    "approvalId": "sanitized-fixture",
-    "summary": "Sanitized fixture: lifecycle reached warehouse_collecting in customer and admin read models.",
-    "artifactHash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    "source": "anonymous_public_shell_preflight",
+    "approvalId": "negative-public-shell-fixture",
+    "summary": "Negative fixture intentionally tries to use public HTML shell availability and anonymous API 401 as proof."
   },
   "routes": [
     {
       "url": "https://flipflop.alfares.cz/orders",
       "httpStatus": 200,
       "surface": "customer_cabinet",
-      "renderedLifecycleLabel": "Sklad pripravuje polozky",
+      "renderedLifecycleLabel": "Orders",
       "renderedLifecycleStage": "warehouse_collecting",
       "artifact": {
-        "kind": "redacted_screenshot_hash",
+        "kind": "public_shell_dom_hash",
         "redacted": true,
-        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       },
-      "authContext": "service_scoped_proxy",
-      "dataSourceStatus": 200
+      "dataSourceStatus": 401,
+      "authContext": "service_scoped_proxy"
     }
   ],
-  "refreshMechanism": "manual_refresh",
+  "refreshMechanism": "full_reload",
   "centralReadModelBacked": true,
   "evidencePolicy": {
     "noTokenValues": true,
@@ -41,7 +40,7 @@
     "artifactsRedacted": true
   },
   "result": {
-    "summary": "Sanitized fixture validates the report contract only.",
-    "nextAction": "Replace with approved real proof report path after browser validation."
+    "summary": "Negative fixture must be rejected because anonymous shell evidence cannot prove lifecycle rendering.",
+    "nextAction": "Use safe human session or explicit service-scoped proxy proof."
   }
 }

@@ -33,6 +33,8 @@ Each `routes[]` entry must include:
 - `renderedLifecycleLabel`: localized visible lifecycle text or status shown in the UI.
 - `renderedLifecycleStage`: canonical lifecycle stage if visible or inferred from sanitized UI state.
 - `artifact`: object with `kind`, `redacted`, and either `sha256` or `path`.
+- `authContext`: optional route-level proof context; if present it must be `safe_human_session` or `service_scoped_proxy`.
+- `dataSourceStatus`: optional numeric backing Orders/channel API status; `status=proven` cannot include `401` or `403` data-source statuses.
 
 ## Sensitive Data Policy
 
@@ -61,6 +63,8 @@ Required `evidencePolicy` booleans:
 - `mutationEvidence.summary` is present and sanitized.
 - Every artifact is marked `redacted=true`.
 - All `evidencePolicy` controls are `true`.
+- At least one route must include `authContext=safe_human_session` or `authContext=service_scoped_proxy`.
+- Public shell routes, anonymous DOM snapshots, and route-only HTML checks cannot satisfy `status=proven`. Backing API `401`/`403` responses also cannot satisfy `status=proven`.
 
 ## Default Verifier Mode
 
@@ -78,5 +82,6 @@ Required `evidencePolicy` booleans:
 
 - `docs/orchestrator/browser-render-proof-report-fixtures/valid-flipflop-service-scoped.json` must pass the schema and proven criteria.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-sensitive-key.json` must be rejected because it contains a forbidden sensitive key name.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-public-shell-route.json` must be rejected because route-only anonymous shell evidence cannot prove lifecycle rendering.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.
