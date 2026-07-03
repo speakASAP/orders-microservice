@@ -1,5 +1,41 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Warehouse Allegro Checkout Fulfillment Mapping Integrated
+
+Intent chain:
+
+- Vision: Orders lifecycle projection must be fed by Warehouse-owned fulfillment states while Allegro remains the provider/source owner for marketplace checkout and shipment evidence.
+- Goal Impact: a Warehouse-facing provisional mapping now narrows how Allegro checkout-form payment/status/fulfillment hints may inform future Warehouse handoff work without approving runtime mutations.
+- System: Allegro owns checkout-form polling and raw provider evidence; Warehouse owns stock/reservations/fulfillment-order transitions; Orders owns central lifecycle/payment handoff and records the integration gate.
+- Feature: Warehouse Allegro checkout-form fulfillment status mapping integration.
+- Task: integrate Warehouse commit `b44ea08` into Orders orchestration state.
+- Execution Plan: accept docs-only mapping evidence, keep runtime adapter/deploy blocked, and preserve Warehouse callback as the only Orders lifecycle bridge.
+- Coding Prompt: no Orders runtime code, no DB migration, no deploy, no raw provider/tracking/customer fields in Orders.
+- Code: Warehouse `b44ea08 docs: define allegro checkout fulfillment mapping`; Orders docs checkpoint in this commit.
+- Validation: Warehouse `git diff --check`, `npm run check:hosted-auth`, pre-commit, and Orders `git diff --check`.
+
+Evidence:
+
+- Warehouse mapping separates checkout-form/order readiness from carrier movement.
+- Allegro `paymentStatus=PAID` is only an Orders paid-handoff eligibility signal and not a Warehouse status transition.
+- Checkout-form `READY_FOR_PROCESSING` and not-started fulfillment values are only `requested` candidates after Orders has central order id, fulfilled reservation ids, and a valid Warehouse handoff payload.
+- Seller fulfillment `SENT` is only a `handed_to_delivery` candidate and must not be projected as carrier `in_delivery`.
+- Checkout-form delivery-like values must not bypass `handed_to_delivery -> in_delivery -> delivered/not_delivered`; carrier movement remains in the sanitized shipment snapshot contract.
+- The mapping explicitly rejects `AllegroOrder.trackingNumber`, raw checkout-form payloads, shipment-management payloads, carrier tracking payloads, One Fulfillment stock/status, and convenience item fields as Warehouse write keys.
+
+Remaining gates:
+
+- `[LANDED: Warehouse provisional Allegro checkout-form fulfillment status mapping in warehouse-microservice commit b44ea08.]`
+- `[MISSING: sanitized checkout-form fulfillment.status fixture set and approved enum/class list.]`
+- `[MISSING: approved Orders source-reference preservation evidence proving Allegro-origin central orders preserve source evidence and fulfilled reservation ids for Warehouse joins.]`
+- `[MISSING: approved durable Warehouse adapter ledger for checkout-form status observations.]`
+- `[MISSING: approved timestamp ordering/replay semantics for Allegro updatedAt, local observation time, and Warehouse transition occurredAt.]`
+- `[MISSING: owner approval before any Warehouse runtime adapter, src/** mutation, migration, deploy, or production fulfillment-row mutation.]`
+
+Next action:
+
+- Collect sanitized Allegro checkout-form enum fixtures and verify Orders source-reference preservation for Allegro-origin Warehouse handoff joins.
+
 ## 2026-07-03 - Allegro Buyer Cabinet Runtime Gate Closed
 
 Intent chain:
