@@ -1,6 +1,6 @@
 {
   "schemaVersion": "orders.shipment_runtime_gate.v1",
-  "status": "runtime_proven_allegro_warehouse_orders",
+  "status": "runtime_proven_source_hardened_token_projection_blocked",
   "checkedAt": "2026-07-03T17:09:13.457918Z",
   "runtimeEvidence": {
     "k3s": "recovered_verified",
@@ -86,7 +86,14 @@
         "hasWarehouseAdminRole": true,
         "roleCount": 1,
         "printedToken": false,
-        "printedIdentity": false
+        "printedIdentity": false,
+        "sourceHardeningComplete": true,
+        "runtimeCutoverBlocked": true,
+        "requiredRole": "internal:allegro-service:service",
+        "requiredRuntimeEnv": [
+          "WAREHOUSE_SERVICE_TOKEN",
+          "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
+        ]
       }
     },
     "orders": {
@@ -108,7 +115,21 @@
   },
   "remainingGates": [
     "optional real provider live-read selection using raw Allegro account/order ids if product requires provider API evidence beyond sanitized existing-correlation smoke",
-    "replace broad Warehouse-admin bearer fallback with a minimal Auth-validated internal:allegro-service:service token/role before recurring provider ingestion",
+    "project an Auth-issued internal:allegro-service:service token into Allegro runtime as WAREHOUSE_SERVICE_TOKEN or WAREHOUSE_INTERNAL_SERVICE_TOKEN before Warehouse/Allegro runtime cutover and recurring provider ingestion",
     "optional future audited full-tracking reveal API if product/security approves it"
-  ]
+  ],
+  "sourceEvidence": {
+    "allegroWarehouseServiceRoleHardening": {
+      "warehouseCommit": "ab7ac6e",
+      "allegroCommit": "edb3a88",
+      "warehouseEndpointsRequireOnlyAllegroServiceRole": true,
+      "allegroBroadInternalTokenFallbackRemoved": true,
+      "requiredRuntimeTokenEnv": [
+        "WAREHOUSE_SERVICE_TOKEN",
+        "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
+      ],
+      "runtimeCutoverBlocked": true,
+      "blocker": "MISSING: Auth-issued Allegro service token projected to Allegro runtime as WAREHOUSE_SERVICE_TOKEN or WAREHOUSE_INTERNAL_SERVICE_TOKEN"
+    }
+  }
 }

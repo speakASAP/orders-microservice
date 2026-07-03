@@ -54,7 +54,7 @@ const warehouseRoot = repoPath('WAREHOUSE_REPO_PATH', DEFAULT_WAREHOUSE_PATHS);
 const runtimeGateReportPath = 'reports/validation/shipment-runtime-readiness/allegro-warehouse-runtime-gate-current.json';
 const runtimeGateReport = JSON.parse(requireFile(ordersRoot, runtimeGateReportPath));
 assert.equal(runtimeGateReport.schemaVersion, 'orders.shipment_runtime_gate.v1', 'shipment runtime gate report schema mismatch');
-assert.equal(runtimeGateReport.status, 'runtime_proven_allegro_warehouse_orders', 'shipment runtime gate must record the proven Allegro -> Warehouse -> Orders path');
+assert.equal(runtimeGateReport.status, 'runtime_proven_source_hardened_token_projection_blocked', 'shipment runtime gate must record proven runtime path plus source-hardened token projection blocker');
 assert.equal(runtimeGateReport.runtimeEvidence.deployments.orders.image, 'localhost:5000/orders-microservice:ad83d15', 'Orders runtime image evidence mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.deployments.warehouse.image, 'localhost:5000/warehouse-microservice:2553452', 'Warehouse runtime image evidence mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.deployments.allegro.image, 'localhost:5000/allegro-service:0cfe401', 'Allegro runtime image evidence mismatch');
@@ -84,6 +84,15 @@ assert.equal(runtimeGateReport.policy.customerPiiDisplayed, false, 'shipment gat
 assert.equal(runtimeGateReport.policy.secretsDisplayed, false, 'shipment gate report must not expose secrets');
 assert.equal(runtimeGateReport.policy.rawDatabaseRowsDisplayed, false, 'shipment gate report must not expose raw DB rows');
 assert.equal(runtimeGateReport.policy.statusOnlyTrackingVisibilityApproved, true, 'shipment gate report must record status-only tracking visibility approval');
+
+assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardening.warehouseCommit, 'ab7ac6e', 'Warehouse service-role hardening commit mismatch');
+assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardening.allegroCommit, 'edb3a88', 'Allegro service-token hardening commit mismatch');
+assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardening.warehouseEndpointsRequireOnlyAllegroServiceRole, true, 'Warehouse endpoints must require only Allegro service role in source');
+assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardening.allegroBroadInternalTokenFallbackRemoved, true, 'Allegro source must remove broad internal token fallbacks');
+assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardening.runtimeCutoverBlocked, true, 'runtime cutover must remain blocked until a minimal token is projected');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.hasAllegroServiceRole, false, 'current runtime token must not be misreported as Allegro service role');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.hasWarehouseAdminRole, true, 'current runtime evidence must preserve the broad Warehouse-admin token finding');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.requiredRole, 'internal:allegro-service:service', 'runtime required role mismatch');
 
 const ordersLifecycle = requireFile(ordersRoot, 'src/orders/order-lifecycle.ts');
 for (const stage of [
@@ -121,6 +130,8 @@ assertContains(
 );
 assertContains(warehouseController, 'statusMutationApplied', 'Warehouse snapshot intake must report status mutation result');
 assertContains(warehouseController, 'ProviderShipmentCorrelationDto', 'Warehouse endpoint must use bounded DTO');
+assertContains(warehouseController, "@Roles('internal:allegro-service:service')", 'Warehouse shipment endpoints must require the minimal Allegro service role');
+assertNotContains(warehouseController, ["@Roles('internal:warehouse-microservice:admin', 'internal:allegro-service:service')"], 'Warehouse shipment endpoints must not keep the broad admin fallback');
 
 const warehouseMigration = requireFile(warehouseRoot, 'src/migrations/1781700000000-CreateFulfillmentProviderShipmentCorrelations.ts');
 assertContains(warehouseMigration, '"fulfillment_provider_shipment_correlations"', 'Warehouse correlation table migration missing');
@@ -145,7 +156,9 @@ assertContains(
 );
 assertContains(allegroClient, 'provider-shipment-correlations', 'Allegro producer must call Warehouse correlation endpoint');
 assertContains(allegroClient, 'sourceReferenceHash', 'Allegro producer must send sanitized source reference hash');
-assertNotContains(allegroClient, ['trackingNumber', 'trackingUrl', 'buyerEmail', 'shippingAddress'], 'Allegro producer must not send raw provider/customer fields');
+assertContains(allegroClient, 'WAREHOUSE_SERVICE_TOKEN', 'Allegro producer must accept the Auth-issued Warehouse service token env');
+assertContains(allegroClient, 'WAREHOUSE_INTERNAL_SERVICE_TOKEN', 'Allegro producer must accept the internal Warehouse service token env');
+assertNotContains(allegroClient, ['trackingNumber', 'trackingUrl', 'buyerEmail', 'shippingAddress', 'ALLEGRO_INTERNAL_SERVICE_TOKEN', 'process.env.INTERNAL_SERVICE_TOKEN'], 'Allegro producer must not send raw provider/customer fields or use broad internal token fallbacks');
 
 const allegroReplay = requireFile(allegroRoot, 'services/allegro-service/src/scripts/replay-shipment-status-handoff.ts');
 assertContains(allegroReplay, 'ALLEGRO_SHIPMENT_DEAD_LETTER_DIR', 'Allegro replay must support dead-letter retention env path');
@@ -166,7 +179,7 @@ const remainingGates = runtimeGateReport.remainingGates;
 
 const result = {
   schemaVersion: 'orders.shipment_runtime_readiness.v1',
-  status: 'runtime_proven_optional_provider_gates',
+  status: 'runtime_proven_source_hardened_token_projection_blocked',
   checkedAt: new Date().toISOString(),
   repositories: {
     orders: ordersRoot,
@@ -192,6 +205,7 @@ const result = {
     allegroDeployment: runtimeGateReport.runtimeEvidence.deployments.allegro.image,
     warehouseMigrationsApplied: runtimeGateReport.runtimeEvidence.warehouse.appliedMigrations.length,
     allegroCorrelationGate: runtimeGateReport.runtimeEvidence.allegro.correlationEnabledEnv,
+    serviceRoleHardening: runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardening,
     sanitizedReplayPosted: runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.posted,
     warehouseObservationStatus: runtimeGateReport.runtimeEvidence.warehouse.providerStatusReadback.latestNormalizedWarehouseStatus,
     ordersCentralStatus: runtimeGateReport.runtimeEvidence.orders.warehouseCallbackReadback.centralStatus,
