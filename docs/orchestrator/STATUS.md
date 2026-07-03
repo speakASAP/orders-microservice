@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Result Summary Guard Added
+
+Intent chain:
+
+- Vision: rendered lifecycle proof must produce a machine-actionable sanitized outcome, not only raw route evidence.
+- Goal Impact: future `orders.browser_render_proof.v1` reports cannot close the browser gate without an explicit sanitized result summary and next action.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: result summary/next-action validation for browser proof reports.
+- Task: require non-empty `result.summary` and `result.nextAction`; add a negative result-summary fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/state docs, validate without runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, result-summary fixture, proof contract, status/state docs.
+- Validation: pending targeted and full Orders test chain after this doc update.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report with result summary, next action, and rendered customer/admin lifecycle evidence.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Per-Surface Rendered Lifecycle Guard Added
 
 Intent chain:

@@ -20,6 +20,7 @@ const invalidArtifactEvidenceFixturePath = path.join(root, 'docs/orchestrator/br
 const invalidSurfaceHttpStatusFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-http-status.json');
 const invalidMutationSourceFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-source.json');
 const invalidSurfaceRenderedLifecycleFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-rendered-lifecycle.json');
+const invalidResultSummaryFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-result-summary.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -168,11 +169,17 @@ function assertApprovedMutationEvidence(mutationEvidence) {
     allowedMutationEvidenceSources.has(mutationEvidence.source),
     true,
     'proven report mutationEvidence.source must be an approved lifecycle mutation source',
-    'proven report needs rendered lifecycle label and stage on customer cabinet route evidence',
-    'proven report needs rendered lifecycle label and stage on admin cabinet or dashboard route evidence',
   );
   assert.equal(typeof mutationEvidence.approvalId, 'string', 'report mutationEvidence.approvalId is required');
   assert.equal(Boolean(mutationEvidence.approvalId.trim()), true, 'report mutationEvidence.approvalId must not be empty');
+}
+
+function assertResultSummary(result) {
+  assert.equal(result && typeof result === 'object', true, 'report result is required');
+  assert.equal(typeof result.summary, 'string', 'report result.summary is required');
+  assert.equal(Boolean(result.summary.trim()), true, 'report result.summary must not be empty');
+  assert.equal(typeof result.nextAction, 'string', 'report result.nextAction is required');
+  assert.equal(Boolean(result.nextAction.trim()), true, 'report result.nextAction must not be empty');
 }
 
 function validateContract() {
@@ -203,6 +210,8 @@ function validateContract() {
     'proven report mutationEvidence.source must be an approved lifecycle mutation source',
     'proven report needs rendered lifecycle label and stage on customer cabinet route evidence',
     'proven report needs rendered lifecycle label and stage on admin cabinet or dashboard route evidence',
+    'report result.summary must not be empty',
+    'report result.nextAction must not be empty',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -293,6 +302,11 @@ function validateFixtures() {
     /proven report needs rendered lifecycle label and stage on admin cabinet or dashboard route evidence/,
     'invalid surface-rendered-lifecycle fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidResultSummaryFixturePath)),
+    /report result.summary must not be empty/,
+    'invalid result-summary fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -307,6 +321,7 @@ function validateFixtures() {
     invalidSurfaceHttpStatusFixture: path.relative(root, invalidSurfaceHttpStatusFixturePath),
     invalidMutationSourceFixture: path.relative(root, invalidMutationSourceFixturePath),
     invalidSurfaceRenderedLifecycleFixture: path.relative(root, invalidSurfaceRenderedLifecycleFixturePath),
+    invalidResultSummaryFixture: path.relative(root, invalidResultSummaryFixturePath),
   };
 }
 
@@ -332,6 +347,7 @@ function validateReport(rawReport, options = {}) {
   assert.equal(allowedRefreshMechanisms.has(report.refreshMechanism), true, 'report refreshMechanism is invalid');
   assert.equal(typeof report.centralReadModelBacked, 'boolean', 'report centralReadModelBacked must be boolean');
   assert.equal(report.evidencePolicy && typeof report.evidencePolicy === 'object', true, 'report evidencePolicy is required');
+  assertResultSummary(report.result);
   for (const flag of requiredPolicyFlags) {
     assert.equal(report.evidencePolicy[flag], true, `report evidencePolicy.${flag} must be true`);
   }
