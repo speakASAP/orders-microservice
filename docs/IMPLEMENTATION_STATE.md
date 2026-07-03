@@ -34,9 +34,9 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Marketplace order read-scope hardening deployed for Bazos, Aukro, Heureka, and Allegro; FlipFlop customer reads verified scoped; provider shipment-status contract remains blocked pending provider source
-next_recommended_goal: Harden FlipFlop admin routes, identify or approve delivery-provider/courier owner source before adapter implementation, and approve buyer Auth/order ownership before buyer cabinet runtime
-last_completed_goal: Marketplace order read-scope hardening deployed for Bazos, Aukro, Heureka, and Allegro
+current_chunk: FlipFlop admin RBAC deployed; marketplace order read-scope hardening complete for Allegro/Bazos/Aukro/Heureka; provider shipment-status and buyer ownership contracts remain blocked pending approved sources
+next_recommended_goal: Identify or approve delivery-provider/courier owner source before adapter implementation, and approve buyer Auth/order ownership before buyer cabinet runtime
+last_completed_goal: FlipFlop admin RBAC hardening deployed and marketplace order read-scope hardening completed
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
@@ -45,10 +45,14 @@ blockers:
   - [MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]
   - non-marketplace app contracts require owner approval before runtime integration
   - [MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source]
-  - [MISSING: FlipFlop admin route role-enforcement review for admin order, inventory, and pricing controllers.]
+  - [MISSING: provider webhook or polling contract and sample payloads]
+  - [MISSING: provider-to-Warehouse status mapping after handed_to_delivery]
+  - [MISSING: buyer-facing personal cabinet ownership contract for marketplaces where buyer snapshots do not map to Auth subject.]
 ```
 
 ## Current Checkpoint
+
+2026-07-03: FlipFlop admin RBAC hardening is implemented, pushed, deployed, and smoked. FlipFlop commit `79dba51` adds `JwtAuthGuard`, `RolesGuard`, and explicit admin roles to admin order, admin inventory, and pricing controllers while preserving customer order reads scoped by `req.user.id`. Validation passed with the pre-coding gate, strict doc audit, source verifier, `cd services/order-service && npm run build`, and `git diff --check`. Production deploy completed successfully; Kubernetes rollouts passed for FlipFlop service, frontend, product, cart, order, and user deployments, public root/products smoke returned HTTP 200, and unauthenticated `/api/orders/admin/orders` returned HTTP 401. Provider/courier discovery remains blocked after post-k3s checks because no approved provider owner/source, webhook or polling contract, credential source, status mapping, or sample payload is discoverable.
 
 2026-07-03: Marketplace order read-scope hardening deployed for Bazos, Aukro, and Heureka after k3s recovery, completing the same authorization-hardening wave already applied to Allegro. Bazos commit `1876b9b` scopes non-admin order list/detail reads by authenticated actor through owned `BazosAccount.userId` or `BazosIdentity.userId` and preserves admin visibility. Aukro commit `ba1f6fd` makes order list/detail reads admin-only because `AukroAccount` has no stable Auth owner field. Heureka commit `eec326f` makes service and dashboard order list/detail reads admin-only for the same reason. Deploy evidence: Bazos image `localhost:5000/bazos-service:1876b9b`, Aukro image `localhost:5000/aukro-service:ba1f6fd`, Heureka images `localhost:5000/heureka-service:eec326f` and `localhost:5000/heureka-api-gateway:eec326f` are ready/available `1/1`. Health/protected-route smoke passed with Bazos `/health` HTTP 200 and `/orders` HTTP 401, Aukro `/health` HTTP 200 and `/aukro/orders` HTTP 403, Heureka `/api/health` HTTP 200 and `/api/heureka/orders` HTTP 401. FlipFlop customer order reads were source-verified already scoped by `req.user.id`; FlipFlop admin route role enforcement remains a follow-up.
 
