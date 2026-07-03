@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "orders.channel_runtime_blocker.v1",
+  "checkedAt": "2026-07-03T12:14:51.208Z",
+  "channel": "bazos",
+  "status": "provider_backed_order_source_blocked",
+  "runtimeProbe": {
+    "podScopedProbe": true,
+    "serviceSurfaceOnly": true,
+    "tokenPresent": true,
+    "tokenPrinted": false,
+    "replayHttpStatus": 200,
+    "replaySuccess": true,
+    "replayContract": "marketplace.order_affinity_candidate.v1",
+    "replayChannel": "bazos",
+    "replayCount": 0,
+    "replayEventsLength": 0,
+    "replayFailClosed": true,
+    "unauthOrdersHttpStatus": 401,
+    "unauthWebhookHttpStatus": 401
+  },
+  "sourceEvidence": {
+    "liveWebhookSupport": "[UNKNOWN: live Bazos marketplace webhook support]",
+    "syntheticWebhookOnly": true,
+    "requestTimeItemMappingOnly": true,
+    "persistedPaidOrderHistory": false,
+    "persistedOrderItemReplaySource": false,
+    "orderItemIngestionContract": false
+  },
+  "blockers": [
+    "[MISSING: Bazos paid order history source]",
+    "[MISSING: Bazos persisted order item replay source]",
+    "[MISSING: Bazos order item ingestion contract]",
+    "[UNKNOWN: live Bazos marketplace webhook support]"
+  ],
+  "nextAction": "Define and implement a Bazos-owned live paid order ingestion contract with persisted item snapshots and Warehouse-owned warehouseId before rerunning provider-backed customer/admin lifecycle proof.",
+  "redacted": true,
+  "rawRowsPrinted": false,
+  "customerPrinted": false,
+  "providerPayloadPrinted": false,
+  "databaseDump": false,
+  "providerCall": false
+}

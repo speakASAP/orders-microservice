@@ -98,7 +98,7 @@ const CHANNELS = {
   bazos: {
     env: 'BAZOS_REPO_PATH',
     defaults: ['/home/ssf/Documents/Github/bazos'],
-    status: 'synthetic_create_reservation_smoke_proven_provider_webhook_unknown',
+    status: 'synthetic_create_reservation_smoke_proven_provider_source_live_fail_closed',
     artifactChecks: [
       {
         file: 'implementation-goals/GOAL-17-bazos-order-forwarding.md',
@@ -117,9 +117,34 @@ const CHANNELS = {
           'No live provider-backed Bazos marketplace webhook/order ingestion was invented',
         ],
       },
+      {
+        root: 'orders',
+        file: 'reports/validation/channel-lifecycle-runtime-evidence/bazos-provider-source-blocked.json',
+        type: 'json',
+        assertions: [
+          ['schemaVersion', 'orders.channel_runtime_blocker.v1'],
+          ['channel', 'bazos'],
+          ['status', 'provider_backed_order_source_blocked'],
+          ['runtimeProbe.replayHttpStatus', 200],
+          ['runtimeProbe.replaySuccess', true],
+          ['runtimeProbe.replayCount', 0],
+          ['runtimeProbe.replayEventsLength', 0],
+          ['runtimeProbe.replayFailClosed', true],
+          ['runtimeProbe.unauthOrdersHttpStatus', 401],
+          ['runtimeProbe.unauthWebhookHttpStatus', 401],
+          ['sourceEvidence.syntheticWebhookOnly', true],
+          ['sourceEvidence.persistedPaidOrderHistory', false],
+          ['sourceEvidence.persistedOrderItemReplaySource', false],
+          ['sourceEvidence.orderItemIngestionContract', false],
+          ['redacted', true],
+          ['rawRowsPrinted', false],
+          ['customerPrinted', false],
+          ['providerPayloadPrinted', false],
+        ],
+      },
     ],
     remainingGates: [
-      'provider-backed Bazos marketplace webhook/order source remains unknown',
+      'provider-backed Bazos marketplace webhook/order source is live-fail-closed until Bazos owns a real paid order ingestion and persisted item snapshot contract',
       'approved authenticated customer/admin browser or API smoke after a real provider-backed order exists',
     ],
   },
@@ -359,7 +384,7 @@ const result = {
     'Heureka dashboard orders API route must be fixed or exposed before rendered lifecycle proof can pass',
     'Aukro rendered central lifecycle cabinet hydration proof remains blocked by live data lacking a non-stale canonical Orders lifecycle stage',
     'Warehouse/Allegro shipment-status deploy, migration, env enablement, and safe live smoke approvals',
-    'provider-backed Bazos marketplace webhook/order source remains unknown',
+    'provider-backed Bazos marketplace webhook/order source is live-fail-closed pending a real paid order ingestion and persisted item snapshot contract',
   ],
 };
 

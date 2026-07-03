@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Bazos Provider Source Runtime Blocker Recorded
+
+Intent chain:
+
+- Vision: Bazos order lifecycle proof must be based on a real provider-backed paid order source, not synthetic/internal envelopes.
+- Goal Impact: Bazos now has runtime evidence for a live fail-closed provider-source blocker instead of only source-level unknowns.
+- System: Orders owns the redacted evidence artifact, verifier assertions, and IPS status; Bazos source, runtime config, databases, providers, deployments, and secrets were not changed.
+- Feature: Bazos provider-backed order source gate for customer/admin lifecycle proof.
+- Task: inspect Bazos source/docs/runtime, prove the protected replay source response live, and record the missing producer prerequisites.
+- Execution Plan: read Bazos order controller/service/spec/docs, probe the deployed internal replay endpoint inside the pod with its existing token without printing it, verify unauthenticated order/webhook routes stay protected, then add Orders-only evidence.
+- Coding Prompt: do not print tokens, customer PII, raw order rows, database dumps, provider payloads, payment refs, tracking values, or raw marketplace data.
+- Code: `reports/validation/channel-lifecycle-runtime-evidence/bazos-provider-source-blocked.json` and `scripts/verify-channel-lifecycle-runtime-evidence.js`.
+- Validation: live Bazos replay probe returned HTTP 200, `success=true`, `contract=marketplace.order_affinity_candidate.v1`, `count=0`, `events=[]`, and `failClosed=true` with `[MISSING: Bazos paid order history source]`, `[MISSING: Bazos persisted order item replay source]`, and `[MISSING: Bazos order item ingestion contract]`; unauthenticated `/orders` and `/orders/webhook` returned HTTP 401.
+
+Remaining gate:
+
+- `[MISSING: Bazos-owned live paid order ingestion contract with persisted item snapshots, Catalog product ids, Warehouse-owned warehouseId, and approved provider-backed customer/admin lifecycle smoke.]`
+
 ## 2026-07-03 - Aukro Lifecycle Runtime Data Blocker Recorded
 
 Intent chain:
