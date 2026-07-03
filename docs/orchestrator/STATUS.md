@@ -106,7 +106,7 @@ Intent chain:
 - Execution Plan: docs-only reconciliation; preserve child commit references; mark superseded lane-local deployment state; keep browser/provider runtime gates explicit.
 - Coding Prompt: do not rerun completed worker loops, do not edit five channel UI repos, and do not start provider runtime integration until source capability and Warehouse ledger/correlation approvals are resolved.
 - Code: `docs/orchestrator/2026-07-03-child-lane-cleanup-reconciliation.md`.
-- Validation: pending `git diff --check`, completion audit verifier, and full `npm test`.
+- Validation: `git diff --check`, `node scripts/verify-completion-audit.js`, and full `npm test` passed in the follow-up Orders verifier coverage runs. Browser/session/provider gates remain open.
 
 Reconciled child results:
 
@@ -134,7 +134,7 @@ Intent chain:
 - Execution Plan: docs-only audit in Orders; no channel repo edits, deploys, browser sessions, provider calls, DB reads, or runtime mutations.
 - Coding Prompt: preserve original scope and do not mark the goal complete while browser-render/provider gates are missing.
 - Code: `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`.
-- Validation: pending `git diff --check` and targeted marker verification.
+- Validation: `git diff --check`, `node scripts/verify-completion-audit.js`, and full `npm test` passed in the follow-up Orders verifier coverage runs. Active goal remains incomplete by design.
 
 Audit result:
 
@@ -159,7 +159,7 @@ Intent chain:
 - Execution Plan: adjust Orders verifier/report wording only; do not edit channel repos or shared contracts.
 - Coding Prompt: preserve missing browser/provider gates and avoid claiming rendered UI proof.
 - Code: `scripts/verify-channel-lifecycle-runtime-evidence.js`.
-- Validation: pending `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:browser-render-proof-readiness`, `npm test`, and `git diff --check`.
+- Validation: `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:browser-render-proof-readiness`, `npm test`, and `git diff --check` passed in the follow-up Orders verifier coverage runs. Rendered browser/provider gates remain open.
 
 Current evidence boundary:
 

@@ -94,6 +94,7 @@ async function main() {
   const flipflopReadiness = read(flipflopReadinessPath);
 
   const handoffMarkers = [
+    'Current Orders evidence baseline: use repository `HEAD`; this handoff is enforced by `verify:browser-render-proof-readiness` in `npm test`.',
     'Recommended first browser proof lane: FlipFlop only.',
     'No edits in `flipflop`, `heureka`, `bazos`, `aukro`, `allegro`, Auth, Cliplot, Marketing, Payments, Warehouse, or shared contracts during validation-only lane.',
     'Needs approved safe human buyer/admin session or explicit approval for service-scoped browser proxy proof.',

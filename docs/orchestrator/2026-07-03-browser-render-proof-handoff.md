@@ -2,7 +2,7 @@
 
 Date: 2026-07-03
 Repository of record: `orders-microservice`
-Current Orders evidence commit: `f81abb3 test: add lifecycle mutation propagation smoke`
+Current Orders evidence baseline: use repository `HEAD`; this handoff is enforced by `verify:browser-render-proof-readiness` in `npm test`.
 
 ## Intent Chain
 
@@ -102,7 +102,7 @@ Failure criteria:
 
 ## Handoff Prompt
 
-Objective: run a validation-only browser proof for FlipFlop lifecycle status propagation after an Orders lifecycle mutation. Work from Orders commit `f81abb3` and the deployed FlipFlop route evidence. Do not edit non-Orders repos unless merge-order review explicitly authorizes an implementation lane after validation fails.
+Objective: run a validation-only browser proof for FlipFlop lifecycle status propagation after an Orders lifecycle mutation. Work from current Orders repository `HEAD`, the completion audit baseline, and the deployed FlipFlop route evidence. Do not edit non-Orders repos unless merge-order review explicitly authorizes an implementation lane after validation fails.
 
 Scope:
 - Orders repo: read docs, run `npm run smoke:lifecycle-mutation` only with explicit live gates, write sanitized validation report if approved.
