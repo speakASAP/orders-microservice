@@ -146,7 +146,7 @@ const result = {
   remainingGates: [
     'optional future audited full-tracking reveal API if product/security approves it',
     'optional real provider live-read evidence if sanitized existing-correlation smoke is insufficient',
-    'Allegro/Warehouse source hardening is landed and the Auth-issued internal:allegro-service:service token is projected as WAREHOUSE_INTERNAL_SERVICE_TOKEN; remaining gates are optional real provider live-read and future audited full-tracking reveal',
+    'Allegro/Warehouse source hardening is landed and the Auth-issued internal:allegro-service:service token is projected as effective WAREHOUSE_SERVICE_TOKEN plus secondary WAREHOUSE_INTERNAL_SERVICE_TOKEN; remaining gates are optional real provider live-read and future audited full-tracking reveal',
   ],
 };
 

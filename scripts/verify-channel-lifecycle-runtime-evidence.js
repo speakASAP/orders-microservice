@@ -448,7 +448,7 @@ const CHANNELS = {
     remainingGates: [
       'natural real Allegro buyer order proof remains optional/product-gated if approved bounded fixture proof is insufficient',
       'Orders action-route cleanup role/token alignment remains follow-up; bounded cleanup used an Orders-side direct fallback after API cancellation returned 401 with the available pod JWT',
-      'shipment provider runtime correlation and Warehouse -> Orders callback are proven through an approved bounded sanitized smoke; the Auth-issued internal:allegro-service:service token is projected, and optional gates are real provider live-read plus status-only tracking visibility policy/full-reveal policy',
+      'shipment provider runtime correlation and Warehouse -> Orders callback are proven through an approved bounded sanitized smoke; the Auth-issued internal:allegro-service:service token is projected as effective WAREHOUSE_SERVICE_TOKEN plus secondary WAREHOUSE_INTERNAL_SERVICE_TOKEN, and optional gates are real provider live-read plus status-only tracking visibility policy/full-reveal policy',
     ],
   },
   aukro: {
@@ -736,7 +736,7 @@ const result = {
     'Allegro buyer list/detail central lifecycle is proven through an approved bounded fixture; natural real-buyer proof remains optional/product-gated if fixture proof is insufficient',
     'Heureka browser DOM render capture is service-scoped and proven after Heureka 57cf799 dashboard route-regex fix; direct human-session proof remains optional/product-gated',
     'Aukro protected customer/admin lifecycle API proof and customer/admin visible DOM lifecycle proof are proven; natural real customer-bound Aukro proof remains optional/product-gated',
-    'Warehouse/Allegro shipment-status runtime and Orders callback are proven through an approved bounded sanitized smoke; the Auth-issued internal:allegro-service:service token is projected, and remaining gates are optional real provider live-read plus status-only tracking visibility policy/full-reveal policy',
+    'Warehouse/Allegro shipment-status runtime and Orders callback are proven through an approved bounded sanitized smoke; the Auth-issued internal:allegro-service:service token is projected as effective WAREHOUSE_SERVICE_TOKEN plus secondary WAREHOUSE_INTERNAL_SERVICE_TOKEN, and remaining gates are optional real provider live-read plus status-only tracking visibility policy/full-reveal policy',
     'Bazos approved bounded paid multi-product customer/admin lifecycle proof is proven; natural live provider-backed Bazos proof remains optional/product-gated',
   ],
 };
