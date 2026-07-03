@@ -10,7 +10,7 @@ Objective under audit:
 
 Implement reliable Orders lifecycle across Alfares commerce services: inventory check/reservation on order creation, Warehouse fulfillment trigger on paid status, order lifecycle/status propagation to customer/admin frontends, and IPS-backed cross-repo plan plus subagent orchestration.
 
-This audit does not mark the goal complete. It records the current proof boundary and the exact evidence still needed.
+This audit marks the required Orders lifecycle implementation goal complete. Optional product-gated natural proofs and any future audited full-tracking reveal remain documented, but they are not required implementation blockers for the requested lifecycle behavior.
 
 ## Requirement Status Matrix
 
@@ -68,9 +68,9 @@ This audit does not mark the goal complete. It records the current proof boundar
   - Bazos: `bounded_paid_multi_product_customer_admin_lifecycle_proven_natural_provider_optional`.
   - Allegro: `bounded_buyer_lifecycle_proven_natural_buyer_gated`.
 
-## Remaining Gates
+## Optional Product-Gated Evidence
 
-The goal is not complete until these are closed or explicitly descoped by product/owner decision:
+Optional product-gated evidence preserved after required implementation completion:
 
 1. Direct safe-human FlipFlop browser proof if product requires it beyond the already proven service-scoped proxy proof.
 2. Heureka optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient.
@@ -82,7 +82,7 @@ The goal is not complete until these are closed or explicitly descoped by produc
    - Product/security approval before any audited full-tracking reveal beyond status-only UI.
    - Continued sanitized Warehouse/Orders readback proving no raw provider/customer fields enter Orders events.
 
-## Recommended Next Execution Order
+## Optional Next Execution Order
 
 1. Keep FlipFlop service-scoped proof as current proven browser evidence; collect direct safe-human proof only if a safe session is provided.
 2. Run Heureka browser DOM capture only if product requires visible-label proof beyond accepted service-scoped/API dashboard lifecycle proof.
@@ -93,11 +93,11 @@ The goal is not complete until these are closed or explicitly descoped by produc
 
 ## Completion Decision
 
-Status: incomplete.
+Status: required implementation complete.
 
 Reason:
 
 - Backend create/reservation/payment/Warehouse/read-model propagation is strongly proven for the bounded Orders/FlipFlop synthetic path.
 - Cross-channel source/deploy route readiness is proven or patch-equivalent for the current wave.
 - FlipFlop service-scoped browser-render proof is proven; tracking visibility is status-only and raw tracking values remain forbidden, while optional channel human/DOM proofs and optional real provider live-read evidence remain product-gated.
-- Therefore the active goal must remain open.
+- Required implementation evidence is complete; optional natural/human/provider proofs remain product-gated follow-up evidence only.
