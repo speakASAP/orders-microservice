@@ -139,6 +139,73 @@ async function run() {
     });
   });
 
+  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_SERVICE_TOKEN: 'warehouse-token' }, async () => {
+    const calls = [];
+    const allegroOrder = makeOrder({
+      id: 'central-order-allegro-1',
+      channel: 'allegro',
+      externalOrderId: 'allegro-checkout-form-1001',
+      channelAccountId: 'allegro-account-hash-or-internal-id',
+      items: [
+        {
+          id: 'central-order-item-allegro-1',
+          productId: 'catalog-product-allegro-1',
+          sku: 'ALG-SKU-1',
+          title: 'Allegro catalog product',
+          warehouseId: 'warehouse-allegro-1',
+          quantity: 2,
+        },
+      ],
+    });
+    const client = new OrderFulfillmentHandoffClient({
+      get(url, config) {
+        calls.push({ method: 'GET', url, config });
+        return of({
+          data: {
+            success: true,
+            data: [
+              {
+                id: 'reservation-allegro-1',
+                orderId: 'central-order-allegro-1',
+                productId: 'catalog-product-allegro-1',
+                warehouseId: 'warehouse-allegro-1',
+                quantity: 2,
+                status: 'fulfilled',
+              },
+            ],
+          },
+        });
+      },
+      post(url, payload, config) {
+        calls.push({ method: 'POST', url, payload, config });
+        return of({ data: { success: true, data: { id: 'fulfillment-order-allegro-1' } } });
+      },
+    }, { warn() {} });
+
+    const result = await client.createAfterPaymentFulfillment(allegroOrder);
+    assert.equal(result.status, 'requested');
+    assert.equal(result.handedOffCount, 1);
+    assert.equal(calls[1].payload.orderId, 'central-order-allegro-1');
+    assert.equal(calls[1].payload.orderNumber, 'allegro-checkout-form-1001');
+    assert.equal(calls[1].payload.reference, 'allegro-checkout-form-1001');
+    assert.equal(calls[1].payload.channel, 'allegro');
+    assert.deepEqual(calls[1].payload.items, [
+      {
+        orderItemId: 'central-order-item-allegro-1',
+        reservationId: 'reservation-allegro-1',
+        productId: 'catalog-product-allegro-1',
+        sku: 'ALG-SKU-1',
+        title: 'Allegro catalog product',
+        warehouseId: 'warehouse-allegro-1',
+        quantity: 2,
+      },
+    ]);
+    const serializedPayload = JSON.stringify(calls[1].payload);
+    for (const forbidden of ['rawData', 'trackingNumber', 'waybill', 'buyerEmail', 'buyerLogin', 'providerPayload']) {
+      assert.equal(serializedPayload.includes(forbidden), false, `Allegro Warehouse handoff leaked ${forbidden}`);
+    }
+  });
+
   await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true' }, async () => {
     const client = new OrderFulfillmentHandoffClient({
       get() {

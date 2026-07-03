@@ -1,5 +1,37 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Orders Allegro Source-Reference Preservation Verified
+
+Intent chain:
+
+- Vision: Warehouse fulfillment joins for Allegro-origin orders must use central Orders and Warehouse identifiers plus bounded source references, not raw Allegro provider payloads.
+- Goal Impact: the source-reference preservation gate now has executable Orders verifier evidence for Allegro Warehouse fulfillment handoff payloads.
+- System: Orders owns central order id, channel, external checkout reference, paid handoff, and fulfilled reservation lookup; Warehouse owns fulfillment orders and reservation ids; Allegro owns raw checkout/provider payloads.
+- Feature: Allegro-origin Warehouse handoff source-reference preservation.
+- Task: add an Allegro-specific verifier case proving the Warehouse fulfillment handoff payload preserves safe source references and excludes raw provider/tracking/customer fields.
+- Execution Plan: source verifier only; no runtime code change, DB migration, deploy, live order mutation, secret read, or raw provider payload.
+- Coding Prompt: preserve `channel=allegro`, central `orderId`, external checkout reference as `orderNumber/reference`, line `reservationId`, `orderItemId`, `productId`, `warehouseId`, and quantity; reject raw provider/tracking/customer markers.
+- Code: `scripts/verify-order-fulfillment-handoff.js`.
+- Validation: `npm run build`, `npm run verify:order-fulfillment-handoff`, and `git diff --check`.
+
+Evidence:
+
+- The Allegro verifier fixture builds a central Orders record with `channel=allegro` and `externalOrderId=allegro-checkout-form-1001`.
+- The Warehouse handoff payload preserves central `orderId`, `channel=allegro`, `orderNumber/reference` from `externalOrderId`, and line-level `orderItemId`, `reservationId`, `productId`, `warehouseId`, and quantity.
+- The verifier rejects payload leakage markers: `rawData`, `trackingNumber`, `waybill`, `buyerEmail`, `buyerLogin`, and `providerPayload`.
+
+Remaining gates:
+
+- `[PROVEN: Orders source-reference preservation for synthetic Allegro Warehouse fulfillment handoff payloads.]`
+- `[MISSING: live Allegro-origin central order with fulfilled reservations for runtime Warehouse handoff join smoke.]`
+- `[MISSING: approved durable Warehouse adapter ledger for checkout-form status observations.]`
+- `[MISSING: approved timestamp ordering/replay semantics for Allegro updatedAt, local observation time, and Warehouse transition occurredAt.]`
+- `[MISSING: owner approval before Warehouse runtime adapter, Allegro projection migration, deployment, or production fulfillment-row mutation.]`
+
+Next action:
+
+- Decide durable Warehouse adapter ledger ownership, then implement disabled-by-default provider/status adapter code behind explicit runtime gates.
+
 ## 2026-07-03 - Warehouse Allegro Checkout Fulfillment Mapping Integrated
 
 Intent chain:

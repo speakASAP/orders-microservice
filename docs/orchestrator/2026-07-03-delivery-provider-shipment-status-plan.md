@@ -66,6 +66,8 @@ Exact blockers:
 - `[LANDED: Allegro shipment source contract in allegro commit 2183fe8, including endpoint choice, snapshot contract, idempotency/timestamp/retry rules, and sanitized fixture requirements.]`
 - `[LANDED: Warehouse docs-level shipment snapshot consumer contract in warehouse-microservice commit d90bd93; runtime mapping fixtures/adapter remain gated.]`
 - `[LANDED: Warehouse provisional Allegro checkout-form fulfillment status mapping in warehouse-microservice commit b44ea08; runtime adapter remains gated.]`
+- `[LANDED: sanitized Allegro checkout-form fulfillment enum fixtures in allegro commit fc94b5d.]`
+- `[PROVEN: Orders source-reference preservation for synthetic Allegro Warehouse fulfillment handoff payloads.]`
 - `[LANDED: P3 sensitive-data policy in Orders commit 6743613; tracking number, tracking URL, raw provider payloads, credentials, customer address/contact data, and raw provider responses are excluded from events/logs/handoffs by default.]`
 - `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
 - `[PROVEN: live-listed Allegro checkout-form list/detail/shipments and carrier-tracking read capability in allegro commit 795e7e0.]`
@@ -115,7 +117,7 @@ Merge order:
 
 1. Provider source approval docs.
 2. Allegro shipment source contract and sensitive-data policy. Completed for source contract in Allegro `2183fe8`; sensitive-data policy in Orders `6743613`.
-3. Warehouse bounded status intake and mapping contracts. Completed in Warehouse `f104202`, `d90bd93`, and `b44ea08`; implementation/tests remain gated by sanitized fixtures, source-reference preservation, adapter source, and idempotency ledger decision.
+3. Warehouse bounded status intake and mapping contracts. Completed in Warehouse `f104202`, `d90bd93`, and `b44ea08`; implementation/tests remain gated by durable adapter ledger ownership, timestamp/replay policy, adapter source, and owner approval.
 4. Allegro-owned disabled-by-default read-only provider adapter and fixture tests, using live-listed checkout-form correlation unless local projection correlation is fixed.
 5. Orders verifier/doc update only if the Warehouse status enum or event projection changes.
 6. Notifications copy/routing validation only after bounded Orders event evidence exists.
