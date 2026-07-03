@@ -4,7 +4,7 @@
   "channel": "unknown-marketplace",
   "proofMode": "service_scoped_proxy",
   "checkedAt": "2026-07-03T09:30:00.000Z",
-  "ordersEvidenceCommit": "HEAD",
+  "ordersEvidenceCommit": "0123456789abcdef0123456789abcdef01234567",
   "mutationEvidence": {
     "source": "smoke:lifecycle-mutation",
     "approvalId": "negative-unknown-channel-fixture",

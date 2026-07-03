@@ -19,7 +19,7 @@ A valid report is JSON with these top-level fields:
 - `channel`: one of `flipflop`, `heureka`, `bazos`, `aukro`, or `allegro`; for the first lane this must be `flipflop`.
 - `proofMode`: one of `safe_human_session` or `service_scoped_proxy`.
 - `checkedAt`: ISO timestamp.
-- `ordersEvidenceCommit`: current Orders repository `HEAD` or commit used for the proof.
+- `ordersEvidenceCommit`: immutable 40-character lowercase git commit hash used for the proof; `HEAD` is not valid for `status=proven`. ordersEvidenceCommit must be an immutable git commit hash for proven reports.
 - `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, required `expectedLifecycleStage` for `status=proven`, and optional `artifactHash`.
 - `routes`: non-empty array of route evidence entries.
 - `refreshMechanism`: one of `manual_refresh`, `visible_polling_30s`, `full_reload`, or `api_backed_render_probe`.
@@ -92,5 +92,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-mismatched-stage.json` must be rejected because customer/admin rendered stages diverge from `mutationEvidence.expectedLifecycleStage`.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-unknown-channel.json` must be rejected because the report channel is not one of the approved sellable marketplaces.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-proof-mode-mismatch.json` must be rejected because route `authContext` does not match report-level `proofMode`.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-head-commit.json` must be rejected because `ordersEvidenceCommit=HEAD` is not immutable proof evidence.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

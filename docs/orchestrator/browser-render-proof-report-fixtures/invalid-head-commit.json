@@ -4,11 +4,11 @@
   "channel": "flipflop",
   "proofMode": "service_scoped_proxy",
   "checkedAt": "2026-07-03T09:30:00.000Z",
-  "ordersEvidenceCommit": "0123456789abcdef0123456789abcdef01234567",
+  "ordersEvidenceCommit": "HEAD",
   "mutationEvidence": {
     "source": "smoke:lifecycle-mutation",
-    "approvalId": "sanitized-fixture",
-    "summary": "Sanitized fixture: lifecycle reached warehouse_collecting in customer and admin read models.",
+    "approvalId": "negative-head-commit-fixture",
+    "summary": "Negative fixture intentionally uses HEAD instead of an immutable Orders commit.",
     "artifactHash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     "expectedLifecycleStage": "warehouse_collecting"
   },
@@ -56,7 +56,7 @@
     "artifactsRedacted": true
   },
   "result": {
-    "summary": "Sanitized fixture validates customer and admin report contract coverage only.",
-    "nextAction": "Replace with approved real proof report path after browser validation."
+    "summary": "Negative fixture must be rejected because proven reports require immutable commit hashes.",
+    "nextAction": "Use the exact Orders commit hash used for proof."
   }
 }

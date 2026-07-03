@@ -12,6 +12,7 @@ const invalidPublicShellFixturePath = path.join(root, 'docs/orchestrator/browser
 const invalidMismatchedStageFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mismatched-stage.json');
 const invalidUnknownChannelFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-unknown-channel.json');
 const invalidProofModeMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-proof-mode-mismatch.json');
+const invalidHeadCommitFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-head-commit.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -97,6 +98,7 @@ function validateContract() {
     '`BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`',
     '[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]',
     '[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]',
+    'ordersEvidenceCommit must be an immutable git commit hash for proven reports',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -104,6 +106,11 @@ function validateFixtures() {
   const validFixture = validateReport(read(validFixturePath));
   assert.equal(validFixture.status, 'proven', 'valid browser proof fixture must be proven');
   assert.equal(validFixture.channel, 'flipflop', 'valid browser proof fixture must cover first FlipFlop lane');
+  assert.equal(
+    /^[0-9a-f]{40}$/.test(validFixture.ordersEvidenceCommit),
+    true,
+    'valid browser proof fixture must use immutable Orders commit hash',
+  );
   assert.equal(
     validFixture.mutationEvidence.expectedLifecycleStage,
     'warehouse_collecting',
@@ -144,6 +151,11 @@ function validateFixtures() {
     /route authContext must match report proofMode/,
     'invalid proof-mode mismatch fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidHeadCommitFixturePath)),
+    /ordersEvidenceCommit must be an immutable git commit hash for proven reports/,
+    'invalid HEAD commit fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -151,6 +163,7 @@ function validateFixtures() {
     invalidMismatchedStageFixture: path.relative(root, invalidMismatchedStageFixturePath),
     invalidUnknownChannelFixture: path.relative(root, invalidUnknownChannelFixturePath),
     invalidProofModeMismatchFixture: path.relative(root, invalidProofModeMismatchFixturePath),
+    invalidHeadCommitFixture: path.relative(root, invalidHeadCommitFixturePath),
   };
 }
 
@@ -198,6 +211,11 @@ function validateReport(rawReport) {
     assert.equal(Boolean(route.artifact.sha256 || route.artifact.path), true, `route ${index} artifact sha256 or path is required`);
   }
   if (report.status === 'proven') {
+    assert.equal(
+      /^[0-9a-f]{40}$/.test(report.ordersEvidenceCommit),
+      true,
+      'ordersEvidenceCommit must be an immutable git commit hash for proven reports',
+    );
     assert.equal(report.centralReadModelBacked, true, 'proven report must be centralReadModelBacked');
     assert.equal(report.routes.some((route) => route.httpStatus >= 200 && route.httpStatus < 400), true, 'proven report needs a 2xx/3xx route');
     assert.equal(report.routes.some((route) => route.renderedLifecycleLabel.trim()), true, 'proven report needs rendered lifecycle label');

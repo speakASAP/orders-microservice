@@ -4,7 +4,7 @@
   "channel": "flipflop",
   "proofMode": "service_scoped_proxy",
   "checkedAt": "2026-07-03T09:40:00.000Z",
-  "ordersEvidenceCommit": "HEAD",
+  "ordersEvidenceCommit": "0123456789abcdef0123456789abcdef01234567",
   "mutationEvidence": {
     "source": "anonymous_public_shell_preflight",
     "approvalId": "negative-public-shell-fixture",
