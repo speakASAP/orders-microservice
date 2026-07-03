@@ -54,21 +54,35 @@ const warehouseRoot = repoPath('WAREHOUSE_REPO_PATH', DEFAULT_WAREHOUSE_PATHS);
 const runtimeGateReportPath = 'reports/validation/shipment-runtime-readiness/allegro-warehouse-runtime-gate-current.json';
 const runtimeGateReport = JSON.parse(requireFile(ordersRoot, runtimeGateReportPath));
 assert.equal(runtimeGateReport.schemaVersion, 'orders.shipment_runtime_gate.v1', 'shipment runtime gate report schema mismatch');
-assert.equal(runtimeGateReport.status, 'runtime_deployed_correlation_disabled', 'shipment runtime gate must stay disabled until approved');
-assert.equal(runtimeGateReport.runtimeEvidence.deployments.warehouse.image, 'localhost:5000/warehouse-microservice:174f92e', 'Warehouse runtime image evidence mismatch');
-assert.equal(runtimeGateReport.runtimeEvidence.deployments.allegro.image, 'localhost:5000/allegro-service:ae9d381', 'Allegro runtime image evidence mismatch');
+assert.equal(runtimeGateReport.status, 'runtime_proven_allegro_warehouse_orders', 'shipment runtime gate must record the proven Allegro -> Warehouse -> Orders path');
+assert.equal(runtimeGateReport.runtimeEvidence.deployments.orders.image, 'localhost:5000/orders-microservice:ad83d15', 'Orders runtime image evidence mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.deployments.warehouse.image, 'localhost:5000/warehouse-microservice:2553452', 'Warehouse runtime image evidence mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.deployments.allegro.image, 'localhost:5000/allegro-service:0cfe401', 'Allegro runtime image evidence mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.appliedMigrations.includes('CreateFulfillmentProviderShipmentCorrelations1781700000000'), true, 'Warehouse correlation migration must be applied at runtime');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.appliedMigrations.includes('CreateFulfillmentProviderStatusObservations1781600000000'), true, 'Warehouse provider status observation migration must be applied at runtime');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.deadLetterEnv, 'set', 'Allegro runtime must have dead-letter env set');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.correlationEnabledEnv, 'missing', 'Allegro correlation gate must remain disabled until approved');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.disabledGateSmoke.posted, 0, 'disabled-gate smoke must not post Warehouse correlations');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.disabledGateSmoke.disabled, 1, 'disabled-gate smoke must prove disabled producer path');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.disabledGateSmoke.reason, 'ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED_NOT_TRUE', 'disabled-gate smoke reason mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.correlationEnabledEnv, 'true', 'Allegro correlation gate must be explicitly enabled for the proven smoke');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.warehouseServiceTokenPresent, true, 'Allegro runtime must have a Warehouse-capable service token');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.posted, 1, 'sanitized replay must post exactly one Warehouse correlation');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.disabled, 0, 'enabled replay must not be disabled');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.blocked, 0, 'enabled replay must not be blocked');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.failed, 0, 'enabled replay must not fail');
+assert.equal(runtimeGateReport.runtimeEvidence.warehouse.correlationReadback.correlations, 1, 'Warehouse correlation readback mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.warehouse.correlationReadback.idempotent, true, 'Warehouse correlation must be idempotent');
+assert.equal(runtimeGateReport.runtimeEvidence.warehouse.providerStatusReadback.observations, 1, 'Warehouse provider observation readback mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.warehouse.providerStatusReadback.latestDecision, 'accepted', 'Warehouse provider observation decision mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.warehouse.providerStatusReadback.latestNormalizedWarehouseStatus, 'in_delivery', 'Warehouse normalized status mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.warehouse.fulfillmentMutation.statusMutationApplied, true, 'Warehouse fulfillment status mutation must be proven');
+assert.equal(runtimeGateReport.runtimeEvidence.warehouse.fulfillmentMutation.fulfillmentStatus, 'in_delivery', 'Warehouse fulfillment status readback mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.orders.warehouseCallbackReadback.centralStatus, 'shipped', 'Orders central status readback mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.orders.warehouseCallbackReadback.paymentStatus, 'paid', 'Orders payment status readback mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.orders.warehouseCallbackReadback.projectionReceived, true, 'Orders callback projection must be proven');
+assert.equal(runtimeGateReport.policy.boundedApprovedRuntimeSmoke, true, 'runtime smoke must be explicitly bounded/approved in evidence');
 assert.equal(runtimeGateReport.policy.rawTrackingDisplayed, false, 'shipment gate report must not expose raw tracking values');
 assert.equal(runtimeGateReport.policy.rawProviderPayloadDisplayed, false, 'shipment gate report must not expose raw provider payloads');
 assert.equal(runtimeGateReport.policy.customerPiiDisplayed, false, 'shipment gate report must not expose customer PII');
 assert.equal(runtimeGateReport.policy.secretsDisplayed, false, 'shipment gate report must not expose secrets');
-assert.equal(runtimeGateReport.policy.productionFulfillmentMutation, false, 'shipment gate report must not mutate production fulfillment status');
+assert.equal(runtimeGateReport.policy.rawDatabaseRowsDisplayed, false, 'shipment gate report must not expose raw DB rows');
 
 const ordersLifecycle = requireFile(ordersRoot, 'src/orders/order-lifecycle.ts');
 for (const stage of [
@@ -99,6 +113,12 @@ assertContains(
   "@Post('order/:orderId/provider-shipment-correlations')",
   'Warehouse must expose provider shipment correlation registration endpoint',
 );
+assertContains(
+  warehouseController,
+  "@Post('provider-status/allegro-shipment-snapshots')",
+  'Warehouse must expose provider status snapshot endpoint',
+);
+assertContains(warehouseController, 'statusMutationApplied', 'Warehouse snapshot intake must report status mutation result');
 assertContains(warehouseController, 'ProviderShipmentCorrelationDto', 'Warehouse endpoint must use bounded DTO');
 
 const warehouseMigration = requireFile(warehouseRoot, 'src/migrations/1781700000000-CreateFulfillmentProviderShipmentCorrelations.ts');
@@ -110,6 +130,11 @@ assertContains(warehouseService, 'registerCorrelation', 'Warehouse must register
 assertContains(warehouseService, 'resolveAllegroShipmentSnapshot', 'Warehouse must resolve sanitized Allegro shipment snapshots');
 assertContains(warehouseService, 'buildAllegroSourceReferenceHash', 'Warehouse must expose the shared source-reference hash builder');
 assertNotContains(warehouseService, ['trackingNumber', 'trackingUrl', 'buyerEmail', 'shippingAddress'], 'Warehouse correlation service must not persist raw provider/customer fields');
+
+const warehouseStatusAdapter = requireFile(warehouseRoot, 'src/fulfillment/fulfillment-provider-status-snapshot-adapter.service.ts');
+assertContains(warehouseStatusAdapter, 'DELIVERED', 'Warehouse status adapter must understand delivered provider state');
+assertContains(warehouseStatusAdapter, 'in_delivery', 'Warehouse status adapter must map in-transit provider state');
+assertContains(warehouseStatusAdapter, 'FORBIDDEN_SNAPSHOT_KEYS', 'Warehouse status adapter must reject raw provider/customer fields');
 
 const allegroClient = requireFile(allegroRoot, 'services/allegro-service/src/allegro/shipments/warehouse-shipment-correlation.client.ts');
 assertContains(
@@ -129,16 +154,18 @@ assertContains(allegroReplay, 'writesAllowed', 'Allegro replay metadata must dec
 const allegroDeployment = requireFile(allegroRoot, 'k8s/deployment.yaml');
 assertContains(allegroDeployment, 'allegro-shipment-dead-letter-data', 'Allegro deployment must declare dead-letter PVC');
 assertContains(allegroDeployment, 'ALLEGRO_SHIPMENT_DEAD_LETTER_DIR', 'Allegro deployment must configure writer-compatible dead-letter env');
+assertContains(allegroDeployment, 'ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED', 'Allegro deployment must declare the approved correlation enablement env');
 assertContains(allegroDeployment, 'persistentVolumeClaim', 'Allegro dead-letter storage must be PVC-backed in source');
 
 const allegroConfig = requireFile(allegroRoot, 'k8s/configmap.yaml');
 assertContains(allegroConfig, 'ALLEGRO_SHIPMENT_DEAD_LETTER_DIR', 'Allegro configmap must expose dead-letter env');
+assertContains(allegroConfig, 'ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED', 'Allegro configmap must expose approved correlation enablement');
 
 const remainingGates = runtimeGateReport.remainingGates;
 
 const result = {
   schemaVersion: 'orders.shipment_runtime_readiness.v1',
-  status: 'source_ready_runtime_gated',
+  status: 'runtime_proven_optional_provider_gates',
   checkedAt: new Date().toISOString(),
   repositories: {
     orders: ordersRoot,
@@ -149,20 +176,24 @@ const result = {
     ordersLifecycleStages: 'verified',
     ordersLateStageVerifierCoverage: 'verified',
     warehouseCorrelationEndpoint: 'verified',
+    warehouseStatusSnapshotEndpoint: 'verified',
     warehouseCorrelationMigration: 'verified',
     warehouseRawFieldExclusion: 'verified',
-    allegroDisabledProducer: 'verified',
+    allegroProducerGate: 'verified_enabled_for_bounded_smoke',
     allegroDeadLetterPvcAndEnv: 'verified',
     allegroRawFieldExclusion: 'verified',
   },
   runtimeEvidence: {
     gateReport: runtimeGateReportPath,
     k3s: runtimeGateReport.runtimeEvidence.k3s,
+    ordersDeployment: runtimeGateReport.runtimeEvidence.deployments.orders.image,
     warehouseDeployment: runtimeGateReport.runtimeEvidence.deployments.warehouse.image,
     allegroDeployment: runtimeGateReport.runtimeEvidence.deployments.allegro.image,
     warehouseMigrationsApplied: runtimeGateReport.runtimeEvidence.warehouse.appliedMigrations.length,
     allegroCorrelationGate: runtimeGateReport.runtimeEvidence.allegro.correlationEnabledEnv,
-    disabledGateSmokeReason: runtimeGateReport.runtimeEvidence.allegro.disabledGateSmoke.reason,
+    sanitizedReplayPosted: runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.posted,
+    warehouseObservationStatus: runtimeGateReport.runtimeEvidence.warehouse.providerStatusReadback.latestNormalizedWarehouseStatus,
+    ordersCentralStatus: runtimeGateReport.runtimeEvidence.orders.warehouseCallbackReadback.centralStatus,
   },
   remainingGates,
 };
