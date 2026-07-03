@@ -391,3 +391,6 @@ enablement was run.
 
 
 2026-07-03 continuation: Diagnosed the FlipFlop rendered lifecycle blocker. Orders warehouse update was already persisted on the central order (`warehouseHandoff.status=fulfilled`, fulfillment warehouse status `collecting`), but FlipFlop fell back from missing `/api/orders/:id/lifecycle` to raw `/api/orders/:id` and therefore rendered `processing`. Added Orders lifecycle detail projection with top-level `lifecycleStage` and lifecycle `status` for legacy channel clients, preserving raw order status as `rawStatus`. Validation passed: `npm test` in `/tmp/orders-worktrees/orders-integrate-warehouse-checkout-mapping`. Remaining gates: deploy Orders lifecycle detail endpoint and rerun authenticated FlipFlop customer/admin rendered proof.
+
+
+2026-07-03 follow-up: Post-deploy smoke of `d8ac74d` proved the FlipFlop normalizer reads nested `lifecycle.status` before top-level `lifecycleStage`; Orders lifecycle detail projection now sets nested `lifecycle.stage` and `lifecycle.status` to the canonical lifecycle stage while preserving raw order status as `lifecycle.rawStatus` and top-level `rawStatus`. Validation passed: `npm test`.

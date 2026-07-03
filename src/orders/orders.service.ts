@@ -478,6 +478,12 @@ export class OrdersService {
 
     return {
       ...model,
+      lifecycle: {
+        ...model.lifecycle,
+        stage: model.lifecycle.lifecycleStage,
+        status: model.lifecycle.lifecycleStage,
+        rawStatus: model.lifecycle.status,
+      },
       lifecycleStage: model.lifecycle.lifecycleStage,
       status: model.lifecycle.lifecycleStage,
       rawStatus: model.status,

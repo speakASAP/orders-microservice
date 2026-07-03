@@ -196,12 +196,21 @@ const channelLifecycleDetail = (() => {
   });
   return {
     ...model,
+    lifecycle: {
+      ...model.lifecycle,
+      stage: model.lifecycle.lifecycleStage,
+      status: model.lifecycle.lifecycleStage,
+      rawStatus: model.lifecycle.status,
+    },
     lifecycleStage: model.lifecycle.lifecycleStage,
     status: model.lifecycle.lifecycleStage,
     rawStatus: model.status,
     statusProjection: model.lifecycle.statusProjection,
   };
 })();
+assert.equal(channelLifecycleDetail.lifecycle.stage, 'warehouse_collecting');
+assert.equal(channelLifecycleDetail.lifecycle.status, 'warehouse_collecting');
+assert.equal(channelLifecycleDetail.lifecycle.rawStatus, 'processing');
 assert.equal(channelLifecycleDetail.lifecycleStage, 'warehouse_collecting');
 assert.equal(channelLifecycleDetail.status, 'warehouse_collecting');
 assert.equal(channelLifecycleDetail.rawStatus, 'processing');

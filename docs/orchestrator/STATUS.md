@@ -5308,3 +5308,6 @@ Remaining gates:
 
 - `[MISSING: deploy Orders lifecycle detail endpoint]`
 - `[MISSING: rerun FlipFlop authenticated customer/admin rendered browser proof after deploy]`
+
+
+Follow-up evidence: post-deploy smoke of `d8ac74d` showed FlipFlop still normalized `lifecycle.status=processing` before top-level `lifecycleStage`. The detail projection now also exposes nested `lifecycle.stage=warehouse_collecting`, `lifecycle.status=warehouse_collecting`, and `lifecycle.rawStatus=processing`; verifier coverage was extended for this legacy adapter order.
