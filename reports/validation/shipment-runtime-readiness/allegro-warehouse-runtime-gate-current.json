@@ -1,7 +1,7 @@
 {
   "schemaVersion": "orders.shipment_runtime_gate.v1",
   "status": "runtime_proven_source_hardened_minimal_token_projected",
-  "checkedAt": "2026-07-03T17:55:00.000000Z",
+  "checkedAt": "2026-07-03T20:24:30.311380Z",
   "runtimeEvidence": {
     "k3s": "recovered_verified",
     "deployments": {
@@ -22,7 +22,7 @@
       "allegro": {
         "name": "allegro-service",
         "namespace": "statex-apps",
-        "image": "localhost:5000/allegro-service:b6cd31a",
+        "image": "localhost:5000/allegro-service:c979768",
         "readyReplicas": 1,
         "replicas": 1
       }
@@ -41,17 +41,17 @@
       "correlationEndpointSource": "verified",
       "providerStatusSnapshotEndpoint": "verified",
       "correlationReadback": {
-        "correlations": 1,
+        "correlations": 3,
         "idempotent": true
       },
       "providerStatusReadback": {
-        "observations": 4,
+        "observations": 6,
         "latestDecision": "accepted",
-        "latestNormalizedWarehouseStatus": "returned"
+        "latestNormalizedWarehouseStatus": "not_delivered"
       },
       "fulfillmentMutation": {
         "statusMutationApplied": true,
-        "fulfillmentStatus": "returned"
+        "fulfillmentStatus": "not_delivered"
       },
       "supplementalAggregateCountsAfterNoCentralOrderSmoke": {
         "correlations": 1,
@@ -77,6 +77,19 @@
         "observationDecision": "accepted",
         "normalizedWarehouseStatus": "returned",
         "fulfillmentStatus": "returned",
+        "tokenPrinted": false,
+        "rawPayloadPrinted": false,
+        "rawIdsPrinted": false
+      },
+      "syntheticIssueProviderFixture": {
+        "httpStatus": 201,
+        "success": true,
+        "statusMutationApplied": true,
+        "observationDecision": "accepted",
+        "normalizedWarehouseStatus": "not_delivered",
+        "fulfillmentStatus": "not_delivered",
+        "customerSawNotReceived": true,
+        "adminSawNotReceived": true,
         "tokenPrinted": false,
         "rawPayloadPrinted": false,
         "rawIdsPrinted": false
@@ -246,7 +259,7 @@
     },
     "orders": {
       "warehouseCallbackReadback": {
-        "centralStatus": "returned",
+        "centralStatus": "not_received",
         "paymentStatus": "paid",
         "projectionReceived": true,
         "syntheticDeliveredProviderFixture": {
@@ -260,6 +273,17 @@
           "previousLifecycleStage": "received",
           "requestedWarehouseStatus": "returned",
           "resultingLifecycleStage": "returned",
+          "actor": "service:warehouse-microservice",
+          "printedRawOrderId": false
+        },
+        "syntheticIssueProviderFixture": {
+          "requestedWarehouseStatus": "not_delivered",
+          "resultingLifecycleStage": "not_received",
+          "detailLifecycleHttpStatus": 200,
+          "customerLifecycleHttpStatus": 200,
+          "adminLifecycleHttpStatus": 200,
+          "customerSawNotReceived": true,
+          "adminSawNotReceived": true,
           "actor": "service:warehouse-microservice",
           "printedRawOrderId": false
         }
@@ -276,7 +300,6 @@
     "statusOnlyTrackingVisibilityApproved": true
   },
   "remainingGates": [
-    "synthetic ISSUE/not_delivered runtime proof requires a fresh in_delivery fixture because current fulfillment is returned",
     "future production evidence from real Allegro.cz customer/provider shipment when marketplace traffic exists",
     "optional future audited full-tracking reveal API if product/security approves it"
   ],

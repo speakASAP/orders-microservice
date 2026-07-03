@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "orders.allegro_synthetic_issue_provider_fixture.v1",
+  "status": "synthetic_provider_issue_lifecycle_proven",
+  "checkedAt": "2026-07-03T20:24:30.311380Z",
+  "scope": {
+    "channel": "allegro",
+    "mode": "approved_synthetic_preproduction_provider_fixture",
+    "realAllegroCustomerRequired": false,
+    "providerWrite": false,
+    "warehouseMutation": true,
+    "ordersMutation": true,
+    "customerCabinetVisibilityChecked": true,
+    "adminCabinetVisibilityChecked": true,
+    "deploy": false,
+    "runtimeSecretChange": false
+  },
+  "fixture": {
+    "source": "fresh_synthetic_allegro_order_fulfillment_progressed_to_in_delivery",
+    "latestStatus": "ISSUE",
+    "identityFields": "hashed_provider_identity_only",
+    "rawTrackingDisplayed": false,
+    "rawWaybillDisplayed": false,
+    "rawProviderPayloadDisplayed": false,
+    "rawOrderIdsDisplayed": false,
+    "customerPiiDisplayed": false
+  },
+  "ordersCreateAndFulfillmentSetup": {
+    "createHttpStatus": 201,
+    "paymentHttpStatus": 200,
+    "warehouseProgression": [
+      {
+        "status": "collecting",
+        "httpStatus": 201,
+        "success": true
+      },
+      {
+        "status": "forming",
+        "httpStatus": 201,
+        "success": true
+      },
+      {
+        "status": "formed",
+        "httpStatus": 201,
+        "success": true
+      },
+      {
+        "status": "handed_to_delivery",
+        "httpStatus": 201,
+        "success": true
+      },
+      {
+        "status": "in_delivery",
+        "httpStatus": 201,
+        "success": true
+      }
+    ],
+    "fulfillmentStatusBeforeProviderIssue": "in_delivery",
+    "tokenPrinted": false,
+    "rawIdsPrinted": false,
+    "customerPiiPrinted": false
+  },
+  "warehousePost": {
+    "correlationHttpStatus": 201,
+    "providerStatusHttpStatus": 201,
+    "success": true,
+    "statusMutationApplied": true,
+    "observationDecision": "accepted",
+    "normalizedWarehouseStatus": "not_delivered",
+    "fulfillmentStatus": "not_delivered",
+    "tokenPrinted": false,
+    "rawPayloadPrinted": false,
+    "rawIdsPrinted": false
+  },
+  "warehouseReadback": {
+    "sourceStatusClasses": [
+      "UNKNOWN",
+      "IN_TRANSIT",
+      "DELIVERED",
+      "RETURNED",
+      "ISSUE"
+    ],
+    "latestSourceStatusClass": "ISSUE",
+    "latestNormalizedWarehouseStatus": "not_delivered",
+    "latestDecision": "accepted",
+    "fulfillmentStatus": "not_delivered",
+    "aggregateCounts": {
+      "activeCorrelations": 3,
+      "observations": 6,
+      "issueAcceptedNotDelivered": 2
+    },
+    "printedRawIds": false,
+    "printedRawRows": false
+  },
+  "ordersCallbackReadback": {
+    "requestedWarehouseStatus": "not_delivered",
+    "resultingLifecycleStage": "not_received",
+    "detailLifecycleHttpStatus": 200,
+    "customerLifecycleHttpStatus": 200,
+    "adminLifecycleHttpStatus": 200,
+    "customerSawNotReceived": true,
+    "adminSawNotReceived": true,
+    "actor": "service:warehouse-microservice",
+    "printedRawOrderId": false
+  },
+  "remainingGates": [
+    "future production evidence from real Allegro.cz customer/provider shipment when marketplace traffic exists",
+    "optional future audited full-tracking reveal API if product/security approves it"
+  ]
+}
