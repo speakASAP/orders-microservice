@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "orders.allegro_buyer_browser_render_artifact.v1",
+  "checkedAt": "2026-07-03T16:39:38.895Z",
+  "channel": "allegro",
+  "surface": "customer_cabinet",
+  "url": "https://allegro.alfares.cz/cabinet/orders",
+  "documentStatus": 200,
+  "dataSourceStatus": 200,
+  "renderedLifecycleStage": "ordered_unpaid",
+  "renderedLifecycleLabel": "Ordered / awaiting payment",
+  "pageSummary": {
+    "hasMyOrdersHeader": true,
+    "orderCountTextPresent": true,
+    "articleCount": 1,
+    "lifecycleLabelCount": 1
+  },
+  "redactedDomTextSha256": "c6984e65d23eb7ac2171a2b26ac0a64e5c945b1ea6c914eaf12f1e28bdee582a",
+  "redacted": true,
+  "tokenValuesPrinted": false,
+  "rawOrderRowsPrinted": false,
+  "customerPiiPrinted": false,
+  "providerPayloadPrinted": false,
+  "rawDomStored": false
+}

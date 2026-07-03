@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "orders.allegro_buyer_browser_render_proof.v1",
+  "checkedAt": "2026-07-03T16:39:38.896Z",
+  "channel": "allegro",
+  "status": "visible_buyer_browser_proof_collected_and_cleaned",
+  "proofMode": "service_scoped_proxy",
+  "mutationEvidence": {
+    "source": "approved_bounded_fixture",
+    "summary": "Created one subject-bound Allegro fixture, rendered /cabinet/orders in isolated headless Chrome, then cleaned local projection and central Orders/Warehouse reservation.",
+    "expectedLifecycleStage": "ordered_unpaid",
+    "artifactPath": "reports/validation/channel-lifecycle-runtime-evidence/allegro-buyer-bounded-lifecycle-proven.json"
+  },
+  "route": {
+    "surface": "customer_cabinet",
+    "url": "https://allegro.alfares.cz/cabinet/orders",
+    "httpStatus": 200,
+    "dataSourceStatus": 200,
+    "renderedLifecycleLabel": "Ordered / awaiting payment",
+    "renderedLifecycleStage": "ordered_unpaid",
+    "artifact": {
+      "kind": "redacted_dom_evidence_json",
+      "path": "reports/validation/orders-browser-render-proof/allegro-buyer-visible-browser-artifact.json",
+      "redacted": true
+    },
+    "authContext": "service_scoped_proxy"
+  },
+  "cleanup": {
+    "allegroProjectionDeleted": true,
+    "ordersCleanupStatus": "cleanup_complete",
+    "ordersCleanupCandidateCount": 1,
+    "warehouseCancelledCount": 1,
+    "warehouseFailedCount": 0
+  },
+  "evidencePolicy": {
+    "noTokenValues": true,
+    "noCustomerPii": true,
+    "noRawOrderRows": true,
+    "noProviderPayload": true,
+    "noRawDomStored": true,
+    "syntheticOrderLeftOpen": false
+  },
+  "result": {
+    "summary": "visible_buyer_browser_proof_collected_and_cleaned",
+    "nextAction": "If product requires full common browser proof, add an Allegro admin surface or extend the common proof contract for buyer-only marketplace cabinets."
+  }
+}
