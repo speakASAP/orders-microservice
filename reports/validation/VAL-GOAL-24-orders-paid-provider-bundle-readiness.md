@@ -34,6 +34,14 @@ Source conclusion for the remaining blockers in this lane:
 - `[RESOLVED/NARROWED: Orders source requires approvalType=human, named actor/approvedBy, safe Goal 24 reason code, optional sanitized approval.idempotencyKey, and sideEffectsHandled.payment|warehouse|notification|crm|channel=true before Warehouse cancel]`
 - `[MISSING: owner-approved refund/post-fulfillment cancellation workflow that maps to Orders/Warehouse without inferred stock effects]`: provider rollback proof and cross-service owner acknowledgements remain missing because Orders has no approved Payments refund event intake and no normal paid-to-refunded payment-status transition.
 
+## Orders Correction Runtime Packet Lane
+
+This lane resolves/narrows the Orders-owned packet shape without selecting a live order or running a route. The future smoke must provide `route=PUT /api/orders/:id/status`, `targetOrderHash`, `targetOrderState`, named human `actor` or `approvedBy`, `approvalType=human`, reason `GOAL24_PAID_PROVIDER_ROLLBACK` or `GOAL24_PROVIDER_UNPAID_CANCEL`, sanitized `idempotencyKey`, all `sideEffectsHandled.payment|warehouse|notification|crm|channel=true`, Payments-owned `providerEvidenceHash` or unpaid no-provider-cancel acknowledgement, Warehouse operation decision, and accepted redaction plan.
+
+Resolved/narrowed in Orders: `[RESOLVED/NARROWED: owner-approved Orders cancellation/refund correction packet shape is defined as route, targetOrderHash/state, actor/approvedBy, human approval, safe reason, sanitized idempotency key, all side-effect acknowledgements, provider evidence hash, Warehouse decision, and redaction acceptance]`.
+
+Still missing because this lane did not run live mutations or inspect raw orders: `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]`, `[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]`, `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement]`, and `[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]`.
+
 ## Evidence Reviewed
 
 Catalog current Goal 24 state records:
@@ -72,6 +80,10 @@ Orders sources reviewed:
 - `[MISSING: owner-approved paid/provider payment provider source and callback contract]`
 - `[RESOLVED/NARROWED: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke at source-policy level in Warehouse 3043cad; live stock window and max quantity remain missing]`
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]`
+- `[RESOLVED/NARROWED: owner-approved Orders cancellation/refund correction packet shape is defined as route, targetOrderHash/state, actor/approvedBy, human approval, safe reason, sanitized idempotency key, all side-effect acknowledgements, provider evidence hash, Warehouse decision, and redaction acceptance]`
+- `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]`
+- `[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]`
+- `[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]`
 - `[RESOLVED: FlipFlop active checkout payment creation passes central Orders UUIDs to Payments from source]`
 - `[RESOLVED/PARTIAL: Orders/Payments provider-success, provider-cancel, and provider-failure event mapping before fulfillment]`
 - `[MISSING: owner-approved refund/post-fulfillment cancellation workflow that maps to Orders/Warehouse without inferred stock effects]`

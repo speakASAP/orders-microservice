@@ -125,6 +125,26 @@ for (const required of [
   'return` is not a default paid-provider refund cleanup path',
   'cancellation plus Warehouse `cancel` with `ORDER_CANCELLED`',
   'Unknown Warehouse component state',
+  'Owner-Approved Future Runtime Packet Shape',
+  'route`: `PUT /api/orders/:id/status` with `status=cancelled`',
+  'targetOrderHash',
+  'targetOrderState',
+  '`pending`, `confirmed`, or `processing`',
+  '`actor` or `approvedBy`',
+  'Payments service identity, channel service identity, and Codex operator identity alone are not sufficient',
+  '`approvalType`: `human`',
+  '`reasonCode`: `GOAL24_PAID_PROVIDER_ROLLBACK`',
+  '`GOAL24_PROVIDER_UNPAID_CANCEL` only for pre-completion unpaid cancellation',
+  '`idempotencyKey`: sanitized 8-160 character key',
+  '`sideEffectsHandled`: explicit `payment=true`, `warehouse=true`, `notification=true`, `crm=true`, and `channel=true`',
+  'providerEvidenceHash',
+  'warehouseDecision',
+  'redactionPlanAccepted',
+  '[RESOLVED/NARROWED: owner-approved Orders cancellation/refund correction packet shape is defined as route, targetOrderHash/state, actor/approvedBy, human approval, safe reason, sanitized idempotency key, all side-effect acknowledgements, provider evidence hash, Warehouse decision, and redaction acceptance]',
+  '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
+  '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
+  '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement]',
+  '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
 ]) {
   requireIncludes(rollbackReadiness, required, 'rollback readiness Fiobanka cleanup contract');
 }
@@ -202,6 +222,10 @@ for (const required of [
   '[RESOLVED/NARROWED: target order state matrix for Orders normal cancellation is pending|confirmed|processing -> cancelled; shipped/delivered/cancelled fail closed through the normal endpoint]',
   '[RESOLVED/NARROWED: Orders source requires approvalType=human, named actor/approvedBy, safe Goal 24 reason code, optional sanitized approval.idempotencyKey, and sideEffectsHandled.payment|warehouse|notification|crm|channel=true before Warehouse cancel]',
   '[MISSING: runtime verification of Payments Orders service token/role]',
+  '[RESOLVED/NARROWED: owner-approved Orders cancellation/refund correction packet shape is defined as route, targetOrderHash/state, actor/approvedBy, human approval, safe reason, sanitized idempotency key, all side-effect acknowledgements, provider evidence hash, Warehouse decision, and redaction acceptance]',
+  '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
+  '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
+  '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
 ]) {
   requireIncludes(report, required, 'readiness report blocker/evidence');
 }

@@ -107,6 +107,32 @@ A paid/provider `catalog.bundle.v1` bundle smoke is blocked until the packet nam
 - `[MISSING: channel/FlipFlop checkout cleanup owner for customer-visible session/cart/local projection state]`
 - `[MISSING: redacted evidence plan proving no tokens, raw provider payloads, card/customer data, raw DB rows, or raw order ids are printed]`
 
+## Owner-Approved Future Runtime Packet Shape
+
+The future Fiobanka paid/provider smoke must provide this packet before any Orders cancellation route is used. Until the packet is complete, Orders keeps `[MISSING: owner-approved Orders cancellation/refund correction actor, reason, sideEffectsHandled acknowledgement, and route]` and `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state]` open.
+
+Required sanitized fields:
+
+- `route`: `PUT /api/orders/:id/status` with `status=cancelled` for normal non-shipped cleanup; no other Orders route is approved for paid/provider correction cleanup in this source-policy lane.
+- `targetOrderHash`: redacted hash of the central Orders UUID; the raw UUID must not be printed in the packet or report.
+- `targetOrderState`: one of `pending`, `confirmed`, or `processing` for normal cancellation; `shipped`, `delivered/customer-received`, `cancelled`, or unknown states must fail closed or use a separately approved return/correction workflow.
+- `actor` or `approvedBy`: named human Orders cleanup approver/Auth subject. Payments service identity, channel service identity, and Codex operator identity alone are not sufficient.
+- `approvalType`: `human`.
+- `reasonCode`: `GOAL24_PAID_PROVIDER_ROLLBACK` for provider-refund/reversal/correction cleanup, or `GOAL24_PROVIDER_UNPAID_CANCEL` only for pre-completion unpaid cancellation.
+- `idempotencyKey`: sanitized 8-160 character key derived from approved/redacted facts only.
+- `sideEffectsHandled`: explicit `payment=true`, `warehouse=true`, `notification=true`, `crm=true`, and `channel=true` acknowledgements from the responsible owners for the same target order hash.
+- `providerEvidenceHash`: redacted hash of Payments-owned Fiobanka refund/reversal/correction evidence, or an unpaid no-provider-cancel acknowledgement for `GOAL24_PROVIDER_UNPAID_CANCEL`.
+- `warehouseDecision`: `release` before paid, `cancel` after provider-proven completed-transfer rollback on a non-delivered order, `return` only for a separately approved delivered/customer-received flow, line-by-line handling for partial states, and fail-closed no-op for unknown component states.
+- `redactionPlanAccepted`: true only when the evidence plan proves no token values, raw provider payloads, card/customer data, raw DB rows, bank references, raw payment identifiers, raw central Orders UUIDs, or raw channel order identifiers will be printed.
+
+Packet status for this lane:
+
+- `[RESOLVED/NARROWED: owner-approved Orders cancellation/refund correction packet shape is defined as route, targetOrderHash/state, actor/approvedBy, human approval, safe reason, sanitized idempotency key, all side-effect acknowledgements, provider evidence hash, Warehouse decision, and redaction acceptance]`.
+- `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]`.
+- `[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]`.
+- `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement]`.
+- `[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]`.
+
 ## Fail-Closed Policy
 
 - Manual Orders payment-state edits are not an acceptable rollback substitute.
