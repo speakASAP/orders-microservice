@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Heureka Rendered Proof Preflight Blocked By Auth Boundary
+
+Intent chain:
+
+- Vision: Heureka customer/admin dashboards must render a current central Orders lifecycle state for a fresh reliable Orders/Warehouse-created order.
+- Goal Impact: the route/API blocker is closed; the next blocker is proof-runner auth, not missing UI wiring.
+- System: Catalog owns product existence, Heureka owns ingestion/dashboard, Orders owns lifecycle/readback/cleanup, Warehouse owns reservation, Auth owns the short-lived admin bearer.
+- Feature: Heureka rendered lifecycle proof.
+- Task: run non-mutating preflight for the synthetic proof path and record exact blockers before order creation.
+- Execution Plan: run Heureka pod preflight without `--execute`, probe Orders read boundary with a synthetic missing id, and write sanitized Orders evidence.
+- Coding Prompt: no token values, raw rows, customer PII, DB dumps, provider payloads, payment refs, tracking values, raw DOM, or production order mutation.
+- Code: `docs/orchestrator/2026-07-03-heureka-rendered-proof-preflight-blocker.md` and `reports/validation/orders-browser-render-proof/heureka-rendered-proof-preflight-blocked.json`.
+- Validation: Heureka health 200, Warehouse stock 200, one reservable route, Heureka DB tables present; Catalog product preflight 401; Orders detail read with Heureka service identity 401.
+
+Remaining gate:
+
+- `[MISSING: approved Heureka synthetic rendered-proof runner with Catalog auth header and short-lived Orders admin readback/cleanup token.]`
+
 ## 2026-07-03 - Channel Deploy Browser Smoke Decision Refreshed
 
 Intent chain:
