@@ -1,5 +1,33 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Child Lane Cleanup Reconciled
+
+Intent chain:
+
+- Vision: Orders orchestration state should consume child-lane cleanup output without rerunning completed workers or overwriting newer runtime evidence.
+- Goal Impact: Frontend-A/B and provider/courier child results are now reconciled against current Orders evidence and remaining gates.
+- System: Orders remains the IPS/evidence coordinator; channel and provider repos remain out of edit scope until merge-order review.
+- Feature: child lane cleanup reconciliation.
+- Task: integrate the cleanup update into Orders status before any new worker activity.
+- Execution Plan: docs-only reconciliation; preserve child commit references; mark superseded lane-local deployment state; keep browser/provider runtime gates explicit.
+- Coding Prompt: do not rerun completed worker loops, do not edit five channel UI repos, and do not start provider runtime integration until source capability and Warehouse ledger/correlation approvals are resolved.
+- Code: `docs/orchestrator/2026-07-03-child-lane-cleanup-reconciliation.md`.
+- Validation: pending `git diff --check`, completion audit verifier, and full `npm test`.
+
+Reconciled child results:
+
+- Frontend-A: FlipFlop `3110c6a`, Heureka `358fba9`; source validation/builds passed; child handoff recorded no deploy and browser-smoke gate.
+- Frontend-B: Allegro `529a71d`, Bazos `26af3ae`, Aukro `f6502bb`; source validation/builds passed; child handoff recorded no deploy/runtime browser-smoke gate.
+- Current orchestrator evidence supersedes child `no deploy` notes for production state: FlipFlop `3110c6a`, Heureka `358fba9`, Bazos `26af3ae`, Aukro main `08ad5ce`, and Allegro main `4ff3987` are recorded as deployed/route-smoked.
+- Provider/courier P3 Orders `5efa4c9` and Warehouse Worker F `f104202` are recorded as docs/source-only; raw tracking display and runtime provider integration remain blocked.
+
+Remaining gates:
+
+- `[MISSING: rendered customer/admin browser evidence after Orders lifecycle mutation.]`
+- `[MISSING: safe buyer/admin session or explicit service-scoped browser proxy proof approval.]`
+- `[MISSING: product-approved tracking visibility matrix before raw tracking display.]`
+- `[MISSING: Allegro OAuth/scope/account permission, sanitized fixtures, Warehouse ledger/correlation, deploy/runtime smoke approval for provider runtime.]`
+
 ## 2026-07-03 - Completion Audit Recorded
 
 Intent chain:
