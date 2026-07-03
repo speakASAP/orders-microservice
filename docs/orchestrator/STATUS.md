@@ -1,5 +1,34 @@
 # Orders Orchestrator Status
 
+
+## 2026-07-03 - FlipFlop Browser Proof Readiness Evidence Recorded
+
+Intent chain:
+
+- Vision: the first rendered lifecycle proof should start only after route/source readiness is current and the proof mode is explicit.
+- Goal Impact: FlipFlop is now confirmed ready for the first validation-only browser proof once a safe session or service-scoped proxy is approved.
+- System: Orders remains the evidence owner; FlipFlop was inspected read-only and was not edited.
+- Feature: FlipFlop browser proof readiness evidence.
+- Task: gather non-mutating route/source evidence for the first browser lane without rerunning completed workers.
+- Execution Plan: verify current Orders and FlipFlop commits, check live FlipFlop route HTTP status, inspect customer/admin pages and central lifecycle adapter source, record the remaining proof-mode gate.
+- Coding Prompt: no channel repo edits, no browser session, no token output, no DB read, no provider call, no order mutation.
+- Code: `docs/orchestrator/2026-07-03-flipflop-browser-proof-readiness-evidence.md`.
+- Validation: live `curl` route checks for `/orders` and `/admin/orders` returned HTTP `200`; source inspection confirmed manual refresh plus 30-second visible polling and central Orders lifecycle mapping. Browser-render proof remains missing.
+
+Readiness evidence:
+
+- FlipFlop `main` is at `3110c6a feat: improve orders lifecycle UI reliability`.
+- `https://flipflop.alfares.cz/orders` returned `200`, `content-type=text/html; charset=utf-8`, no redirect.
+- `https://flipflop.alfares.cz/admin/orders` returned `200`, `content-type=text/html; charset=utf-8`, no redirect.
+- Customer route reads `ordersApi.getOrders()`, renders central lifecycle display data, and refreshes via manual button plus `useVisiblePolling(..., 30000, isAuthenticated)`.
+- Admin route reads `ordersApi.getAdminOrders(...)`, renders `Lifecycle`, payment, and delivery/fulfillment/exception status columns, and refreshes via manual button plus `useVisiblePolling(..., 30000, true)`.
+- The frontend adapter prefers `centralOrder` when the central read status is available; the server client reads central Orders lifecycle through `/api/orders/:id/lifecycle` and `/api/orders/:id`.
+
+Remaining gate:
+
+- `[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]`
+- `[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]`
+
 ## 2026-07-03 - Channel Browser Smoke Order Recorded
 
 Intent chain:
