@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Known Channel Guard Added
+
+Intent chain:
+
+- Vision: browser proof must map to one of the actual sellable marketplace channels in the Orders lifecycle goal.
+- Goal Impact: arbitrary channel names can no longer satisfy `orders.browser_render_proof.v1` completion evidence.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: known-channel proof guard.
+- Task: add approved channel validation and an unknown-channel negative fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/audit, then validate without runtime mutation.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, fixture, contract, completion audit/status/state docs.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-report.js`, `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report for an approved channel.]`
+
 ## 2026-07-03 - Browser Proof Mismatched Stage Fixture Added
 
 Intent chain:

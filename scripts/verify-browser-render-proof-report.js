@@ -10,6 +10,7 @@ const validFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof
 const invalidSensitiveFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-sensitive-key.json');
 const invalidPublicShellFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-public-shell-route.json');
 const invalidMismatchedStageFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mismatched-stage.json');
+const invalidUnknownChannelFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-unknown-channel.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -22,6 +23,7 @@ const requiredPolicyFlags = [
   'artifactsRedacted',
 ];
 const allowedStatuses = new Set(['proven', 'incomplete', 'blocked']);
+const allowedChannels = new Set(['flipflop', 'heureka', 'bazos', 'aukro', 'allegro']);
 const allowedProofModes = new Set(['safe_human_session', 'service_scoped_proxy']);
 const allowedRefreshMechanisms = new Set(['manual_refresh', 'visible_polling_30s', 'full_reload', 'api_backed_render_probe']);
 const allowedSurfaces = new Set(['customer_cabinet', 'admin_cabinet', 'admin_dashboard']);
@@ -83,6 +85,8 @@ function validateContract() {
   [
     'Schema version: `orders.browser_render_proof.v1`',
     '`status`: one of `proven`, `incomplete`, or `blocked`.',
+    '`channel`: one of `flipflop`, `heureka`, `bazos`, `aukro`, or `allegro`; for the first lane this must be `flipflop`.',
+    'browser proof report channel must be one of approved sellable marketplaces',
     '`proofMode`: one of `safe_human_session` or `service_scoped_proxy`.',
     '`centralReadModelBacked`: boolean proving the rendered state came from Orders lifecycle read model or a channel API backed by it.',
     '`authContext`: optional route-level proof context; if present it must be `safe_human_session` or `service_scoped_proxy`.',
@@ -128,11 +132,17 @@ function validateFixtures() {
     /proven report routes must all render the expected lifecycle stage/,
     'invalid mismatched-stage fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidUnknownChannelFixturePath)),
+    /browser proof report channel must be one of approved sellable marketplaces/,
+    'invalid unknown-channel fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
     invalidPublicShellFixture: path.relative(root, invalidPublicShellFixturePath),
     invalidMismatchedStageFixture: path.relative(root, invalidMismatchedStageFixturePath),
+    invalidUnknownChannelFixture: path.relative(root, invalidUnknownChannelFixturePath),
   };
 }
 
@@ -142,6 +152,7 @@ function validateReport(rawReport) {
   assert.equal(report.schemaVersion, 'orders.browser_render_proof.v1', 'report schemaVersion mismatch');
   assert.equal(allowedStatuses.has(report.status), true, 'report status must be proven, incomplete, or blocked');
   assert.equal(typeof report.channel, 'string', 'report channel is required');
+  assert.equal(allowedChannels.has(report.channel), true, 'browser proof report channel must be one of approved sellable marketplaces');
   assert.equal(allowedProofModes.has(report.proofMode), true, 'report proofMode is invalid');
   assert.equal(typeof report.checkedAt, 'string', 'report checkedAt is required');
   assert.equal(Number.isNaN(Date.parse(report.checkedAt)), false, 'report checkedAt must be parseable');

@@ -8,13 +8,15 @@ Schema version: `orders.browser_render_proof.v1`
 
 Rendered browser proof must be captured as a sanitized machine-checkable report before the Orders lifecycle goal can be called complete. Route availability, source markers, and service-scoped lifecycle reads are not enough to prove customer/admin cabinet rendering.
 
+The browser proof report channel must be one of approved sellable marketplaces.
+
 ## Required Report Shape
 
 A valid report is JSON with these top-level fields:
 
 - `schemaVersion`: must be `orders.browser_render_proof.v1`.
 - `status`: one of `proven`, `incomplete`, or `blocked`.
-- `channel`: marketplace channel, for the first lane this must be `flipflop`.
+- `channel`: one of `flipflop`, `heureka`, `bazos`, `aukro`, or `allegro`; for the first lane this must be `flipflop`.
 - `proofMode`: one of `safe_human_session` or `service_scoped_proxy`.
 - `checkedAt`: ISO timestamp.
 - `ordersEvidenceCommit`: current Orders repository `HEAD` or commit used for the proof.
@@ -87,5 +89,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-sensitive-key.json` must be rejected because it contains a forbidden sensitive key name.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-public-shell-route.json` must be rejected because route-only anonymous shell evidence cannot prove lifecycle rendering.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-mismatched-stage.json` must be rejected because customer/admin rendered stages diverge from `mutationEvidence.expectedLifecycleStage`.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-unknown-channel.json` must be rejected because the report channel is not one of the approved sellable marketplaces.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.
