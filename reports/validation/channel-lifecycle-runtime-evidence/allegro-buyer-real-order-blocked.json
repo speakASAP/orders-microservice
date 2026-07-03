@@ -1,6 +1,6 @@
 {
   "schemaVersion": "orders.channel_runtime_blocker.v1",
-  "checkedAt": "2026-07-03T12:56:00.000Z",
+  "checkedAt": "2026-07-03T13:38:00.000Z",
   "channel": "allegro",
   "status": "buyer_real_order_lifecycle_blocked",
   "runtimeProbe": {
@@ -54,7 +54,7 @@
     "centralLifecycleProjectionImplemented": true
   },
   "blockers": [
-    "[MISSING: live authenticated buyer smoke with a real buyer Auth bearer and an approved subject-bound order row; current live aggregate has buyerBoundOrders=0.]",
+    "[MISSING: live authenticated buyer smoke with a real buyer Auth bearer and an approved subject-bound order row; current pod-JWT buyer route probe returns total=0.]",
     "[MISSING: central Orders lifecycle display smoke with a real forwarded Allegro order visible to the bound buyer.]",
     "[MISSING: approved historical binding/backfill source, if product wants old imported marketplace rows visible in buyer cabinet.]"
   ],
@@ -65,5 +65,30 @@
   "customerPrinted": false,
   "providerPayloadPrinted": false,
   "databaseDump": false,
-  "providerCall": false
+  "providerCall": false,
+  "currentRouteProbe": {
+    "schemaVersion": "allegro.buyer_route_probe.v1",
+    "checkedAt": "2026-07-03T13:38:00.000Z",
+    "publicRootHttpStatus": 200,
+    "publicCabinetOrdersHttpStatus": 200,
+    "publicApiHealthHttpStatus": 200,
+    "externalUnauthBuyerApiHttpStatus": 401,
+    "podJwtPresent": true,
+    "podJwtPrinted": false,
+    "serviceLocalBuyerHttpStatus": 200,
+    "serviceLocalBuyerSuccess": true,
+    "serviceLocalBuyerTotal": 0,
+    "serviceLocalBuyerItems": 0,
+    "serviceLocalBuyerHasCentralAvailable": false,
+    "serviceLocalAdminOrdersHttpStatus": 200,
+    "serviceLocalAdminSampleCount": 0,
+    "serviceLocalAdminStatsOrders": 0,
+    "serviceLocalAdminCentralForwarded": 0,
+    "directDatabaseAggregateRefresh": "unavailable_in_deployed_pod",
+    "databaseUrlPresentInPod": false,
+    "adHocPrismaClientInitialized": false,
+    "rawRowsPrinted": false,
+    "customerPiiPrinted": false,
+    "providerPayloadPrinted": false
+  }
 }
