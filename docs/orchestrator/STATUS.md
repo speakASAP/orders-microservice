@@ -47,36 +47,33 @@ Remaining gate:
 
 - `[MISSING: explicit approval to edit non-Orders Heureka source for the route-collision fix lane.]`
 
-## 2026-07-03 - Allegro Real Buyer Smoke Approval Gate
+## 2026-07-03 - Allegro Real Buyer Smoke Approval Gate Reconciled
 
 Intent chain:
 
 - Vision: customer-facing Allegro cabinets must show only orders explicitly owned by the authenticated Auth subject.
-- Goal Impact: live buyer cabinet runtime is ready, but real-user smoke is blocked because the approved Auth subject has no bound Allegro rows.
+- Goal Impact: the merged approval packet is preserved as historical approval context, but it is no longer an active blocker because later status already records Option 2 approval, deployment, synthetic buyer smoke, and cleanup.
 - System: Auth owns user identity; Allegro owns buyer-safe order projection/UI; Orders owns canonical lifecycle; Warehouse owns stock/fulfillment.
-- Feature: real buyer personal-cabinet smoke approval packet.
-- Task: run sanitized readiness check and prepare owner approval options for a subject-bound row.
-- Execution Plan: no production mutation until an existing-row binding, synthetic fixture row, or natural-order path is explicitly approved.
-- Coding Prompt: no email-only authorization, no token/secret/customer/order payload output, no provider runtime implementation.
+- Feature: real buyer personal-cabinet smoke approval packet reconciliation.
+- Task: reconcile stale branch documentation after merging `codex/allegro-buyer-real-smoke-approval` into current Orders `main`.
+- Execution Plan: keep the packet file, mark it superseded, and preserve the current active gate as real forwarded Allegro buyer lifecycle display rather than synthetic fixture approval.
+- Coding Prompt: no DB mutation, token read, raw row output, deploy, or provider runtime implementation.
 - Code: `docs/orchestrator/2026-07-03-allegro-real-buyer-smoke-approval.md`.
-- Validation: k3s/deployment readiness plus sanitized DB aggregate/hash check.
+- Validation: documentation reconciliation only, with current status showing synthetic Option 2 smoke already completed.
 
 Evidence:
 
-- k3s Ready; `orders-microservice`, `allegro-service`, `allegro-api-gateway`, `allegro-frontend`, and `warehouse-microservice` all Ready `1/1`.
-- Approved user lookup for `ssfskype@gmail.com`: `auth_user_count=1`, `auth_subject_hash=6d0007036f05`.
-- Allegro binding lookup for that subject: `allegro_bound_order_count=0`.
-- Provider/courier runtime remains contract-gated by the existing provider lane blockers.
+- The merged packet recorded the pre-smoke readiness state: approved user `ssfskype@gmail.com` existed, but `allegro_bound_order_count=0`.
+- Current Orders/Allegro status supersedes that blocker: Option 2 synthetic fixture smoke was approved, runtime buyer cabinet was deployed, synthetic buyer list/detail isolation passed, and cleanup delete was confirmed.
+- No live database query, mutation, secret read, deploy, or provider call was performed during this reconciliation.
 
-Remaining gates:
+Remaining gate:
 
-- `[MISSING: owner approval for existing-row binding, synthetic fixture row, or waiting for natural authenticated order creation.]`
-- `[MISSING: Auth-valid real buyer bearer acquisition path that does not print token values.]`
-- `[MISSING: real forwarded Allegro order lifecycle display smoke.]`
+- `[MISSING: real forwarded Allegro order visible to a real Auth bearer with central Orders lifecycle rendering.]`
 
 Next action:
 
-- Approve one of the packet options, then run bounded real buyer list/detail/lifecycle smoke.
+- Continue with real forwarded Allegro order lifecycle display proof, or the separate shipment-correlation runtime gate after config/secret approval.
 
 ## 2026-07-03 - Channel Deploy Browser Smoke Decision Reconciled
 
