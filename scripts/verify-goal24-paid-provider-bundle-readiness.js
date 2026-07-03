@@ -81,6 +81,28 @@ requireIncludes(transitionBoundary, 'side-effect acknowledgements for payment, w
 requireIncludes(rollbackReadiness, 'without manual payment-state bypass', 'rollback readiness no manual bypass');
 requireIncludes(rollbackReadiness, 'provider refund or cancellation plus Orders/Warehouse cleanup', 'rollback readiness blocker');
 requireIncludes(rollbackReadiness, 'must be proven by Payments first', 'rollback readiness provider proof first');
+requireIncludes(rollbackReadiness, 'Orders Source-Verified Target State Matrix', 'rollback readiness target state matrix');
+requireIncludes(rollbackReadiness, '`pending` before provider payment completion', 'rollback readiness pending target state');
+requireIncludes(rollbackReadiness, '`confirmed` after provider completion but before shipment', 'rollback readiness confirmed target state');
+requireIncludes(rollbackReadiness, '`processing` after fulfillment started but before shipment', 'rollback readiness processing target state');
+requireIncludes(rollbackReadiness, '`shipped`', 'rollback readiness shipped fail closed');
+requireIncludes(rollbackReadiness, '`delivered` / customer-received', 'rollback readiness delivered fail closed');
+requireIncludes(rollbackReadiness, "CANCELLATION_SOURCES = ['pending', 'confirmed', 'processing']", 'rollback readiness source cancellation state matrix');
+requireIncludes(rollbackReadiness, 'sideEffectsHandled.payment|warehouse|notification|crm|channel=true', 'rollback readiness source side-effect ack list');
+requireIncludes(transitionBoundary, '`pending|confirmed|processing -> cancelled` requires `approval.approved=true`, `approval.approvalType=human`', 'status transition cancellation gate docs');
+requireIncludes(transitionBoundary, 'side-effect acknowledgements for payment, warehouse, notification, CRM, and channel handling', 'status transition side-effect docs');
+requireIncludes(transitionBoundary, 'Terminal-state destructive corrections remain rejected', 'status transition terminal fail closed docs');
+requireIncludes(ordersService, 'order.status.update.idempotency_key_replay', 'status update idempotency replay audit');
+requireIncludes(ordersService, 'return order;', 'status update idempotency no-op return');
+requireIncludes(ordersService, "transition.status === 'cancelled'", 'status update Warehouse cancel gate');
+requireIncludes(ordersService, 'cancelOrderItems(updated)', 'status update Warehouse cancel handoff');
+requireIncludes(ordersService, 'statusTransitionAudit = transition.approvalAudit', 'status transition audit persistence');
+requireIncludes(ordersService, 'hasMatchingStatusIdempotencyKey(order, transition.approvalAudit.idempotencyKey, transition.status)', 'status transition idempotency key comparison');
+requireIncludes(ordersService, 'audit?.idempotencyKey === idempotencyKey && audit?.resultingStatus === resultingStatus', 'status transition idempotency matching fields');
+requireIncludes(ordersService, 'previousStatus,', 'status transition previous status audit');
+requireIncludes(ordersService, 'reasonCode: transition.approvalAudit?.reasonCode', 'status transition reason code audit');
+requireIncludes(ordersService, 'actorId: context.actor?.sub', 'status transition actor audit');
+requireIncludes(ordersService, 'actorEmail: context.actor?.email', 'status transition actor email audit');
 for (const required of [
   'Fiobanka Paid Provider Cleanup Approval Contract',
   'GOAL24_PAID_PROVIDER_ROLLBACK',
@@ -118,6 +140,17 @@ requireIncludes(warehouseClient, "fulfill: 'PAYMENT_CONFIRMED'", 'Warehouse fulf
 requireIncludes(warehouseClient, "cancel: 'ORDER_CANCELLED'", 'Warehouse cancel reason mapping');
 requireIncludes(warehouseClient, "return: 'ORDER_RETURNED'", 'Warehouse return reason mapping');
 requireIncludes(fulfillmentHandoff, "reasonCode: 'PAYMENT_CONFIRMED'", 'Warehouse fulfillment handoff reason');
+requireIncludes(ordersController, "@Put(':id/status')", 'status cancellation route');
+requireIncludes(ordersController, 'approval: body.approval', 'status cancellation approval body');
+requireIncludes(ordersController, 'actor: request.user', 'status cancellation actor context');
+requireIncludes(ordersService, 'cancelOrderItems(updated)', 'status cancellation Warehouse cancel call');
+requireIncludes(ordersService, 'statusTransitionAudit = transition.approvalAudit', 'status transition audit persistence');
+requireIncludes(ordersService, 'hasMatchingStatusIdempotencyKey', 'status transition idempotency replay guard');
+requireIncludes(transitionBoundary, 'pending|confirmed|processing -> cancelled', 'status transition documented source matrix');
+requireIncludes(transitionBoundary, 'approvalType=human', 'status transition human approval');
+requireIncludes(transitionBoundary, 'side-effect acknowledgements for payment, warehouse, notification, CRM, and channel handling', 'status transition side-effect acknowledgements');
+requireIncludes(transitionBoundary, 'Terminal-state destructive corrections remain rejected', 'status transition terminal-state fail closed');
+requireIncludes(ordersService, "previousPaymentStatus === 'paid' && normalized.paymentStatus !== 'paid'", 'payment paid downgrade fail closed');
 
 const ordersCheckoutSource = [ordersService, ordersController, paymentDto].join('\n');
 assert.equal(
@@ -166,6 +199,8 @@ for (const required of [
   'fulfilled cancellation rollback uses `cancel`',
   'approved returns use `return`',
   'partial failures are cleaned line-by-line',
+  '[RESOLVED/NARROWED: target order state matrix for Orders normal cancellation is pending|confirmed|processing -> cancelled; shipped/delivered/cancelled fail closed through the normal endpoint]',
+  '[RESOLVED/NARROWED: Orders source requires approvalType=human, named actor/approvedBy, safe Goal 24 reason code, optional sanitized approval.idempotencyKey, and sideEffectsHandled.payment|warehouse|notification|crm|channel=true before Warehouse cancel]',
   '[MISSING: runtime verification of Payments Orders service token/role]',
 ]) {
   requireIncludes(report, required, 'readiness report blocker/evidence');

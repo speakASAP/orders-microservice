@@ -78,6 +78,22 @@ Orders invokes Warehouse only through `WarehouseReservationClient` after its own
 Orders must not mutate Warehouse directly, edit stock truth, downgrade `paymentStatus=paid`, consume `refunded` as `orders.payment-status.v1`, or treat a Payments refund/correction as permission to choose `release`, `cancel`, or `return` without the Warehouse-owned state matrix.
 Orders must not infer stock effects from Payments refund state. `return` is not a default paid-provider refund cleanup path; it is gated by separate delivered/customer-received or inventory-return evidence. When the observed order is not delivered/customer-received and the provider refund/reversal/correction proof exists, the Orders-owned cleanup selector remains cancellation plus Warehouse `cancel` with `ORDER_CANCELLED`, subject to all side-effect acknowledgements.
 
+
+## Orders Source-Verified Target State Matrix
+
+The current Orders source narrows the target order state matrix for future paid/provider rollback cleanup without running a live mutation:
+
+| Current Orders state | Normal status endpoint target | Required approval packet | Warehouse handoff after Orders gate | Decision |
+| --- | --- | --- | --- | --- |
+| `pending` before provider payment completion | `cancelled` only through owner-approved cancellation, or Payments `failed|cancelled` through `orders.payment-status.v1` | human approval required for `PUT /api/orders/:id/status`; payment-status pre-paid cancel remains Payments-owned | `release` through payment-status failure/cancel path; `cancel` only if the status cancellation gate is used | allowed only with matching owner packet; no provider refund required before paid |
+| `confirmed` after provider completion but before shipment | `cancelled` | `approval.approved=true`, `approval.approvalType=human`, named Auth actor or `approvedBy`, safe `reasonCode`, sanitized `approval.idempotencyKey`, and all five side-effect acknowledgements | `cancel` with `ORDER_CANCELLED` after provider refund/reversal/correction proof | allowed only after Payments proof and all owner acknowledgements |
+| `processing` after fulfillment started but before shipment | `cancelled` | same as `confirmed`, plus Warehouse owner approval for observed component-line state | `cancel` with `ORDER_CANCELLED` unless delivered/customer-received or inventory-return evidence selects a separate return workflow | allowed only with line-by-line Warehouse matrix; unknown lines fail closed |
+| `shipped` | none through normal cancellation | `[MISSING: owner-approved post-shipment correction/return workflow for Goal 24 paid/provider cleanup]` | none from Orders normal status endpoint | fail closed |
+| `delivered` / customer-received | none through normal cancellation | `[MISSING: owner-approved Orders return workflow for Goal 24 paid/provider cleanup when delivered/customer-received state exists]` | `return` only through a separate approved return workflow | fail closed for cancellation; return remains dependency-gated |
+| `cancelled` | none | existing terminal state; idempotent replay allowed only when matching persisted status/audit already exists | no new Warehouse call on idempotent replay | fail closed for new paid/provider cleanup |
+
+Source evidence: `src/orders/status-transitions.ts` defines `CANCELLATION_SOURCES = ['pending', 'confirmed', 'processing']`, requires `approvalType='human'`, actor or `approvedBy`, safe reason code, optional sanitized `approval.idempotencyKey`, and `sideEffectsHandled.payment|warehouse|notification|crm|channel=true`; `src/orders/orders.service.ts` persists `statusTransitionAudit`, treats matching idempotency-key replay as no-op, and calls `WarehouseReservationClient.cancelOrderItems(...)` only after the cancellation gate passes.
+
 ## Required Owner-Approved Runtime Packet
 
 A paid/provider `catalog.bundle.v1` bundle smoke is blocked until the packet names all of the following:
@@ -85,7 +101,7 @@ A paid/provider `catalog.bundle.v1` bundle smoke is blocked until the packet nam
 - `[RESOLVED/NARROWED: selected method is Fiobanka QR, paymentMethod=fiobanka, applicationId=flipflop-service, maximum 300 CZK, but live execution remains gated]`
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]`
 - `[RESOLVED/NARROWED: Payments emits bounded orders.payment-status.v1 for completed/failed/cancelled only; refunded is intentionally not bridged]`
-- `[RESOLVED/NARROWED: Orders source accepts sanitized approval.idempotencyKey and persists statusTransitionAudit; runtime packet must still name target central Orders UUID hash, status before rollback, cleanup idempotency key, cancellation actor/approvedBy, reasonCode GOAL24_PAID_PROVIDER_ROLLBACK or GOAL24_PROVIDER_UNPAID_CANCEL, and payment/warehouse/notification/crm/channel side-effect acknowledgements]`
+- `[RESOLVED/NARROWED: Orders source verifies the target order state matrix for normal cancellation: pending|confirmed|processing may target cancelled only through the human approval gate; shipped, delivered/customer-received, and already-cancelled states fail closed through the normal endpoint. Runtime packet must still name target central Orders UUID hash, current state before rollback, cleanup idempotency key, named cancellation actor/approvedBy, approvalType=human, reasonCode GOAL24_PAID_PROVIDER_ROLLBACK or GOAL24_PROVIDER_UNPAID_CANCEL, and payment/warehouse/notification/crm/channel side-effect acknowledgements]`
 - `[RESOLVED/NARROWED: Warehouse owner-approved cleanup operation for reserved-only, fulfilled/stock-decremented cancellation, delivered/customer-received return, partial, and unknown bundle component-line states in Warehouse 3043cad; live stock window/max quantity remains missing]`
 - `[RESOLVED/NARROWED: Orders return workflow is not required for normal Fiobanka completed-transfer refund/reversal/correction cleanup unless delivered/customer-received or inventory-return evidence exists; absent that evidence, cleanup remains cancellation plus Warehouse cancel after provider proof and side-effect acknowledgements]`
 - `[MISSING: channel/FlipFlop checkout cleanup owner for customer-visible session/cart/local projection state]`
