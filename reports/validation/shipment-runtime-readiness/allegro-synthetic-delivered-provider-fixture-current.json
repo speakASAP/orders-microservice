@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "orders.allegro_synthetic_delivered_provider_fixture.v1",
+  "status": "synthetic_provider_delivered_lifecycle_proven",
+  "checkedAt": "2026-07-03T19:58:54.301Z",
+  "scope": {
+    "channel": "allegro",
+    "mode": "approved_synthetic_provider_fixture",
+    "realAllegroCustomerRequired": false,
+    "providerWrite": false,
+    "warehouseMutation": true,
+    "ordersMutation": true,
+    "deploy": false,
+    "runtimeSecretChange": false
+  },
+  "fixture": {
+    "source": "existing_sanitized_warehouse_shipment_correlation",
+    "latestStatus": "DELIVERED",
+    "identityFields": "hashed_provider_identity_only",
+    "rawTrackingDisplayed": false,
+    "rawWaybillDisplayed": false,
+    "rawProviderPayloadDisplayed": false,
+    "rawOrderIdsDisplayed": false,
+    "customerPiiDisplayed": false
+  },
+  "warehousePost": {
+    "httpStatus": 201,
+    "success": true,
+    "statusMutationApplied": true,
+    "observationDecision": "accepted",
+    "normalizedWarehouseStatus": "delivered",
+    "fulfillmentStatus": "delivered",
+    "tokenPrinted": false,
+    "rawPayloadPrinted": false,
+    "rawIdsPrinted": false
+  },
+  "warehouseReadback": {
+    "latestSourceStatusClass": "DELIVERED",
+    "latestNormalizedWarehouseStatus": "delivered",
+    "latestDecision": "accepted",
+    "fulfillmentStatus": "delivered",
+    "printedRawIds": false,
+    "printedRawRows": false
+  },
+  "ordersCallbackReadback": {
+    "previousLifecycleStage": "in_delivery",
+    "requestedWarehouseStatus": "delivered",
+    "resultingLifecycleStage": "received",
+    "actor": "service:warehouse-microservice",
+    "printedRawOrderId": false
+  },
+  "remainingGates": [
+    "future production evidence from real Allegro.cz customer/provider shipment when marketplace traffic exists",
+    "optional future audited full-tracking reveal API if product/security approves it"
+  ]
+}

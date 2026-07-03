@@ -45,19 +45,30 @@
         "idempotent": true
       },
       "providerStatusReadback": {
-        "observations": 1,
+        "observations": 3,
         "latestDecision": "accepted",
-        "latestNormalizedWarehouseStatus": "in_delivery"
+        "latestNormalizedWarehouseStatus": "delivered"
       },
       "fulfillmentMutation": {
         "statusMutationApplied": true,
-        "fulfillmentStatus": "in_delivery"
+        "fulfillmentStatus": "delivered"
       },
       "supplementalAggregateCountsAfterNoCentralOrderSmoke": {
         "correlations": 1,
         "observations": 1,
         "printedRows": false,
         "warehouseCountsUnchanged": true
+      },
+      "syntheticDeliveredProviderFixture": {
+        "httpStatus": 201,
+        "success": true,
+        "statusMutationApplied": true,
+        "observationDecision": "accepted",
+        "normalizedWarehouseStatus": "delivered",
+        "fulfillmentStatus": "delivered",
+        "tokenPrinted": false,
+        "rawPayloadPrinted": false,
+        "rawIdsPrinted": false
       }
     },
     "allegro": {
@@ -224,9 +235,16 @@
     },
     "orders": {
       "warehouseCallbackReadback": {
-        "centralStatus": "shipped",
+        "centralStatus": "received",
         "paymentStatus": "paid",
-        "projectionReceived": true
+        "projectionReceived": true,
+        "syntheticDeliveredProviderFixture": {
+          "previousLifecycleStage": "in_delivery",
+          "requestedWarehouseStatus": "delivered",
+          "resultingLifecycleStage": "received",
+          "actor": "service:warehouse-microservice",
+          "printedRawOrderId": false
+        }
       }
     }
   },
@@ -240,7 +258,7 @@
     "statusOnlyTrackingVisibilityApproved": true
   },
   "remainingGates": [
-    "optional future real provider sample with carrier tracking status other than UNKNOWN if product requires live mutation evidence beyond sanitized existing-correlation smoke",
+    "future production evidence from real Allegro.cz customer/provider shipment when marketplace traffic exists",
     "optional future audited full-tracking reveal API if product/security approves it"
   ],
   "sourceEvidence": {

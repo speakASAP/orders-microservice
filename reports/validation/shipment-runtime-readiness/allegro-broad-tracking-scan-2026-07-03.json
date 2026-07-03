@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "orders.allegro_broad_tracking_scan.v2",
+  "status": "blocked_no_non_unknown_provider_sample_now",
+  "checkedAt": "2026-07-03T19:58:57.137Z",
+  "scope": {
+    "providerWrite": false,
+    "warehouseMutation": false,
+    "ordersMutation": false,
+    "credentialMutation": false,
+    "maxForms": 300
+  },
+  "accounts": {
+    "activeTokenAccounts": 2,
+    "tokenReadyAccounts": 1,
+    "secondActiveAccountRefresh": "invalid_grant"
+  },
+  "providerRead": {
+    "checkoutFormList": { "http200": 1, "other": 0 },
+    "checkoutFormsScanned": 41,
+    "shipmentEndpoint": { "http200": 41, "http404": 0, "other": 0 },
+    "shipmentAvailability": { "available": 37, "empty": 4 },
+    "trackingEndpoint": { "attempted": 43, "http200": 43, "other": 0 },
+    "trackingEventContainersSeen": 0,
+    "latestStatusCounts": { "UNKNOWN": 43 },
+    "nonUnknownStatusCount": 0,
+    "nonUnknownSampleHashes": []
+  },
+  "redaction": {
+    "tokenValuesPrinted": false,
+    "rawAccountIdsPrinted": false,
+    "rawOrderIdsPrinted": false,
+    "rawWaybillsPrinted": false,
+    "providerPayloadPrinted": false,
+    "rawRowsPrinted": false,
+    "customerPiiPrinted": false
+  },
+  "remainingGate": "[MISSING: Allegro account/order whose carrier tracking endpoint returns at least one status event such as SENT/IN_TRANSIT/DELIVERED/RETURNED/ISSUE]"
+}
