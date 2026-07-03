@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "orders.browser_render_artifact.v1",
+  "channel": "heureka",
+  "surface": "admin_dashboard",
+  "proofMode": "service_scoped_proxy",
+  "checkedAt": "2026-07-03T15:05:55.201Z",
+  "url": "https://heureka.alfares.cz/dashboard/orders",
+  "documentStatus": 200,
+  "dataSourceStatuses": [
+    {
+      "path": "/dashboard/orders",
+      "status": 200
+    }
+  ],
+  "status": "blocked",
+  "blocker": "[MISSING: Heureka dashboard orders DOM rows did not render]",
+  "renderedLifecycleStages": [],
+  "renderedLifecycleStage": "unknown",
+  "renderedLifecycleLabel": "unknown",
+  "rowCount": 0,
+  "hasOrdersSection": true,
+  "hasOrdersTableBody": true,
+  "ordersSectionHidden": true,
+  "consoleEvents": [
+    {
+      "type": "error",
+      "textHash": "be3180416310eb75",
+      "textSample": "Failed to load resource: the server responded with a status of 404 ()"
+    }
+  ],
+  "pageErrors": [
+    {
+      "textHash": "0d94d3bb2c6fba87",
+      "textSample": "Invalid regular expression flags"
+    }
+  ],
+  "bodyHash": "b8035d9b924b1e4a627c26871218f661603c29b2004a9fcb7e459702b5357abb",
+  "errorHash": null,
+  "feedPillHash": "c7c336ed8944dd224be9fd0e5e469290983c8cc17f14ef509c0200ffad8b3a8f",
+  "redacted": true,
+  "tokenValuesPrinted": false,
+  "rawOrderRowsPrinted": false,
+  "customerPiiPrinted": false,
+  "databaseRead": false,
+  "providerCall": false,
+  "rawDomCaptured": false
+}

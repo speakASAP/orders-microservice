@@ -1,3 +1,31 @@
+## 2026-07-03 - Heureka DOM Lifecycle Proof Blocked By Dashboard Runtime Error
+
+Current focus: turn the optional Heureka visible-label browser gate into current evidence instead of leaving it as an unknown follow-up.
+
+Intent Preservation Chain:
+
+- Vision: Heureka operators must see central Orders lifecycle labels in the rendered dashboard, not only in the protected API payload.
+- Goal Impact: the API-backed Heureka proof remains valid, but the browser DOM proof is now concretely blocked by a deployed frontend runtime error before order rows render.
+- System: Orders owns the evidence ledger; Heureka owns the dashboard JavaScript/runtime surface; no Warehouse, provider, DB, or Orders mutation authority moved.
+- Feature: Heureka customer/admin lifecycle status rendering evidence.
+- Task: run service-scoped browser smoke against `https://heureka.alfares.cz/dashboard/orders` using the live Heureka pod JWT without printing it.
+- Execution Plan: load the dashboard route, inject service-scoped auth into localStorage, wait for orders rows, and store only redacted status/error hashes plus bounded error samples.
+- Coding Prompt: no token values, cookies, raw order rows, customer PII, DB rows, raw DOM, provider payloads, payment refs, tracking values, or runtime mutation.
+- Code: `reports/validation/orders-browser-render-proof/heureka-dashboard-dom-runtime-blocked-artifact.json` and `scripts/verify-channel-lifecycle-runtime-evidence.js`.
+- Validation: service-scoped browser diagnostic loaded `/dashboard/orders` HTTP `200`, but rendered `0` order rows; the orders section/table existed but stayed hidden, and the page threw `Invalid regular expression flags`. `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:completion-audit`, and `git diff --check` must pass before commit.
+
+Evidence:
+
+- Heureka deployed runtime remains `localhost:5000/heureka-service:a0dbb24` and API gateway `localhost:5000/heureka-api-gateway:a0dbb24`.
+- Public dashboard shell returned HTTP `200`.
+- Service-scoped browser session used the live pod JWT in memory/temp file only; token value was not printed and the temp file was removed.
+- Sanitized artifact status is `blocked`, `rowCount=0`, `hasOrdersSection=true`, `hasOrdersTableBody=true`, `ordersSectionHidden=true`, and page error sample `Invalid regular expression flags`.
+- API-backed proof remains current separately: `/heureka/dashboard/orders-list` has non-stale central lifecycle data after synthetic create/replay/reservation/cleanup.
+
+Remaining gate:
+
+- `[MISSING: Heureka dashboard JavaScript runtime fix and redeploy, then rerun service-scoped DOM visible-label proof]`.
+
 ## 2026-07-03 - Goal 24 Orders Bundle Evidence Contract
 
 Current focus: resolve `[MISSING: Orders additive bundleEvidence metadata contract on create-order and idempotent replay]` for Catalog `catalog.bundle.v1` without changing Catalog, Warehouse, Payments, or FlipFlop.
