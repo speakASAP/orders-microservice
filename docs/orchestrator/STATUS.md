@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Unique Route Guard Added
+
+Intent chain:
+
+- Vision: rendered lifecycle proof must show distinct customer and admin order surfaces, not duplicate one URL under multiple surface labels.
+- Goal Impact: future `orders.browser_render_proof.v1` reports cannot close the browser gate by reusing the same route URL as evidence for multiple required surfaces.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: unique route URL validation for proven browser proof reports.
+- Task: reject duplicate proven route URLs after URL normalization; add a negative duplicate-route fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/state docs, validate without runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, duplicate-route fixture, proof contract, status/state docs.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-report.js`, `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report with distinct customer/admin route evidence and rendered lifecycle stages.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Future Timestamp Guard Added
 
 Intent chain:

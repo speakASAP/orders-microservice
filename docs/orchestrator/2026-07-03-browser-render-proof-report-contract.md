@@ -19,6 +19,7 @@ A valid report is JSON with these top-level fields:
 - `channel`: one of `flipflop`, `heureka`, `bazos`, `aukro`, or `allegro`; for the first lane this must be `flipflop`.
 - `proofMode`: one of `safe_human_session` or `service_scoped_proxy`.
 - `checkedAt`: ISO timestamp; it must not be in the future beyond a 5-minute verifier clock-skew allowance.
+- Proven report route URLs must be unique after normalization; one route URL cannot stand in for multiple surface proofs.
 - `ordersEvidenceCommit`: immutable 40-character lowercase git commit hash used for the proof; `HEAD` is not valid for `status=proven`. ordersEvidenceCommit must be an immutable git commit hash for proven reports.
 - `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, required `expectedLifecycleStage` for `status=proven`, and optional `artifactHash`; for `status=proven`, `source` must be `smoke:lifecycle-mutation` or `approved-existing-mutation-artifact`.
 - `routes`: non-empty array of route evidence entries.
@@ -81,6 +82,7 @@ Required `evidencePolicy` booleans:
 - Public shell routes, anonymous DOM snapshots, and route-only HTML checks cannot satisfy `status=proven`. Backing API `401`/`403` responses also cannot satisfy `status=proven`.
 - Route URL host must match report channel for proven browser reports. route url host must match report channel for proven browser reports.
 - Route URL path must target an order lifecycle surface for proven browser reports. route url path must target an order lifecycle surface for proven browser reports.
+- Route URLs must be unique for proven browser reports. proven report route urls must be unique.
 
 ## Default Verifier Mode
 
@@ -111,5 +113,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-rendered-lifecycle.json` must be rejected because one required surface lacks a rendered lifecycle label/stage.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-result-summary.json` must be rejected because the report result summary/next action is incomplete.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-future-checked-at.json` must be rejected because `checkedAt` is in the future beyond the allowed clock-skew window.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-duplicate-route-url.json` must be rejected because one route URL cannot satisfy multiple rendered surface proofs.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

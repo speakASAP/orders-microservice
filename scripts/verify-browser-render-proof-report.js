@@ -22,6 +22,7 @@ const invalidMutationSourceFixturePath = path.join(root, 'docs/orchestrator/brow
 const invalidSurfaceRenderedLifecycleFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-rendered-lifecycle.json');
 const invalidResultSummaryFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-result-summary.json');
 const invalidFutureCheckedAtFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-future-checked-at.json');
+const invalidDuplicateRouteUrlFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-duplicate-route-url.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -189,6 +190,17 @@ function assertCheckedAtNotFuture(checkedAt) {
   assert.equal(checkedAtMs <= Date.now() + maxCheckedAtFutureSkewMs, true, 'report checkedAt must not be in the future beyond allowed clock skew');
 }
 
+function assertUniqueRouteUrls(routes) {
+  const seen = new Set();
+  for (const [index, route] of routes.entries()) {
+    const parsed = parseRouteUrl(route.url, index);
+    parsed.hash = '';
+    const key = parsed.toString();
+    assert.equal(seen.has(key), false, `proven report route urls must be unique; duplicate route url at route ${index}`);
+    seen.add(key);
+  }
+}
+
 function validateContract() {
   const contract = read(contractPath);
   [
@@ -220,6 +232,7 @@ function validateContract() {
     'report result.summary must not be empty',
     'report result.nextAction must not be empty',
     'report checkedAt must not be in the future beyond allowed clock skew',
+    'proven report route urls must be unique',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -320,6 +333,11 @@ function validateFixtures() {
     /report checkedAt must not be in the future beyond allowed clock skew/,
     'invalid future-checkedAt fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidDuplicateRouteUrlFixturePath)),
+    /proven report route urls must be unique/,
+    'invalid duplicate-route-url fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -336,6 +354,7 @@ function validateFixtures() {
     invalidSurfaceRenderedLifecycleFixture: path.relative(root, invalidSurfaceRenderedLifecycleFixturePath),
     invalidResultSummaryFixture: path.relative(root, invalidResultSummaryFixturePath),
     invalidFutureCheckedAtFixture: path.relative(root, invalidFutureCheckedAtFixturePath),
+    invalidDuplicateRouteUrlFixture: path.relative(root, invalidDuplicateRouteUrlFixturePath),
   };
 }
 
@@ -404,6 +423,7 @@ function validateReport(rawReport, options = {}) {
       );
     }
     assert.equal(report.centralReadModelBacked, true, 'proven report must be centralReadModelBacked');
+    assertUniqueRouteUrls(report.routes);
     report.routes.forEach((route, index) => assertRouteMatchesChannel(route, index, report.channel));
     assert.equal(
       report.routes.some((route) => route.dataSourceStatus === 401 || route.dataSourceStatus === 403 || isPublicShellArtifact(route.artifact.kind) || route.authContext === 'anonymous'),
