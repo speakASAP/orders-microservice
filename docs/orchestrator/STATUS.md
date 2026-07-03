@@ -1,3 +1,11 @@
+## 2026-07-03 - Aukro Admin DOM Lifecycle Proof Proven, Customer DOM Rows Gated
+
+IPS: Vision -> reliable Orders lifecycle is visible in marketplace dashboards; Goal Impact -> Aukro admin dashboard visible lifecycle labels are now proven in a real browser, while customer visible rows are narrowed to an empty customer-bound data gate; System -> Aukro owns dashboard rendering and local account binding, Orders owns canonical lifecycle evidence, no provider/Warehouse/Orders mutation moved; Feature -> Aukro visible lifecycle labels; Task -> run service-scoped headless Chrome proof with redacted artifact; Execution Plan -> generate short-lived in-pod JWT, set Aukro dashboard auth on public Aukro origin, load dashboard, verify protected dashboard/admin calls, store only statuses/hashes/counts; Coding Prompt -> no token values, raw order ids, raw order rows, customer PII, DB rows, raw DOM, screenshots, provider payloads, payment refs, tracking values, or mutation; Code -> reports/validation/orders-browser-render-proof/aukro-dashboard-admin-dom-proven-customer-empty-artifact.json; Validation -> Aukro static lifecycle UI verifier, service-scoped Chrome proof, Orders channel lifecycle verifier/completion audit.
+
+Live evidence: Aukro image localhost:5000/aukro-service:22662ea served /dashboard and the browser proof reached protected /aukro/ui/dashboard and /aukro/ui/admin/services with HTTP 200. The admin dashboard lifecycle breakdown rendered visibly with adminVisible=true, adminLifecycleVisible=true, and adminLifecycleKeys=2 using only hashed text evidence. The customer dashboard call also returned HTTP 200, but the available proof subject had ordersCount=0 and centralLifecycleCount=0, so customer visible order rows remain gated by an approved real customer bearer/order or bounded customer-bound Aukro fixture. No token, raw DOM, screenshot, raw row, customer data, provider payload, DB read, or mutation was used.
+
+Remaining Aukro gate: [MISSING: approved real or bounded customer-bound Aukro order fixture to prove customer visible DOM order rows].
+
 ## 2026-07-03 - Bazos Bounded Paid Lifecycle Proof Closed
 
 IPS: Vision -> reliable Orders lifecycle across channel customer/admin cabinets; Goal Impact -> Bazos no longer waits on zero natural paid orders because an owner-approved bounded fixture proved paid multi-product lifecycle and replay behavior; System -> Bazos owns local order projection/UI, Orders owns canonical lifecycle, Warehouse owns reservation/cancel; Feature -> Bazos customer/admin lifecycle status evidence and paid multi-product replay source; Task -> deploy Bazos paymentStatus forwarding, apply existing additive Orders bundleEvidence migration, run bounded create/prove/replay/cleanup fixture; Execution Plan -> temporary Bazos admin allowlist override for approved Auth subject, create one paid two-item Bazos order, prove customer/admin API lifecycle, prove replay candidate, cancel Warehouse reservations, mark central bounded Orders rows cancelled through direct fallback because no Orders admin Auth subject exists, remove local Bazos rows/account and admin override; Coding Prompt -> do not print tokens, raw order ids, raw rows, customer data, provider payloads, payment refs, tracking values, or raw DOM; Code -> Bazos `27f325d`, Orders migration `008_add_order_bundle_evidence.sql`, proof artifact `reports/validation/channel-lifecycle-runtime-evidence/bazos-bounded-lifecycle-proven.json`; Validation -> Bazos build/deploy, bounded fixture, Orders verifier/completion audit.
@@ -110,7 +118,7 @@ Remaining gates:
 - `[MISSING: browser DOM capture for Heureka visible lifecycle labels if API-backed dashboard proof is not sufficient]`
 - `[MISSING: optional natural live Bazos provider-backed order proof if bounded fixture is insufficient]`
 - `[MISSING: real forwarded Allegro order visible to a real Auth bearer with central Orders lifecycle rendering]`
-- `[MISSING: optional Aukro browser DOM capture for visible lifecycle labels if API-backed proof is not sufficient]`
+- `[MISSING: approved real or bounded customer-bound Aukro order fixture to prove customer visible DOM order rows]`
 - `[MISSING: Allegro shipment OAuth/scope/account permission and sanitized fixture bundle for provider runtime smoke]`
 - `[MISSING: Warehouse ledger/correlation runtime readback proving no raw provider/customer fields enter Orders events]`
 - `[MISSING: product-approved tracking visibility matrix before raw tracking number or URL appears in any UI/API response]`
@@ -141,7 +149,7 @@ IPS: Vision -> reliable Orders lifecycle across channel services; Goal Impact ->
 
 Live evidence: `aukro-service` is ready `1/1` on image `localhost:5000/aukro-service:68784d7`; public `/dashboard` returned HTTP `200`; `/health` returned HTTP `200`; protected `/aukro/ui/dashboard` and `/aukro/ui/admin/services` returned HTTP `403` with the available pod `JWT_TOKEN`. The token value was not printed.
 
-Remaining Aukro gate: `[MISSING: optional Aukro browser DOM capture for visible lifecycle labels if API-backed proof is not sufficient]`.
+Remaining Aukro gate: `[MISSING: approved real or bounded customer-bound Aukro order fixture to prove customer visible DOM order rows]`.
 
 ## 2026-07-03 - Heureka API Lifecycle Proof Reconciled
 
