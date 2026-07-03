@@ -99,10 +99,9 @@
         "projectedRuntimeEnv": "WAREHOUSE_SERVICE_TOKEN"
       },
       "runtimeTokenProjection": {
-        "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
+        "projectedRuntimeEnv": "WAREHOUSE_SERVICE_TOKEN",
         "secretSource": "secret/prod/allegro-service#WAREHOUSE_INTERNAL_SERVICE_TOKEN",
         "vaultWriteAttempt": "HTTP_403_FORBIDDEN",
-        "externalSecretSynced": true,
         "externalSecretSynced": true,
         "deploymentManifestCommit": "d088104",
         "liveDeploymentImageAfterDeploy": "localhost:5000/allegro-service:d088104",
@@ -110,7 +109,8 @@
         "identityValuesPrinted": false,
         "secretsDisplayed": false,
         "additionalProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-        "additionalSecretSource": "secret/prod/allegro-service#WAREHOUSE_INTERNAL_SERVICE_TOKEN"
+        "additionalSecretSource": "secret/prod/allegro-service#WAREHOUSE_INTERNAL_SERVICE_TOKEN",
+        "unmanagedKubernetesSecretCreated": true
       },
       "authProvisioningEvidence": {
         "applicationExists": true,
@@ -176,7 +176,7 @@
       "runtimeCutoverBlocked": false,
       "tokenProjectionManifestCommit": "d088104",
       "runtimeTokenProjected": true,
-      "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
+      "projectedRuntimeEnv": "WAREHOUSE_SERVICE_TOKEN",
       "authIssuedMinimalServiceRole": true,
       "additionalProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
     }
