@@ -1057,10 +1057,12 @@ export class OrdersService {
   }
 
   private buildLifecycleQuery(filters: ReturnType<typeof normalizeOrderLifecycleReadFilters>): SelectQueryBuilder<Order> {
+    const orderDateExpression = 'COALESCE(orders.orderedAt, orders.createdAt)';
     const query = this.orderRepository
       .createQueryBuilder('orders')
       .leftJoinAndSelect('orders.items', 'items')
-      .orderBy('COALESCE(orders.orderedAt, orders.createdAt)', 'DESC')
+      .addSelect(orderDateExpression, 'orderSortAt')
+      .orderBy('orderSortAt', 'DESC')
       .take(filters.limit * (filters.lifecycleStage ? 3 : 1));
 
     if (filters.channel) {
@@ -1073,10 +1075,10 @@ export class OrdersService {
       query.andWhere('LOWER(orders.paymentStatus) = :paymentStatus', { paymentStatus: filters.paymentStatus });
     }
     if (filters.from) {
-      query.andWhere('COALESCE(orders.orderedAt, orders.createdAt) >= :from', { from: filters.from });
+      query.andWhere(`${orderDateExpression} >= :from`, { from: filters.from });
     }
     if (filters.to) {
-      query.andWhere('COALESCE(orders.orderedAt, orders.createdAt) <= :to', { to: filters.to });
+      query.andWhere(`${orderDateExpression} <= :to`, { to: filters.to });
     }
 
     return query;

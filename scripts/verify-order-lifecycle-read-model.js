@@ -258,6 +258,9 @@ assert.match(serviceSource, /LOWER\(orders\.customer ->> 'email'\)/);
 assert.match(serviceSource, /getAdminLifecycleOrders/);
 assert.match(serviceSource, /publishLifecycleChangedIfNeeded/);
 assert.match(serviceSource, /mode: 'coarse_projection'/);
+assert.match(serviceSource, /addSelect\(orderDateExpression, 'orderSortAt'\)/);
+assert.match(serviceSource, /orderBy\('orderSortAt', 'DESC'\)/);
+
 
 const guardSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/auth/jwt-roles.guard.ts'), 'utf8');
 assert.match(guardSource, /authenticated:user/);
