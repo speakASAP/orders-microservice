@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "orders.browser_render_proof.v1",
+  "status": "proven",
+  "channel": "flipflop",
+  "proofMode": "service_scoped_proxy",
+  "checkedAt": "2026-07-03T09:30:00.000Z",
+  "ordersEvidenceCommit": "0123456789abcdef0123456789abcdef01234567",
+  "mutationEvidence": {
+    "source": "smoke:lifecycle-mutation",
+    "approvalId": "sanitized-fixture",
+    "summary": "Sanitized fixture: lifecycle reached warehouse_collecting in customer and admin read models.",
+    "artifactHash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "expectedLifecycleStage": "warehouse_collecting"
+  },
+  "routes": [
+    {
+      "url": "https://flipflop.alfares.cz/orders",
+      "httpStatus": 200,
+      "surface": "customer_cabinet",
+      "renderedLifecycleLabel": "Sklad pripravuje polozky",
+      "renderedLifecycleStage": "warehouse_collecting",
+      "artifact": {
+        "kind": "redacted_screenshot_hash",
+        "redacted": true,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "authContext": "service_scoped_proxy",
+      "dataSourceStatus": 200
+    },
+    {
+      "url": "https://flipflop.alfares.cz/admin/orders",
+      "httpStatus": 200,
+      "surface": "admin_cabinet",
+      "renderedLifecycleLabel": "",
+      "renderedLifecycleStage": "",
+      "artifact": {
+        "kind": "redacted_screenshot_hash",
+        "redacted": true,
+        "sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+      },
+      "authContext": "service_scoped_proxy",
+      "dataSourceStatus": 200
+    }
+  ],
+  "refreshMechanism": "manual_refresh",
+  "centralReadModelBacked": true,
+  "evidencePolicy": {
+    "noTokenValues": true,
+    "noCookies": true,
+    "noCustomerPii": true,
+    "noRawOrderRows": true,
+    "noDatabaseDump": true,
+    "noPaymentReference": true,
+    "noTrackingValues": true,
+    "noProviderPayload": true,
+    "artifactsRedacted": true
+  },
+  "result": {
+    "summary": "Sanitized fixture validates customer and admin report contract coverage only.",
+    "nextAction": "Replace with approved real proof report path after browser validation."
+  }
+}

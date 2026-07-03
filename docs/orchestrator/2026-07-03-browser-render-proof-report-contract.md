@@ -60,8 +60,8 @@ Required `evidencePolicy` booleans:
 
 - At least one `customer_cabinet` route has HTTP `2xx` or `3xx`; if `dataSourceStatus` is present it must also be `2xx` or `3xx`. proven report needs successful customer cabinet route evidence.
 - At least one `admin_cabinet` or `admin_dashboard` route has HTTP `2xx` or `3xx`; if `dataSourceStatus` is present it must also be `2xx` or `3xx`. proven report needs successful admin cabinet or dashboard route evidence.
-- At least one route has a non-empty `renderedLifecycleLabel`.
-- At least one route has a non-empty `renderedLifecycleStage`.
+- At least one successful `customer_cabinet` route has a non-empty `renderedLifecycleLabel` and `renderedLifecycleStage`. proven report needs rendered lifecycle label and stage on customer cabinet route evidence.
+- At least one successful `admin_cabinet` or `admin_dashboard` route has a non-empty `renderedLifecycleLabel` and `renderedLifecycleStage`. proven report needs rendered lifecycle label and stage on admin cabinet or dashboard route evidence.
 - Every proven route must render the same canonical stage as `mutationEvidence.expectedLifecycleStage`.
 - At least one route must cover `customer_cabinet`.
 - At least one route must cover `admin_cabinet` or `admin_dashboard`.
@@ -105,5 +105,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-artifact-evidence.json` must be rejected because route artifact evidence has an invalid SHA-256/path shape.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-http-status.json` must be rejected because one required surface lacks successful route/data-source evidence.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-source.json` must be rejected because `mutationEvidence.source` is not an approved lifecycle mutation source.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-rendered-lifecycle.json` must be rejected because one required surface lacks a rendered lifecycle label/stage.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

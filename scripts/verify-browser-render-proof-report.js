@@ -19,6 +19,7 @@ const invalidRouteChannelMismatchFixturePath = path.join(root, 'docs/orchestrato
 const invalidArtifactEvidenceFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-artifact-evidence.json');
 const invalidSurfaceHttpStatusFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-http-status.json');
 const invalidMutationSourceFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-source.json');
+const invalidSurfaceRenderedLifecycleFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-rendered-lifecycle.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -148,12 +149,27 @@ function assertSurfaceHasSuccessfulRoute(routes, surfacePredicate, label) {
   );
 }
 
+function assertSurfaceHasRenderedLifecycle(routes, surfacePredicate, label) {
+  assert.equal(
+    routes.some((route) => (
+      surfacePredicate(route.surface)
+      && routeHasSuccessfulBacking(route)
+      && route.renderedLifecycleLabel.trim()
+      && route.renderedLifecycleStage.trim()
+    )),
+    true,
+    `proven report needs rendered lifecycle label and stage on ${label} route evidence`,
+  );
+}
+
 function assertApprovedMutationEvidence(mutationEvidence) {
   assert.equal(typeof mutationEvidence.source, 'string', 'report mutationEvidence.source is required');
   assert.equal(
     allowedMutationEvidenceSources.has(mutationEvidence.source),
     true,
     'proven report mutationEvidence.source must be an approved lifecycle mutation source',
+    'proven report needs rendered lifecycle label and stage on customer cabinet route evidence',
+    'proven report needs rendered lifecycle label and stage on admin cabinet or dashboard route evidence',
   );
   assert.equal(typeof mutationEvidence.approvalId, 'string', 'report mutationEvidence.approvalId is required');
   assert.equal(Boolean(mutationEvidence.approvalId.trim()), true, 'report mutationEvidence.approvalId must not be empty');
@@ -185,6 +201,8 @@ function validateContract() {
     'proven report needs successful customer cabinet route evidence',
     'proven report needs successful admin cabinet or dashboard route evidence',
     'proven report mutationEvidence.source must be an approved lifecycle mutation source',
+    'proven report needs rendered lifecycle label and stage on customer cabinet route evidence',
+    'proven report needs rendered lifecycle label and stage on admin cabinet or dashboard route evidence',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -270,6 +288,11 @@ function validateFixtures() {
     /mutationEvidence.source must be an approved lifecycle mutation source/,
     'invalid mutation-source fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidSurfaceRenderedLifecycleFixturePath)),
+    /proven report needs rendered lifecycle label and stage on admin cabinet or dashboard route evidence/,
+    'invalid surface-rendered-lifecycle fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -283,6 +306,7 @@ function validateFixtures() {
     invalidArtifactEvidenceFixture: path.relative(root, invalidArtifactEvidenceFixturePath),
     invalidSurfaceHttpStatusFixture: path.relative(root, invalidSurfaceHttpStatusFixturePath),
     invalidMutationSourceFixture: path.relative(root, invalidMutationSourceFixturePath),
+    invalidSurfaceRenderedLifecycleFixture: path.relative(root, invalidSurfaceRenderedLifecycleFixturePath),
   };
 }
 
@@ -367,8 +391,12 @@ function validateReport(rawReport, options = {}) {
       (surface) => surface === 'admin_cabinet' || surface === 'admin_dashboard',
       'admin cabinet or dashboard',
     );
-    assert.equal(report.routes.some((route) => route.renderedLifecycleLabel.trim()), true, 'proven report needs rendered lifecycle label');
-    assert.equal(report.routes.some((route) => route.renderedLifecycleStage.trim()), true, 'proven report needs rendered lifecycle stage');
+    assertSurfaceHasRenderedLifecycle(report.routes, (surface) => surface === 'customer_cabinet', 'customer cabinet');
+    assertSurfaceHasRenderedLifecycle(
+      report.routes,
+      (surface) => surface === 'admin_cabinet' || surface === 'admin_dashboard',
+      'admin cabinet or dashboard',
+    );
     assert.equal(
       typeof report.mutationEvidence.expectedLifecycleStage === 'string' && Boolean(report.mutationEvidence.expectedLifecycleStage.trim()),
       true,

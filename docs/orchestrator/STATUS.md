@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Per-Surface Rendered Lifecycle Guard Added
+
+Intent chain:
+
+- Vision: customer and administrator cabinets must each visibly render the Orders lifecycle stage, not merely load a route while another surface carries the lifecycle text.
+- Goal Impact: future `orders.browser_render_proof.v1` reports cannot close the browser gate unless both customer and admin surfaces independently show a non-empty lifecycle label and canonical stage.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: per-surface rendered lifecycle label/stage validation for browser proof reports.
+- Task: require successful customer and admin routes to each include non-empty `renderedLifecycleLabel` and `renderedLifecycleStage`; add a negative rendered-lifecycle fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/state docs, validate without runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, rendered-lifecycle fixture, proof contract, status/state docs.
+- Validation: pending targeted and full Orders test chain after this doc update.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report where both customer and admin surfaces visibly render the lifecycle label/stage.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Mutation Source Guard Added
 
 Intent chain:
