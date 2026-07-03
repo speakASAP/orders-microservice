@@ -1,0 +1,73 @@
+# Browser Render Proof Report Contract
+
+Date: 2026-07-03
+Repository of record: `orders-microservice`
+Schema version: `orders.browser_render_proof.v1`
+
+## Purpose
+
+Rendered browser proof must be captured as a sanitized machine-checkable report before the Orders lifecycle goal can be called complete. Route availability, source markers, and service-scoped lifecycle reads are not enough to prove customer/admin cabinet rendering.
+
+## Required Report Shape
+
+A valid report is JSON with these top-level fields:
+
+- `schemaVersion`: must be `orders.browser_render_proof.v1`.
+- `status`: one of `proven`, `incomplete`, or `blocked`.
+- `channel`: marketplace channel, for the first lane this must be `flipflop`.
+- `proofMode`: one of `safe_human_session` or `service_scoped_proxy`.
+- `checkedAt`: ISO timestamp.
+- `ordersEvidenceCommit`: current Orders repository `HEAD` or commit used for the proof.
+- `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, and optional `artifactHash`.
+- `routes`: non-empty array of route evidence entries.
+- `refreshMechanism`: one of `manual_refresh`, `visible_polling_30s`, `full_reload`, or `api_backed_render_probe`.
+- `centralReadModelBacked`: boolean proving the rendered state came from Orders lifecycle read model or a channel API backed by it.
+- `evidencePolicy`: object with all sensitive-data controls set to `true`.
+- `result`: sanitized summary and next action.
+
+Each `routes[]` entry must include:
+
+- `url`: route tested.
+- `httpStatus`: numeric HTTP status.
+- `surface`: one of `customer_cabinet`, `admin_cabinet`, or `admin_dashboard`.
+- `renderedLifecycleLabel`: localized visible lifecycle text or status shown in the UI.
+- `renderedLifecycleStage`: canonical lifecycle stage if visible or inferred from sanitized UI state.
+- `artifact`: object with `kind`, `redacted`, and either `sha256` or `path`.
+
+## Sensitive Data Policy
+
+The report must not contain raw bearer tokens, cookies, customer names, email addresses, phone numbers, street addresses, payment references, raw order rows, database dumps, tracking numbers, provider payloads, or screenshots with unredacted customer data.
+
+Required `evidencePolicy` booleans:
+
+- `noTokenValues`
+- `noCookies`
+- `noCustomerPii`
+- `noRawOrderRows`
+- `noDatabaseDump`
+- `noPaymentReference`
+- `noTrackingValues`
+- `noProviderPayload`
+- `artifactsRedacted`
+
+## Proven Criteria
+
+`status=proven` requires all of the following:
+
+- At least one customer or admin route has HTTP `2xx` or `3xx`.
+- At least one route has a non-empty `renderedLifecycleLabel`.
+- At least one route has a non-empty `renderedLifecycleStage`.
+- `centralReadModelBacked=true`.
+- `mutationEvidence.summary` is present and sanitized.
+- Every artifact is marked `redacted=true`.
+- All `evidencePolicy` controls are `true`.
+
+## Default Verifier Mode
+
+`npm run verify:browser-render-proof-report` is non-mutating by default. Without `BROWSER_RENDER_PROOF_REPORT_PATH`, it only validates this contract and reports the proof as gated. With `BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`, it validates the supplied sanitized report.
+
+## Remaining Gate
+
+`[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]`
+
+`[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]`

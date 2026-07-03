@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Render Proof Report Contract Added
+
+Intent chain:
+
+- Vision: rendered lifecycle proof should be validated as sanitized structured evidence, not an ad hoc screenshot note.
+- Goal Impact: the final browser-render gate now has a machine-checkable report contract that can validate an approved FlipFlop proof run.
+- System: Orders owns the proof contract and verifier; channel repos remain out of edit scope until merge-order review.
+- Feature: browser render proof report contract.
+- Task: define the JSON report shape and add a default non-mutating verifier for future browser proof evidence.
+- Execution Plan: add a contract document, add `verify:browser-render-proof-report`, and include it in `npm test` after readiness verification.
+- Coding Prompt: Orders-only docs/verifier change; no browser session, provider call, DB read, token read, screenshot capture, or runtime mutation.
+- Code: `docs/orchestrator/2026-07-03-browser-render-proof-report-contract.md`, `scripts/verify-browser-render-proof-report.js`, and `package.json`.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, default `node scripts/verify-browser-render-proof-report.js`, sanitized sample `BROWSER_RENDER_PROOF_REPORT_PATH=/tmp/orders-browser-proof-sample.json node scripts/verify-browser-render-proof-report.js`, `git diff --check`, and full `npm test` passed. Browser/session/provider proof remains gated and was not run.
+
+Remaining gate:
+
+- `[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]`
+- `[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]`
+
 ## 2026-07-03 - Completion Audit Baseline Hardened
 
 Intent chain:
