@@ -14,6 +14,9 @@ const warehouseClient = read('src/warehouse/warehouse-reservation.client.ts');
 const fulfillmentHandoff = read('src/orders/order-fulfillment-handoff.client.ts');
 const paymentDto = read('src/payments/payment-status.dto.ts');
 const paymentBoundary = read('docs/orchestrator/PAYMENT_STATUS_BOUNDARY.md');
+const warehouseBoundary = read('docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md');
+const transitionBoundary = read('docs/orchestrator/ORDER_STATUS_TRANSITIONS.md');
+const rollbackReadiness = read('docs/orchestrator/2026-07-03-goal24-orders-cancel-cleanup-rollback-readiness.md');
 const createContract = read('docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md');
 const createVerifier = read('scripts/verify-create-order-contract.js');
 const paymentVerifier = read('scripts/verify-payment-boundary.js');
@@ -58,6 +61,16 @@ for (const forbidden of ['providerTransactionId', 'providerResponse', 'metadata'
 }
 requireIncludes(paymentBoundary, 'Orders does not receive raw provider webhooks', 'payment boundary provider webhook ownership');
 requireIncludes(paymentBoundary, 'Refunds remain Payments-owned', 'payment boundary refund ownership');
+requireIncludes(paymentBoundary, 'Manual payment-state bypass', 'payment boundary manual bypass rejection');
+requireIncludes(paymentBoundary, 'orders.payment-status.v1', 'payment boundary status contract');
+requireIncludes(warehouseBoundary, 'PAYMENT_CONFIRMED', 'warehouse paid fulfillment reason');
+requireIncludes(warehouseBoundary, 'PAYMENT_FAILED_RELEASE', 'warehouse failed/cancelled release reason');
+requireIncludes(warehouseBoundary, 'ORDER_CANCELLED', 'warehouse cancellation cleanup reason');
+requireIncludes(warehouseBoundary, 'Orders must not edit stock truth', 'warehouse cleanup ownership');
+requireIncludes(transitionBoundary, 'side-effect acknowledgements for payment, warehouse, notification, CRM, and channel handling', 'order cancellation side-effect gate');
+requireIncludes(rollbackReadiness, 'without manual payment-state bypass', 'rollback readiness no manual bypass');
+requireIncludes(rollbackReadiness, 'provider refund or cancellation plus Orders/Warehouse cleanup', 'rollback readiness blocker');
+requireIncludes(rollbackReadiness, 'must be proven by Payments first', 'rollback readiness provider proof first');
 requireIncludes(paymentVerifier, 'cannot mark a cancelled order as paid', 'payment verifier cancelled paid rejection');
 requireIncludes(paymentVerifier, 'refund or correction workflow', 'payment verifier paid downgrade rejection');
 requireIncludes(paymentVerifier, 'provider-owned', 'payment verifier provider data rejection');
@@ -82,6 +95,8 @@ for (const required of [
   '[RESOLVED: owner-approved Rung 1 non-mutating real checkout smoke passed',
   '[RESOLVED: owner-approved Rung 2 live pending-order smoke proved pending Orders create',
   '[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]',
+  '[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]',
+  '[MISSING: provider-specific side-effect-safe rollback contract for the selected payment method]',
   '[MISSING: owner-approved paid/provider payment provider source and callback contract]',
   '[MISSING: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke]',
   '[MISSING: owner-approved Payments refund/cancel rollback workflow for paid bundle smoke]',

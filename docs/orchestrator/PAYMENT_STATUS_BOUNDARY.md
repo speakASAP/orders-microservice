@@ -73,3 +73,14 @@ Orders may store:
 - `paymentUpdatedAt`: timestamp of the Payments-owned status event.
 
 Orders must not store provider transaction IDs, variable symbols, provider response bodies, refund identifiers, payment transaction rows, raw metadata, customer payment payloads, or card/token/secret data.
+
+## Paid Provider Rollback Gate
+
+For Goal 24 `catalog.bundle.v1` paid/provider checkout, Orders can only consume bounded payment state from Payments through `orders.payment-status.v1`:
+
+- `completed` is the only provider-success input; Orders maps it to `paymentStatus=paid`, confirms a pending order, and triggers Warehouse `fulfill`.
+- `failed` or `cancelled` are the only pre-paid provider failure/cancel inputs; Orders records the bounded payment state and triggers Warehouse `release`.
+- `refunded`, `refund`, and `partially_refunded` remain rejected because refund execution and provider evidence are Payments-owned.
+- Once an order is `paid`, Orders rejects downgrades to `pending`, `failed`, or `cancelled`; a completed-payment rollback requires a separate owner-approved provider refund/cancel/reversal packet and Orders cancellation cleanup workflow.
+
+Manual payment-state bypass, direct DB correction, or synthetic payment downgrade is not an approved rollback mechanism.
