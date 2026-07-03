@@ -1,5 +1,40 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Seller Workspace Order Read Scope Hardened
+
+Intent chain:
+
+- Vision: marketplace order dashboards must not expose another seller/workspace user's order rows while Orders remains the lifecycle source.
+- Goal Impact: the existing Allegro seller/workspace order dashboard is now scoped by authenticated workspace ownership; this is separate from the still-blocked buyer personal cabinet.
+- System: Auth provides JWT actor identity/roles; Allegro owns seller workspace account ownership; Orders owns central lifecycle projection consumed by Allegro order read models.
+- Feature: Allegro seller/workspace order read authorization hardening.
+- Task: pass JWT actor into Allegro order list/statistics/detail reads and scope non-admin users to orders connected to their own Allegro account.
+- Execution Plan: avoid schema changes; preserve admin role visibility; filter workspace reads through `offer.account.userId` or `forwardingAttempts.account.userId`; return detail through scoped lookup to avoid order existence leakage.
+- Coding Prompt: do not use buyer email equality as authorization; do not implement buyer cabinet without approved Auth/order ownership contract.
+- Code: Allegro commit `2c72f6b fix: scope allegro order reads by workspace`.
+- Validation: `git diff --check`, `orders.service.spec: PASS`, `npm run build`, GitHub push to Allegro `main`, and production deploy.
+
+Evidence:
+
+- `GET /allegro/orders`, `GET /allegro/orders/statistics`, and `GET /allegro/orders/:id` now receive `req.user` from `JwtAuthGuard`.
+- Non-admin actors are scoped to Allegro orders whose related offer account or forwarding-attempt account belongs to the Auth user id.
+- Admin roles `global:superadmin` and `app:allegro-service:admin` keep unscoped operational visibility.
+- Detail reads use scoped `findFirst` instead of unscoped `findUnique`.
+- If a guarded request unexpectedly has no actor, controller passes an empty actor so external reads fail closed instead of becoming unscoped.
+- Deployed Allegro stack image tag `2c72f6b`: service, api-gateway, frontend, settings, and imports all report ready/available `1/1`.
+- Live smoke: `https://allegro.alfares.cz/api/health` returned HTTP 200; unauthenticated `https://allegro.alfares.cz/api/allegro/orders` returned HTTP 401.
+
+Remaining blockers:
+
+- `[MISSING: buyer-facing Allegro personal cabinet product requirement.]`
+- `[MISSING: approved Auth-to-Allegro-buyer ownership rule.]`
+- `[MISSING: stable persisted buyer ownership field or verified buyer-link mapping.]`
+- `[MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source.]`
+
+Next action:
+
+- Continue with provider/courier owner identification or buyer ownership contract approval; do not implement buyer personal cabinet runtime until one ownership model is approved.
+
 ## 2026-07-03 - Allegro Buyer Auth Ownership Audit Integrated
 
 Intent chain:

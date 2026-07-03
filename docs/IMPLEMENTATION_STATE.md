@@ -34,9 +34,9 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Delivery-provider shipment-status contract discovery blocked pending provider source
-next_recommended_goal: Identify or approve delivery-provider/courier owner source before adapter implementation
-last_completed_goal: Warehouse fulfillment-status projection live smoke
+current_chunk: Allegro seller/workspace order read-scope hardened; delivery-provider shipment-status contract remains blocked pending provider source
+next_recommended_goal: Identify or approve delivery-provider/courier owner source before adapter implementation; approve buyer Auth/order ownership before Allegro buyer cabinet runtime
+last_completed_goal: Allegro seller/workspace order read-scope hardening deployed
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
@@ -49,6 +49,7 @@ blockers:
 
 ## Current Checkpoint
 
+2026-07-03: Allegro seller/workspace order read-scope hardening is implemented, pushed, and deployed. Allegro commit `2c72f6b` passes JWT actor identity from the protected order controller into list/statistics/detail reads, scopes non-admin users through `offer.account.userId` or `forwardingAttempts.account.userId`, preserves admin visibility for `global:superadmin` and `app:allegro-service:admin`, and uses scoped detail lookup to avoid exposing another workspace order. Validation passed: `git diff --check`, `orders.service.spec: PASS`, `npm run build`, GitHub push to `main`, and deployment of Allegro service/api-gateway/frontend/settings/imports images `2c72f6b`. Live checks: Allegro API health HTTP 200 and unauthenticated `/api/allegro/orders` HTTP 401. This does not unblock the buyer personal cabinet, which still requires an approved Auth-to-Allegro-buyer ownership rule.
 2026-07-03: Delivery-provider shipment-status source discovery found no concrete provider-owned repo/service, webhook or polling contract, runtime credential source, or sample provider payload. No adapter was implemented because doing so would invent courier ownership inside Orders. Plan and agent-ready parallel workstreams are documented in `docs/orchestrator/2026-07-03-delivery-provider-shipment-status-plan.md`.
 2026-07-03: Warehouse fulfillment-status projection implemented in Orders source. Orders accepts internal Warehouse fulfillment status updates, stores bounded `warehouseHandoff.fulfillmentOrderHandoff` metadata, maps Warehouse progress statuses to lifecycle stages, and publishes lifecycle change events. Full `npm test` passed. Runtime deploy/smoke pending.
 2026-07-03: Notifications Orders events consumer is enabled and live for approved recipient `ssfskype@gmail.com`. Notifications image `866a49f` is deployed, `orders.lifecycle` channel policy was seeded by migration, `/health/orders-events` reports enabled/connected/consuming true, and synthetic event `codex-orders-lifecycle-smoke-1783034533137` produced counters `received=1 sent=1 failed=0` plus a sent notification row. Remaining cross-system blocker is delivery-provider shipment-status source after Warehouse handoff.
