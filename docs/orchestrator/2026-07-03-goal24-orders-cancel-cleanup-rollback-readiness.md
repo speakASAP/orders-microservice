@@ -71,12 +71,12 @@ Orders invokes Warehouse only through `WarehouseReservationClient` after its own
 | Fiobanka QR created but unpaid, order still reserved/not fulfilled | Payments `failed` or `cancelled` status before paid | `POST /api/reservations/release` | `PAYMENT_FAILED_RELEASE` | allowed only before `paymentStatus=paid`; no provider refund call |
 | Fiobanka completion accepted as paid | Payments `completed` status | `POST /api/reservations/fulfill`, then fulfillment handoff when configured | `PAYMENT_CONFIRMED` | success path only; not cleanup evidence |
 | Completed Fiobanka transfer later refunded/reversed/corrected with provider proof, order is `pending|confirmed|processing` | Owner-approved Orders cancellation | `POST /api/reservations/cancel` | `ORDER_CANCELLED` | allowed only after all side-effect acknowledgements and Warehouse owner approval |
-| Approved return workflow after fulfillment/customer receipt | separate owner-approved return workflow | `POST /api/reservations/return` | `ORDER_RETURNED` | not implemented as normal cancellation; remains `[MISSING: owner-approved Orders return workflow for Goal 24 paid/provider cleanup]` |
+| Approved return workflow after fulfillment/customer receipt | separate owner-approved return workflow | `POST /api/reservations/return` | `ORDER_RETURNED` | not implemented as normal cancellation; only required when delivered/customer-received or return evidence exists; remains `[MISSING: owner-approved Orders return workflow for Goal 24 paid/provider cleanup when delivered/customer-received state exists]` |
 | Partial component-line failure or mixed Warehouse state | line-by-line owner-approved matrix | `release`, `cancel`, or `return` per component line | matching reason above | fail closed for any unknown line |
 | Unknown Warehouse component state | none | none | none | fail closed; do not infer stock effects from Payments refund state |
 
 Orders must not mutate Warehouse directly, edit stock truth, downgrade `paymentStatus=paid`, consume `refunded` as `orders.payment-status.v1`, or treat a Payments refund/correction as permission to choose `release`, `cancel`, or `return` without the Warehouse-owned state matrix.
-Orders must not infer stock effects from Payments refund state.
+Orders must not infer stock effects from Payments refund state. `return` is not a default paid-provider refund cleanup path; it is gated by separate delivered/customer-received or inventory-return evidence. When the observed order is not delivered/customer-received and the provider refund/reversal/correction proof exists, the Orders-owned cleanup selector remains cancellation plus Warehouse `cancel` with `ORDER_CANCELLED`, subject to all side-effect acknowledgements.
 
 ## Required Owner-Approved Runtime Packet
 
@@ -86,7 +86,8 @@ A paid/provider `catalog.bundle.v1` bundle smoke is blocked until the packet nam
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]`
 - `[RESOLVED/NARROWED: Payments emits bounded orders.payment-status.v1 for completed/failed/cancelled only; refunded is intentionally not bridged]`
 - `[RESOLVED/NARROWED: Orders source accepts sanitized approval.idempotencyKey and persists statusTransitionAudit; runtime packet must still name target central Orders UUID hash, status before rollback, cleanup idempotency key, cancellation actor/approvedBy, reasonCode GOAL24_PAID_PROVIDER_ROLLBACK or GOAL24_PROVIDER_UNPAID_CANCEL, and payment/warehouse/notification/crm/channel side-effect acknowledgements]`
-- `[RESOLVED/NARROWED: Warehouse owner-approved cleanup operation for reserved-only, fulfilled/stock-decremented, return, partial, and unknown bundle component-line states in Warehouse 3043cad; live stock window/max quantity remains missing]`
+- `[RESOLVED/NARROWED: Warehouse owner-approved cleanup operation for reserved-only, fulfilled/stock-decremented cancellation, delivered/customer-received return, partial, and unknown bundle component-line states in Warehouse 3043cad; live stock window/max quantity remains missing]`
+- `[RESOLVED/NARROWED: Orders return workflow is not required for normal Fiobanka completed-transfer refund/reversal/correction cleanup unless delivered/customer-received or inventory-return evidence exists; absent that evidence, cleanup remains cancellation plus Warehouse cancel after provider proof and side-effect acknowledgements]`
 - `[MISSING: channel/FlipFlop checkout cleanup owner for customer-visible session/cart/local projection state]`
 - `[MISSING: redacted evidence plan proving no tokens, raw provider payloads, card/customer data, raw DB rows, or raw order ids are printed]`
 
@@ -113,4 +114,4 @@ A paid/provider `catalog.bundle.v1` bundle smoke is blocked until the packet nam
 
 Decision: `block` for paid/provider runtime progression.
 
-Orders can describe the future rollback choreography without bypassing Payments, but cannot prove side-effect-safe rollback alone. The remaining blocker is `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`.
+Orders can describe the future rollback choreography without bypassing Payments, but cannot prove side-effect-safe rollback alone. The remaining blocker is `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`. The former broad return-workflow ambiguity is narrowed: `return` remains `[MISSING: owner-approved Orders return workflow for Goal 24 paid/provider cleanup when delivered/customer-received state exists]`, but it is not a prerequisite for a non-delivered Fiobanka refund/reversal/correction cleanup packet that selects cancellation plus Warehouse `cancel`.
