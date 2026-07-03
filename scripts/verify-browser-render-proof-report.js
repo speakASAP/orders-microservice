@@ -24,6 +24,7 @@ const invalidResultSummaryFixturePath = path.join(root, 'docs/orchestrator/brows
 const invalidFutureCheckedAtFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-future-checked-at.json');
 const invalidDuplicateRouteUrlFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-duplicate-route-url.json');
 const invalidStaleCheckedAtFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-stale-checked-at.json');
+const invalidMutationArtifactHashFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-artifact-hash.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -49,6 +50,7 @@ const allowedChannelHosts = new Map([
 ]);
 const orderRoutePathPattern = /\b(admin\/)?orders?\b|\bobjednavk/i;
 const artifactSha256Pattern = /^[0-9a-f]{64}$/;
+const artifactHashPattern = /^sha256:[0-9a-f]{64}$/;
 const allowedArtifactPathPattern = /^reports\/validation\/orders-browser-render-proof\/[a-z0-9._/-]+$/;
 const allowedRefreshMechanisms = new Set(['manual_refresh', 'visible_polling_30s', 'full_reload', 'api_backed_render_probe']);
 const allowedSurfaces = new Set(['customer_cabinet', 'admin_cabinet', 'admin_dashboard']);
@@ -177,6 +179,12 @@ function assertApprovedMutationEvidence(mutationEvidence) {
   );
   assert.equal(typeof mutationEvidence.approvalId, 'string', 'report mutationEvidence.approvalId is required');
   assert.equal(Boolean(mutationEvidence.approvalId.trim()), true, 'report mutationEvidence.approvalId must not be empty');
+  assert.equal(typeof mutationEvidence.artifactHash, 'string', 'proven report mutationEvidence.artifactHash is required');
+  assert.equal(
+    artifactHashPattern.test(mutationEvidence.artifactHash),
+    true,
+    'proven report mutationEvidence.artifactHash must be sha256-prefixed 64 lowercase hex',
+  );
 }
 
 function assertResultSummary(result) {
@@ -243,6 +251,7 @@ function validateContract() {
     'report checkedAt must not be in the future beyond allowed clock skew',
     'proven report route urls must be unique',
     'real proven browser proof report checkedAt must be recent within 24 hours',
+    'proven report mutationEvidence.artifactHash must be sha256-prefixed 64 lowercase hex',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -357,6 +366,11 @@ function validateFixtures() {
     /real proven browser proof report checkedAt must be recent within 24 hours/,
     'invalid stale-checkedAt fixture must be rejected when validating a real report',
   );
+  assert.throws(
+    () => validateReport(read(invalidMutationArtifactHashFixturePath)),
+    /mutationEvidence.artifactHash must be sha256-prefixed 64 lowercase hex/,
+    'invalid mutation-artifact-hash fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -375,6 +389,7 @@ function validateFixtures() {
     invalidFutureCheckedAtFixture: path.relative(root, invalidFutureCheckedAtFixturePath),
     invalidDuplicateRouteUrlFixture: path.relative(root, invalidDuplicateRouteUrlFixturePath),
     invalidStaleCheckedAtFixture: path.relative(root, invalidStaleCheckedAtFixturePath),
+    invalidMutationArtifactHashFixture: path.relative(root, invalidMutationArtifactHashFixturePath),
   };
 }
 

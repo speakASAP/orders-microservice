@@ -21,7 +21,7 @@ A valid report is JSON with these top-level fields:
 - `checkedAt`: ISO timestamp; it must not be in the future beyond a 5-minute verifier clock-skew allowance. For a supplied real proven report, it must also be within 24 hours of verifier execution.
 - Proven report route URLs must be unique after normalization; one route URL cannot stand in for multiple surface proofs.
 - `ordersEvidenceCommit`: immutable 40-character lowercase git commit hash used for the proof; `HEAD` is not valid for `status=proven`. ordersEvidenceCommit must be an immutable git commit hash for proven reports.
-- `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, required `expectedLifecycleStage` for `status=proven`, and optional `artifactHash`; for `status=proven`, `source` must be `smoke:lifecycle-mutation` or `approved-existing-mutation-artifact`.
+- `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, required `expectedLifecycleStage` for `status=proven`, and required `artifactHash` for `status=proven`; for `status=proven`, `source` must be `smoke:lifecycle-mutation` or `approved-existing-mutation-artifact`, and `artifactHash` must be `sha256:<64 lowercase hex>`.
 - `routes`: non-empty array of route evidence entries.
 - `refreshMechanism`: one of `manual_refresh`, `visible_polling_30s`, `full_reload`, or `api_backed_render_probe`.
 - `centralReadModelBacked`: boolean proving the rendered state came from Orders lifecycle read model or a channel API backed by it.
@@ -70,6 +70,7 @@ Required `evidencePolicy` booleans:
 - `mutationEvidence.summary` is present and sanitized.
 - `mutationEvidence.source` is an approved lifecycle mutation source: `smoke:lifecycle-mutation` or `approved-existing-mutation-artifact`. proven report mutationEvidence.source must be an approved lifecycle mutation source.
 - `mutationEvidence.approvalId` is present and non-empty.
+- `mutationEvidence.artifactHash` is present and formatted as `sha256:<64 lowercase hex>`. proven report mutationEvidence.artifactHash must be sha256-prefixed 64 lowercase hex.
 - Every artifact is marked `redacted=true`.
 - Artifact SHA-256 values must be 64 lowercase hex characters. artifact sha256 must be 64 lowercase hex characters for browser proof reports.
 - Artifact paths must be relative and under `reports/validation/orders-browser-render-proof/`. artifact path must be under reports/validation/orders-browser-render-proof for browser proof reports.
@@ -116,5 +117,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-future-checked-at.json` must be rejected because `checkedAt` is in the future beyond the allowed clock-skew window.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-duplicate-route-url.json` must be rejected because one route URL cannot satisfy multiple rendered surface proofs.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-stale-checked-at.json` must be rejected in real-report validation mode because stale rendered UI evidence cannot close the current browser proof gate.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-artifact-hash.json` must be rejected because mutation evidence lacks a reproducible `sha256:<64 lowercase hex>` artifact hash.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.
