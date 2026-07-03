@@ -55,6 +55,8 @@ const runtimeGateReportPath = 'reports/validation/shipment-runtime-readiness/all
 const runtimeGateReport = JSON.parse(requireFile(ordersRoot, runtimeGateReportPath));
 const liveProviderGateReportPath = 'reports/validation/shipment-runtime-readiness/allegro-live-provider-non-unknown-current.json';
 const liveProviderGateReport = JSON.parse(requireFile(ordersRoot, liveProviderGateReportPath));
+const liveProviderScanArtifactPath = 'reports/validation/shipment-runtime-readiness/allegro-non-unknown-provider-scan-2026-07-03.json';
+const liveProviderScanArtifact = JSON.parse(requireFile(ordersRoot, liveProviderScanArtifactPath));
 assert.equal(runtimeGateReport.schemaVersion, 'orders.shipment_runtime_gate.v1', 'shipment runtime gate report schema mismatch');
 assert.equal(runtimeGateReport.status, 'runtime_proven_source_hardened_minimal_token_projected', 'shipment runtime gate must record proven runtime path plus minimal projected token');
 assert.equal(runtimeGateReport.runtimeEvidence.deployments.orders.image, 'localhost:5000/orders-microservice:ad83d15', 'Orders runtime image evidence mismatch');
@@ -112,6 +114,13 @@ assert.equal(liveProviderGateReport.blocker.code, 'NO_REAL_NON_UNKNOWN_PROVIDER_
 assert.equal(liveProviderGateReport.blocker.mutationRejectedByPolicy, false, 'OAuth refresh mutation is no longer the blocker after approval');
 assert.equal(liveProviderGateReport.redaction.tokenValuesPrinted, false, 'live provider blocker must not print token values');
 assert.equal(liveProviderGateReport.redaction.rawOrderIdsPrinted, false, 'live provider blocker must not print raw order ids');
+assert.equal(liveProviderScanArtifact.schemaVersion, 'orders.allegro_non_unknown_provider_scan.v1', 'non-UNKNOWN provider scan artifact schema mismatch');
+assert.equal(liveProviderScanArtifact.status, 'non_unknown_provider_status_unavailable', 'non-UNKNOWN provider scan status mismatch');
+assert.equal(liveProviderScanArtifact.providerReads.shipmentEndpoint.http200, 1, 'non-UNKNOWN provider scan must reach shipment endpoint');
+assert.equal(liveProviderScanArtifact.providerReads.carrierTrackingEndpoint.http200, 1, 'non-UNKNOWN provider scan must reach carrier tracking endpoint');
+assert.equal(liveProviderScanArtifact.providerReads.foundNonUnknown, false, 'non-UNKNOWN provider scan must preserve missing non-UNKNOWN sample');
+assert.equal(liveProviderScanArtifact.evidencePolicy.rawPayloadPrinted, false, 'non-UNKNOWN provider scan must not print raw provider payload');
+assert.equal(liveProviderScanArtifact.evidencePolicy.rawIdsPrinted, false, 'non-UNKNOWN provider scan must not print raw ids');
 
 assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardening.warehouseCommit, 'ab7ac6e', 'Warehouse service-role hardening commit mismatch');
 assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardening.allegroCommit, 'edb3a88', 'Allegro service-token hardening commit mismatch');
