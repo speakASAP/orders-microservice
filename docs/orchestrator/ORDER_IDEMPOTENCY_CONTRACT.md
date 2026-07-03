@@ -97,8 +97,9 @@ The future duplicate check should compare a canonical fingerprint derived from t
 - bounded shipping/billing destination fields needed for conflict detection, such as country and postal code
 - `payment.status` and `payment.method` metadata only
 - `shipping.method`
+- bounded normalized `bundleEvidence[]` metadata, when supplied
 
-Do not include generated database IDs, timestamps created by Orders, audit metadata, raw notes, bearer tokens, secrets, or full address/payment payloads in the fingerprint.
+Bundle evidence is part of the normalized replay fingerprint but not part of the idempotency key. Do not include generated database IDs, timestamps created by Orders, audit metadata, raw notes, bearer tokens, secrets, raw Catalog candidate payloads, browser pricing claims, or full address/payment payloads in the fingerprint.
 
 ## Current Runtime Status
 

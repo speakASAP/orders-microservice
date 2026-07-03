@@ -17,6 +17,8 @@ for (const required of [
   'Do not emit another `order.created` event',
   'channelAccountId',
   'externalOrderId',
+  'bundleEvidence',
+  'Bundle evidence is part of the normalized replay fingerprint',
 ]) {
   assert.ok(idempotencyDoc.includes(required), `Missing idempotency contract text: ${required}`);
 }

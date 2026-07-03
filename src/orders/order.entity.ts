@@ -108,6 +108,16 @@ export class Order {
   @Column({ type: 'jsonb', nullable: true })
   warehouseHandoff: WarehouseHandoffSummary;
 
+  @Column({ type: 'jsonb', nullable: true })
+  bundleEvidence: Array<{
+    contractVersion: 'catalog.bundle.v1';
+    bundleId: string;
+    productIds: string[];
+    discountPolicyRef?: string;
+    freeShippingPolicyRef?: string;
+    serverTotalSource?: string;
+  }>;
+
   @Column({ type: 'timestamp', nullable: true })
   orderedAt: Date;
 

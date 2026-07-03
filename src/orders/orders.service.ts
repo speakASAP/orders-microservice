@@ -397,6 +397,7 @@ export class OrdersService {
       currency: normalized.order.currency,
       paymentMethod: normalized.order.paymentMethod || null,
       shippingMethod: normalized.order.shippingMethod || null,
+      bundleEvidenceCount: normalized.order.bundleEvidence?.length || 0,
       idempotencyStatus,
       existingOrderId: existing?.id || null,
     };
@@ -599,8 +600,10 @@ export class OrdersService {
     const order = await this.findOne(id);
     const previousLifecycleStage = deriveOrderLifecycleState(order).lifecycleStage;
     const normalized = normalizeWarehouseFulfillmentStatusUpdate(data);
+    const { skipReason: _previousSkipReason, ...previousFulfillmentOrderHandoff } =
+      (order.warehouseHandoff?.fulfillmentOrderHandoff || {}) as Record<string, unknown>;
     const fulfillmentOrderHandoff = {
-      ...(order.warehouseHandoff?.fulfillmentOrderHandoff || {}),
+      ...previousFulfillmentOrderHandoff,
       status: 'updated',
       warehouseStatus: normalized.status,
       updatedAt: normalized.occurredAt || new Date().toISOString(),

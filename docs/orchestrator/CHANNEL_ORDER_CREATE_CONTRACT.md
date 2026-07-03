@@ -81,6 +81,16 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
     "source": "lead-form",
     "campaignId": "campaign-1001"
   },
+  "bundleEvidence": [
+    {
+      "contractVersion": "catalog.bundle.v1",
+      "bundleId": "55555555-5555-4555-8555-555555555555",
+      "productIds": ["catalog-product-1", "catalog-product-2"],
+      "discountPolicyRef": "bundle:starter:discount:v1",
+      "freeShippingPolicyRef": "shipping:free-over-threshold:v1",
+      "serverTotalSource": "orders.create.v1"
+    }
+  ],
   "orderedAt": "2026-06-13T08:00:00.000Z",
   "customer": {
     "authSubject": "11111111-1111-4111-8111-111111111111",
@@ -144,6 +154,12 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
 - `externalOrderId`: required channel order/checkout identifier.
 - `channelAccountId`: required by the idempotency contract for new clients; clients without a natural account partition should send a stable sentinel such as `default`.
 - `leadAttribution`: optional explicit attribution metadata with allowed fields `leadId`, `source`, and `campaignId`. Orders publishes it only on `orders.order.created.v1` when supplied; callers must not derive it from customer/contact/address/payment data.
+- `bundleEvidence`: optional bounded Catalog bundle metadata evidence. It is accepted only as additive audit metadata for future `catalog.bundle.v1` checkout contracts and must not replace normal `items[]` rows, become product/pricing/eligibility truth, or authorize checkout totals.
+- `bundleEvidence[].contractVersion` must equal `catalog.bundle.v1`.
+- `bundleEvidence[].bundleId` must be the durable Catalog bundle aggregate UUID; Catalog read-only `candidateId` values are not accepted as bundle identity.
+- `bundleEvidence[].productIds` must contain 2 to 10 unique product IDs and must match the submitted normal item `productId` set after normalization. Orders still persists every product as a normal order item line.
+- `bundleEvidence[].discountPolicyRef`, `bundleEvidence[].freeShippingPolicyRef`, and `bundleEvidence[].serverTotalSource` are the only optional policy/source fields. `serverTotalSource` is limited to `orders.create.v1` or `checkout_authoritative`.
+- Orders rejects raw Catalog candidate payloads, monetary totals, applied savings, customer/address/payment/provider data, tokens, and secrets in `bundleEvidence`. Browser-submitted bundle evidence never causes Orders to calculate or change subtotal, shipping, tax, total, currency, reservation, or payment behavior.
 - `customer.authSubject`: optional stable Auth user UUID for authenticated checkouts. Orders also accepts alias fields `customer.authUserId`, `customer.subject`, and `customer.sub`, but all supplied aliases must match. The normalized persisted snapshot stores `customer.authUserId` and `customer.subject`; Orders never infers this value from email.
 - `status`: optional and limited to `pending` or `confirmed` at create time; default is `pending`.
 - `items`: required non-empty array. Each line requires `productId`, `title`, positive integer `quantity`, and non-negative `unitPrice`. Missing `totalPrice` is calculated as `quantity * unitPrice`.
@@ -158,6 +174,7 @@ Machine-auth requests use `x-internal-service-token` plus `x-service-name`; toke
 ## Persistence Mapping
 
 - `customer`, including normalized `authUserId`/`subject` when supplied, `shippingAddress`, `billingAddress`, totals, `payment.method`, `payment.status`, `shipping.method`, and `notes.customerNote` map to existing `orders` columns.
+- `bundleEvidence[]` maps to the nullable `orders.bundleEvidence` JSONB metadata column. It is not copied onto `order_items`, Warehouse reservations, payment amounts, or order-created event payloads in this contract slice.
 - `items[]` maps to `order_items` rows in the same database transaction as the order row. `order_items.productId` stores the canonical Catalog product ID snapshot used for product-level marketplace sales statistics.
 - New item rows start with `fulfillmentStatus=pending`.
 - Orders stores canonical Catalog product IDs, SKUs, titles, quantities, prices, and optional warehouse IDs for the order snapshot. Catalog remains product truth and Warehouse remains stock truth.
@@ -199,7 +216,7 @@ Runtime behavior:
 - If no order exists for the key, Orders creates a new canonical order and item rows.
 - If an order exists for the same key and the normalized payload matches the stored order snapshot and item rows, Orders returns the existing order with the existing item rows.
 - Idempotent replay does not publish a second `order.created` event and does not trigger duplicate side effects.
-- If an order exists for the same key but the normalized payload differs, Orders rejects the request with HTTP 409 Conflict.
+- If an order exists for the same key but the normalized payload differs, including different normalized `bundleEvidence`, Orders rejects the request with HTTP 409 Conflict.
 - If `channelAccountId` is absent, runtime matching is limited to records where `channelAccountId` is absent or empty. New clients should send a stable value.
 
 Client expectations:
@@ -221,7 +238,7 @@ Current limitation:
 - Conflicting replay with the same idempotency key and different payload is rejected with HTTP 409.
 - The endpoint publishes `orders.order.created.v1` after persistence and includes optional `leadAttribution` only when supplied by the create request.
 - Audit logging records bounded operation metadata only and does not log customer/address/payment raw values.
-- The endpoint rejects unsupported channels, unsupported contract versions, unknown fields, empty item arrays, invalid totals, invalid currency, invalid timestamps, and create-time statuses outside `pending|confirmed`.
+- The endpoint rejects unsupported channels, unsupported create contract versions, unknown top-level fields, empty item arrays, invalid totals, invalid currency, invalid timestamps, create-time statuses outside `pending|confirmed`, unsupported `bundleEvidence` contract versions, product-set mismatches, raw Catalog candidate payload fields, pricing/eligibility claims, and customer/address/payment/provider/token metadata inside `bundleEvidence`.
 
 ## Explicit Deferrals
 
