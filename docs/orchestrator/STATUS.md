@@ -1,3 +1,20 @@
+## 2026-07-03 - Channel Lifecycle UI Verifier Surface Hardened
+
+Result: central Orders channel lifecycle verifier now requires every selling channel repo to expose the same npm script, verify:orders-lifecycle-ui, in addition to the existing source markers for customer cabinet, admin cabinet, payment, fulfillment, delivery, and stale/missing central-order states. FlipFlop already had the script; Bazos, Heureka, Allegro, and Aukro now expose it in their package.json files. The command passed across FlipFlop, Bazos, Heureka, Allegro, and Aukro. Orders verifiers passed after hardening: verify:channel-lifecycle-surfaces, verify:channel-lifecycle-runtime-evidence, and verify:admin-operations-console.
+
+IPS chain: Vision -> all selling surfaces show canonical Orders lifecycle consistently; Goal Impact -> lifecycle UI regression checks are now reproducible by one command per channel and by the central Orders verifier; System -> Orders owns lifecycle truth and verification, channel apps render customer/admin read paths; Feature -> channel lifecycle UI verifier surface; Task -> add package scripts and harden Orders verifier; Execution Plan -> source-only verifier/package updates, no runtime deploy; Coding Prompt -> no secrets, no provider payloads, no customer PII; Code -> channel package.json scripts plus Orders verifier; Validation -> channel verifier commands and Orders verifier trio.
+
+Validation:
+
+- FlipFlop/Bazos/Heureka/Allegro/Aukro: npm run verify:orders-lifecycle-ui passed in each repo.
+- Orders: npm run verify:channel-lifecycle-surfaces passed and includes package.json checks for every channel.
+- Orders: npm run verify:channel-lifecycle-runtime-evidence passed.
+- Orders: npm run verify:admin-operations-console passed.
+
+Remaining gates:
+
+- [OPTIONAL: natural real-buyer browser proof where existing approved bounded/service-scoped evidence is not sufficient for product sign-off.]
+- [OPTIONAL: real provider live-read where existing internal Warehouse delivery smoke is not sufficient.]
 2026-07-03 continuation: Approved synthetic Allegro provider return fixture proved the returned path in pre-production mode. After the synthetic `DELIVERED` fixture moved Warehouse to `delivered` and Orders lifecycle to `received`, a second sanitized `RETURNED` provider fixture was posted from the live Allegro pod with `WAREHOUSE_INTERNAL_SERVICE_TOKEN`. Warehouse returned HTTP 201 with `statusMutationApplied=true`, `observationDecision=accepted`, `normalizedWarehouseStatus=returned`, and fulfillment status `returned`. Orders accepted the Warehouse callback and moved lifecycle from `received` to `returned`. No token values, raw provider payloads, raw tracking numbers, raw waybills, raw account/order ids, customer PII, screenshots, raw DOM, provider write, deploy, or runtime secret change was used or printed. This remains synthetic/pre-production evidence; real Allegro.cz production shipment evidence should be rechecked when real customers/traffic exist.
 ## 2026-07-03 - Goal 24 Warehouse Cleanup Semantics Reconciled
 

@@ -23,6 +23,10 @@ const REPOS = {
         file: 'scripts/verify-orders-hub-integration.js',
         contains: ['central Orders client', 'admin-scoped orders API'],
       },
+      {
+        file: 'package.json',
+        contains: ['verify:orders-lifecycle-ui'],
+      },
     ],
   },
   bazos: {
@@ -44,6 +48,10 @@ const REPOS = {
       {
         file: 'reports/validation/2026-07-02-orders-lifecycle-cabinet-bazos-report.md',
         contains: ['Customer and admin Bazos UI surfaces', 'delivery-state counts derived from `centralOrder.deliveryStatus`/lifecycle/status'],
+      },
+      {
+        file: 'package.json',
+        contains: ['verify:orders-lifecycle-ui'],
       },
     ],
   },
@@ -67,6 +75,10 @@ const REPOS = {
         file: 'services/heureka-service/src/public/public-dashboard-routes.self-test.ts',
         contains: ['dashboard/orders', 'orderLifecycleStats'],
       },
+      {
+        file: 'package.json',
+        contains: ['verify:orders-lifecycle-ui'],
+      },
     ],
   },
   allegro: {
@@ -89,6 +101,10 @@ const REPOS = {
         file: 'docs/orchestrator/STATUS.md',
         contains: ['/cabinet/orders', 'central Orders lifecycle'],
       },
+      {
+        file: 'package.json',
+        contains: ['verify:orders-lifecycle-ui'],
+      },
     ],
   },
   aukro: {
@@ -110,6 +126,10 @@ const REPOS = {
       {
         file: '12_validation/VAL-AU2-orders-lifecycle-cabinet-admin-stats.md',
         contains: ['Customer cabinet renders central lifecycle status', 'Admin dashboard exposes order/delivery statistics'],
+      },
+      {
+        file: 'package.json',
+        contains: ['verify:orders-lifecycle-ui'],
       },
     ],
   },
