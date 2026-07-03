@@ -1,5 +1,46 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Marketplace Order Read Scope Hardened
+
+Intent chain:
+
+- Vision: marketplace order cabinets and dashboards must not expose unrelated seller, workspace, or customer order rows while Orders remains the lifecycle source of truth.
+- Goal Impact: Bazos, Aukro, and Heureka order read surfaces are hardened after the Allegro seller/workspace fix; FlipFlop customer order reads were verified already scoped to the authenticated user.
+- System: Auth provides JWT actor identity and roles; marketplace services own local account/workspace ownership where available; Orders owns canonical lifecycle projection consumed by marketplace read models.
+- Feature: marketplace order read authorization hardening for Bazos, Aukro, and Heureka.
+- Task: pass authenticated actors into order read methods and fail closed where no safe account-owner mapping exists.
+- Execution Plan: preserve admin operational visibility, use account ownership for Bazos because the schema has user ownership, require explicit admin roles for Aukro and Heureka because their marketplace account schemas do not expose a stable Auth owner field, then deploy and smoke protected routes.
+- Coding Prompt: do not infer buyer ownership from raw marketplace email/login snapshots; mark missing buyer/provider contracts explicitly.
+- Code: Bazos `1876b9b fix: scope bazos order reads by actor`; Aukro `ba1f6fd fix: require admin for aukro order reads`; Heureka `eec326f fix: require admin for heureka order reads`.
+- Validation: `git diff --check`; Bazos service build plus targeted read-scope verifier; Aukro focused tests and service build; Heureka orders/dashboard self-tests and service build; all three commits pushed to `main`; Bazos, Aukro, and Heureka production deploys completed.
+
+Evidence:
+
+- k3s preflight after recovery showed node `alfares` `Ready` on `v1.34.6+k3s1`.
+- Bazos `OrdersController` now passes `req.user` into list/detail reads. Non-admin actors are scoped through owned `BazosAccount.userId` or `BazosIdentity.userId`; admin roles retain unscoped visibility.
+- Bazos deployed image `localhost:5000/bazos-service:1876b9b`; pod `bazos-service-54c55d79f-2b56r` is `1/1 Running`; `https://bazos.alfares.cz/health` returned HTTP 200; unauthenticated `https://bazos.alfares.cz/orders` returned HTTP 401.
+- Aukro `OrdersController` now passes `req.user` into list/detail reads and `OrdersService` requires admin role for order reads because `AukroAccount` has no stable Auth owner field.
+- Aukro deployed image `localhost:5000/aukro-service:ba1f6fd`; pod `aukro-service-68cfc6d6ff-5s98l` is `1/1 Running`; `https://aukro.alfares.cz/health` returned HTTP 200; unauthenticated `https://aukro.alfares.cz/aukro/orders` returned HTTP 403 from the admin-only boundary.
+- Heureka `OrdersController` and dashboard order read model now require admin roles for order list/detail reads because `HeurekaAccount` has no stable Auth owner field.
+- Heureka deployed images `localhost:5000/heureka-service:eec326f` and `localhost:5000/heureka-api-gateway:eec326f`; both deployments are ready/available `1/1`; `https://heureka.alfares.cz/api/health` returned HTTP 200; unauthenticated `https://heureka.alfares.cz/api/heureka/orders` returned HTTP 401.
+- FlipFlop was source-audited: customer order reads already call `getOrders(req.user.id)` and `getOrder(req.user.id, id)`, and service lookups filter by `userId`. No FlipFlop runtime change was needed for customer order cabinet scoping in this slice.
+
+Validation notes:
+
+- Bazos Jest remains affected by pre-existing TypeScript/Jest transform debt (`jest-haste-map` name collision and TS syntax parse failure), so a targeted `ts-node` verifier was used and passed after the service build.
+- Bazos and Aukro gateway `/api/<channel>/orders` public smoke currently returns 404 because those ingresses expose direct service paths for the checked order endpoints; this was recorded as route-shape debt, not an authorization failure.
+
+Remaining blockers:
+
+- `[MISSING: buyer-facing personal cabinet ownership contract for marketplaces where buyer snapshots do not map to Auth subject.]`
+- `[MISSING: stable Auth-owned account field for AukroAccount and HeurekaAccount if non-admin seller-scoped order reads are required.]`
+- `[MISSING: FlipFlop admin route role-enforcement review for admin order, inventory, and pricing controllers.]`
+- `[MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source.]`
+
+Next action:
+
+- Continue with FlipFlop admin role hardening and the provider/courier owner contract lane; do not implement buyer personal cabinets until Auth ownership is approved.
+
 ## 2026-07-03 - Allegro Seller Workspace Order Read Scope Hardened
 
 Intent chain:

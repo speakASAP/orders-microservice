@@ -34,9 +34,9 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Allegro seller/workspace order read-scope hardened; delivery-provider shipment-status contract remains blocked pending provider source
-next_recommended_goal: Identify or approve delivery-provider/courier owner source before adapter implementation; approve buyer Auth/order ownership before Allegro buyer cabinet runtime
-last_completed_goal: Allegro seller/workspace order read-scope hardening deployed
+current_chunk: Marketplace order read-scope hardening deployed for Bazos, Aukro, Heureka, and Allegro; FlipFlop customer reads verified scoped; provider shipment-status contract remains blocked pending provider source
+next_recommended_goal: Harden FlipFlop admin routes, identify or approve delivery-provider/courier owner source before adapter implementation, and approve buyer Auth/order ownership before buyer cabinet runtime
+last_completed_goal: Marketplace order read-scope hardening deployed for Bazos, Aukro, Heureka, and Allegro
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
   - [MISSING: Cliplot owner-approved live Orders create/idempotency/Warehouse reservation smoke]
@@ -45,9 +45,12 @@ blockers:
   - [MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]
   - non-marketplace app contracts require owner approval before runtime integration
   - [MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source]
+  - [MISSING: FlipFlop admin route role-enforcement review for admin order, inventory, and pricing controllers.]
 ```
 
 ## Current Checkpoint
+
+2026-07-03: Marketplace order read-scope hardening deployed for Bazos, Aukro, and Heureka after k3s recovery, completing the same authorization-hardening wave already applied to Allegro. Bazos commit `1876b9b` scopes non-admin order list/detail reads by authenticated actor through owned `BazosAccount.userId` or `BazosIdentity.userId` and preserves admin visibility. Aukro commit `ba1f6fd` makes order list/detail reads admin-only because `AukroAccount` has no stable Auth owner field. Heureka commit `eec326f` makes service and dashboard order list/detail reads admin-only for the same reason. Deploy evidence: Bazos image `localhost:5000/bazos-service:1876b9b`, Aukro image `localhost:5000/aukro-service:ba1f6fd`, Heureka images `localhost:5000/heureka-service:eec326f` and `localhost:5000/heureka-api-gateway:eec326f` are ready/available `1/1`. Health/protected-route smoke passed with Bazos `/health` HTTP 200 and `/orders` HTTP 401, Aukro `/health` HTTP 200 and `/aukro/orders` HTTP 403, Heureka `/api/health` HTTP 200 and `/api/heureka/orders` HTTP 401. FlipFlop customer order reads were source-verified already scoped by `req.user.id`; FlipFlop admin route role enforcement remains a follow-up.
 
 2026-07-03: Allegro seller/workspace order read-scope hardening is implemented, pushed, and deployed. Allegro commit `2c72f6b` passes JWT actor identity from the protected order controller into list/statistics/detail reads, scopes non-admin users through `offer.account.userId` or `forwardingAttempts.account.userId`, preserves admin visibility for `global:superadmin` and `app:allegro-service:admin`, and uses scoped detail lookup to avoid exposing another workspace order. Validation passed: `git diff --check`, `orders.service.spec: PASS`, `npm run build`, GitHub push to `main`, and deployment of Allegro service/api-gateway/frontend/settings/imports images `2c72f6b`. Live checks: Allegro API health HTTP 200 and unauthenticated `/api/allegro/orders` HTTP 401. This does not unblock the buyer personal cabinet, which still requires an approved Auth-to-Allegro-buyer ownership rule.
 2026-07-03: Delivery-provider shipment-status source discovery found no concrete provider-owned repo/service, webhook or polling contract, runtime credential source, or sample provider payload. No adapter was implemented because doing so would invent courier ownership inside Orders. Plan and agent-ready parallel workstreams are documented in `docs/orchestrator/2026-07-03-delivery-provider-shipment-status-plan.md`.
