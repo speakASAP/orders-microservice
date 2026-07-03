@@ -87,6 +87,13 @@ Required `evidencePolicy` booleans:
 - Route URL path must target an order lifecycle surface for proven browser reports. route url path must target an order lifecycle surface for proven browser reports.
 - Route URLs must be unique for proven browser reports. proven report route urls must be unique.
 
+
+## Template Generator
+
+`npm run generate:browser-render-proof-template` emits a sanitized `orders.browser_render_proof.v1` template bound to the current immutable Orders commit. The template defaults to the first FlipFlop validation lane and `status=incomplete`; it is a capture aid only and cannot close the rendered browser proof gate until all `[MISSING: ...]` placeholders are replaced with approved rendered evidence and the supplied report passes `verify:browser-render-proof-report`.
+
+`npm run verify:browser-render-proof-template` verifies the template generator remains incomplete by default, includes customer/admin route shells, uses redacted artifact paths, and does not claim browser proof.
+
 ## Default Verifier Mode
 
 `npm run verify:browser-render-proof-report` is non-mutating by default. Without `BROWSER_RENDER_PROOF_REPORT_PATH`, it only validates this contract and reports the proof as gated. With `BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`, it validates the supplied sanitized report, requires referenced artifact files to exist, and requires a real proven report to be no older than 24 hours. A real proven report must also set `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>`, and `ordersEvidenceCommit` must match `BROWSER_RENDER_PROOF_EXPECTED_COMMIT`. `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>` must be supplied when validating a real proven report. ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports.

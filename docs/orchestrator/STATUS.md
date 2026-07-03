@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Template Generator Added
+
+Intent chain:
+
+- Vision: approved browser proof capture should start from a deterministic sanitized report shape instead of handwritten JSON.
+- Goal Impact: the next real FlipFlop customer/admin proof can be generated with the current immutable Orders commit and explicit missing-evidence placeholders, reducing accidental schema drift without closing the gate prematurely.
+- System: Orders owns the proof report schema, template generator, verifier, and IPS status; channel repos remain untouched.
+- Feature: sanitized browser proof report template generator.
+- Task: add a non-mutating generator and verifier for incomplete `orders.browser_render_proof.v1` reports; include the verifier in the Orders test chain.
+- Execution Plan: add scripts, npm commands, contract/status/state docs, validate without browser sessions or runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof template generator/verifier, package scripts, proof contract, status/state docs.
+- Validation: `node --check scripts/generate-browser-render-proof-report-template.js`, `node --check scripts/verify-browser-render-proof-report-template.js`, `npm run verify:browser-render-proof-template`, `npm run verify:browser-render-proof-report`, `npm run verify:completion-audit`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: generated template filled with approved real rendered browser evidence and validated as status=proven.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Artifact File Guard Added
 
 Intent chain:
