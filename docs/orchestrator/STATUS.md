@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Warehouse Shipment Correlation Producer Surface Integrated
+
+Intent chain:
+
+- Vision: provider shipment progress needs a controlled Warehouse-owned population path before it can influence customer/admin order lifecycle.
+- Goal Impact: the runtime producer path moved from missing source surface to source-validated Warehouse endpoint, leaving deploy/migration and channel producer call gates explicit.
+- System: Allegro or Orders will later produce sanitized correlation hashes; Warehouse owns correlation registration, ledger observation, and future status mutation; Orders consumes only bounded Warehouse callbacks.
+- Feature: source-only Warehouse endpoint for provider shipment correlation registration.
+- Task: integrate Warehouse commit `174f92e` into Orders orchestration state.
+- Execution Plan: accept source-only endpoint evidence, keep deployment, migration run, live channel call, status mutation, and Orders callback changes blocked.
+- Coding Prompt: no Orders runtime code, no raw provider/tracking/customer fields, no direct Allegro snapshot ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Warehouse `174f92e feat: add shipment correlation registration endpoint`; Orders docs checkpoint in this commit.
+- Validation: Warehouse focused Jest `30` tests, `npm run build`, `npm run check:hosted-auth`, `git diff --check`, commit hook checks, and Orders `git diff --check`.
+
+Evidence:
+
+- Warehouse source exposes `POST /api/fulfillment-orders/order/:orderId/provider-shipment-correlations`.
+- The endpoint resolves the existing fulfillment order by central order id and registers sanitized provider/source hash fields only.
+- Authenticated actor derivation is reused through `getAuthenticatedMutationActor`.
+- The endpoint does not update fulfillment status, call Orders, read provider APIs, or persist raw provider/tracking/customer fields.
+
+Remaining gates:
+
+- `[LANDED: source-only Warehouse shipment correlation producer endpoint in warehouse-microservice commit 174f92e.]`
+- `[MISSING: deploy/migration approval for Warehouse correlation table and endpoint.]`
+- `[MISSING: approved channel producer call from Allegro or Orders runtime.]`
+- `[MISSING: approved retention/retry/dead-letter policy.]`
+- `[MISSING: product-approved tracking visibility matrix before tracking number/URL display.]`
+- `[MISSING: owner approval before runtime status mutation or production fulfillment-row mutation.]`
+
+Next action:
+
+- Approve deploy/migration and implement the Allegro or Orders producer call that posts sanitized shipment correlation hashes to Warehouse.
+
 ## 2026-07-03 - Warehouse Shipment Correlation Resolver Integrated
 
 Intent chain:
@@ -25,14 +59,15 @@ Evidence:
 Remaining gates:
 
 - `[LANDED: source-only Warehouse shipment correlation registry/resolver in warehouse-microservice commit ec04ede.]`
-- `[MISSING: approved runtime producer/population path for shipment correlations.]`
+- `[LANDED: source-only Warehouse shipment correlation producer endpoint in warehouse-microservice commit 174f92e.]`
+- `[MISSING: deploy/migration approval plus approved channel producer call for shipment correlations.]`
 - `[MISSING: approved retention/retry/dead-letter policy.]`
 - `[MISSING: product-approved tracking visibility matrix before tracking number/URL display.]`
 - `[MISSING: owner approval before Warehouse deploy, migration run, runtime status mutation, or production fulfillment-row mutation.]`
 
 Next action:
 
-- Approve and implement the runtime producer/population path for shipment correlations before any status-mutating provider consumer or deploy.
+- Approve deploy/migration and implement the Allegro or Orders producer call that posts sanitized shipment correlation hashes to Warehouse.
 
 ## 2026-07-03 - Warehouse Shipment Snapshot Adapter Mapper Integrated
 
@@ -66,7 +101,7 @@ Remaining gates:
 
 Next action:
 
-- Approve and implement the runtime producer/population path for shipment correlations before any status-mutating provider consumer or deploy.
+- Approve deploy/migration and implement the Allegro or Orders producer call that posts sanitized shipment correlation hashes to Warehouse.
 
 ## 2026-07-03 - Warehouse Provider-Status Ledger Source Integrated
 
