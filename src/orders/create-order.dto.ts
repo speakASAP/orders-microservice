@@ -64,12 +64,22 @@ export interface CreateOrderLeadAttributionDto {
   campaignId?: string;
 }
 
+export interface CreateOrderBundleEvidenceDto {
+  contractVersion: string;
+  bundleId: string;
+  productIds: string[];
+  discountPolicyRef?: string | null;
+  freeShippingPolicyRef?: string | null;
+  serverTotalSource?: string | null;
+}
+
 export interface CreateOrderRequestDto {
   contractVersion?: string;
   channel: string;
   externalOrderId: string;
   channelAccountId?: string;
   leadAttribution?: CreateOrderLeadAttributionDto;
+  bundleEvidence?: CreateOrderBundleEvidenceDto[];
   orderedAt?: string;
   status?: string;
   customer?: CreateOrderCustomerDto;
@@ -109,6 +119,7 @@ const ALLOWED_CREATE_KEYS = new Set([
   'externalOrderId',
   'channelAccountId',
   'leadAttribution',
+  'bundleEvidence',
   'orderedAt',
   'status',
   'customer',
@@ -203,6 +214,7 @@ export function normalizeCreateOrderRequest(input: CreateOrderRequestDto): Norma
       paymentStatus: normalizeOptionalString(input.payment?.status || input.paymentStatus),
       shippingMethod: normalizeOptionalString(input.shipping?.method || input.shippingMethod),
       customerNote: normalizeOptionalString(input.notes?.customerNote || input.customerNote),
+      bundleEvidence: normalizeBundleEvidence(input.bundleEvidence, items),
       orderedAt,
     },
     items,
@@ -252,6 +264,7 @@ export function isMatchingCreateOrderReplay(existing: Order, normalized: Normali
   if (!sameJsonShape(existing.customer, expected.customer)) return false;
   if (!sameJsonShape(existing.shippingAddress, expected.shippingAddress)) return false;
   if (!sameJsonShape(existing.billingAddress, expected.billingAddress)) return false;
+  if (!sameJsonShape(existing.bundleEvidence, expected.bundleEvidence)) return false;
 
   return sameOrderItems(existing.items || [], normalized.items);
 }
@@ -380,6 +393,94 @@ function normalizeAddress(value?: CreateOrderAddressDto): Order['shippingAddress
     vatId: normalizeOptionalString(value.vatId),
     email: normalizeOptionalString(value.email),
   };
+}
+
+
+function normalizeBundleEvidence(value: CreateOrderBundleEvidenceDto[] | undefined, items: Array<Partial<OrderItem>>): Order['bundleEvidence'] | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (!Array.isArray(value)) {
+    throw new BadRequestException('bundleEvidence must be an array');
+  }
+  if (value.length > 10) {
+    throw new BadRequestException('bundleEvidence must contain at most 10 entries');
+  }
+  if (!value.length) return undefined;
+
+  const itemProductIds = uniqueSorted(items.map((item) => requireComparableString(item.productId, 'items[].productId')));
+  return value.map((entry, index) => normalizeBundleEvidenceEntry(entry, index, itemProductIds));
+}
+
+function normalizeBundleEvidenceEntry(value: CreateOrderBundleEvidenceDto, index: number, itemProductIds: string[]): NonNullable<Order['bundleEvidence']>[number] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new BadRequestException(`bundleEvidence[${index}] must be an object`);
+  }
+
+  const allowedKeys = new Set(['contractVersion', 'bundleId', 'productIds', 'discountPolicyRef', 'freeShippingPolicyRef', 'serverTotalSource']);
+  const unknownKeys = Object.keys(value).filter((key) => !allowedKeys.has(key));
+  if (unknownKeys.length) {
+    throw new BadRequestException(`Unsupported bundleEvidence[${index}] fields: ${unknownKeys.join(', ')}`);
+  }
+
+  const contractVersion = normalizeString(value.contractVersion, `bundleEvidence[${index}].contractVersion`);
+  if (contractVersion !== 'catalog.bundle.v1') {
+    throw new BadRequestException(`Unsupported bundleEvidence[${index}].contractVersion: ${contractVersion}`);
+  }
+
+  const bundleId = normalizeUuid(value.bundleId, `bundleEvidence[${index}].bundleId`);
+  if (!Array.isArray(value.productIds) || value.productIds.length < 2 || value.productIds.length > 10) {
+    throw new BadRequestException(`bundleEvidence[${index}].productIds must contain 2 to 10 product IDs`);
+  }
+
+  const productIds = uniqueSorted(value.productIds.map((productId, productIndex) => normalizeString(productId, `bundleEvidence[${index}].productIds[${productIndex}]`)));
+  if (productIds.length !== value.productIds.length) {
+    throw new BadRequestException(`bundleEvidence[${index}].productIds must not contain duplicates`);
+  }
+  if (JSON.stringify(productIds) !== JSON.stringify(itemProductIds)) {
+    throw new BadRequestException(`bundleEvidence[${index}].productIds must match submitted order item productIds`);
+  }
+
+  const discountPolicyRef = normalizePolicyRef(value.discountPolicyRef, `bundleEvidence[${index}].discountPolicyRef`);
+  const freeShippingPolicyRef = normalizePolicyRef(value.freeShippingPolicyRef, `bundleEvidence[${index}].freeShippingPolicyRef`);
+  const serverTotalSource = normalizeServerTotalSource(value.serverTotalSource, `bundleEvidence[${index}].serverTotalSource`);
+
+  return {
+    contractVersion,
+    bundleId,
+    productIds,
+    ...(discountPolicyRef ? { discountPolicyRef } : {}),
+    ...(freeShippingPolicyRef ? { freeShippingPolicyRef } : {}),
+    ...(serverTotalSource ? { serverTotalSource } : {}),
+  };
+}
+
+function uniqueSorted(values: string[]): string[] {
+  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean))).sort();
+}
+
+function normalizePolicyRef(value: unknown, field: string): string | undefined {
+  const normalized = normalizeOptionalString(value);
+  if (!normalized) return undefined;
+  if (!/^[A-Za-z0-9:_./-]{1,200}$/.test(normalized)) {
+    throw new BadRequestException(`${field} must be a bounded policy reference`);
+  }
+  return normalized;
+}
+
+function normalizeServerTotalSource(value: unknown, field: string): string | undefined {
+  const normalized = normalizeOptionalString(value);
+  if (!normalized) return undefined;
+  if (normalized !== 'checkout_authoritative' && normalized !== 'orders.create.v1') {
+    throw new BadRequestException(`${field} must be checkout_authoritative or orders.create.v1`);
+  }
+  return normalized;
+}
+
+function normalizeUuid(value: unknown, field: string): string {
+  const normalized = normalizeString(value, field).toLowerCase();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(normalized)) {
+    throw new BadRequestException(`${field} must be a UUID`);
+  }
+  return normalized;
 }
 
 function normalizeLeadAttribution(value?: CreateOrderLeadAttributionDto): CreateOrderLeadAttributionDto | undefined {

@@ -397,6 +397,7 @@ export class OrdersService {
       currency: normalized.order.currency,
       paymentMethod: normalized.order.paymentMethod || null,
       shippingMethod: normalized.order.shippingMethod || null,
+      bundleEvidenceCount: normalized.order.bundleEvidence?.length || 0,
       idempotencyStatus,
       existingOrderId: existing?.id || null,
     };

@@ -53,12 +53,20 @@ const validRequest = {
       unitPrice: 100,
       totalPrice: 200,
     },
+    {
+      productId: 'catalog-product-2',
+      sku: 'SKU-2',
+      title: 'Second Catalog product',
+      quantity: 1,
+      unitPrice: 50,
+      totalPrice: 50,
+    },
   ],
   totals: {
-    subtotal: 200,
+    subtotal: 250,
     shippingCost: 0,
     taxAmount: 0,
-    total: 200,
+    total: 250,
     currency: 'CZK',
   },
   payment: {
@@ -101,11 +109,12 @@ assert.deepEqual(normalized.order.billingAddress, {
   vatId: 'CZ12345678',
   email: 'invoice@example.invalid',
 });
-assert.equal(normalized.items.length, 1);
+assert.equal(normalized.items.length, 2);
 assert.equal(normalized.items[0].orderId, undefined);
 assert.equal(normalized.items[0].quantity, 2);
 assert.equal(normalized.items[0].fulfillmentStatus, 'pending');
 assert.equal(normalized.items[0].productId, 'catalog-product-1');
+assert.equal(normalized.items[1].productId, 'catalog-product-2');
 assert.deepEqual(getCreateOrderIdempotencyKey(normalized), {
   channel: 'flipflop',
   externalOrderId: 'checkout-1001',
@@ -150,6 +159,38 @@ assert.equal(
   false,
 );
 
+const bundleEvidence = [{
+  contractVersion: 'catalog.bundle.v1',
+  bundleId: '55555555-5555-4555-8555-555555555555',
+  productIds: ['catalog-product-2', 'catalog-product-1'],
+  discountPolicyRef: 'bundle:starter:discount:v1',
+  freeShippingPolicyRef: 'shipping:free-over-threshold:v1',
+  serverTotalSource: 'orders.create.v1',
+}];
+const normalizedWithBundleEvidence = normalizeCreateOrderRequest({ ...validRequest, bundleEvidence });
+assert.deepEqual(normalizedWithBundleEvidence.order.bundleEvidence, [{
+  contractVersion: 'catalog.bundle.v1',
+  bundleId: '55555555-5555-4555-8555-555555555555',
+  productIds: ['catalog-product-1', 'catalog-product-2'],
+  discountPolicyRef: 'bundle:starter:discount:v1',
+  freeShippingPolicyRef: 'shipping:free-over-threshold:v1',
+  serverTotalSource: 'orders.create.v1',
+}]);
+assert.equal(
+  isMatchingCreateOrderReplay(
+    { ...existingOrder, bundleEvidence: normalizedWithBundleEvidence.order.bundleEvidence },
+    normalizedWithBundleEvidence,
+  ),
+  true,
+);
+assert.equal(
+  isMatchingCreateOrderReplay(
+    { ...existingOrder, bundleEvidence: [{ ...normalizedWithBundleEvidence.order.bundleEvidence[0], freeShippingPolicyRef: 'shipping:other' }] },
+    normalizedWithBundleEvidence,
+  ),
+  false,
+);
+
 assert.throws(
   () => normalizeCreateOrderRequest({ ...validRequest, contractVersion: 'orders.create.v2' }),
   /Unsupported create order contractVersion/,
@@ -165,6 +206,42 @@ assert.throws(
 assert.throws(
   () => normalizeCreateOrderRequest({ ...validRequest, unexpected: true }),
   /Unsupported create order fields/,
+);
+
+assert.throws(
+  () => normalizeCreateOrderRequest({
+    ...validRequest,
+    bundleEvidence: [{ ...bundleEvidence[0], contractVersion: 'catalog.bundle.v2' }],
+  }),
+  /Unsupported bundleEvidence\[0\]\.contractVersion/,
+);
+assert.throws(
+  () => normalizeCreateOrderRequest({
+    ...validRequest,
+    bundleEvidence: [{ ...bundleEvidence[0], productIds: ['catalog-product-1', 'catalog-product-3'] }],
+  }),
+  /bundleEvidence\[0\]\.productIds must match submitted order item productIds/,
+);
+assert.throws(
+  () => normalizeCreateOrderRequest({
+    ...validRequest,
+    bundleEvidence: [{ ...bundleEvidence[0], candidateId: 'raw-candidate-id' }],
+  }),
+  /Unsupported bundleEvidence\[0\] fields: candidateId/,
+);
+assert.throws(
+  () => normalizeCreateOrderRequest({
+    ...validRequest,
+    bundleEvidence: [{ ...bundleEvidence[0], appliedSavings: 25 }],
+  }),
+  /Unsupported bundleEvidence\[0\] fields: appliedSavings/,
+);
+assert.throws(
+  () => normalizeCreateOrderRequest({
+    ...validRequest,
+    bundleEvidence: [{ ...bundleEvidence[0], paymentProviderMetadata: { provider: 'forbidden' } }],
+  }),
+  /Unsupported bundleEvidence\[0\] fields: paymentProviderMetadata/,
 );
 assert.throws(
   () => normalizeCreateOrderRequest({ ...validRequest, leadAttribution: { leadId: 'lead-1001', unexpected: 'x' } }),
@@ -281,6 +358,11 @@ for (const required of [
   'product-level marketplace sales statistics',
   'resolve offer/ad/listing IDs to canonical Catalog product IDs before calling Orders',
   '`leadAttribution`: optional explicit attribution metadata with allowed fields `leadId`, `source`, and `campaignId`',
+  '`bundleEvidence`: optional bounded Catalog bundle metadata evidence',
+  'must not replace normal `items[]` rows',
+  '`bundleEvidence[].contractVersion` must equal `catalog.bundle.v1`',
+  'must match the submitted normal item `productId` set',
+  'Orders rejects raw Catalog candidate payloads, monetary totals, applied savings, customer/address/payment/provider data, tokens, and secrets in `bundleEvidence`',
   '[MISSING: channel lead attribution source mapping]',
 ]) {
   assert.ok(contractDoc.includes(required), `Missing canonical Catalog product ID contract text: ${required}`);
@@ -359,8 +441,9 @@ function makeReadOnlyQuery(existing = null) {
   assert.equal(validation.eventPublished, false);
   assert.equal(validation.channel, 'flipflop');
   assert.equal(validation.externalOrderId, 'checkout-1001');
-  assert.equal(validation.itemCount, 1);
-  assert.equal(validation.total, 200);
+  assert.equal(validation.itemCount, 2);
+  assert.equal(validation.total, 250);
+  assert.equal(validation.bundleEvidenceCount, 0);
   assert.equal(validation.currency, 'CZK');
   assert.equal(validation.idempotencyStatus, 'available');
   assert.deepEqual(mutationCalls, []);

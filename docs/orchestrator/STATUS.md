@@ -1,3 +1,44 @@
+## 2026-07-03 - Goal 24 Orders Bundle Evidence Contract
+
+Current focus: resolve `[MISSING: Orders additive bundleEvidence metadata contract on create-order and idempotent replay]` for Catalog `catalog.bundle.v1` without changing Catalog, Warehouse, Payments, or FlipFlop.
+
+Intent Preservation Chain:
+
+- Vision: Catalog bundles can reach checkout only when product lines, totals, stock, and payment authority stay with their owning services.
+- Goal Impact: the Orders blocker is narrowed from missing contract to source-validated additive metadata support with runtime migration/deploy still gated.
+- System: Catalog owns bundle identity and policy refs; Orders owns canonical order identity, item rows, create validation, and idempotent replay; Warehouse owns component reservations; Payments owns payment execution; FlipFlop owns checkout UX.
+- Feature: optional `bundleEvidence[]` on `orders.create.v1`.
+- Task: accept bounded `catalog.bundle.v1` metadata while preserving normal item rows and rejecting browser pricing/eligibility claims.
+- Execution Plan: Orders-only docs/source/verifier/migration update in isolated worktree; no cross-service edits, deploy, live migration, provider call, stock mutation, payment call, or checkout UI change.
+- Coding Prompt: validate `contractVersion`, durable `bundleId`, product-id set match, allowed policy refs, and replay behavior; fail closed on raw Catalog candidates, sensitive fields, and pricing claims.
+- Code: `src/orders/create-order.dto.ts`, `src/orders/order.entity.ts`, `src/orders/orders.service.ts`, `migrations/008_add_order_bundle_evidence.sql`, `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md`, `docs/orchestrator/ORDER_IDEMPOTENCY_CONTRACT.md`, `scripts/verify-create-order-contract.js`, and `scripts/verify-idempotency-contract.js`.
+- Validation: passed `npm run build`; `npm run verify:create-order-contract`; `npm run verify:idempotency-contract`; `npm run verify:duplicate-order-protection`; `git diff --check`.
+- State Update: Orders branch `goal24-bundle-evidence-contract` is ready for review/push; live migration/deploy remains owner-gated.
+
+Scope notes:
+
+- Read remote `AGENTS.md`, `/home/ssf/.codex/AGENTS.md`, `/home/ssf/.ai-agent-standards/CROSS_AGENT_AUTOMATION_STANDARD.md`, `AGENT_OPERATIONS.md`, Orders orchestrator docs, create/idempotency contracts, and Catalog bundle contracts at Catalog `44ce06d`.
+- DocsRAG query was unavailable because the remote session had `JWT_TOKEN_MISSING`; raw remote repository docs and source were used.
+- `bundleEvidence[]` persists only to nullable `orders.bundleEvidence`; it is not copied to `order_items`, Warehouse reservation payloads, payment payloads, or `orders.order.created.v1` in this slice.
+
+Remaining blockers:
+
+- `[MISSING: owner approval to apply Orders migration/deploy bundleEvidence runtime support]`
+- `[MISSING: Catalog bundle aggregate migration/deploy/runtime smoke]`
+- `[MISSING: Warehouse approval that first ecosystem bundle selling reserves component lines only]`
+- `[MISSING: Payments bounded bundle metadata allowlist test covering free-shipping evidence without pricing authority]`
+- `[MISSING: FlipFlop adoption contract and Rung 1 non-mutating checkout smoke]`
+
+Parallel execution:
+
+| Workstream | Status | Owner role | Scope | Validation | Merge order |
+| --- | --- | --- | --- | --- | --- |
+| B2 Orders metadata contract | complete in this branch | Orders contract worker | Orders docs/source/verifiers/migration only | build, create/idempotency/duplicate verifiers, diff check | 1 after Catalog identity contract |
+| B3 Warehouse reservation sign-off | ready now | Warehouse reservation owner | Warehouse docs/tests only | reservation verifier/build | 2 |
+| B4 Payments metadata allowlist | ready now | Payments boundary owner | Payments docs/DTO/verifier only | payment validation/build | 3 |
+| B5 FlipFlop smoke | dependency-gated | Storefront checkout owner | non-mutating checkout validation only | approved Rung 1 smoke | 4 after B2-B4 |
+| B6 Integration | final integration | Catalog commerce integration owner | cross-repo status reconciliation | cross-repo validation evidence | last |
+
 ## 2026-07-03 - Session Cleanup Child Lane Reconciliation
 
 Current focus: consume completed child lane results into Orders IPS before any new worker threads or cross-repo edits.
