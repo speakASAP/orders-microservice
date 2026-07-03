@@ -9,6 +9,7 @@ const handoffPath = path.join(root, 'docs/orchestrator/2026-07-03-browser-render
 const statusPath = path.join(root, 'docs/orchestrator/STATUS.md');
 const implementationStatePath = path.join(root, 'docs/IMPLEMENTATION_STATE.md');
 const packagePath = path.join(root, 'package.json');
+const smokeOrderPath = path.join(root, 'docs/orchestrator/2026-07-03-channel-browser-smoke-order.md');
 
 const runRouteSmoke = process.env.RUN_BROWSER_RENDER_PROOF_ROUTE_SMOKE === '1';
 const routeSmokeApproved = process.env.BROWSER_RENDER_PROOF_ROUTE_SMOKE_APPROVED === '1';
@@ -88,6 +89,7 @@ async function main() {
   const status = read(statusPath);
   const implementationState = read(implementationStatePath);
   const pkg = JSON.parse(read(packagePath));
+  const smokeOrder = read(smokeOrderPath);
 
   const handoffMarkers = [
     'Recommended first browser proof lane: FlipFlop only.',
@@ -106,6 +108,20 @@ async function main() {
     '[MISSING: rendered UI evidence after lifecycle mutation.]',
   ];
   statusMarkers.forEach((marker) => assertIncludes(status, marker, 'STATUS'));
+
+  const smokeOrderMarkers = [
+    'Run channel browser-render proof in this order:',
+    '1. FlipFlop validation-only browser proof.',
+    '2. Heureka rendered dashboard proof.',
+    '3. Aukro rendered dashboard/cabinet proof.',
+    '4. Bazos only after product decides whether synthetic/internal proof is sufficient or provider-backed marketplace webhook proof is required.',
+    '5. Allegro only after a real subject-bound buyer order row and buyer bearer are approved.',
+    '6. Provider shipment-status runtime proof only after Warehouse/Allegro deploy, migration, enablement, and safe smoke approvals.',
+    'No new source-edit worker should start for the five channel UI repos',
+    'No channel repo edits during validation-only lane.',
+    'Status: waiting for proof-mode approval.',
+  ];
+  smokeOrderMarkers.forEach((marker) => assertIncludes(smokeOrder, marker, 'channel browser smoke order'));
 
   assertIncludes(
     implementationState,
@@ -139,6 +155,7 @@ async function main() {
       statusMarkersVerified: statusMarkers.length,
       lifecycleMutationSmokeScriptPresent: true,
       recommendedFirstLane: 'flipflop',
+      smokeOrderMarkersVerified: smokeOrderMarkers.length,
     },
     routeSmoke,
     remainingGates: [

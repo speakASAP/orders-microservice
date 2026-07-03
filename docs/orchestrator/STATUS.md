@@ -1,5 +1,33 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Channel Browser Smoke Order Recorded
+
+Intent chain:
+
+- Vision: customer/admin rendered lifecycle proof should proceed in a deliberate order that protects current deployments and avoids unrelated worker churn.
+- Goal Impact: the next browser proof lane now has an explicit execution order and stop conditions.
+- System: Orders remains the orchestration/evidence owner; channel repos remain edit-gated until validation proves a fix is needed and merge-order review approves it.
+- Feature: channel browser-smoke execution order.
+- Task: decide deploy/browser-smoke order for already integrated channel UI commits before any new worker thread.
+- Execution Plan: FlipFlop validation-only first; Heureka and Aukro next; Bazos after provider-source decision; Allegro after real buyer proof; provider shipment-status after Warehouse/Allegro runtime approvals.
+- Coding Prompt: no new source edit over the five channel UI repos; no provider runtime work; no raw token/customer/order/tracking/provider output.
+- Code: `docs/orchestrator/2026-07-03-channel-browser-smoke-order.md`.
+- Validation: `node --check scripts/verify-browser-render-proof-readiness.js`, `node scripts/verify-browser-render-proof-readiness.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. Browser/session/provider route smoke remains gated and was not run in this docs-only reconciliation.
+
+Decision:
+
+- First lane: FlipFlop validation-only browser proof.
+- Required approval: safe buyer/admin session source or explicit service-scoped browser proxy proof.
+- Stop condition: if a fix would touch FlipFlop or shared contracts, stop and produce a channel-specific implementation prompt before editing.
+
+Remaining gates:
+
+- `[MISSING: proof-mode approval for FlipFlop browser validation lane.]`
+- `[MISSING: rendered customer/admin UI evidence after Orders lifecycle mutation.]`
+- `[MISSING: Bazos provider-source decision before provider-backed browser proof.]`
+- `[MISSING: Allegro real subject-bound buyer row and bearer before buyer cabinet proof.]`
+- `[MISSING: Warehouse/Allegro shipment-status runtime approvals before provider proof.]`
+
 ## 2026-07-03 - Child Lane Cleanup Reconciled
 
 Intent chain:
