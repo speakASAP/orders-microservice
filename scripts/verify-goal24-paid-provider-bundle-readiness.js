@@ -8,7 +8,10 @@ const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'u
 const reportPath = 'reports/validation/VAL-GOAL-24-orders-paid-provider-bundle-readiness.md';
 const createDto = read('src/orders/create-order.dto.ts');
 const ordersService = read('src/orders/orders.service.ts');
+const ordersController = read('src/orders/orders.controller.ts');
 const orderEvents = read('src/orders/order-events.service.ts');
+const warehouseClient = read('src/warehouse/warehouse-reservation.client.ts');
+const fulfillmentHandoff = read('src/orders/order-fulfillment-handoff.client.ts');
 const paymentDto = read('src/payments/payment-status.dto.ts');
 const paymentBoundary = read('docs/orchestrator/PAYMENT_STATUS_BOUNDARY.md');
 const createContract = read('docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md');
@@ -58,6 +61,22 @@ requireIncludes(paymentBoundary, 'Refunds remain Payments-owned', 'payment bound
 requireIncludes(paymentVerifier, 'cannot mark a cancelled order as paid', 'payment verifier cancelled paid rejection');
 requireIncludes(paymentVerifier, 'refund or correction workflow', 'payment verifier paid downgrade rejection');
 requireIncludes(paymentVerifier, 'provider-owned', 'payment verifier provider data rejection');
+requireIncludes(ordersController, "internal:payments-microservice:service", 'payment-status route Payments service role');
+requireIncludes(ordersController, "@Put(':id/payment-status')", 'payment-status route');
+requireIncludes(ordersService, 'fulfillOrderItems(updated)', 'payment success Warehouse fulfill call');
+requireIncludes(ordersService, 'releaseOrderItems(updated)', 'payment failed/cancelled Warehouse release call');
+requireIncludes(ordersService, 'createAfterPaymentFulfillment(updated)', 'post-paid Warehouse fulfillment handoff');
+requireIncludes(warehouseClient, "fulfill: 'PAYMENT_CONFIRMED'", 'Warehouse fulfill reason mapping');
+requireIncludes(warehouseClient, "cancel: 'ORDER_CANCELLED'", 'Warehouse cancel reason mapping');
+requireIncludes(warehouseClient, "return: 'ORDER_RETURNED'", 'Warehouse return reason mapping');
+requireIncludes(fulfillmentHandoff, "reasonCode: 'PAYMENT_CONFIRMED'", 'Warehouse fulfillment handoff reason');
+
+const ordersCheckoutSource = [ordersService, ordersController, paymentDto].join('\n');
+assert.equal(
+  /PAYMENTS_SERVICE_URL|payments\/create|\/payments\/create|CreatePayment|createPayment\(/.test(ordersCheckoutSource),
+  false,
+  'Orders source must not claim active Payments checkout creation proof',
+);
 
 for (const required of [
   '[RESOLVED: owner-approved Rung 1 non-mutating real checkout smoke passed',
@@ -66,6 +85,9 @@ for (const required of [
   '[MISSING: owner-approved paid/provider payment provider source and callback contract]',
   '[MISSING: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke]',
   '[MISSING: owner-approved Payments refund/cancel rollback workflow for paid bundle smoke]',
+  '[MISSING: proof that active checkout paths pass central Orders UUIDs to Payments]',
+  '[MISSING: Orders/Payments provider-success, provider-cancel, refund, and post-fulfillment cancellation event contract that maps to Warehouse fulfill/cancel/return calls]',
+  '[MISSING: runtime verification of Payments Orders service token/role]',
 ]) {
   requireIncludes(report, required, 'readiness report blocker/evidence');
 }
