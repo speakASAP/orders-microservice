@@ -71,7 +71,7 @@ Orders sources reviewed:
 - Payments `docs/orchestrator/2026-07-03-goal24-paid-provider-rollback-readiness.md`
 - Catalog `docs/contracts/catalog-bundle-paid-provider-channel-implementation-contract.md`
 - Warehouse implementation state/component-line readiness notes
-- Current dependency heads consumed: Catalog `ca6a3b2`, FlipFlop `1e5102b`, Payments `bf96f5d`, Warehouse `46a66dc`; Orders pre-change `e3f6e18`.
+- Current dependency heads consumed: Catalog `906a31f merge goal24 flipflop channel supersession consumption`, FlipFlop `5202c15 merge goal24 channel cleanup owner supersession`, Payments `7822f2a merge goal24 cross-service head sync`, Warehouse `46a66dc docs: define goal24 warehouse cleanup packet`; Orders pre-change `6d5dced merge goal24 latest cleanup heads`.
 - Payments current rollback packet and provider contract now record `[RESOLVED: runtime verification of Payments Orders service token/role for the current bridge mechanism]`, while preserving Fiobanka refund/reversal hard stops for explicit owner approval, exact target packet, refund-upload token/feature-flag readiness, and bank authorization evidence.
 - Catalog/FlipFlop current evidence resolves/narrows deployed quote preflight before checkout only; it does not authorize Orders cancellation or Warehouse cleanup.
 
@@ -135,3 +135,12 @@ Orders consumed current pushed dependency heads Catalog `ca6a3b2`, FlipFlop `1e5
 Still blocked for Orders runtime execution: `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]`; `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]`; `[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]`; `[MISSING: approved Warehouse stock hold/release window and max quantity]`; `[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]`.
 
 Decision: Orders must not infer stock effects from Payments refund state and must not treat Fiobanka refund-upload source readiness, quote preflight, or service-token acceptance as permission to call `PUT /api/orders/:id/status` or any Warehouse cleanup endpoint.
+
+
+## 2026-07-04 Latest Head Sync
+
+Orders consumed current pushed heads Catalog `906a31f merge goal24 flipflop channel supersession consumption`, FlipFlop `5202c15 merge goal24 channel cleanup owner supersession`, Payments `7822f2a merge goal24 cross-service head sync`, and Warehouse `46a66dc docs: define goal24 warehouse cleanup packet` as dependency evidence only. [RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]
+
+This is source/docs/verifier-only. It supersedes historical dependency heads FlipFlop `1e5102b`, Payments `bf96f5d`, and Catalog `ca6a3b2`; it does not authorize live checkout, provider call, refund/reversal, Orders route invocation, Warehouse mutation, DB write, migration, deploy, secret read, raw id, or customer/payment/provider data output.
+
+Orders runtime execution remains blocked by `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]`, `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]`, `[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]`, `[MISSING: approved Warehouse stock hold/release window and max quantity]`, and `[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]`.
