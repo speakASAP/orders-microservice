@@ -164,7 +164,7 @@ Additional per-blocker worker threads started by the orchestrator after source a
 - `[LANDED: P3 sensitive-data policy in Orders commit 6743613; event/log exclusion rules are documented.]`
 - `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
 - `[MISSING: runtime credential source in Vault/ExternalSecret for allegro-service shipment/fulfillment scope, not Orders.]`
-- `[MISSING: validation fixture set with sensitive provider fields redacted or explicitly forbidden.]`
+- `[LANDED: sanitized Allegro shipment snapshot fixture/verifier set in allegro commit e626e5c.]`
 
 Next action:
 

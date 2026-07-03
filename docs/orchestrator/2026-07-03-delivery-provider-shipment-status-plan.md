@@ -68,7 +68,7 @@ Exact blockers:
 - `[LANDED: P3 sensitive-data policy in Orders commit 6743613; tracking number, tracking URL, raw provider payloads, credentials, customer address/contact data, and raw provider responses are excluded from events/logs/handoffs by default.]`
 - `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
 - `[MISSING: runtime credential source in Vault/ExternalSecret for allegro-service shipment/fulfillment scope, not Orders.]`
-- `[MISSING: validation fixture set with sensitive provider fields redacted or explicitly forbidden.]`
+- `[LANDED: sanitized Allegro shipment snapshot fixture/verifier set in allegro commit e626e5c.]`
 
 Known non-blockers:
 
