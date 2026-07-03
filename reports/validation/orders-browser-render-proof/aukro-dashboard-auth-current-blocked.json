@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "orders.browser_render_proof_auth_blocker.v1",
+  "checkedAt": "2026-07-03T13:31:00.000Z",
+  "channel": "aukro",
+  "status": "protected_dashboard_data_auth_blocked",
+  "proofMode": "pod_scoped_http_probe",
+  "deployedAukroImage": "localhost:5000/aukro-service:68784d7",
+  "sourceHead": "e440fa1 docs: record aukro affinity contract runtime evidence",
+  "runtime": {
+    "podScopedProbe": true,
+    "publicDashboardShellHttpStatus": 200,
+    "healthHttpStatus": 200,
+    "dashboardDataHttpStatusWithPodJwt": 403,
+    "adminServicesHttpStatusWithPodJwt": 403,
+    "tokenPresent": true,
+    "tokenPrinted": false,
+    "humanBearerAvailable": false,
+    "adminBearerAvailable": false
+  },
+  "blocker": "Aukro public dashboard shell is live, but protected customer/admin data endpoints return 403 with the available pod JWT; no approved human/admin bearer is available to prove rendered lifecycle propagation.",
+  "nextAction": "Provide an approved Aukro human/admin bearer or approved bounded fixture, then rerun customer/admin lifecycle proof against protected dashboard data.",
+  "policy": {
+    "noRuntimeMutation": true,
+    "noDatabaseRead": true,
+    "noProviderCall": true,
+    "tokenValuesPrinted": false,
+    "rawOrderRowsPrinted": false,
+    "customerPiiPrinted": false,
+    "rawDomCaptured": false,
+    "databaseDump": false
+  },
+  "redacted": true
+}

@@ -56,7 +56,7 @@ const proofMarkers = [
   'Channel create/reservation evidence boundary from `verify:channel-lifecycle-runtime-evidence`:',
   'FlipFlop: `live_create_reservation_and_browser_lifecycle_proven`.',
   'Heureka: `live_create_replay_reservation_cleanup_orders_list_non_stale_lifecycle_api_proven_dom_optional`.',
-  'Aukro: `live_synthetic_create_reservation_cleanup_proven_cabinet_apis_live_lifecycle_data_blocked`.',
+  'Aukro: `live_synthetic_create_reservation_cleanup_proven_cabinet_protected_data_auth_blocked`.',
   'Bazos: `synthetic_create_reservation_smoke_proven_paid_replay_source_deployed_live_evidence_blocked`.',
   'Allegro: `buyer_route_live_isolation_proven_real_order_and_central_lifecycle_blocked`.',
   'checked-in fixtures prove the contract accepts a sanitized FlipFlop service-scoped report and rejects a sensitive-key report',
@@ -92,7 +92,7 @@ assert.equal(channelDecision.channels.bazos.proofStatus, 'paid_replay_source_dep
 const missingGateMarkers = [
   'Direct safe-human FlipFlop browser proof if product requires it beyond the already proven service-scoped proxy proof.',
   'Heureka optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient.',
-  'Aukro approved live order row linked to a current non-stale canonical Orders lifecycle stage.',
+  'Aukro approved human/admin bearer or bounded fixture for protected customer/admin lifecycle proof.',
   'Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.',
   'Bazos paid replay source is deployed, but live paid multi-product evidence and approved customer/admin lifecycle proof remain missing.',
   'Warehouse/Allegro shipment-status runtime enablement gates:',

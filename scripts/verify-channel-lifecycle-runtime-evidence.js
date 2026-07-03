@@ -308,7 +308,7 @@ const CHANNELS = {
   aukro: {
     env: 'AUKRO_REPO_PATH',
     defaults: ['/home/ssf/Documents/Github/aukro'],
-    status: 'live_synthetic_create_reservation_cleanup_proven_cabinet_apis_live_lifecycle_data_blocked',
+    status: 'live_synthetic_create_reservation_cleanup_proven_cabinet_protected_data_auth_blocked',
     artifactChecks: [
       {
         file: '12_validation/VAL-GOAL-7-2B-orders-create-auth-warehouse-readiness.md',
@@ -371,9 +371,34 @@ const CHANNELS = {
           ['providerCall', false],
         ],
       },
+      {
+        root: 'orders',
+        file: 'reports/validation/orders-browser-render-proof/aukro-dashboard-auth-current-blocked.json',
+        type: 'json',
+        assertions: [
+          ['schemaVersion', 'orders.browser_render_proof_auth_blocker.v1'],
+          ['channel', 'aukro'],
+          ['status', 'protected_dashboard_data_auth_blocked'],
+          ['runtime.publicDashboardShellHttpStatus', 200],
+          ['runtime.healthHttpStatus', 200],
+          ['runtime.dashboardDataHttpStatusWithPodJwt', 403],
+          ['runtime.adminServicesHttpStatusWithPodJwt', 403],
+          ['runtime.tokenPresent', true],
+          ['runtime.tokenPrinted', false],
+          ['runtime.humanBearerAvailable', false],
+          ['runtime.adminBearerAvailable', false],
+          ['policy.noRuntimeMutation', true],
+          ['policy.noDatabaseRead', true],
+          ['policy.noProviderCall', true],
+          ['policy.tokenValuesPrinted', false],
+          ['policy.rawOrderRowsPrinted', false],
+          ['policy.customerPiiPrinted', false],
+          ['policy.rawDomCaptured', false],
+        ],
+      },
     ],
     remainingGates: [
-      'Aukro customer/admin APIs are live, but rendered central lifecycle proof is blocked until an approved live Aukro row links to a current non-stale canonical Orders lifecycle stage',
+      'Aukro public dashboard shell is live, but protected customer/admin data proof is blocked until an approved human/admin bearer or bounded fixture is available',
     ],
   },
 };
@@ -450,7 +475,7 @@ const result = {
     'approved authenticated customer/admin browser or API smoke for remaining channels after route/data blockers are resolved',
     'real forwarded Allegro order visible to a real Auth bearer before Allegro cabinet lifecycle can be called live-complete; current live admin statistics show centralForwarded=0',
     'Optional Heureka browser DOM render capture remains if API-backed dashboard lifecycle proof is not sufficient',
-    'Aukro rendered central lifecycle cabinet hydration proof remains blocked by live data lacking a non-stale canonical Orders lifecycle stage',
+    'Aukro rendered customer/admin lifecycle proof is blocked by protected dashboard/admin 403 with the available pod JWT and no approved human/admin bearer',
     'Warehouse/Allegro shipment-status runtime is deployed with migrations applied; remaining gates are Allegro enablement, Warehouse URL/token config, safe live smoke, sanitized readback, and approved fulfillment/Orders callback mutation',
     'Bazos paid replay source is deployed, but live eligible paid multi-product evidence and approved customer/admin lifecycle proof remain missing',
   ],

@@ -64,7 +64,7 @@ This audit does not mark the goal complete. It records the current proof boundar
 - Channel create/reservation evidence boundary from `verify:channel-lifecycle-runtime-evidence`:
   - FlipFlop: `live_create_reservation_and_browser_lifecycle_proven`.
   - Heureka: `live_create_replay_reservation_cleanup_orders_list_non_stale_lifecycle_api_proven_dom_optional`.
-  - Aukro: `live_synthetic_create_reservation_cleanup_proven_cabinet_apis_live_lifecycle_data_blocked`.
+  - Aukro: `live_synthetic_create_reservation_cleanup_proven_cabinet_protected_data_auth_blocked`.
   - Bazos: `synthetic_create_reservation_smoke_proven_paid_replay_source_deployed_live_evidence_blocked`.
   - Allegro: `buyer_route_live_isolation_proven_real_order_and_central_lifecycle_blocked`.
 
@@ -74,7 +74,7 @@ The goal is not complete until these are closed or explicitly descoped by produc
 
 1. Direct safe-human FlipFlop browser proof if product requires it beyond the already proven service-scoped proxy proof.
 2. Heureka optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient.
-3. Aukro approved live order row linked to a current non-stale canonical Orders lifecycle stage.
+3. Aukro approved human/admin bearer or bounded fixture for protected customer/admin lifecycle proof.
 4. Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.
 5. Bazos paid replay source is deployed, but live paid multi-product evidence and approved customer/admin lifecycle proof remain missing.
 6. Warehouse/Allegro shipment-status runtime enablement gates:
@@ -88,7 +88,7 @@ The goal is not complete until these are closed or explicitly descoped by produc
 
 1. Keep FlipFlop service-scoped proof as current proven browser evidence; collect direct safe-human proof only if a safe session is provided.
 2. Run Heureka browser DOM capture only if product requires visible-label proof beyond the API-backed dashboard lifecycle proof.
-3. Select or create an approved Aukro row linked to a non-stale canonical Orders lifecycle stage, then rerun customer/admin proof.
+3. Provide an approved Aukro human/admin bearer or approved bounded fixture, then rerun protected customer/admin lifecycle proof.
 4. Bazos after a real eligible paid multi-product Bazos order or approved bounded fixture exists, then authenticated customer/admin lifecycle proof can run.
 5. Allegro buyer proof only after real subject-bound buyer order row and bearer are approved.
 6. Shipment-status runtime proof after Allegro enablement, Warehouse URL/token config, safe live smoke, sanitized readback, and mutation approvals.

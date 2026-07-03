@@ -1,4 +1,12 @@
 
+## 2026-07-03 - Aukro Protected Lifecycle Proof Auth Blocker
+
+IPS: Vision -> reliable Orders lifecycle across channel services; Goal Impact -> the Aukro lane no longer waits on a vague data blocker and now has a concrete protected-dashboard auth gate; System -> Aukro owns customer/admin dashboard auth, Orders owns lifecycle evidence gates; Feature -> Aukro customer/admin lifecycle proof; Task -> refresh live route/auth evidence without source edits; Execution Plan -> Orders-only evidence/docs/verifier update, no Aukro source edit, no deploy, no DB read, no provider call, no mutation; Coding Prompt -> do not print token values, raw order rows, customer data, provider payloads, payment refs, tracking values, or raw DOM; Code -> `reports/validation/orders-browser-render-proof/aukro-dashboard-auth-current-blocked.json`, `scripts/verify-channel-lifecycle-runtime-evidence.js`, completion audit/state docs; Validation -> passed: npm run verify:channel-lifecycle-runtime-evidence, npm run verify:completion-audit, git diff --check.
+
+Live evidence: `aukro-service` is ready `1/1` on image `localhost:5000/aukro-service:68784d7`; public `/dashboard` returned HTTP `200`; `/health` returned HTTP `200`; protected `/aukro/ui/dashboard` and `/aukro/ui/admin/services` returned HTTP `403` with the available pod `JWT_TOKEN`. The token value was not printed.
+
+Remaining Aukro gate: `[MISSING: approved Aukro human/admin bearer or bounded fixture for protected customer/admin lifecycle proof]`.
+
 ## 2026-07-03 - Heureka API Lifecycle Proof Reconciled
 
 IPS: Vision -> reliable Orders lifecycle across channel services; Goal Impact -> Heureka no longer remains blocked at runner auth/non-stale data after deployed commit `a0dbb24`; System -> Heureka owns shop/dashboard route and Orders owns lifecycle evidence gates; Feature -> Heureka customer/admin lifecycle status evidence; Task -> record deployed synthetic create/replay/reservation/cleanup plus dashboard Orders-list proof; Execution Plan -> Orders-only evidence/docs/verifier reconciliation, no Orders deploy, no DB row dump, no token print; Coding Prompt -> keep API-backed proof distinct from browser DOM proof and preserve sensitive-data policy; Code -> `reports/validation/orders-browser-render-proof/heureka-rendered-proof-live-proven.json`, `scripts/verify-channel-lifecycle-runtime-evidence.js`, completion audit/state docs; Validation -> passed: npm run verify:channel-lifecycle-runtime-evidence, npm run verify:completion-audit, git diff --check.
