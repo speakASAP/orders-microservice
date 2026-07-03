@@ -2,7 +2,7 @@
 
 Date: 2026-07-03
 Repository of record: `orders-microservice`
-Current Orders evidence commit: `22eeae7 docs: record flipflop browser proof readiness`
+Current Orders evidence baseline: this document is enforced by `verify:completion-audit` in `npm test`; repository `HEAD` is the authoritative current commit.
 
 ## Audit Scope
 

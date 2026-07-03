@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Completion Audit Baseline Hardened
+
+Intent chain:
+
+- Vision: completion status should stay tied to current repository state instead of a stale evidence commit literal.
+- Goal Impact: `verify:completion-audit` now checks the FlipFlop first-lane readiness evidence and the audit uses repository `HEAD` as the authoritative current commit.
+- System: Orders remains the evidence owner; no channel repo, runtime deployment, browser session, provider call, DB read, or order mutation was used.
+- Feature: completion audit verifier coverage.
+- Task: remove stale commit drift from the completion audit and add marker coverage for the FlipFlop readiness packet in the completion verifier.
+- Execution Plan: update audit baseline wording, extend `scripts/verify-completion-audit.js`, and validate through targeted verifier plus full `npm test`.
+- Coding Prompt: Orders-only docs/verifier change; do not weaken the incomplete-goal decision or close browser/provider gates without evidence.
+- Code: `scripts/verify-completion-audit.js` and `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`.
+- Validation: `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `node scripts/verify-browser-render-proof-readiness.js`, `git diff --check`, and full `npm test` passed. Browser/session/provider route smoke remains gated and was not run.
+
+Remaining gate:
+
+- `[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]`
+- `[MISSING: Warehouse/Allegro shipment-status runtime enablement approvals.]`
+
 ## 2026-07-03 - FlipFlop Readiness Verifier Coverage Added
 
 Intent chain:

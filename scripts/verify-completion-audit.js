@@ -44,6 +44,12 @@ const proofMarkers = [
   'admin lifecycle read HTTP `200`',
   'both customer/admin read-models saw `warehouse_collecting`',
   'Orders service identity lifecycle list endpoints return HTTP `200` for FlipFlop, Allegro, Aukro, Bazos, and Heureka.',
+  'FlipFlop first browser lane readiness is recorded in `docs/orchestrator/2026-07-03-flipflop-browser-proof-readiness-evidence.md`',
+  'This is readiness evidence only, not rendered lifecycle proof.',
+];
+
+const baselineMarkers = [
+  'Current Orders evidence baseline: this document is enforced by `verify:completion-audit` in `npm test`; repository `HEAD` is the authoritative current commit.',
 ];
 
 const missingGateMarkers = [
@@ -58,6 +64,7 @@ const missingGateMarkers = [
   'Therefore the active goal must remain open.',
 ];
 
+for (const marker of baselineMarkers) assertIncludes(audit, marker, 'completion audit baseline');
 for (const marker of requirementMarkers) assertIncludes(audit, marker, 'completion audit requirements');
 for (const marker of proofMarkers) assertIncludes(audit, marker, 'completion audit proof boundary');
 for (const marker of missingGateMarkers) assertIncludes(audit, marker, 'completion audit missing gates');
@@ -82,6 +89,7 @@ const result = {
   schemaVersion: 'orders.completion_audit_verification.v1',
   status: 'incomplete_goal_gates_preserved',
   checkedAt: new Date().toISOString(),
+  baselineMarkersVerified: baselineMarkers.length,
   requirementMarkersVerified: requirementMarkers.length,
   proofMarkersVerified: proofMarkers.length,
   missingGateMarkersVerified: missingGateMarkers.length,
