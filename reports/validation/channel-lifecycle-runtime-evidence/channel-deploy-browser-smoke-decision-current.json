@@ -65,7 +65,7 @@
       "runtimeImage": "localhost:5000/allegro-service:ae9d381",
       "mergeNeededForExpectedCommit": false,
       "proofStatus": "buyer_route_live_isolation_proven_real_order_and_central_lifecycle_blocked",
-      "remainingGate": "real buyer Auth bearer plus approved subject-bound Allegro order row"
+      "remainingGate": "real forwarded Allegro order already subject-bound through buyerAuthSubject and visible to a real Auth bearer"
     },
     "aukro": {
       "expectedWorkerCommit": "f6502bb",

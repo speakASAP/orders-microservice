@@ -24,7 +24,7 @@ Evidence:
 
 Remaining gates:
 
-- `[MISSING: real Allegro buyer Auth bearer plus approved subject-bound Allegro order row.]`
+- `[MISSING: real forwarded Allegro order already subject-bound through buyerAuthSubject and visible to a real Auth bearer.]`
 - `[MISSING: real forwarded Allegro order whose central Orders lifecycle read model is visible in the bound buyer cabinet.]`
 - `[MISSING: approved historical binding/backfill source if product wants imported marketplace rows visible to buyers.]`
 - `[FORBIDDEN: email-only buyer ownership mapping without explicit product/Auth/security risk acceptance.]`
@@ -94,7 +94,7 @@ Remaining gates:
 - `[MISSING: Heureka dashboard orders route/API fix or approved alternative proof path.]`
 - `[MISSING: Aukro approved live row linked to non-stale canonical Orders lifecycle stage.]`
 - `[MISSING: Bazos provider-backed paid order source and persisted item snapshot contract.]`
-- `[MISSING: Allegro real buyer Auth bearer plus approved subject-bound order row.]`
+- `[MISSING: real forwarded Allegro order already subject-bound through buyerAuthSubject and visible to a real Auth bearer.]`
 - `[MISSING: shipment-status enablement/config/safe-smoke/readback/mutation approvals.]`
 
 ## 2026-07-03 - Shipment Runtime Gate Reconciled After k3s Recovery

@@ -82,7 +82,7 @@ Orders customer lifecycle reads prefer subject matching through `customer.authUs
 
 The implementation blocker is no longer missing source code for buyer mapping. The remaining blocker is live ownership evidence:
 
-- `[MISSING: real Allegro buyer Auth bearer plus approved subject-bound Allegro order row.]`
+- `[MISSING: real forwarded Allegro order already subject-bound through buyerAuthSubject and visible to a real Auth bearer.]`
 - `[MISSING: real forwarded Allegro order whose central Orders lifecycle read model is available to the bound buyer.]`
 - `[MISSING: approved historical binding/backfill source if old imported Allegro rows should appear in buyer cabinets.]`
 
