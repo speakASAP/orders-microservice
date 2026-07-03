@@ -1,5 +1,41 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Provider/Courier Shipment Correlation Deploy Gate Advanced
+
+Intent chain:
+
+- Vision: Allegro-origin delivery progress can become visible through Warehouse-owned fulfillment status without Orders storing raw provider payloads or tracking secrets.
+- Goal Impact: the Warehouse correlation/ledger schema gate moved from source-only to deployed, while Allegro handoff remains fail-closed behind a disabled runtime flag.
+- System: Allegro owns sanitized provider reads and snapshot replay; Warehouse owns correlation, ledger, and fulfillment transitions; Orders owns bounded lifecycle projection/events.
+- Feature: provider/courier shipment-status ownership gate.
+- Task: after owner approval, deploy Warehouse correlation migrations, deploy Allegro guarded source, and prove the disabled runtime gate does not mutate Warehouse.
+- Execution Plan: validate focused source checks, run Warehouse deploy/migration, deploy Allegro `ae9d381`, verify health/images/env, then run synthetic redacted disabled-gate smoke with exact confirmation.
+- Coding Prompt: no provider simulator as truth, no raw provider payload, no tracking number/URL output, no credential output, no Orders runtime mutation, no Warehouse status mutation.
+- Code: deployed existing Warehouse `174f92e` and Allegro `ae9d381`; documentation evidence recorded only in this commit.
+- Validation: Warehouse focused Jest suites, build, hosted Auth check, migration job, health; Allegro shipment verifiers/build, rollout, health, disabled-gate smoke, and Warehouse count readback.
+
+Evidence:
+
+- Warehouse validation before deploy: `git diff --check`; `npm test -- --runInBand test/fulfillment-orders.controller.spec.ts test/fulfillment-provider-shipment-correlation.service.spec.ts test/fulfillment-provider-status-snapshot-adapter.service.spec.ts test/fulfillment-provider-status-ledger.service.spec.ts test/fulfillment-orders.service.spec.ts` passed 5 suites / 36 tests; `npm run build` passed; `npm run check:hosted-auth` passed.
+- Warehouse deployment: `./scripts/deploy.sh` built and pushed `localhost:5000/warehouse-microservice:174f92e`, applied manifests, ran the migration job, rolled out successfully, and health returned `status=healthy`.
+- Warehouse migrations applied: `CreateFulfillmentProviderStatusObservations1781600000000` and `CreateFulfillmentProviderShipmentCorrelations1781700000000`; post-deploy `npm run migration:show:prod` showed migrations 1 through 6 all `[X]`.
+- Allegro validation before deploy: `verify:shipment-status-snapshot`, `verify:warehouse-shipment-correlation`, `verify:shipment-status-handoff`, `verify:shipment-status-projection`, `verify:shipment-status-source`, `verify:shipment-status-replay`, `verify:shipment-status-snapshot-export`, `npm run build`, and `git diff --check` passed.
+- Allegro deployment: `./scripts/deploy.sh` built, pushed, and rolled out service/api-gateway/frontend/settings/imports images `ae9d381`; service health returned HTTP 200.
+- Allegro runtime gate: `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED` was absent/null, `ALLEGRO_SHIPMENT_DEAD_LETTER_DIR=/var/lib/allegro-service/shipment-correlation-dead-letter`, `ALLEGRO_INTERNAL_SERVICE_TOKEN` present, Warehouse token env keys absent in the service pod.
+- Disabled-gate smoke: compiled replay script ran against one synthetic redacted snapshot with `--apply --confirm-warehouse-handoff ALLEGRO_SHIPMENT_STATUS_WAREHOUSE_CORRELATION`; result `snapshotCount=1`, `posted=0`, `disabled=1`, reason `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED_NOT_TRUE`, `failed=0`, `blocked=0`.
+- Warehouse row-count readback stayed unchanged after smoke: `fulfillment_provider_shipment_correlations=0`, `fulfillment_provider_status_observations=0`.
+
+Remaining gates:
+
+- [MISSING: owner approval to set `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true` for a bounded live smoke.]
+- [MISSING: safe real Allegro order selection file with approved central Orders/Fulfillment correlation.]
+- [MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]
+- [MISSING: approved end-to-end sanitized smoke proving Warehouse correlation registration and no raw snapshot fields enter Orders events.]
+
+Next action:
+
+- Prepare an owner-reviewed live smoke packet with one safe Allegro-origin order selection, expected Warehouse fulfillment order correlation, rollback/disable command, and exact readback checks before enabling the flag.
+
 ## 2026-07-03 - Browser Proof Channel Route Guard Added
 
 Intent chain:
@@ -18,6 +54,7 @@ Remaining gate:
 
 - `[MISSING: real sanitized orders.browser_render_proof.v1 report whose route URLs match the declared marketplace channel and rendered customer/admin lifecycle stage.]`
 - `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Goal 24 Central Orders Affinity Publish Completed
 
 Intent chain:
