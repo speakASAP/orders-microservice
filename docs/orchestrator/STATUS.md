@@ -1,5 +1,51 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Goal 24 Central Orders Affinity Publish Completed
+
+Intent chain:
+
+- Vision: central Orders purchase history can safely improve Catalog related-product evidence without moving order, customer, address, payment, stock, or marketplace ownership into Catalog.
+- Goal Impact: the approved central Orders FlipFlop replay window moved from non-empty dry-run evidence to a bounded Catalog publish with readback evidence.
+- System: Orders provided the replay source, Marketing performed aggregation, ledger recording, and Catalog batch publish, and Catalog persisted relation rows.
+- Feature: one-time central Orders order-affinity publish for the FlipFlop paid multi-product window.
+- Task: after owner instruction to go ahead, revalidate Marketing/Catalog readiness, rerun dry-run, publish the exact approved source/window, and verify Catalog readback without raw order/customer/payment payloads.
+- Execution Plan: check deployments ready, check Marketing token/switch presence by key only, check Catalog health, rerun dry-run, run publish with explicit run-id, query Catalog relation aggregate-safe readback, and record evidence in Orders docs.
+- Coding Prompt: do not print secrets, raw order rows, customer data, addresses, payment/provider details, or raw payloads; do not run replace-window or pruning without retention policy.
+- Code: no runtime code changed; documentation evidence only.
+- Validation: readiness checks, dry-run, publish result, Catalog readback, npm run verify:order-affinity-replay, and git diff --check.
+
+Evidence:
+
+- Owner approval source: in-thread instruction go ahead after the documented Next step requiring owner-reviewed source/window approval and dependent readiness verification.
+- Runtime readiness: Orders, Marketing, and Catalog deployments were 1/1 ready. Images: Orders localhost:5000/orders-microservice:7bcfadd, Marketing localhost:5000/marketing-microservice:latest, Catalog localhost:5000/catalog-microservice:70e2464.
+- Marketing runtime prerequisite check by key/presence only: ORDERS_SERVICE_TOKEN=true, CATALOG_INTERNAL_SERVICE_TOKEN=true, ORDER_AFFINITY_RUN_LEDGER_ENABLED=true, ORDER_AFFINITY_CATALOG_PUBLISH_ENABLED=true, CATALOG_SERVICE_URL=true.
+- Catalog health through Marketing configured CATALOG_SERVICE_URL returned HTTP 200 with status healthy.
+- Immediate pre-publish dry-run for source=orders-microservice, channel=flipflop, from=2026-07-03T04:26:06.127Z, to=2026-07-03T04:27:26.351Z returned inputRecords=2, acceptedCreatedEvents=2, rejectedRecords=0, skippedEvents=0, aggregatePairs=2, totalPairEvidence=4, byChannel.flipflop=2.
+- Publish command: kubectl -n statex-apps exec deploy/marketing-microservice -- node dist/order-affinity-backfill.js --orders-url http://orders-microservice.statex-apps.svc.cluster.local:3203 --channel=flipflop --from=2026-07-03T04:26:06.127Z --to=2026-07-03T04:27:26.351Z --limit=50 --run-id central-orders-flipflop-20260703T042606Z-042726Z --publish --pretty.
+- Publish result: mode=publish, status=published, runId=central-orders-flipflop-20260703T042606Z-042726Z, inputRecords=2, acceptedCreatedEvents=2, rejectedRecords=0, aggregatePairs=2, totalPairEvidence=4, candidateCount=2, batchCount=1, endpoint=/api/internal/product-relations/order-affinity/batch, ledgerRecord.status=recorded.
+- Catalog readback from catalog_db.product_relations confirmed exactly the two directed rows for the published product pair with relation_type=order_affinity, source=marketing_order_affinity, score=2.0000, confidence=0.6500, source_event_type=orders.order.created.v1, and source_system=marketing-microservice.
+
+Resolved blockers:
+
+- [RESOLVED: owner-reviewed publish window for the central Orders FlipFlop non-empty backfill run central-orders-flipflop-20260703T042606Z-042726Z.]
+- [RESOLVED: central Orders non-empty replay evidence was published through Marketing and persisted in Catalog for the approved window.]
+
+Remaining blockers:
+
+- [MISSING: owner-approved retention, decay, or replacement policy before stale affinity pruning or replace-window use.]
+- [MISSING: owner-approved recurring schedule policy for any future central Orders publish windows beyond this one-time run.]
+- [MISSING: integration-owner decision whether duplicate prior central Orders publish evidence should be reconciled by idempotency key history or left as upsert-only equivalent rows.]
+
+Rollback and retention notes:
+
+- The executed path used Catalog batch upsert only. No replace-window, prune, Orders data mutation, source edit, manifest edit, deploy, migration, or secret mutation was performed.
+- Any future rollback/removal is Catalog/Marketing-owned relation maintenance and remains blocked until an owner-approved relation deletion/replacement policy exists.
+
+Next action:
+
+- Integration owner should decide whether to open/merge the Orders evidence branch and separately reconcile Marketing/Catalog run-ledger history for this window.
+
+
 ## 2026-07-03 - Goal 24 Central Orders Affinity Evidence Refresh
 
 Intent chain:

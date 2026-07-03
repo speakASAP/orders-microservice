@@ -118,3 +118,28 @@ Remaining blockers:
 - `[MISSING: owner-approved retention/decay/replacement policy before stale affinity pruning or replace-window use.]`
 
 Deviation: the deployed Marketing dry-run recorded a Marketing ledger row because runtime ledger recording is enabled. No Catalog publish or Orders data mutation was performed.
+
+## 2026-07-03 - Goal 24 Central Orders Affinity Publish Evidence
+
+Scope: owner-approved one-time publish for the central Orders FlipFlop window already documented in the evidence refresh. Runtime code, source files, manifests, migrations, deploy scripts, secrets, and live Orders data were not changed.
+
+Publish readiness:
+
+- Orders, Marketing, and Catalog deployments were ready 1/1.
+- Marketing runtime key/presence check showed `ORDERS_SERVICE_TOKEN=true`, `CATALOG_INTERNAL_SERVICE_TOKEN=true`, `ORDER_AFFINITY_RUN_LEDGER_ENABLED=true`, `ORDER_AFFINITY_CATALOG_PUBLISH_ENABLED=true`, and `CATALOG_SERVICE_URL=true` without printing values.
+- Catalog health through Marketing configured `CATALOG_SERVICE_URL` returned HTTP 200 and `status=healthy`.
+- Immediate dry-run returned `inputRecords=2`, `acceptedCreatedEvents=2`, `rejectedRecords=0`, `aggregatePairs=2`, and `totalPairEvidence=4`.
+
+Publish result:
+
+- Command run: `kubectl -n statex-apps exec deploy/marketing-microservice -- node dist/order-affinity-backfill.js --orders-url http://orders-microservice.statex-apps.svc.cluster.local:3203 --channel=flipflop --from=2026-07-03T04:26:06.127Z --to=2026-07-03T04:27:26.351Z --limit=50 --run-id central-orders-flipflop-20260703T042606Z-042726Z --publish --pretty`.
+- Result: `status=published`, `candidateCount=2`, `batchCount=1`, `runId=central-orders-flipflop-20260703T042606Z-042726Z`, `ledgerRecord.status=recorded`.
+- Catalog readback confirmed two directed `order_affinity` rows with `source=marketing_order_affinity`, `score=2.0000`, `confidence=0.6500`, `source_event_type=orders.order.created.v1`, and `source_system=marketing-microservice`.
+
+Sensitive-data review: output included aggregate counts, channel, timestamps, Catalog product ids, relation metadata, and command shapes only. No token values, customer/address/payment/provider data, raw order payloads, raw event payloads, or order identifiers were printed.
+
+Remaining blockers:
+
+- `[MISSING: owner-approved retention/decay/replacement policy before stale affinity pruning or replace-window use.]`
+- `[MISSING: owner-approved recurring schedule policy for future central Orders windows beyond this one-time run.]`
+- `[MISSING: integration-owner decision whether duplicate prior central Orders publish evidence should be reconciled by idempotency key history or left as upsert-only equivalent rows.]`
