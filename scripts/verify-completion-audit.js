@@ -95,8 +95,8 @@ const missingGateMarkers = [
   'Aukro approved human/admin bearer or bounded fixture for protected customer/admin lifecycle proof.',
   'Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.',
   'Bazos paid replay source is deployed, but current aggregate has totalOrders=0; live paid multi-product evidence and approved customer/admin lifecycle proof remain missing.',
-  'Warehouse/Allegro shipment-status runtime enablement gates:',
-  'FlipFlop service-scoped browser-render proof is proven, but remaining channel browser/data/auth proofs and provider-backed late shipment lifecycle proof are still missing.',
+  'Warehouse/Allegro shipment-status runtime proof is closed for bounded status-only display; optional real provider live-read and future audited full-tracking reveal remain product-gated:',
+  'FlipFlop service-scoped browser-render proof is proven; tracking visibility is status-only and raw tracking values remain forbidden, while optional channel human/DOM proofs and optional real provider live-read evidence remain product-gated.',
   'Status: incomplete.',
   'Therefore the active goal must remain open.',
 ];
@@ -117,7 +117,7 @@ assert.equal(
 );
 assert.equal(
   audit.includes('Heureka optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient.') &&
-    audit.includes('Warehouse/Allegro shipment-status runtime enablement gates:'),
+    audit.includes('Warehouse/Allegro shipment-status runtime proof is closed for bounded status-only display; optional real provider live-read and future audited full-tracking reveal remain product-gated:'),
   true,
   'completion audit must preserve both channel browser/data/auth and shipment-status remaining gates',
 );

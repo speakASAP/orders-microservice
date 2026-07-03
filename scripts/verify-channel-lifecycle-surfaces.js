@@ -164,7 +164,7 @@ const result = {
   remainingGates: [
     'approved live customer/admin browser or API smoke per channel',
     'real buyer bearer plus subject-bound Allegro order row for live buyer cabinet lifecycle smoke',
-    'Warehouse/Allegro runtime shipment-status enablement approvals before provider status changes can drive late lifecycle stages',
+    'Warehouse/Allegro shipment-status runtime and Orders callback are proven through bounded sanitized smoke; optional real provider live-read and full-tracking reveal remain product-gated',
     'provider-backed Bazos marketplace webhook support remains unknown',
   ],
 };

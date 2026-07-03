@@ -103,11 +103,11 @@
     "rawProviderPayloadDisplayed": false,
     "customerPiiDisplayed": false,
     "secretsDisplayed": false,
-    "rawDatabaseRowsDisplayed": false
+    "rawDatabaseRowsDisplayed": false,
+    "statusOnlyTrackingVisibilityApproved": true
   },
   "remainingGates": [
     "optional real provider live-read selection using raw Allegro account/order ids if product requires provider API evidence beyond sanitized existing-correlation smoke",
-    "product-approved tracking visibility policy",
-    "replace broad Warehouse-admin bearer fallback with a minimal Auth-validated internal:allegro-service:service token/role before recurring provider ingestion"
+    "optional future audited full-tracking reveal API if product/security approves it"
   ]
 }

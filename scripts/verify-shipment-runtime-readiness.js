@@ -83,6 +83,7 @@ assert.equal(runtimeGateReport.policy.rawProviderPayloadDisplayed, false, 'shipm
 assert.equal(runtimeGateReport.policy.customerPiiDisplayed, false, 'shipment gate report must not expose customer PII');
 assert.equal(runtimeGateReport.policy.secretsDisplayed, false, 'shipment gate report must not expose secrets');
 assert.equal(runtimeGateReport.policy.rawDatabaseRowsDisplayed, false, 'shipment gate report must not expose raw DB rows');
+assert.equal(runtimeGateReport.policy.statusOnlyTrackingVisibilityApproved, true, 'shipment gate report must record status-only tracking visibility approval');
 
 const ordersLifecycle = requireFile(ordersRoot, 'src/orders/order-lifecycle.ts');
 for (const stage of [

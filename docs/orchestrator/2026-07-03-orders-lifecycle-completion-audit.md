@@ -77,7 +77,7 @@ The goal is not complete until these are closed or explicitly descoped by produc
 3. Aukro approved human/admin bearer or bounded fixture for protected customer/admin lifecycle proof.
 4. Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.
 5. Bazos paid replay source is deployed, but current aggregate has totalOrders=0; live paid multi-product evidence and approved customer/admin lifecycle proof remain missing.
-6. Warehouse/Allegro shipment-status runtime enablement gates:
+6. Warehouse/Allegro shipment-status runtime proof is closed for bounded status-only display; optional real provider live-read and future audited full-tracking reveal remain product-gated:
    - Approval to enable `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true`.
    - Warehouse URL/token configuration projected into Allegro runtime.
    - Owner-approved live runtime smoke with safe selection and real token source.
@@ -101,5 +101,5 @@ Reason:
 
 - Backend create/reservation/payment/Warehouse/read-model propagation is strongly proven for the bounded Orders/FlipFlop synthetic path.
 - Cross-channel source/deploy route readiness is proven or patch-equivalent for the current wave.
-- FlipFlop service-scoped browser-render proof is proven, but remaining channel browser/data/auth proofs and provider-backed late shipment lifecycle proof are still missing.
+- FlipFlop service-scoped browser-render proof is proven; tracking visibility is status-only and raw tracking values remain forbidden, while optional channel human/DOM proofs and optional real provider live-read evidence remain product-gated.
 - Therefore the active goal must remain open.
