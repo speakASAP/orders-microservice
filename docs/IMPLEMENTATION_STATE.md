@@ -42,8 +42,8 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Allegro buyer cabinet source landed; Allegro shipment source contract landed; provider shipment-status remains Warehouse/OAuth/fixture gated
-next_recommended_goal: Start source-only Allegro shipment adapter/fixture lane or prepare deploy approval packet for Allegro buyer cabinet migration/runtime smoke
+current_chunk: Allegro buyer cabinet source landed; Allegro shipment source contract and sanitized verifier landed; provider shipment-status remains OAuth/projection/Warehouse-runtime gated
+next_recommended_goal: Run sanitized Allegro OAuth capability probe and durable shipment projection design, or prepare deploy approval packet for Allegro buyer cabinet migration/runtime smoke
 last_completed_goal: FlipFlop admin RBAC hardening deployed and marketplace order read-scope hardening completed
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
@@ -53,8 +53,9 @@ blockers:
   - [MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]
   - non-marketplace app contracts require owner approval before runtime integration
   - [LANDED: Allegro shipment source contract in allegro commit 2183fe8]
+  - [LANDED: sanitized Allegro shipment snapshot fixture/verifier set in allegro commit e626e5c]
   - [MISSING: Allegro OAuth scope proof and runtime credential source for shipment reads]
-  - [MISSING: sanitized Allegro shipment fixture set]
+  - [MISSING: durable Allegro shipment projection schema/client before runtime handoff]
   - [LANDED: Warehouse bounded provider-status intake contract in commit f104202]
   - [LANDED: Allegro buyer backend/frontend source in commits 78e0f5f, 9f07efc, and 735ad1f]
   - [MISSING: owner-approved Allegro DB migration/deploy for buyerAuthSubject]
@@ -64,6 +65,8 @@ blockers:
 ```
 
 ## Current Checkpoint
+
+2026-07-03: Allegro shipment snapshot source verifier landed in Allegro commit `e626e5c`. The source-only mapper and synthetic fixtures cover no-shipments, delivered waybill, multi-package carrier batching, mixed carriers, tracking-null, OAuth 403, shipment-management redaction, and non-Allegro filter cases. Validation passed with `cd services/allegro-service && npm run verify:shipment-status-snapshot`, `cd services/allegro-service && npm run build`, and `git diff --check`. No live Allegro API/OAuth call, DB migration, deploy, provider simulator, secret read, raw provider payload, tracking number/URL exposure, Warehouse runtime consumer, or Orders runtime code was added. Remaining gates are OAuth capability proof, durable shipment projection/client, Warehouse consumer/runtime adapter, idempotency ledger decision, deploy approval, and runtime smoke.
 
 2026-07-03: FlipFlop admin RBAC hardening is implemented, pushed, deployed, and smoked. FlipFlop commit `79dba51` adds `JwtAuthGuard`, `RolesGuard`, and explicit admin roles to admin order, admin inventory, and pricing controllers while preserving customer order reads scoped by `req.user.id`. Validation passed with the pre-coding gate, strict doc audit 100/100, focused source verifier, `cd services/order-service && npm run build`, and `git diff --check`. Production deploy completed successfully; Kubernetes rollouts passed for FlipFlop service, frontend, product, cart, order, and user deployments, public root/products smoke returned HTTP 200, unauthenticated admin routes returned HTTP 401, and authenticated non-FlipFlop-admin runtime smoke returned HTTP 403 for `/admin/orders`, `/admin/inventory/low-stock`, and `/admin/pricing/suggestions`. Provider/courier discovery advanced to Allegro source selection but remains implementation-gated by source contract, credentials, mapping, and sensitive-data policy.
 

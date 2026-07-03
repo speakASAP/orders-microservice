@@ -1,5 +1,38 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Shipment Snapshot Verifier Source Landed
+
+Intent chain:
+
+- Vision: delivery progress for Allegro-origin orders should enter Warehouse/Orders only through sanitized, deterministic shipment snapshots.
+- Goal Impact: the earlier missing fixture/test gate is closed at source level; runtime provider reads remain gated by OAuth, projection, and Warehouse consumer decisions.
+- System: Allegro owns Ship with Allegro API/OAuth and provider reads; Warehouse owns bounded fulfillment status intake; Orders owns lifecycle projection/events and does not handle raw tracking payloads.
+- Feature: Allegro shipment status snapshot mapper and synthetic verifier.
+- Task: integrate the source-only Allegro verifier result into Orders orchestration state.
+- Execution Plan: accept Allegro committed source evidence, do not deploy, do not read secrets, and keep runtime adapter work blocked until capability/projection gates are resolved.
+- Coding Prompt: no provider simulator, no raw provider payload persistence, no tracking number/URL exposure, no Orders runtime code.
+- Code: Allegro commit `e626e5c feat: add allegro shipment snapshot verifier`; Orders docs checkpoint in this commit.
+- Validation: Allegro `npm run verify:shipment-status-snapshot`, Allegro `npm run build`, Allegro `git diff --check`, and Orders `git diff --check` passed.
+
+Evidence:
+
+- Allegro added `services/allegro-service/src/allegro/shipments/shipment-status-snapshot.mapper.ts`, `.fixtures.ts`, and `.mapper.spec.ts`.
+- Verifier covers all approved source fixtures: no shipments, delivered waybill, multi-package batching, mixed carriers, tracking-null, OAuth 403, shipment-management redaction, and non-Allegro channel filter.
+- Mapper hashes account/order/shipment/waybill identities, builds the documented idempotency key, derives latest status by newest tracking timestamp, batches carrier waybills at 20, and rejects forbidden sensitive keys.
+- No live Allegro API/OAuth call, DB migration, Kubernetes change, deploy, provider simulator, secret read, tracking number/URL exposure, or Warehouse/Orders runtime code was added in this slice.
+
+Remaining gates:
+
+- `[MISSING: sanitized live OAuth capability proof for /order/checkout-forms/{id}/shipments and /order/carriers/{carrierId}/tracking.]`
+- `[MISSING: durable Allegro shipment projection schema/client before runtime handoff.]`
+- `[MISSING: Warehouse consumer/runtime adapter for read-only shipment snapshots.]`
+- `[MISSING: provider adapter durable idempotency store or Warehouse provider-status ledger decision.]`
+- `[MISSING: deploy approval and runtime smoke for the eventual Allegro shipment-status path.]`
+
+Next action:
+
+- Run a sanitized OAuth capability probe and projection design lane before any Warehouse runtime consumer or deploy.
+
 ## 2026-07-03 - Warehouse Intake And Allegro Buyer UI Source Landed
 
 Intent chain:
