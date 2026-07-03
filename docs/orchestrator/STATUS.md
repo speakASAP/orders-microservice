@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Warehouse Provider-Status Ledger Source Integrated
+
+Intent chain:
+
+- Vision: Orders lifecycle projection should be backed by durable Warehouse fulfillment evidence without ingesting raw provider shipment payloads.
+- Goal Impact: the ledger moved from policy-only to source-validated Warehouse implementation, enabling a future disabled-by-default provider adapter after remaining gates are approved.
+- System: Warehouse owns the provider-status observation ledger and future fulfillment mutation decisions; Allegro/source services own sanitized provider projections; Orders remains a bounded lifecycle/event consumer through Warehouse callbacks.
+- Feature: Warehouse provider-status ledger source foundation integration.
+- Task: integrate Warehouse commit `5bdc473` into Orders orchestration state.
+- Execution Plan: accept source-only ledger evidence, keep provider adapter/deploy blocked, and preserve Orders as non-owner of provider payloads.
+- Coding Prompt: no Orders runtime code, no provider adapter, no deployment, no live provider call, no secret read, no raw provider/tracking/customer fields, no Orders callback, and no production fulfillment mutation.
+- Code: Warehouse `5bdc473 feat: add provider status ledger foundation`; Orders docs checkpoint in this commit.
+- Validation: Warehouse focused Jest `14` tests, `npm run build`, `npm run check:hosted-auth`, `git diff --check`, commit hook checks, and Orders `git diff --check`.
+
+Evidence:
+
+- Warehouse source now has `FulfillmentProviderStatusObservation` for sanitized observation persistence and replay diagnostics.
+- `FulfillmentProviderStatusLedgerService` records accepted observations, exact replay duplicates, same-key content conflicts, stale source updates, future source timestamps, and raw provider/tracking/customer metadata rejection.
+- TypeORM migration `1781600000000-CreateFulfillmentProviderStatusObservations` defines the durable table and indexes, but it has not been deployed or run in production.
+- The ledger does not call `FulfillmentOrdersService.updateStatus`, does not call Orders, and does not read provider APIs.
+
+Remaining gates:
+
+- `[LANDED: Warehouse provider-status observation ledger source foundation in warehouse-microservice commit 5bdc473.]`
+- `[MISSING: approved provider adapter source and disabled-by-default runtime flag.]`
+- `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
+- `[MISSING: approved retention/retry/dead-letter policy.]`
+- `[MISSING: product-approved tracking visibility matrix before tracking number/URL display.]`
+- `[MISSING: owner approval before Warehouse deploy, migration run, runtime adapter, or production fulfillment-row mutation.]`
+
+Next action:
+
+- Implement a disabled-by-default sanitized provider adapter only after correlation, retry/DLQ, visibility, and deploy/smoke gates are approved.
+
 ## 2026-07-03 - Warehouse Provider-Status Ledger Policy Integrated
 
 Intent chain:
@@ -23,15 +57,15 @@ Evidence:
 
 Remaining gates:
 
-- `[DECIDED: Warehouse-owned provider-status observation ledger policy in warehouse-microservice commit 72d73ec.]`
-- `[MISSING: approved Warehouse ledger migration/schema implementation.]`
+- `[LANDED: Warehouse provider-status observation ledger source foundation in warehouse-microservice commit 5bdc473.]`
+- `[LANDED: source-only Warehouse ledger migration/schema in warehouse-microservice commit 5bdc473; not deployed or run in production.]`
 - `[MISSING: approved future clock-skew window, stale-event age, and retention/retry/dead-letter policy.]`
 - `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
 - `[MISSING: owner approval before Warehouse runtime adapter, migration, deploy, or production fulfillment-row mutation.]`
 
 Next action:
 
-- Implement approved source-only Warehouse ledger migration/tests and keep Allegro/provider adapter runtime disabled until correlation, retention, visibility, and deploy/smoke gates are approved.
+- Implement a disabled-by-default sanitized provider adapter only after correlation, retention/retry/DLQ, visibility, and deploy/smoke gates are approved.
 
 ## 2026-07-03 - Orders Allegro Source-Reference Preservation Verified
 
@@ -57,13 +91,13 @@ Remaining gates:
 
 - `[PROVEN: Orders source-reference preservation for synthetic Allegro Warehouse fulfillment handoff payloads.]`
 - `[MISSING: live Allegro-origin central order with fulfilled reservations for runtime Warehouse handoff join smoke.]`
-- `[DECIDED: Warehouse-owned provider-status observation ledger policy in warehouse-microservice commit 72d73ec.]`
+- `[LANDED: Warehouse provider-status observation ledger source foundation in warehouse-microservice commit 5bdc473.]`
 - `[PARTIAL: provisional timestamp/replay semantics landed in Warehouse commit 72d73ec; runtime constants remain missing.]`
 - `[MISSING: owner approval before Warehouse runtime adapter, Allegro projection migration, deployment, or production fulfillment-row mutation.]`
 
 Next action:
 
-- Implement approved source-only Warehouse ledger migration/tests and keep provider/status adapter runtime disabled until remaining constants, correlation, visibility, and deploy gates are approved.
+- Implement a disabled-by-default sanitized provider adapter only after source adapter scope, correlation, retry/DLQ, visibility, and deploy/smoke gates are approved.
 
 ## 2026-07-03 - Warehouse Allegro Checkout Fulfillment Mapping Integrated
 
@@ -93,7 +127,7 @@ Remaining gates:
 - `[LANDED: Warehouse provisional Allegro checkout-form fulfillment status mapping in warehouse-microservice commit b44ea08.]`
 - `[MISSING: sanitized checkout-form fulfillment.status fixture set and approved enum/class list.]`
 - `[MISSING: approved Orders source-reference preservation evidence proving Allegro-origin central orders preserve source evidence and fulfilled reservation ids for Warehouse joins.]`
-- `[DECIDED: Warehouse-owned provider-status observation ledger policy in warehouse-microservice commit 72d73ec.]`
+- `[LANDED: Warehouse provider-status observation ledger source foundation in warehouse-microservice commit 5bdc473.]`
 - `[PARTIAL: provisional timestamp/replay semantics landed in Warehouse commit 72d73ec; runtime constants remain missing.]`
 - `[MISSING: owner approval before any Warehouse runtime adapter, src/** mutation, migration, deploy, or production fulfillment-row mutation.]`
 
