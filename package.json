@@ -34,6 +34,7 @@
     "verify:browser-render-proof-readiness": "node scripts/verify-browser-render-proof-readiness.js",
     "verify:completion-audit": "node scripts/verify-completion-audit.js",
     "verify:browser-render-proof-report": "node scripts/verify-browser-render-proof-report.js",
+    "create:blocked-browser-render-proof-report": "node scripts/create-blocked-browser-render-proof-report.js",
     "prepare:browser-proof-mutation-evidence": "node scripts/prepare-browser-proof-mutation-evidence.js",
     "verify:browser-proof-mutation-evidence": "node scripts/verify-browser-proof-mutation-evidence.js",
     "generate:browser-render-proof-template": "node scripts/generate-browser-render-proof-report-template.js",

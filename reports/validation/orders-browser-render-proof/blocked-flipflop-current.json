@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "orders.browser_render_proof.v1",
+  "status": "blocked",
+  "channel": "flipflop",
+  "proofMode": "service_scoped_proxy",
+  "checkedAt": "2026-07-03T11:19:19.400Z",
+  "ordersEvidenceCommit": "0fac0da7cc945f6a9966ca67fc675e5e1a31d759",
+  "mutationEvidence": {
+    "source": "smoke:lifecycle-mutation",
+    "approvalId": "approved-lifecycle-smoke",
+    "summary": "Sanitized lifecycle mutation smoke reached warehouse_collecting in customer and admin Orders lifecycle read models.",
+    "artifactPath": "reports/validation/lifecycle-mutation-smoke/report-latest.json",
+    "artifactHash": "sha256:2fb275cb936ccafa9e027852b59c103b2efb49f90de6a5c5639ceb054a0ea296",
+    "expectedLifecycleStage": "warehouse_collecting"
+  },
+  "routes": [
+    {
+      "url": "https://flipflop.alfares.cz/orders",
+      "httpStatus": 200,
+      "surface": "customer_cabinet",
+      "renderedLifecycleLabel": "[MISSING: authenticated rendered lifecycle label]",
+      "renderedLifecycleStage": "[MISSING: authenticated rendered lifecycle stage]",
+      "artifact": {
+        "kind": "anonymous_route_html_hash",
+        "redacted": true,
+        "sha256": "bcc23ebd1736c2d29c418c2bde686ddfad17f535422152056ec2f1722e80b292"
+      },
+      "dataSourceStatus": 401
+    },
+    {
+      "url": "https://flipflop.alfares.cz/admin/orders",
+      "httpStatus": 200,
+      "surface": "admin_cabinet",
+      "renderedLifecycleLabel": "[MISSING: authenticated rendered lifecycle label]",
+      "renderedLifecycleStage": "[MISSING: authenticated rendered lifecycle stage]",
+      "artifact": {
+        "kind": "anonymous_route_html_hash",
+        "redacted": true,
+        "sha256": "8704d818aeaa9e6e99f93139e5ad6331e74c7349a362879e90a34f74fcdc33a5"
+      }
+    }
+  ],
+  "refreshMechanism": "api_backed_render_probe",
+  "centralReadModelBacked": true,
+  "evidencePolicy": {
+    "noTokenValues": true,
+    "noCookies": true,
+    "noCustomerPii": true,
+    "noRawOrderRows": true,
+    "noDatabaseDump": true,
+    "noPaymentReference": true,
+    "noTrackingValues": true,
+    "noProviderPayload": true,
+    "artifactsRedacted": true
+  },
+  "result": {
+    "summary": "Blocked: anonymous FlipFlop routes are reachable, but no safe authenticated buyer/admin browser session or service-scoped browser proxy is available in this thread to prove rendered lifecycle labels.",
+    "nextAction": "Provide an approved safe FlipFlop buyer/admin browser session or an explicit service-scoped browser proxy path, then replace this blocked report with status=proven rendered evidence."
+  }
+}

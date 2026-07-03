@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Blocked Browser Proof Report Recorded
+
+Intent chain:
+
+- Vision: the rendered browser proof gate should be represented by machine-checkable evidence, even while authenticated browser access remains unavailable.
+- Goal Impact: the final remaining FlipFlop rendered-proof blocker is now captured as a validated `orders.browser_render_proof.v1` report tied to the current Orders commit and prepared lifecycle mutation artifact.
+- System: Orders owns the blocked proof report, generator, verifier invocation, and IPS status; channel repos, browser sessions, databases, providers, deployments, and secret values remain untouched.
+- Feature: current blocked browser render proof report.
+- Task: generate `reports/validation/orders-browser-render-proof/blocked-flipflop-current.json`, validate it through `verify:browser-render-proof-report`, and record the remaining proof-mode blocker.
+- Execution Plan: anonymously probe FlipFlop customer/admin routes, hash only route HTML, omit raw HTML/screenshots, bind the report to the prepared lifecycle mutation artifact, validate as blocked, then commit and push.
+- Coding Prompt: do not use credentials, cookies, browser sessions, customer payloads, raw order rows, DB rows, provider payloads, tracking values, token values, or channel repo edits.
+- Code: blocked proof report generator, package script, blocked report artifact, status/state docs.
+- Validation: `node --check scripts/create-blocked-browser-render-proof-report.js`, `node scripts/create-blocked-browser-render-proof-report.js`, and `BROWSER_RENDER_PROOF_REPORT_PATH=reports/validation/orders-browser-render-proof/blocked-flipflop-current.json BROWSER_RENDER_PROOF_EXPECTED_COMMIT=0fac0da7cc945f6a9966ca67fc675e5e1a31d759 npm run verify:browser-render-proof-report` and full `npm test` passed. The verifier returned `reportStatus=blocked`, route count `2`, `centralReadModelBacked=true`, and blocker `[MISSING: proven rendered lifecycle report]`.
+
+Remaining gate:
+
+- `[MISSING: approved safe FlipFlop buyer/admin browser session or explicit service-scoped browser proxy path.]`
+- `[MISSING: status=proven orders.browser_render_proof.v1 report with rendered customer/admin lifecycle labels.]`
+
 ## 2026-07-03 - Lifecycle Mutation Artifact Prepared For Browser Proof
 
 Intent chain:
