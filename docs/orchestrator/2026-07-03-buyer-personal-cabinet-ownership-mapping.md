@@ -105,13 +105,13 @@ Do not implement any of these without explicit product/Auth/security risk accept
 
 Owner: Allegro real buyer smoke worker.
 
-Objective: prove one real buyer personal-cabinet lifecycle path using a real Auth bearer and one approved subject-bound Allegro order row.
+Objective: prove one real buyer personal-cabinet lifecycle path using a real Auth bearer and one real forwarded Allegro order already subject-bound through buyerAuthSubject.
 
 Allowed actions:
 
 - Read existing Allegro buyer API/UI routes.
 - Use an approved real buyer bearer without printing token values.
-- Use an approved subject-bound order row, or an approved synthetic fixture row if the owner authorizes that data mutation separately.
+- Use a real forwarded subject-bound order row; synthetic fixture evidence remains historical and does not close the real lifecycle display gate.
 - Verify buyer list/detail and central lifecycle display using sanitized counts/statuses only.
 
 Forbidden actions:
