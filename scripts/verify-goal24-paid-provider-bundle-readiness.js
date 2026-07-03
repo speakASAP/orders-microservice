@@ -84,7 +84,7 @@ for (const required of [
   'GOAL24_PAID_PROVIDER_ROLLBACK',
   'GOAL24_PROVIDER_UNPAID_CANCEL',
   '[MISSING: named Orders cancellation actor/approvedBy for Goal 24 paid/provider cleanup]',
-  '[MISSING: migration/deploy approval for persisted Orders cleanup idempotency key]',
+  '[RESOLVED: migration/deploy approval executed for persisted Orders cleanup idempotency key; migration pre_column_count=0 post_column_count=1, deployed image localhost:5000/orders-microservice:adddafb, health healthy]',
   'payment=true',
   'warehouse=true',
   'notification=true',
