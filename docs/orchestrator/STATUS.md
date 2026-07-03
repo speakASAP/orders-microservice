@@ -1,5 +1,32 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Render Proof Readiness Verifier Added
+
+Intent chain:
+
+- Vision: browser-render lifecycle proof should be repeatable and gated, not dependent on ad hoc cross-repo edits or unsafe session handling.
+- Goal Impact: the remaining browser-render gate is now protected by an Orders regression verifier that preserves merge-order boundaries.
+- System: Orders documents and verifies proof readiness; channel frontends remain out of scope until merge-order review approves a lane.
+- Feature: browser-render proof readiness verifier.
+- Task: add a default non-mutating verifier for the browser proof handoff, STATUS gates, lifecycle mutation smoke entrypoint, and FlipFlop-first lane recommendation.
+- Execution Plan: keep the verifier static by default; require explicit env gates for optional route status smoke; add it to `npm test`.
+- Coding Prompt: no browser session, token, DB, provider, or channel repo mutation in default verification.
+- Code: `scripts/verify-browser-render-proof-readiness.js`, npm script `verify:browser-render-proof-readiness`, `npm test` chain update.
+- Validation: `node scripts/verify-browser-render-proof-readiness.js` passed in default mode and reported route-smoke blockers instead of making network/browser/session assumptions.
+
+Runtime/safety evidence:
+
+- Default verifier output: `status=browser_render_proof_merge_order_gated`, `mutation=false`, `browserSessionUsed=false`, `providerCall=false`, `databaseRead=false`, `tokenValuesReadOrPrinted=false`.
+- Verified handoff markers: 6; STATUS markers: 4; lifecycle mutation smoke script entrypoint present; recommended first lane: FlipFlop.
+- Optional route status check remains gated by `RUN_BROWSER_RENDER_PROOF_ROUTE_SMOKE=1`, `BROWSER_RENDER_PROOF_ROUTE_SMOKE_APPROVED=1`, and `BROWSER_RENDER_PROOF_ROUTE_SMOKE_CONFIRM=ROUTE_STATUS_ONLY_NO_SESSION_NO_MUTATION`.
+
+Remaining gates:
+
+- `[MISSING: merge-order review approval for FlipFlop browser validation lane.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+- `[MISSING: rendered UI evidence after lifecycle mutation.]`
+- `[MISSING: separate review before touching non-Orders repositories.]`
+
 ## 2026-07-03 - Browser Render Proof Handoff Recorded
 
 Intent chain:
