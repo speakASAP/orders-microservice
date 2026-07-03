@@ -1,5 +1,28 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Cross-Repo Shipment Runtime Readiness Verifier
+
+Intent chain:
+
+- Vision: provider shipment observations should reach customer/admin lifecycle views only after the Orders, Warehouse, and Allegro source contracts are simultaneously ready and the remaining runtime gates are explicit.
+- Goal Impact: deploy/live-smoke preparation now has one executable preflight that proves source readiness before any migration, deploy, provider read, Warehouse write, or fulfillment-status mutation.
+- System: Orders owns central lifecycle and the orchestration verifier; Warehouse owns correlation storage and fulfillment transitions; Allegro owns sanitized shipment snapshot production, Warehouse correlation posting, and dead-letter artifacts.
+- Feature: cross-repo shipment runtime readiness verifier.
+- Task: add a read-only verifier covering Orders lifecycle stages, Warehouse correlation endpoint/migration, Allegro disabled producer, dead-letter storage source, and raw-field exclusions.
+- Execution Plan: source verifier and IPS docs only; no deploy, no DB read/write, no provider call, no Warehouse call, no Orders callback, and no runtime status mutation.
+- Coding Prompt: fail fast when a required source contract is missing, while reporting the runtime gates that still require explicit approval.
+- Code: `scripts/verify-shipment-runtime-readiness.js` plus `verify:shipment-runtime-readiness`.
+- Validation: `npm run verify:shipment-runtime-readiness`, `npm run verify:order-lifecycle-read-model`, and `git diff --check`.
+
+Remaining gates:
+
+- `[LANDED: executable cross-repo source readiness preflight for the shipment-correlation runtime lane.]`
+- `[MISSING: Warehouse deploy/migration approval for fulfillment_provider_shipment_correlations.]`
+- `[MISSING: Allegro deploy approval before runtime pod receives ALLEGRO_SHIPMENT_DEAD_LETTER_DIR/PVC.]`
+- `[MISSING: owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true.]`
+- `[MISSING: owner-approved live runtime smoke with safe order selection and real token source.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or production fulfillment-row mutation.]`
+
 ## 2026-07-03 - Orders Lifecycle Stage Coverage Verifier
 
 Intent chain:

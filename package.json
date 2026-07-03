@@ -26,7 +26,8 @@
     "verify:pricing-safety": "node scripts/verify-pricing-safety.js",
     "verify:pricing-consolidation-contract": "node scripts/verify-pricing-consolidation-contract.js",
     "verify:product-sales-statistics": "node scripts/verify-product-sales-statistics.js",
-    "verify:order-affinity-replay": "node scripts/verify-order-affinity-replay-contract.js"
+    "verify:order-affinity-replay": "node scripts/verify-order-affinity-replay-contract.js",
+    "verify:shipment-runtime-readiness": "node scripts/verify-shipment-runtime-readiness.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
