@@ -1,0 +1,86 @@
+# Orders Lifecycle Completion Audit
+
+Date: 2026-07-03
+Repository of record: `orders-microservice`
+Current Orders evidence commit: `a331f5b test: reconcile lifecycle runtime evidence gates`
+
+## Audit Scope
+
+Objective under audit:
+
+Implement reliable Orders lifecycle across Alfares commerce services: inventory check/reservation on order creation, Warehouse fulfillment trigger on paid status, order lifecycle/status propagation to customer/admin frontends, and IPS-backed cross-repo plan plus subagent orchestration.
+
+This audit does not mark the goal complete. It records the current proof boundary and the exact evidence still needed.
+
+## Requirement Status Matrix
+
+| Requirement | Current status | Authoritative evidence | Completion evidence still needed |
+| --- | --- | --- | --- |
+| Every sellable order checks Warehouse stock and reserves on creation | Partially proven | `verify:order-reservation-gate`; live/synthetic channel create-reservation artifacts in `verify:channel-lifecycle-runtime-evidence`; Orders mutation smoke proved initial Warehouse reservation true for one FlipFlop synthetic order | Per-channel live or approved synthetic create/reservation proof remains uneven; provider-backed Bazos source remains unknown. |
+| Order creation fails closed if Warehouse reservation is unavailable | Source/contract proven | `verify:order-reservation-gate`; `verify:warehouse-handoff`; sellable-channel reservation gate in Orders service | Repeat live fail-closed negative smoke only if owner approves controlled stock/unavailable scenario. |
+| Orders store item list, per-item price, totals, shipping cost, and delivery address | Source/contract proven | `verify:create-order-contract`; DTO/entity contract; lifecycle read model serialization; product-sales statistics verifier | Browser/customer-facing rendered proof of those fields across every cabinet is not complete. |
+| Paid order triggers Warehouse fulfillment handoff | Runtime proven for bounded Orders path | `smoke:lifecycle-mutation` live run: payment update HTTP 200, Warehouse fulfillment update HTTP 200, lifecycle moved to `warehouse_collecting`; `verify:order-fulfillment-handoff` | Provider shipment/courier late-stage runtime remains gated; per-channel paid checkout browser proof is incomplete. |
+| Orders lifecycle read model exposes customer/admin status | Runtime proven at service/API level | lifecycle list runtime probe returned HTTP 200 for FlipFlop, Allegro, Aukro, Bazos, Heureka service identities; `verify:order-lifecycle-read-model`; `verify:channel-lifecycle-runtime-evidence` | Human/browser-render proof after actual lifecycle mutation remains missing. |
+| Customer cabinet shows updated order lifecycle | Source/deploy route proven, rendered proof missing | channel UI commits/deploys: FlipFlop `3110c6a`, Heureka `358fba9`, Bazos `26af3ae`, Aukro `08ad5ce`, Allegro `4ff3987`; route smokes; `verify:channel-lifecycle-surfaces` | Approved safe buyer session or explicitly approved service-scoped browser proxy proof showing rendered lifecycle label after mutation. |
+| Admin cabinet/statistics show updated lifecycle and delivery status | Source/deploy route proven, rendered proof missing | `verify:product-sales-statistics`; `verify:admin-operations-console`; channel UI route smokes and source markers | Approved admin browser/API rendered proof after lifecycle mutation. |
+| Lifecycle stages include ordered/unpaid, paid/not delivered, Warehouse collecting/forming/formed, handed to delivery, in delivery, received/not received/returned | Source/read-model proven | `verify:order-lifecycle-read-model`; STATUS late-stage coverage entries | Provider-backed late-stage runtime feed remains gated. |
+| Delivery provider/shipment status updates drive late lifecycle | Source-ready/runtime-gated | `verify:shipment-runtime-readiness`; Warehouse/Allegro source contracts; STATUS shipment gates | Warehouse deploy/migration approval, Allegro deploy/enablement approval, safe runtime smoke with real provider source, and approval before fulfillment-row mutation. |
+| Cross-repo IPS-backed plan and subagent orchestration are recorded | Proven for current wave | `docs/orchestrator/STATUS.md`, `docs/IMPLEMENTATION_STATE.md`, browser proof handoff, channel worker commits/deploy evidence | Keep docs current as browser/provider gates close. |
+| No secrets, tokens, raw order rows, customer payloads, DB rows, tracking values, or provider payloads are printed in validation | Proven for added Orders validation paths | `smoke:lifecycle-mutation` sanitized output policy; `verify:browser-render-proof-readiness`; `verify:channel-lifecycle-runtime-evidence`; STATUS sanitation statements | Future browser screenshots must be redacted or use safe synthetic data only. |
+
+## Current Proven Evidence
+
+- Orders standard validation includes:
+  - `verify:order-reservation-gate`
+  - `verify:order-fulfillment-handoff`
+  - `verify:order-lifecycle-read-model`
+  - `verify:shipment-runtime-readiness`
+  - `verify:channel-lifecycle-surfaces`
+  - `verify:channel-lifecycle-runtime-evidence`
+  - `verify:browser-render-proof-readiness`
+- Orders runtime mutation smoke proved one sellable FlipFlop-channel path:
+  - create HTTP `201`
+  - Warehouse reservation true
+  - payment update HTTP `200`
+  - Warehouse fulfillment update HTTP `200`
+  - customer lifecycle read HTTP `200`
+  - admin lifecycle read HTTP `200`
+  - both customer/admin read-models saw `warehouse_collecting`
+- Deployed channel UI route coverage exists for FlipFlop, Heureka, Bazos, Aukro, and Allegro.
+- Orders service identity lifecycle list endpoints return HTTP `200` for FlipFlop, Allegro, Aukro, Bazos, and Heureka.
+
+## Remaining Gates
+
+The goal is not complete until these are closed or explicitly descoped by product/owner decision:
+
+1. Merge-order review approval for the FlipFlop validation-only browser lane.
+2. Approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.
+3. Rendered customer/admin UI evidence after an Orders lifecycle mutation.
+4. Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.
+5. Provider-backed Bazos marketplace webhook/order source decision.
+6. Warehouse/Allegro shipment-status runtime enablement approvals:
+   - Warehouse deploy/migration for provider shipment correlations.
+   - Allegro deploy with shipment dead-letter runtime config.
+   - Approval to enable `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true`.
+   - Owner-approved live runtime smoke with safe selection and real token source.
+   - Approval before runtime fulfillment-row mutation.
+
+## Recommended Next Execution Order
+
+1. FlipFlop browser-render validation lane, validation-only.
+2. If FlipFlop browser evidence fails due UI behavior, produce a channel-specific implementation prompt and wait for merge-order review before editing FlipFlop.
+3. Heureka and Aukro browser/API rendered hydration proof.
+4. Bazos only after product decides whether synthetic/internal order proof is sufficient or provider-backed webhook is required.
+5. Allegro buyer proof only after real subject-bound buyer order row and bearer are approved.
+6. Shipment-status runtime proof after Warehouse/Allegro deploy/migration/enablement approvals.
+
+## Completion Decision
+
+Status: incomplete.
+
+Reason:
+
+- Backend create/reservation/payment/Warehouse/read-model propagation is strongly proven for the bounded Orders/FlipFlop synthetic path.
+- Cross-channel source/deploy route readiness is proven.
+- Browser-render proof and provider-backed late shipment lifecycle proof are still missing.
+- Therefore the active goal must remain open.

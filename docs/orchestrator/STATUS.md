@@ -1,5 +1,30 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Completion Audit Recorded
+
+Intent chain:
+
+- Vision: goal completion must be decided from requirement-by-requirement evidence, not from partial progress.
+- Goal Impact: the Orders lifecycle objective now has a current completion audit that separates proven backend/runtime evidence from missing browser/provider gates.
+- System: Orders remains the evidence repository for orchestration state; channel/provider work remains gated by merge-order and owner approvals.
+- Feature: Orders lifecycle completion audit.
+- Task: document each explicit business requirement, current status, authoritative evidence, and missing completion evidence.
+- Execution Plan: docs-only audit in Orders; no channel repo edits, deploys, browser sessions, provider calls, DB reads, or runtime mutations.
+- Coding Prompt: preserve original scope and do not mark the goal complete while browser-render/provider gates are missing.
+- Code: `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`.
+- Validation: pending `git diff --check` and targeted marker verification.
+
+Audit result:
+
+- `[PROVEN: bounded Orders/FlipFlop synthetic create -> Warehouse reservation -> paid -> Warehouse collecting -> customer/admin lifecycle read-model propagation.]`
+- `[PROVEN: cross-channel source/deploy route readiness for lifecycle UI labels and refresh affordances.]`
+- `[MISSING: rendered customer/admin UI evidence after lifecycle mutation.]`
+- `[MISSING: real subject-bound Allegro buyer proof.]`
+- `[UNKNOWN: provider-backed Bazos marketplace webhook/order source decision.]`
+- `[MISSING: Warehouse/Allegro shipment-status runtime deployment/enablement/safe smoke approvals.]`
+
+Decision: active goal remains incomplete.
+
 ## 2026-07-03 - Runtime Evidence Gates Reconciled
 
 Intent chain:
