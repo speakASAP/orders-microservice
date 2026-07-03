@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "orders.allegro_production_shipment_write_try.v1",
+  "checkedAt": "2026-07-03T20:28:17.631Z",
+  "explicitUserApproval": true,
+  "scope": {
+    "productionAllegroWrite": true,
+    "mayNotifyCustomer": true,
+    "mayCreateShipmentCost": true,
+    "warehouseMutation": false,
+    "ordersMutation": false,
+    "credentialMutation": false
+  },
+  "discovery": {
+    "checkoutForms": 41,
+    "emptyShipmentCandidates": 4,
+    "deliveryProposals200": 3,
+    "deliveryProposals404": 1,
+    "carriersEndpointHttp200": true,
+    "carrierCount": 74
+  },
+  "shipmentManagementCreateCommands": {
+    "attempted": true,
+    "acceptedCommandCount": 3,
+    "createdShipmentCount": 0,
+    "sanitizedTerminalErrors": [
+      "receiver data validation failed",
+      "receiver.pickup point required",
+      "order cancelled"
+    ],
+    "rawProviderPayloadPrinted": false,
+    "rawOrderIdsPrinted": false,
+    "customerPiiPrinted": false
+  },
+  "directOrderShipmentAdd": {
+    "attempted": true,
+    "carrierClass": "OTHER",
+    "httpStatus": 201,
+    "createdShipmentCount": 1,
+    "mayHaveNotifiedBuyer": true,
+    "rawWaybillPrinted": false,
+    "rawOrderIdsPrinted": false,
+    "rawProviderPayloadPrinted": false
+  },
+  "fulfillmentUpdate": {
+    "attempted": true,
+    "httpStatus": 204,
+    "beforeFulfillmentStatus": "PROCESSING",
+    "afterFulfillmentStatus": "SENT",
+    "marketplaceStatus": "READY_FOR_PROCESSING"
+  },
+  "trackingReadback": {
+    "shipmentsHttp200": true,
+    "shipmentCount": 1,
+    "trackingAttempted": 1,
+    "trackingHttp200": 1,
+    "latestStatusCounts": {
+      "UNKNOWN": 1
+    },
+    "nonUnknownStatusCount": 0,
+    "reason": "The production write used carrierId OTHER with a generated waybill; Allegro accepted the shipment and fulfillment SENT, but carrier tracking has no real courier movement event."
+  },
+  "centralOrdersLink": {
+    "forwardingAttemptMatches": 0,
+    "hasCentralOrderId": false,
+    "ordersWarehouseCallbackPossible": false
+  },
+  "redaction": {
+    "tokenValuesPrinted": false,
+    "rawAccountIdsPrinted": false,
+    "rawOrderIdsPrinted": false,
+    "rawWaybillsPrinted": false,
+    "providerPayloadPrinted": false,
+    "rawRowsPrinted": false,
+    "customerPiiPrinted": false
+  },
+  "result": "production_allegro_shipment_and_fulfillment_sent_proven_but_not_central_orders_linked",
+  "remainingGate": "[MISSING: central Orders forwarding for the mutated real Allegro order, or a real courier waybill whose carrier tracking endpoint returns a movement event]"
+}
