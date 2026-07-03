@@ -1,3 +1,5 @@
+2026-07-03: Worker F Warehouse intake and Allegro buyer UI source landed. Warehouse commit `f104202` documents the bounded provider-status intake contract after `handed_to_delivery`; Allegro commit `735ad1f` commits the buyer cabinet route source. All three source repos are clean/pushed after these handoffs. Deployment remains gated by cross-service validation, OAuth/credential proof, sanitized shipment fixtures, idempotency ledger decision, and explicit deploy approval.
+2026-07-03: Allegro buyer personal-cabinet source implementation landed and pushed. Allegro commit `78e0f5f` adds the subject-bound `buyerAuthSubject` projection, guarded migration, buyer list/detail APIs, buyer-safe DTOs, and isolation specs; `9f07efc` hardens buyer order isolation tests; `735ad1f` adds the frontend `/cabinet/orders` route backed by `GET /api/allegro/buyer/orders`. Validation passed with Allegro `orders.service.spec: PASS`, `services/allegro-service npm run build`, `services/frontend npm run build`, and `git diff --check`. No Orders runtime code, deploy, DB migration, production row read, or secret access was performed. Remaining gates are `[MISSING: owner-approved Allegro DB migration/deploy for buyerAuthSubject]`, `[MISSING: historical row backfill decision; default remains no backfill and no buyer visibility without subject binding]`, and `[MISSING: live authenticated buyer list/detail smoke after deploy]`.
 2026-07-03: Worker G Allegro buyer API backend source landed in Allegro commits `78e0f5f` and `9f07efc`. Subject-bound buyer order reads are source-supported and isolation tests were hardened; deployment remains gated because buyer frontend cabinet files are still uncommitted/dirty and historical-row backfill remains no-visibility-by-default unless Auth subject binding exists.
 2026-07-03: Worker E Allegro shipment source contract landed in Allegro commit `2183fe8`. The approved source for Allegro-origin shipment status is now documented as read-only checkout-form shipments plus carrier tracking enrichment, with optional shipment-management detail only for existing shipment ids. Orders remains documentation-only for this slice; runtime implementation remains gated by OAuth-scope proof, credential source, Warehouse mapping, idempotency ledger decision, sanitized fixtures, and product-approved tracking visibility policy.
 2026-07-03: Provider/courier blockers were split into five additional per-blocker Codex threads after Allegro source approval: P1 Allegro source contract `019f265f-14b0-74c1-8817-3ee56a6c4fb7`, P2 Warehouse mapping `019f265f-42ac-7591-b946-bee3b0184384`, P3 sensitive-data policy `019f265f-9341-7492-971d-6f89bbe2644c`, P4 credential source `019f265f-ce89-77f2-a7d1-f584e88c5ed5`, and P5 fixture policy `019f2660-06ce-78a0-bc4f-5f4752ee1a48`. These are documentation/contract workers only; no deploy, migration, secret mutation, or runtime provider implementation is approved.
@@ -40,8 +42,8 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Allegro shipment source contract landed; FlipFlop admin RBAC and marketplace read-scope hardening complete; provider shipment-status remains Warehouse/OAuth/fixture gated
-next_recommended_goal: Complete Warehouse Allegro status mapping, Allegro OAuth/credential proof, idempotency ledger decision, sanitized fixtures, and Allegro buyer frontend Workstream B validation before deploy
+current_chunk: Allegro buyer cabinet source landed; Allegro shipment source contract landed; provider shipment-status remains Warehouse/OAuth/fixture gated
+next_recommended_goal: Run cross-service source validation for Allegro buyer cabinet, complete Allegro OAuth/credential proof, idempotency ledger decision, and sanitized shipment fixtures before deploy
 last_completed_goal: FlipFlop admin RBAC hardening deployed and marketplace order read-scope hardening completed
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
@@ -53,9 +55,11 @@ blockers:
   - [LANDED: Allegro shipment source contract in allegro commit 2183fe8]
   - [MISSING: Allegro OAuth scope proof and runtime credential source for shipment reads]
   - [MISSING: sanitized Allegro shipment fixture set]
-  - [MISSING: Allegro-to-Warehouse status mapping after handed_to_delivery]
-  - [LANDED: Allegro backend subject-bound buyer reads in commits 78e0f5f and 9f07efc]
-  - [MISSING: committed and validated Allegro buyer frontend cabinet Workstream B]
+  - [LANDED: Warehouse bounded provider-status intake contract in commit f104202]
+  - [LANDED: Allegro buyer backend/frontend source in commits 78e0f5f, 9f07efc, and 735ad1f]
+  - [MISSING: owner-approved Allegro DB migration/deploy for buyerAuthSubject]
+  - [MISSING: live authenticated buyer list/detail smoke after Allegro deploy]
+  - [LANDED: Allegro buyer frontend cabinet source in commit 735ad1f]
   - [MISSING: migration/backfill decision for historical Allegro rows; default is no backfill and no buyer visibility without Auth subject binding]
 ```
 

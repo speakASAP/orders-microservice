@@ -1,5 +1,38 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Warehouse Intake And Allegro Buyer UI Source Landed
+
+Intent chain:
+
+- Vision: delivery status and buyer order visibility should progress through bounded service-owned contracts before any production deploy.
+- Goal Impact: Warehouse now has a documented bounded provider-status intake contract, and Allegro now has source for the buyer cabinet route; runtime deployment remains intentionally gated.
+- System: Allegro owns buyer UI/API and provider shipment source; Warehouse owns fulfillment status intake; Orders owns lifecycle projection/events.
+- Feature: Warehouse provider-status intake docs and Allegro buyer cabinet frontend source integration.
+- Task: integrate Worker F and final Worker G frontend handoffs into Orders orchestration state.
+- Execution Plan: accept committed source/docs evidence, keep deploy blocked until integration validation and approval, and keep raw tracking/customer/provider payloads out of Orders events.
+- Coding Prompt: no runtime deploy, no DB migration, no secret read, no raw provider payload, no tracking URL/number exposure.
+- Code: Warehouse `f104202 docs: define fulfillment provider status intake`; Allegro `735ad1f feat: add allegro buyer order cabinet route`.
+- Validation: Warehouse `git diff --check` and `npm test -- --runInBand test/fulfillment-orders.service.spec.ts` per contract doc; Allegro Worker G reported focused backend spec and service build before final route commit; orchestrator verified clean pushed remote heads.
+
+Evidence:
+
+- Warehouse `main`/`origin/main` clean at `f104202`; new doc `docs/contracts/fulfillment-provider-status-intake-contract.md` defines accepted post-handoff statuses, transition/idempotency rules, and sensitive-field rejection.
+- Warehouse accepted statuses remain bounded to `in_delivery`, `delivered`, `not_delivered`, and `returned` after `handed_to_delivery`; direct terminal delivery transitions before in-delivery remain rejected unless separately approved.
+- Allegro `main`/`origin/main` clean at `735ad1f`; buyer cabinet route files are now committed, including `services/frontend/src/pages/BuyerOrdersPage.tsx` and frontend route wiring.
+- Runtime deployments were not changed in this slice.
+
+Remaining gates:
+
+- `[MISSING: Allegro OAuth scope proof and runtime credential source for shipment reads.]`
+- `[MISSING: provider adapter durable idempotency store or Warehouse provider-status ledger decision.]`
+- `[MISSING: sanitized Allegro shipment fixture set and adapter tests.]`
+- `[MISSING: cross-service integration validation for Allegro buyer backend/frontend route before deployment.]`
+- `[MISSING: deploy approval and runtime smoke for Allegro buyer cabinet and shipment-status path.]`
+
+Next action:
+
+- Run final source integration validation across Allegro backend/frontend and Warehouse docs, then decide whether to start source-only Allegro shipment adapter or request deploy approval.
+
 ## 2026-07-03 - Allegro Buyer API Source Landed
 
 Intent chain:
@@ -23,7 +56,7 @@ Evidence:
 
 Remaining gates:
 
-- `[MISSING: committed and validated Allegro buyer frontend cabinet Workstream B.]`
+- `[LANDED: Allegro buyer cabinet route source in commit 735ad1f.]`
 - `[MISSING: migration/backfill decision for historical Allegro rows; default remains no buyer visibility without Auth subject binding.]`
 - `[MISSING: deploy approval and runtime smoke after backend/frontend source validation.]`
 
@@ -56,7 +89,7 @@ Evidence:
 Remaining gates:
 
 - `[MISSING: proof that active Allegro OAuth token/scopes can read checkout-form shipments, carrier tracking, and optional shipment-management detail without write scopes.]`
-- `[MISSING: Warehouse accepted status mapping from Allegro snapshot statuses to fulfillment statuses after handed_to_delivery; Worker F in progress.]`
+- `[LANDED: Warehouse bounded intake contract in warehouse-microservice commit f104202.]`
 - `[MISSING: provider adapter durable idempotency store or Warehouse provider-status ledger decision.]`
 - `[MISSING: sanitized fixture set for order-with-no-shipments, delivered, multi-package, mixed-carrier, tracking-null, oauth-403, redaction, and non-Allegro filter cases.]`
 - `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
@@ -101,7 +134,7 @@ Additional per-blocker worker threads started by the orchestrator after source a
 
 Next action:
 
-- Wait for Worker F/G handoffs, then decide whether source-only Allegro read adapter work can start without runtime deploy.
+- Run final source integration validation, then decide whether source-only Allegro read adapter work can start without runtime deploy.
 
 ## 2026-07-03 - Allegro Buyer Ownership Option 2 Approved
 
@@ -114,8 +147,8 @@ Intent chain:
 - Task: implement buyer-scoped read-only order list/detail and UI only for orders with explicit Auth subject binding.
 - Execution Plan: persist or derive `AllegroOrder.authUserId`/`buyerAuthSubject` or equivalent Orders `customer.authSubject`/`customer.authUserId`; add buyer APIs and `/cabinet/orders`; keep seller/operator `/dashboard/orders` unchanged; fail closed for unbound imported marketplace rows.
 - Coding Prompt: never authorize by `buyerEmail`; use Auth bearer `sub`; return 404 for cross-buyer detail reads; expose buyer-safe DTO only.
-- Code: Allegro `78e0f5f feat: add subject-bound allegro buyer order reads`; hardening `9f07efc test: harden allegro buyer order isolation`.
-- Validation: Worker G reported focused orders service spec, Allegro service build, diff check, and pushed backend hardening; frontend cabinet work remains uncommitted and deploy-gated.
+- Code: Allegro `78e0f5f feat: add subject-bound allegro buyer order reads`, `9f07efc test: harden allegro buyer order isolation`, and `735ad1f feat: add allegro buyer order cabinet route`.
+- Validation: Allegro `orders.service.spec: PASS`, `services/allegro-service npm run build`, `services/frontend npm run build`, and `git diff --check` passed; runtime authenticated smoke remains deploy-gated.
 
 Evidence:
 
@@ -130,19 +163,20 @@ Remaining gates:
 - `[LANDED: Allegro backend source support for subject-bound buyer order reads in commits 78e0f5f and 9f07efc.]`
 - `[MISSING: migration/backfill decision for historical Allegro rows; default is no backfill and no buyer visibility without Auth subject binding.]`
 - `[LANDED: buyer-safe backend DTO/isolation tests in Allegro commits 78e0f5f and 9f07efc.]`
-- `[MISSING: deploy approval after source validation.]`
+- `[LANDED: buyer frontend /cabinet/orders route in Allegro commit 735ad1f.]`
+- `[MISSING: owner-approved DB migration/deploy and live authenticated buyer smoke.]`
 
 Parallel execution:
 
 | Workstream | Status | Owner role | Scope | Allowed files | Forbidden files | Validation | Merge order |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | A Buyer API/schema | source landed: Allegro `78e0f5f` + `9f07efc` | Allegro backend owner | Add subject-bound persistence/derivation, buyer list/detail APIs, DTO, tests | `prisma/schema.prisma`, migrations only if required, `services/allegro-service/src/allegro/orders/*`, focused tests | Orders/Auth runtime, seller dashboard behavior, deploy scripts | orders service spec, build, isolation tests | 1 |
-| B Buyer UI | ready after backend source; dirty frontend files exist in Allegro and need validation/commit | Allegro frontend owner | Add `/cabinet/orders` only after API contract shape lands | `services/frontend/src/pages/*`, routing/auth client files | backend schema/API internals, seller `/dashboard/orders` rewrite | frontend build and route smoke | 2 |
-| C Integration validation | final_integration | Orders/Allegro validation owner | Validate A+B together and update status | validation report/docs only | runtime deploy without approval | backend/frontend builds, buyer isolation evidence | 3 |
+| B Buyer UI | source landed: Allegro `735ad1f` | Allegro frontend owner | Add `/cabinet/orders` only after API contract shape lands | `services/frontend/src/pages/*`, routing/auth client files | backend schema/API internals, seller `/dashboard/orders` rewrite | frontend build and route smoke | 2 |
+| C Integration validation | deploy-gated | Orders/Allegro validation owner | Validate A+B together after migration/deploy | validation report/docs only | runtime deploy without approval | authenticated buyer list/detail smoke | 3 |
 
 Next action:
 
-- Finish and validate Allegro buyer frontend Workstream B, then run integration validation before any deploy.
+- Run Allegro backend/frontend integration validation and deployment readiness checks before any deploy.
 
 ## 2026-07-03 - FlipFlop Admin Order Inventory Pricing RBAC Hardened
 
