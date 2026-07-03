@@ -1,5 +1,41 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Shipment Snapshot File Producer Integrated
+
+Intent chain:
+
+- Vision: approved Allegro shipment observations should become replayable Warehouse correlation input without raw provider payloads or direct Orders ingestion.
+- Goal Impact: the snapshot-file producer gate moved from missing to source-validated Allegro exporter evidence, leaving live provider-read implementation, Warehouse deploy/migration, and status mutation gates explicit.
+- System: Allegro owns read-bundle-to-snapshot-file production and replay invocation; Warehouse owns correlation, provider-status ledger, and fulfillment transitions; Orders owns lifecycle read models from Warehouse callbacks.
+- Feature: sanitized Allegro shipment status snapshot-file producer.
+- Task: integrate Allegro commit `de81866` into Orders orchestration state.
+- Execution Plan: accept source-only exporter evidence; keep live Allegro shipment reads, DB writes, live Warehouse calls, deployment, migration run, Orders callbacks, and fulfillment status mutation blocked until approved.
+- Coding Prompt: no Orders runtime code, no raw Allegro id/waybill/tracking/customer fields, no direct provider payload ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Allegro `de81866 feat: add shipment status snapshot export`; Orders docs checkpoint in this commit.
+- Validation: Allegro `npm run verify:shipment-status-snapshot-export`, `npm run verify:shipment-status-replay`, `npm run verify:shipment-status-handoff`, `npm run verify:warehouse-shipment-correlation`, `npm run verify:shipment-status-snapshot`, `npm run build`, `git diff --check`, pre-commit checks, push to `main`, and Orders `git diff --check`.
+
+Evidence:
+
+- Allegro source now has `export-shipment-status-snapshots.ts`.
+- The exporter accepts approved `allegro.shipment_status_read_bundle.v1` order inputs and writes replay-compatible `allegro.shipment_status_snapshot_file.v1` JSON.
+- It maps through the existing redacting snapshot mapper and rejects forbidden raw marker keys in final snapshots.
+- The output file is consumable by `replay-shipment-status-handoff.ts`.
+- The live provider-read path remains fail-closed behind `--live-read --confirm-live-read ALLEGRO_SHIPMENT_STATUS_LIVE_READ` until account/order selection, token handling, rate limits, and sanitized smoke are approved.
+
+Remaining gates:
+
+- `[LANDED: source-only Allegro shipment snapshot-file producer in allegro commit de81866.]`
+- `[LANDED: source-only Allegro shipment status replay caller in allegro commit f145150.]`
+- `[MISSING: approved live shipment read implementation with account/order selection, token handling, rate limits, and sanitized smoke.]`
+- `[MISSING: deploy/migration approval for Warehouse correlation table and endpoint.]`
+- `[MISSING: owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true.]`
+- `[MISSING: approved retention/retry/dead-letter policy for failed correlation posts.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or production fulfillment-row mutation.]`
+
+Next action:
+
+- Implement the approved live shipment read implementation that produces sanitized read bundles, then deploy Warehouse correlation migration/endpoint and run sanitized correlation smoke.
+
 ## 2026-07-03 - Allegro Shipment Replay Caller Integrated
 
 Intent chain:
