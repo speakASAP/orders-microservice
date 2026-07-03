@@ -9,14 +9,23 @@ Intent chain:
 - System: Orders owns lifecycle read authorization; channel services own customer/admin display and subject scoping.
 - Feature: channel service lifecycle read role alignment.
 - Task: align `GET /api/orders/:id`, `GET /api/orders/customer/lifecycle`, and `GET /api/orders/admin/lifecycle` role sets for the selling-channel service clients.
-- Execution Plan: source/test/docs only; no secret read, token change, deploy, DB query, provider call, Warehouse call, or runtime mutation.
+- Execution Plan: source/test/docs first, then deploy the committed Orders image and run a pod-local non-data auth-boundary probe; no token values, DB rows, provider calls, Warehouse calls, order callbacks, customer data, or order rows are printed.
 - Coding Prompt: authorize service-to-service lifecycle hydration for known selling channels while keeping human customer auth separate.
 - Code: `ORDER_CHANNEL_LIFECYCLE_READ_ROLES` in `src/orders/orders.controller.ts`.
-- Validation: `npm run verify:order-lifecycle-read-model`, `npm run verify:channel-lifecycle-surfaces`, and `git diff --check`.
+- Validation: `npm test`, `git diff --check`, deploy `./scripts/deploy.sh abf4773`, rollout health check, and pod-local channel lifecycle read-role probe.
+
+
+Runtime evidence:
+
+- Deployed from clean Orders worktree commit `abf4773` with `./scripts/deploy.sh abf4773`.
+- Kubernetes rollout completed and `/health` returned `{"status":"healthy","service":"orders-microservice"}` from the new pod.
+- Live image after rollout: `localhost:5000/orders-microservice:abf4773` with `1/1` ready replicas.
+- Pod-local non-data role probe used synthetic missing UUID `00000000-0000-4000-8000-000000000000` and did not print token values or order rows.
+- Probe results: `flipflop-service`, `allegro-service`, `aukro-service`, `bazos-service`, and `heureka-service` all had their configured token env present and returned HTTP `404` from `GET /api/orders/:id`, proving the request passed auth/role enforcement and failed only at the expected missing-order boundary.
 
 Remaining gates:
 
-- `[MISSING: runtime deploy/restart before live pods can enforce the expanded lifecycle read roles.]`
+- `[PROVEN: Orders deployed image localhost:5000/orders-microservice:abf4773 and live role-boundary probe returned HTTP 404, not 401/403, for FlipFlop, Allegro, Aukro, Bazos, and Heureka service identities against a synthetic missing UUID.]`
 - `[MISSING: approved authenticated customer/admin browser or API smoke per channel proving lifecycle refresh.]`
 - `[MISSING: real subject-bound Allegro order row and buyer bearer.]`
 - `[UNKNOWN: provider-backed Bazos marketplace webhook/order source.]`
