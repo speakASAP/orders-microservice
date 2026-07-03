@@ -71,10 +71,36 @@ requireIncludes(warehouseBoundary, 'PAYMENT_CONFIRMED', 'warehouse paid fulfillm
 requireIncludes(warehouseBoundary, 'PAYMENT_FAILED_RELEASE', 'warehouse failed/cancelled release reason');
 requireIncludes(warehouseBoundary, 'ORDER_CANCELLED', 'warehouse cancellation cleanup reason');
 requireIncludes(warehouseBoundary, 'Orders must not edit stock truth', 'warehouse cleanup ownership');
+requireIncludes(paymentBoundary, 'Fiobanka Goal 24 cleanup refinement', 'payment boundary Fiobanka cleanup refinement');
+requireIncludes(paymentBoundary, 'GOAL24_PAID_PROVIDER_ROLLBACK', 'payment boundary Goal 24 rollback reason');
+requireIncludes(warehouseBoundary, 'For Fiobanka Goal 24 cleanup', 'warehouse Fiobanka cleanup mapping');
+requireIncludes(warehouseBoundary, 'unknown component state is no-op fail-closed', 'warehouse Fiobanka unknown-state fail closed');
 requireIncludes(transitionBoundary, 'side-effect acknowledgements for payment, warehouse, notification, CRM, and channel handling', 'order cancellation side-effect gate');
 requireIncludes(rollbackReadiness, 'without manual payment-state bypass', 'rollback readiness no manual bypass');
 requireIncludes(rollbackReadiness, 'provider refund or cancellation plus Orders/Warehouse cleanup', 'rollback readiness blocker');
 requireIncludes(rollbackReadiness, 'must be proven by Payments first', 'rollback readiness provider proof first');
+for (const required of [
+  'Fiobanka Paid Provider Cleanup Approval Contract',
+  'GOAL24_PAID_PROVIDER_ROLLBACK',
+  'GOAL24_PROVIDER_UNPAID_CANCEL',
+  '[MISSING: named Orders cancellation actor/approvedBy for Goal 24 paid/provider cleanup]',
+  '[MISSING: approved Orders cleanup idempotency execution path]',
+  'payment=true',
+  'warehouse=true',
+  'notification=true',
+  'crm=true',
+  'channel=true',
+  'Payments service identity is not an Orders cancellation actor',
+  'Orders must not infer stock effects from Payments refund state',
+  'Fiobanka QR created but unpaid',
+  'PAYMENT_FAILED_RELEASE',
+  'PAYMENT_CONFIRMED',
+  'ORDER_CANCELLED',
+  'ORDER_RETURNED',
+  'Unknown Warehouse component state',
+]) {
+  requireIncludes(rollbackReadiness, required, 'rollback readiness Fiobanka cleanup contract');
+}
 requireIncludes(paymentVerifier, 'cannot mark a cancelled order as paid', 'payment verifier cancelled paid rejection');
 requireIncludes(paymentVerifier, 'refund or correction workflow', 'payment verifier paid downgrade rejection');
 requireIncludes(paymentVerifier, 'provider-owned', 'payment verifier provider data rejection');
@@ -121,14 +147,14 @@ for (const required of [
   '[RESOLVED: owner-approved Rung 2 live pending-order smoke proved pending Orders create',
   '[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]',
   '[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]',
-  '[MISSING: provider-specific side-effect-safe rollback contract for the selected payment method]',
+  '[RESOLVED/NARROWED: Fiobanka QR side-effect-safe rollback is pre-completion only; completed-transfer refund/reversal/correction remains missing]',
   '[MISSING: owner-approved paid/provider payment provider source and callback contract]',
   '[RESOLVED/NARROWED: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke at source-policy level in Warehouse 3043cad; live stock window and max quantity remain missing]',
   '[RESOLVED/NARROWED: Warehouse cleanup operation selection for reserved-only, fulfilled/stock-decremented, return, partial, and unknown component-line states in Warehouse 3043cad]',
-  '[MISSING: owner-approved Payments refund/cancel rollback workflow for paid bundle smoke]',
+  '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]',
   '[RESOLVED: FlipFlop active checkout payment creation passes central Orders UUIDs to Payments from source]',
   '[RESOLVED/PARTIAL: Orders/Payments provider-success, provider-cancel, and provider-failure event mapping before fulfillment]',
-  '[MISSING: Payments refund and post-fulfillment cancellation/return event contract that maps to Orders and Warehouse without inferred stock effects]',
+  '[MISSING: owner-approved refund/post-fulfillment cancellation or return workflow that maps to Orders/Warehouse without inferred stock effects]',
   'Warehouse 3043cad',
   'reserved-only active holds use `release`',
   'fulfilled cancellation rollback uses `cancel`',

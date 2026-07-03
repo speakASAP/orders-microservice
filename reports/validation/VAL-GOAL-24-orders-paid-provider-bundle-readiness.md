@@ -28,7 +28,7 @@ Source conclusion for the remaining blockers in this lane:
 - `[RESOLVED: FlipFlop active checkout payment creation passes central Orders UUIDs to Payments from source]`: FlipFlop source now shows `createCentralOrderBeforePayment`, passes `centralAcceptance.centralOrderId` as Payments `orderId` and `centralOrderId`, builds payment metadata from the central ID, and its verifier forbids using the local order number as Payments `orderId`. Payments create validation accepts the same central order correlation without persistence or provider calls. Runtime smoke is still blocked until the owner-approved packet names target IDs, provider mode, amount, redaction, and rollback authority.
 - `[RESOLVED/PARTIAL: Orders/Payments provider-success, provider-cancel, and provider-failure event mapping before fulfillment]`: Orders source maps first `completed -> paid` status updates to `WarehouseReservationClient.fulfillOrderItems(...)` with `PAYMENT_CONFIRMED`, then optionally `OrderFulfillmentHandoffClient.createAfterPaymentFulfillment(...)`. It maps Payments `failed` and `cancelled` statuses to reservation `release` with `PAYMENT_FAILED_RELEASE`. Orders rejects refund-like statuses and paid downgrades, and owner-approved order cancellation maps to Warehouse `cancel` with `ORDER_CANCELLED`.
 - `[RESOLVED/NARROWED: Warehouse cleanup operation selection for reserved-only, fulfilled/stock-decremented, return, partial, and unknown component-line states in Warehouse 3043cad]`: Warehouse source-policy now defines `release`, `cancel`, `return`, line-by-line partial cleanup, and fail-closed unknown-state handling. Orders still needs the Payments/provider source event and owner-approved Orders cancellation or return workflow before invoking those operations.
-- `[MISSING: Payments refund and post-fulfillment cancellation/return event contract that maps to Orders and Warehouse without inferred stock effects]`: a post-fulfillment cancellation/refund/return contract remains missing because Orders has no approved Payments refund event intake and no normal paid-to-refunded/returned payment-status transition.
+- `[MISSING: owner-approved refund/post-fulfillment cancellation or return workflow that maps to Orders/Warehouse without inferred stock effects]`: a post-fulfillment cancellation/refund/return contract remains missing because Orders has no approved Payments refund event intake and no normal paid-to-refunded/returned payment-status transition.
 
 ## Evidence Reviewed
 
@@ -64,13 +64,13 @@ Orders sources reviewed:
 
 - `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]`
 - `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`
-- `[MISSING: provider-specific side-effect-safe rollback contract for the selected payment method]`
+- `[RESOLVED/NARROWED: Fiobanka QR side-effect-safe rollback is pre-completion only; completed-transfer refund/reversal/correction remains missing]`
 - `[MISSING: owner-approved paid/provider payment provider source and callback contract]`
 - `[RESOLVED/NARROWED: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke at source-policy level in Warehouse 3043cad; live stock window and max quantity remain missing]`
-- `[MISSING: owner-approved Payments refund/cancel rollback workflow for paid bundle smoke]`
+- `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]`
 - `[RESOLVED: FlipFlop active checkout payment creation passes central Orders UUIDs to Payments from source]`
 - `[RESOLVED/PARTIAL: Orders/Payments provider-success, provider-cancel, and provider-failure event mapping before fulfillment]`
-- `[MISSING: Payments refund and post-fulfillment cancellation/return event contract that maps to Orders and Warehouse without inferred stock effects]`
+- `[MISSING: owner-approved refund/post-fulfillment cancellation or return workflow that maps to Orders/Warehouse without inferred stock effects]`
 - `[MISSING: runtime verification of Payments Orders service token/role]`
 - `[MISSING: owner-approved channel/customer checkout owner for initiating paid catalog.bundle.v1 runtime smoke]`
 
@@ -104,3 +104,6 @@ Runtime paid/provider smoke is intentionally not run in this lane.
 Decision: `block` for paid/provider runtime progression beyond existing pending-order evidence.
 
 Orders-owned support is narrowed to source-verified non-mutating validation, pending order create/reservation evidence, bounded payment-status metadata, FlipFlop central Orders UUID propagation into Payments create calls, Warehouse fulfill/release/cancel/return reason-code mappings, and a documented fail-closed rollback choreography. The next transition requires owner-approved provider refund/cancel execution proof, a refund/post-fulfillment cancellation or return event contract that maps safely to the Warehouse `3043cad` operation matrix, Warehouse stock window/max quantity, runtime Payments Orders service-token acceptance, and final integration owner approval before any live paid/provider runtime smoke. Manual Orders payment-state edits remain forbidden.
+
+
+2026-07-03 cleanup-worker update: consumed Payments `PROVIDER_ROLLBACK_EVENT_CONTRACT.md` and `2026-07-03-goal24-owner-approved-rollback-packet.md`. Orders now records the Fiobanka-specific cleanup approval contract: cancellation actor must be a named human Orders approver/Auth subject, reason code must be `GOAL24_PAID_PROVIDER_ROLLBACK` or `GOAL24_PROVIDER_UNPAID_CANCEL`, cleanup idempotency must be supplied by the runtime packet because the current status endpoint has no dedicated idempotency-key field, and all `payment|warehouse|notification|crm|channel` acknowledgements must be true. Exact Warehouse handoff is `release` before paid, `fulfill` on paid success, `cancel` after provider-proven completed-transfer refund/reversal/correction plus Orders cancellation approval, `return` only through a separate approved return workflow, line-by-line handling for partial states, and fail-closed no-op for unknown component state. Orders must not infer stock effects from Payments refund state.
