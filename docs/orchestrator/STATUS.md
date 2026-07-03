@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - FlipFlop Admin Order Inventory Pricing RBAC Hardened
+
+Intent chain:
+
+- Vision: marketplace and storefront order/admin surfaces must not expose operational order, inventory, or pricing data to authenticated non-admin users.
+- Goal Impact: the remaining FlipFlop admin route role-enforcement blocker from marketplace read-scope hardening is now closed for order, inventory, and pricing admin controllers.
+- System: FlipFlop order-service owns storefront-local admin routes; Auth provides JWT roles; Orders remains canonical lifecycle source consumed by FlipFlop cabinets.
+- Feature: FlipFlop admin route RBAC hardening.
+- Task: apply existing shared `RolesGuard` and `@Roles` to admin order, inventory, and pricing controllers while preserving customer order scoping.
+- Execution Plan: reuse the local marketing admin RBAC pattern; validate by focused source verifier and service build; deploy via FlipFlop standard script; smoke public/admin unauthenticated behavior.
+- Coding Prompt: no new auth model, no customer cabinet ownership changes, no provider/courier runtime implementation.
+- Code: FlipFlop commit `79dba51 feat: enhance admin controllers with role-based access control`.
+- Validation: focused RBAC verifier passed; `git diff --check`; `python3 scripts/pre_coding_gate.py --root .`; strict doc audit 100/100; `cd services/order-service && npm run build`; production deploy and public smokes passed.
+
+Evidence:
+
+- `admin-orders.controller.ts`, `admin-inventory.controller.ts`, and `pricing.controller.ts` now use `@UseGuards(JwtAuthGuard, RolesGuard)` and `@Roles(...)`.
+- Allowed roles are `global:superadmin`, `global:platform_admin`, `app:flipflop-service:admin`, `app:flipflop:admin`, and `flipflop:admin`.
+- Customer order reads remain scoped by `req.user.id`; no customer cabinet route was widened.
+- Standard FlipFlop deploy completed successfully in `128.02s` and rolled out all six FlipFlop deployments.
+- Kubernetes post-deploy status showed `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, and `flipflop-user-service` ready/available/updated `1/1`.
+- Public smoke: storefront root returned HTTP 200.
+- Protected admin route smokes without credentials returned HTTP 401 for `/api/admin/orders`, `/api/admin/inventory/low-stock`, and `/api/admin/pricing/suggestions`.
+
+Remaining blockers:
+
+- `[MISSING: approved runtime smoke with a non-admin authenticated user proving RolesGuard returns 403 rather than data.]`
+- `[MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source.]`
+- `[MISSING: buyer-facing personal cabinet ownership contract for marketplaces where buyer snapshots do not map to Auth subject.]`
+
+Next action:
+
+- Continue provider/courier contract-owner lane or buyer ownership contract lane; FlipFlop admin route role-enforcement review is complete.
+
 ## 2026-07-03 - Marketplace Order Read Scope Hardened
 
 Intent chain:
