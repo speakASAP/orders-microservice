@@ -53,6 +53,8 @@ const warehouseRoot = repoPath('WAREHOUSE_REPO_PATH', DEFAULT_WAREHOUSE_PATHS);
 
 const runtimeGateReportPath = 'reports/validation/shipment-runtime-readiness/allegro-warehouse-runtime-gate-current.json';
 const runtimeGateReport = JSON.parse(requireFile(ordersRoot, runtimeGateReportPath));
+const liveProviderGateReportPath = 'reports/validation/shipment-runtime-readiness/allegro-live-provider-non-unknown-current.json';
+const liveProviderGateReport = JSON.parse(requireFile(ordersRoot, liveProviderGateReportPath));
 assert.equal(runtimeGateReport.schemaVersion, 'orders.shipment_runtime_gate.v1', 'shipment runtime gate report schema mismatch');
 assert.equal(runtimeGateReport.status, 'runtime_proven_source_hardened_minimal_token_projected', 'shipment runtime gate must record proven runtime path plus minimal projected token');
 assert.equal(runtimeGateReport.runtimeEvidence.deployments.orders.image, 'localhost:5000/orders-microservice:ad83d15', 'Orders runtime image evidence mismatch');
@@ -86,6 +88,13 @@ assert.equal(runtimeGateReport.policy.customerPiiDisplayed, false, 'shipment gat
 assert.equal(runtimeGateReport.policy.secretsDisplayed, false, 'shipment gate report must not expose secrets');
 assert.equal(runtimeGateReport.policy.rawDatabaseRowsDisplayed, false, 'shipment gate report must not expose raw DB rows');
 assert.equal(runtimeGateReport.policy.statusOnlyTrackingVisibilityApproved, true, 'shipment gate report must record status-only tracking visibility approval');
+assert.equal(liveProviderGateReport.schemaVersion, 'orders.allegro_live_provider_non_unknown_gate.v1', 'live provider blocker report schema mismatch');
+assert.equal(liveProviderGateReport.status, 'blocked_expired_oauth_tokens_refresh_requires_explicit_approval', 'live provider blocker status mismatch');
+assert.equal(liveProviderGateReport.liveScan.nonUnknownStatusCount, 0, 'live provider non-UNKNOWN count must be zero while blocked');
+assert.equal(liveProviderGateReport.aggregateReadiness.accountsWithFutureToken, 0, 'live provider blocker must record zero future-valid tokens');
+assert.equal(liveProviderGateReport.blocker.mutationRejectedByPolicy, true, 'OAuth refresh mutation must remain explicitly blocked without approval');
+assert.equal(liveProviderGateReport.redaction.tokenValuesPrinted, false, 'live provider blocker must not print token values');
+assert.equal(liveProviderGateReport.redaction.rawOrderIdsPrinted, false, 'live provider blocker must not print raw order ids');
 
 assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardening.warehouseCommit, 'ab7ac6e', 'Warehouse service-role hardening commit mismatch');
 assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardening.allegroCommit, 'edb3a88', 'Allegro service-token hardening commit mismatch');
@@ -215,6 +224,7 @@ const result = {
   },
   runtimeEvidence: {
     gateReport: runtimeGateReportPath,
+    liveProviderGateReport: liveProviderGateReportPath,
     k3s: runtimeGateReport.runtimeEvidence.k3s,
     ordersDeployment: runtimeGateReport.runtimeEvidence.deployments.orders.image,
     warehouseDeployment: runtimeGateReport.runtimeEvidence.deployments.warehouse.image,

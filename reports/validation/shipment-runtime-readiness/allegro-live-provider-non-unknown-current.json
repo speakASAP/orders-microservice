@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "orders.allegro_live_provider_non_unknown_gate.v1",
+  "status": "blocked_expired_oauth_tokens_refresh_requires_explicit_approval",
+  "checkedAt": "2026-07-03T17:56:51.198Z",
+  "scope": {
+    "goal": "optional real Allegro provider shipment status sample with non-UNKNOWN status",
+    "mode": "read_only_scan_plus_policy_blocker_record",
+    "providerWrite": false,
+    "warehouseMutation": false,
+    "ordersMutation": false,
+    "credentialMutation": false
+  },
+  "liveScan": {
+    "candidateCount": 1,
+    "accountTokenReadyCount": 0,
+    "shipmentEndpoint": {
+      "http200": 0,
+      "http404": 0,
+      "other": 0
+    },
+    "shipmentAvailability": {
+      "available": 0,
+      "empty": 0
+    },
+    "trackingEndpoint": {
+      "attempted": 0,
+      "http200": 0,
+      "other": 0
+    },
+    "latestStatusCounts": {},
+    "nonUnknownStatusCount": 0
+  },
+  "aggregateReadiness": {
+    "accounts": 3,
+    "activeAccounts": 2,
+    "accountsWithToken": 3,
+    "accountsWithFutureToken": 0,
+    "forwardingAttempts": 1,
+    "forwardingAttemptsWithAccount": 1
+  },
+  "blocker": {
+    "code": "ALLEGRO_OAUTH_ACCESS_TOKENS_EXPIRED",
+    "detail": "No forwarded-order Allegro account currently has a future-valid access token; refreshing OAuth tokens would mutate encrypted credential fields and requires explicit approval before continuing this optional provider proof.",
+    "mutationRejectedByPolicy": true,
+    "rejectedMutation": "allegro_accounts.accessToken, allegro_accounts.refreshToken, allegro_accounts.tokenExpiresAt"
+  },
+  "redaction": {
+    "tokenValuesPrinted": false,
+    "rawAccountIdsPrinted": false,
+    "rawOrderIdsPrinted": false,
+    "rawWaybillsPrinted": false,
+    "providerPayloadPrinted": false,
+    "rawRowsPrinted": false,
+    "customerPiiPrinted": false
+  },
+  "remainingGate": "optional real provider non-UNKNOWN shipment status sample requires explicitly approved OAuth token refresh or new valid Allegro OAuth authorization"
+}
