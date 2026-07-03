@@ -20,7 +20,7 @@ A valid report is JSON with these top-level fields:
 - `proofMode`: one of `safe_human_session` or `service_scoped_proxy`.
 - `checkedAt`: ISO timestamp.
 - `ordersEvidenceCommit`: immutable 40-character lowercase git commit hash used for the proof; `HEAD` is not valid for `status=proven`. ordersEvidenceCommit must be an immutable git commit hash for proven reports.
-- `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, required `expectedLifecycleStage` for `status=proven`, and optional `artifactHash`.
+- `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, required `expectedLifecycleStage` for `status=proven`, and optional `artifactHash`; for `status=proven`, `source` must be `smoke:lifecycle-mutation` or `approved-existing-mutation-artifact`.
 - `routes`: non-empty array of route evidence entries.
 - `refreshMechanism`: one of `manual_refresh`, `visible_polling_30s`, `full_reload`, or `api_backed_render_probe`.
 - `centralReadModelBacked`: boolean proving the rendered state came from Orders lifecycle read model or a channel API backed by it.
@@ -67,6 +67,8 @@ Required `evidencePolicy` booleans:
 - At least one route must cover `admin_cabinet` or `admin_dashboard`.
 - `centralReadModelBacked=true`.
 - `mutationEvidence.summary` is present and sanitized.
+- `mutationEvidence.source` is an approved lifecycle mutation source: `smoke:lifecycle-mutation` or `approved-existing-mutation-artifact`. proven report mutationEvidence.source must be an approved lifecycle mutation source.
+- `mutationEvidence.approvalId` is present and non-empty.
 - Every artifact is marked `redacted=true`.
 - Artifact SHA-256 values must be 64 lowercase hex characters. artifact sha256 must be 64 lowercase hex characters for browser proof reports.
 - Artifact paths must be relative and under `reports/validation/orders-browser-render-proof/`. artifact path must be under reports/validation/orders-browser-render-proof for browser proof reports.
@@ -102,5 +104,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-route-channel-mismatch.json` must be rejected because route URLs belong to a different marketplace host than the declared report `channel`.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-artifact-evidence.json` must be rejected because route artifact evidence has an invalid SHA-256/path shape.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-http-status.json` must be rejected because one required surface lacks successful route/data-source evidence.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-source.json` must be rejected because `mutationEvidence.source` is not an approved lifecycle mutation source.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Mutation Source Guard Added
+
+Intent chain:
+
+- Vision: rendered lifecycle proof must be tied to an approved Orders lifecycle mutation source, not arbitrary report text.
+- Goal Impact: future `orders.browser_render_proof.v1` reports cannot close the browser gate unless their rendered state is linked to the approved lifecycle mutation smoke or an explicitly approved existing mutation artifact.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: approved mutation evidence source validation for browser proof reports.
+- Task: require `mutationEvidence.source` to be `smoke:lifecycle-mutation` or `approved-existing-mutation-artifact` for proven reports; add a negative mutation-source fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/state docs, validate without runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, mutation-source fixture, proof contract, status/state docs.
+- Validation: pending targeted and full Orders test chain after this doc update.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report linked to an approved lifecycle mutation source and rendered customer/admin lifecycle surfaces.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Per-Surface Success Guard Added
 
 Intent chain:

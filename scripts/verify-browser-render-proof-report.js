@@ -18,6 +18,7 @@ const invalidExpectedCommitMismatchFixturePath = path.join(root, 'docs/orchestra
 const invalidRouteChannelMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-route-channel-mismatch.json');
 const invalidArtifactEvidenceFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-artifact-evidence.json');
 const invalidSurfaceHttpStatusFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-http-status.json');
+const invalidMutationSourceFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-source.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -45,6 +46,7 @@ const allowedArtifactPathPattern = /^reports\/validation\/orders-browser-render-
 const allowedRefreshMechanisms = new Set(['manual_refresh', 'visible_polling_30s', 'full_reload', 'api_backed_render_probe']);
 const allowedSurfaces = new Set(['customer_cabinet', 'admin_cabinet', 'admin_dashboard']);
 const allowedAuthContexts = new Set(['safe_human_session', 'service_scoped_proxy']);
+const allowedMutationEvidenceSources = new Set(['smoke:lifecycle-mutation', 'approved-existing-mutation-artifact']);
 const forbiddenSensitiveKeys = new Set([
   'token',
   'tokens',
@@ -146,6 +148,17 @@ function assertSurfaceHasSuccessfulRoute(routes, surfacePredicate, label) {
   );
 }
 
+function assertApprovedMutationEvidence(mutationEvidence) {
+  assert.equal(typeof mutationEvidence.source, 'string', 'report mutationEvidence.source is required');
+  assert.equal(
+    allowedMutationEvidenceSources.has(mutationEvidence.source),
+    true,
+    'proven report mutationEvidence.source must be an approved lifecycle mutation source',
+  );
+  assert.equal(typeof mutationEvidence.approvalId, 'string', 'report mutationEvidence.approvalId is required');
+  assert.equal(Boolean(mutationEvidence.approvalId.trim()), true, 'report mutationEvidence.approvalId must not be empty');
+}
+
 function validateContract() {
   const contract = read(contractPath);
   [
@@ -171,6 +184,7 @@ function validateContract() {
     'artifact path must be under reports/validation/orders-browser-render-proof for browser proof reports',
     'proven report needs successful customer cabinet route evidence',
     'proven report needs successful admin cabinet or dashboard route evidence',
+    'proven report mutationEvidence.source must be an approved lifecycle mutation source',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -251,6 +265,11 @@ function validateFixtures() {
     /proven report needs successful admin cabinet or dashboard route evidence/,
     'invalid surface-http-status fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidMutationSourceFixturePath)),
+    /mutationEvidence.source must be an approved lifecycle mutation source/,
+    'invalid mutation-source fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -263,6 +282,7 @@ function validateFixtures() {
     invalidRouteChannelMismatchFixture: path.relative(root, invalidRouteChannelMismatchFixturePath),
     invalidArtifactEvidenceFixture: path.relative(root, invalidArtifactEvidenceFixturePath),
     invalidSurfaceHttpStatusFixture: path.relative(root, invalidSurfaceHttpStatusFixturePath),
+    invalidMutationSourceFixture: path.relative(root, invalidMutationSourceFixturePath),
   };
 }
 
@@ -340,6 +360,7 @@ function validateReport(rawReport, options = {}) {
       false,
       'route authContext must match report proofMode',
     );
+    assertApprovedMutationEvidence(report.mutationEvidence);
     assertSurfaceHasSuccessfulRoute(report.routes, (surface) => surface === 'customer_cabinet', 'customer cabinet');
     assertSurfaceHasSuccessfulRoute(
       report.routes,
