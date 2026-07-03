@@ -1,5 +1,27 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Cross-Channel Lifecycle Surface Verifier
+
+Intent chain:
+
+- Vision: every commerce customer/admin surface should display the central Orders lifecycle instead of silently falling back to local-only order status.
+- Goal Impact: Orders orchestration now has executable source evidence for FlipFlop, Bazos, Heureka, Allegro, and Aukro lifecycle propagation surfaces.
+- System: Orders owns the cross-channel verification gate; each channel owns its local customer/admin UI and central Orders hydration client.
+- Feature: channel lifecycle surface source verifier.
+- Task: verify customer/admin lifecycle markers, payment/fulfillment/delivery fields, central lifecycle hydration, and stale/missing central-order states across the initial commerce channels.
+- Execution Plan: source verifier and IPS docs only; no browser automation, deploy, DB read/write, provider call, Warehouse call, Orders callback, or runtime status mutation.
+- Coding Prompt: fail fast if a channel drops central lifecycle surface markers; keep live smoke gates explicit.
+- Code: `scripts/verify-channel-lifecycle-surfaces.js` plus `verify:channel-lifecycle-surfaces`.
+- Validation: `npm run verify:channel-lifecycle-surfaces`, `npm run verify:shipment-runtime-readiness`, and `git diff --check`; `npm test` now includes `verify:channel-lifecycle-surfaces`.
+
+Remaining gates:
+
+- `[LANDED: source verifier for customer/admin lifecycle surfaces across FlipFlop, Bazos, Heureka, Allegro, and Aukro.]`
+- `[MISSING: approved live customer/admin browser or API smoke per channel.]`
+- `[MISSING: real buyer bearer plus subject-bound Allegro order row for live buyer cabinet lifecycle smoke.]`
+- `[MISSING: Warehouse/Allegro runtime shipment-status enablement approvals before provider status changes can drive late lifecycle stages.]`
+- `[UNKNOWN: provider-backed Bazos marketplace webhook support.]`
+
 ## 2026-07-03 - Shipment Runtime Readiness In Standard Test Chain
 
 Intent chain:
