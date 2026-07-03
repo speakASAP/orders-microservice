@@ -23,6 +23,7 @@ const invalidSurfaceRenderedLifecycleFixturePath = path.join(root, 'docs/orchest
 const invalidResultSummaryFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-result-summary.json');
 const invalidFutureCheckedAtFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-future-checked-at.json');
 const invalidDuplicateRouteUrlFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-duplicate-route-url.json');
+const invalidStaleCheckedAtFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-stale-checked-at.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -36,6 +37,7 @@ const requiredPolicyFlags = [
 ];
 const allowedStatuses = new Set(['proven', 'incomplete', 'blocked']);
 const maxCheckedAtFutureSkewMs = 5 * 60 * 1000;
+const maxRealReportAgeMs = 24 * 60 * 60 * 1000;
 const allowedChannels = new Set(['flipflop', 'heureka', 'bazos', 'aukro', 'allegro']);
 const allowedProofModes = new Set(['safe_human_session', 'service_scoped_proxy']);
 const allowedChannelHosts = new Map([
@@ -201,6 +203,13 @@ function assertUniqueRouteUrls(routes) {
   }
 }
 
+function assertRealReportFresh(checkedAt, options) {
+  if (!options.requireFreshReport) return;
+  const nowMs = options.nowMs === undefined ? Date.now() : options.nowMs;
+  const checkedAtMs = Date.parse(checkedAt);
+  assert.equal(nowMs - checkedAtMs <= maxRealReportAgeMs, true, 'real proven browser proof report checkedAt must be recent within 24 hours');
+}
+
 function validateContract() {
   const contract = read(contractPath);
   [
@@ -233,6 +242,7 @@ function validateContract() {
     'report result.nextAction must not be empty',
     'report checkedAt must not be in the future beyond allowed clock skew',
     'proven report route urls must be unique',
+    'real proven browser proof report checkedAt must be recent within 24 hours',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -294,6 +304,7 @@ function validateFixtures() {
     () => validateReport(read(invalidExpectedCommitMismatchFixturePath), {
       expectedOrdersEvidenceCommit: validFixture.ordersEvidenceCommit,
       requireExpectedOrdersEvidenceCommit: true,
+    requireFreshReport: true,
     }),
     /ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports/,
     'invalid expected-commit mismatch fixture must be rejected',
@@ -338,6 +349,14 @@ function validateFixtures() {
     /proven report route urls must be unique/,
     'invalid duplicate-route-url fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidStaleCheckedAtFixturePath), {
+      requireFreshReport: true,
+      nowMs: Date.parse('2026-07-03T10:00:00.000Z'),
+    }),
+    /real proven browser proof report checkedAt must be recent within 24 hours/,
+    'invalid stale-checkedAt fixture must be rejected when validating a real report',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -355,6 +374,7 @@ function validateFixtures() {
     invalidResultSummaryFixture: path.relative(root, invalidResultSummaryFixturePath),
     invalidFutureCheckedAtFixture: path.relative(root, invalidFutureCheckedAtFixturePath),
     invalidDuplicateRouteUrlFixture: path.relative(root, invalidDuplicateRouteUrlFixturePath),
+    invalidStaleCheckedAtFixture: path.relative(root, invalidStaleCheckedAtFixturePath),
   };
 }
 
@@ -423,6 +443,7 @@ function validateReport(rawReport, options = {}) {
       );
     }
     assert.equal(report.centralReadModelBacked, true, 'proven report must be centralReadModelBacked');
+    assertRealReportFresh(report.checkedAt, options);
     assertUniqueRouteUrls(report.routes);
     report.routes.forEach((route, index) => assertRouteMatchesChannel(route, index, report.channel));
     assert.equal(
@@ -494,6 +515,7 @@ if (reportPath) {
   const report = validateReport(read(absolute), {
     expectedOrdersEvidenceCommit: expectedEvidenceCommit,
     requireExpectedOrdersEvidenceCommit: true,
+    requireFreshReport: true,
   });
   reportValidation = {
     status: 'report_validated',

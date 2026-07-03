@@ -18,7 +18,7 @@ A valid report is JSON with these top-level fields:
 - `status`: one of `proven`, `incomplete`, or `blocked`.
 - `channel`: one of `flipflop`, `heureka`, `bazos`, `aukro`, or `allegro`; for the first lane this must be `flipflop`.
 - `proofMode`: one of `safe_human_session` or `service_scoped_proxy`.
-- `checkedAt`: ISO timestamp; it must not be in the future beyond a 5-minute verifier clock-skew allowance.
+- `checkedAt`: ISO timestamp; it must not be in the future beyond a 5-minute verifier clock-skew allowance. For a supplied real proven report, it must also be within 24 hours of verifier execution.
 - Proven report route URLs must be unique after normalization; one route URL cannot stand in for multiple surface proofs.
 - `ordersEvidenceCommit`: immutable 40-character lowercase git commit hash used for the proof; `HEAD` is not valid for `status=proven`. ordersEvidenceCommit must be an immutable git commit hash for proven reports.
 - `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, required `expectedLifecycleStage` for `status=proven`, and optional `artifactHash`; for `status=proven`, `source` must be `smoke:lifecycle-mutation` or `approved-existing-mutation-artifact`.
@@ -77,6 +77,7 @@ Required `evidencePolicy` booleans:
 - `result.summary` is present and non-empty. report result.summary must not be empty.
 - `result.nextAction` is present and non-empty. report result.nextAction must not be empty.
 - `checkedAt` is not in the future beyond the verifier clock-skew allowance. report checkedAt must not be in the future beyond allowed clock skew.
+- Supplied real proven reports must have `checkedAt` within 24 hours of verifier execution. real proven browser proof report checkedAt must be recent within 24 hours.
 - At least one route must include `authContext=safe_human_session` or `authContext=service_scoped_proxy`.
 - Route `authContext` values must match report-level `proofMode`. route authContext must match report proofMode for proven browser reports.
 - Public shell routes, anonymous DOM snapshots, and route-only HTML checks cannot satisfy `status=proven`. Backing API `401`/`403` responses also cannot satisfy `status=proven`.
@@ -86,7 +87,7 @@ Required `evidencePolicy` booleans:
 
 ## Default Verifier Mode
 
-`npm run verify:browser-render-proof-report` is non-mutating by default. Without `BROWSER_RENDER_PROOF_REPORT_PATH`, it only validates this contract and reports the proof as gated. With `BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`, it validates the supplied sanitized report. A real proven report must also set `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>`, and `ordersEvidenceCommit` must match `BROWSER_RENDER_PROOF_EXPECTED_COMMIT`. `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>` must be supplied when validating a real proven report. ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports.
+`npm run verify:browser-render-proof-report` is non-mutating by default. Without `BROWSER_RENDER_PROOF_REPORT_PATH`, it only validates this contract and reports the proof as gated. With `BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`, it validates the supplied sanitized report and requires a real proven report to be no older than 24 hours. A real proven report must also set `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>`, and `ordersEvidenceCommit` must match `BROWSER_RENDER_PROOF_EXPECTED_COMMIT`. `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>` must be supplied when validating a real proven report. ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports.
 
 ## Remaining Gate
 
@@ -114,5 +115,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-result-summary.json` must be rejected because the report result summary/next action is incomplete.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-future-checked-at.json` must be rejected because `checkedAt` is in the future beyond the allowed clock-skew window.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-duplicate-route-url.json` must be rejected because one route URL cannot satisfy multiple rendered surface proofs.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-stale-checked-at.json` must be rejected in real-report validation mode because stale rendered UI evidence cannot close the current browser proof gate.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

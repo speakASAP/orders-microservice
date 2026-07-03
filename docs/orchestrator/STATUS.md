@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Real Report Freshness Guard Added
+
+Intent chain:
+
+- Vision: rendered lifecycle proof must describe the current customer/admin UI state, not stale browser evidence from an older validation run.
+- Goal Impact: a supplied real `orders.browser_render_proof.v1` report cannot close the browser gate when its `checkedAt` timestamp is older than 24 hours.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: real browser proof report freshness validation.
+- Task: require freshness only for supplied real proven reports while keeping static contract fixtures stable; add a negative stale-report fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/state docs, validate without runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, stale-checkedAt fixture, proof contract, status/state docs.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-report.js`, `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report captured within 24 hours of verifier execution.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Unique Route Guard Added
 
 Intent chain:
