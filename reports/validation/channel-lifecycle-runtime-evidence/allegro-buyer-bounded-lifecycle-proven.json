@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "orders.channel_runtime_evidence.v1",
+  "checkedAt": "2026-07-03T13:47:59.274Z",
+  "channel": "allegro",
+  "status": "bounded_buyer_lifecycle_proven_natural_buyer_gated",
+  "proofMode": "owner_approved_bounded_fixture_with_pod_jwt",
+  "mutationApproved": true,
+  "sourceEvidence": {
+    "buyerCabinetRouteImplemented": true,
+    "buyerApiSubjectBound": true,
+    "buyerSafeDtoExcludesRawBuyerData": true,
+    "buyerIsolationTestsPresent": true,
+    "centralLifecycleProjectionImplemented": true,
+    "allegroSourceEdited": false,
+    "ordersSourceEditedForRuntime": false
+  },
+  "boundedSmoke": {
+    "schemaVersion": "allegro.buyer_bounded_lifecycle_smoke.v1",
+    "checkedAt": "2026-07-03T13:47:54.423Z",
+    "runRefHash": "29dfb0264b381f7e",
+    "buyerSubjectPresent": true,
+    "buyerSubjectUuid": true,
+    "buyerSubjectHash": "74fe12bc0a54d94c",
+    "create": {
+      "httpStatus": 201,
+      "ok": true,
+      "centralOrderIdHash": "d0af871a8ba4f5d6",
+      "status": "pending",
+      "paymentStatus": "pending",
+      "warehouseHandoffStatus": "reserved"
+    },
+    "localProjection": {
+      "created": true,
+      "localOrderIdHash": "c5e8d92449c13d3a",
+      "forwardingStatus": "FORWARDED"
+    },
+    "buyerList": {
+      "httpStatus": 200,
+      "ok": true,
+      "total": 1,
+      "returned": 1,
+      "containsLocalOrder": true,
+      "forbiddenFieldsPresent": false,
+      "centralReadState": "available",
+      "centralLifecycleStage": null
+    },
+    "buyerDetail": {
+      "httpStatus": 200,
+      "ok": true,
+      "idHash": "c5e8d92449c13d3a",
+      "forbiddenFieldsPresent": false,
+      "centralReadState": "available",
+      "centralLifecycleStage": null
+    },
+    "centralLifecycle": {
+      "httpStatus": 200,
+      "ok": true,
+      "lifecycleStage": "ordered_unpaid",
+      "rawStatus": "pending",
+      "warehouseHandoffStatus": "reserved"
+    },
+    "cleanup": {
+      "localProjectionDeleted": true,
+      "centralCleanupExternalRequired": true,
+      "errors": []
+    },
+    "status": "bounded_buyer_lifecycle_proven_local_cleaned_central_cleanup_required",
+    "blockers": []
+  },
+  "ordersCleanup": {
+    "schemaVersion": "orders.bounded_allegro_smoke_cleanup.v1",
+    "checkedAt": "2026-07-03T13:47:59.274Z",
+    "candidateCount": 1,
+    "cancelAttempts": [
+      {
+        "orderIdHash": "d0af871a8ba4f5d6",
+        "httpStatus": 401,
+        "ok": false,
+        "fallback": {
+          "ok": true,
+          "mode": "direct_fallback",
+          "itemCount": 1,
+          "cancelledCount": 1,
+          "failedCount": 0,
+          "warehouseHandoffStatus": "cancelled"
+        }
+      }
+    ],
+    "status": "cleanup_complete",
+    "blockers": []
+  },
+  "evidencePolicy": {
+    "redacted": true,
+    "tokenValuesPrinted": false,
+    "rawRowsPrinted": false,
+    "customerPiiPrinted": false,
+    "providerPayloadPrinted": false,
+    "databaseDump": false,
+    "providerCall": false,
+    "rawDomCaptured": false,
+    "syntheticOrderLeftOpen": false
+  },
+  "remainingGates": [
+    "[MISSING: natural real Allegro buyer order created through the production buyer path, subject-bound to a real Auth bearer, if product requires non-fixture proof.]",
+    "[MISSING: Orders action-route cleanup role/token alignment; bounded cleanup used an Orders-side direct fallback after API cancellation returned 401 with the available pod JWT.]",
+    "[MISSING: browser DOM capture for visible Allegro buyer-cabinet lifecycle labels if API proof is not sufficient.]"
+  ],
+  "nextAction": "If product accepts approved bounded fixture proof, proceed to Allegro visible browser proof; otherwise create a natural real buyer order through the production Allegro buyer path and rerun the same smoke without fixture insertion."
+}
