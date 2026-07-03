@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "orders.channel_runtime_blocker.v1",
+  "checkedAt": "2026-07-03T12:19:10.411Z",
+  "channel": "allegro",
+  "status": "buyer_real_order_lifecycle_blocked",
+  "runtimeProbe": {
+    "podScopedProbe": true,
+    "serviceSurfaceOnly": true,
+    "publicRootHttpStatus": 200,
+    "publicCabinetOrdersHttpStatus": 200,
+    "publicApiHealthHttpStatus": 200,
+    "externalUnauthBuyerApiHttpStatus": 401,
+    "syntheticBuyerHttpStatus": 200,
+    "syntheticBuyerSuccess": true,
+    "syntheticBuyerTotal": 0,
+    "syntheticBuyerItems": 0,
+    "syntheticBuyerHasCentralAvailable": false,
+    "adminOrdersHttpStatus": 200,
+    "adminOrdersSuccess": true,
+    "adminSampleCount": 100,
+    "adminSampleHasCentralAvailable": false,
+    "adminSampleByCentralState": {
+      "unknown": 100
+    },
+    "adminStatsHttpStatus": 200,
+    "adminStatsSuccess": true,
+    "adminStatsTotals": {
+      "orders": 117,
+      "centralForwarded": 0,
+      "centralBlocked": 0,
+      "centralFailed": 0
+    }
+  },
+  "sourceEvidence": {
+    "buyerCabinetRouteImplemented": true,
+    "buyerApiSubjectBound": true,
+    "buyerSafeDtoExcludesRawBuyerData": true,
+    "buyerIsolationTestsPresent": true,
+    "sellerDashboardSeparateFromBuyerBinding": true,
+    "centralLifecycleProjectionImplemented": true
+  },
+  "blockers": [
+    "[MISSING: live authenticated buyer smoke with a real buyer Auth bearer and an approved subject-bound order row.]",
+    "[MISSING: central Orders lifecycle display smoke with a real forwarded Allegro order visible to the bound buyer.]",
+    "[MISSING: approved historical binding/backfill source, if product wants old imported marketplace rows visible in buyer cabinet.]"
+  ],
+  "nextAction": "Create or identify one approved subject-bound Allegro buyer order row with a forwarded central Orders read model, then run real-buyer list/detail lifecycle smoke.",
+  "redacted": true,
+  "tokenPrinted": false,
+  "rawOrdersPrinted": false,
+  "customerPrinted": false,
+  "providerPayloadPrinted": false,
+  "databaseDump": false,
+  "providerCall": false
+}

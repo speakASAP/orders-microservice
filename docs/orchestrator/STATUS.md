@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Buyer Real Order Lifecycle Blocker Recorded
+
+Intent chain:
+
+- Vision: Allegro buyer cabinets must show only Auth-subject-owned orders with central Orders lifecycle state.
+- Goal Impact: Allegro is now separated into source/runtime isolation proven, but real buyer lifecycle display blocked by missing approved subject-bound forwarded order evidence.
+- System: Orders owns the redacted evidence artifact, verifier assertions, and IPS status; Allegro source, database rows, providers, deployments, and secrets were not changed.
+- Feature: Allegro buyer cabinet real-order lifecycle proof gate.
+- Task: inspect buyer API/UI/source tests, probe live buyer/admin service surfaces, and record the remaining real-order prerequisite.
+- Execution Plan: verify `/cabinet/orders` and protected buyer API status, use short-lived in-pod JWTs only for synthetic buyer/admin aggregate calls, omit tokens/raw orders/customer/provider payloads, then add Orders-only evidence.
+- Coding Prompt: do not print tokens, real buyer identifiers, raw order rows, raw DOM, database dumps, provider payloads, tracking values, payment refs, or customer PII.
+- Code: `reports/validation/channel-lifecycle-runtime-evidence/allegro-buyer-real-order-blocked.json` and `scripts/verify-channel-lifecycle-runtime-evidence.js`.
+- Validation: live public `/cabinet/orders` returned HTTP 200 and external unauthenticated `/api/allegro/buyer/orders` returned HTTP 401. In-pod synthetic buyer list returned HTTP 200 with `total=0`; admin aggregate probe returned HTTP 200 over a 100-order sample with all central states `unknown`, and order statistics showed `orders=117`, `centralForwarded=0`, `centralBlocked=0`, `centralFailed=0`.
+
+Remaining gate:
+
+- `[MISSING: approved real Allegro buyer Auth bearer plus subject-bound order row whose central Orders read model is available, then buyer list/detail rendered lifecycle smoke.]`
+
 ## 2026-07-03 - Bazos Provider Source Runtime Blocker Recorded
 
 Intent chain:
