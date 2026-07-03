@@ -1,5 +1,36 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Real Buyer Smoke Approval Gate
+
+Intent chain:
+
+- Vision: customer-facing Allegro cabinets must show only orders explicitly owned by the authenticated Auth subject.
+- Goal Impact: live buyer cabinet runtime is ready, but real-user smoke is blocked because the approved Auth subject has no bound Allegro rows.
+- System: Auth owns user identity; Allegro owns buyer-safe order projection/UI; Orders owns canonical lifecycle; Warehouse owns stock/fulfillment.
+- Feature: real buyer personal-cabinet smoke approval packet.
+- Task: run sanitized readiness check and prepare owner approval options for a subject-bound row.
+- Execution Plan: no production mutation until an existing-row binding, synthetic fixture row, or natural-order path is explicitly approved.
+- Coding Prompt: no email-only authorization, no token/secret/customer/order payload output, no provider runtime implementation.
+- Code: `docs/orchestrator/2026-07-03-allegro-real-buyer-smoke-approval.md`.
+- Validation: k3s/deployment readiness plus sanitized DB aggregate/hash check.
+
+Evidence:
+
+- k3s Ready; `orders-microservice`, `allegro-service`, `allegro-api-gateway`, `allegro-frontend`, and `warehouse-microservice` all Ready `1/1`.
+- Approved user lookup for `ssfskype@gmail.com`: `auth_user_count=1`, `auth_subject_hash=6d0007036f05`.
+- Allegro binding lookup for that subject: `allegro_bound_order_count=0`.
+- Provider/courier runtime remains contract-gated by the existing provider lane blockers.
+
+Remaining gates:
+
+- `[MISSING: owner approval for existing-row binding, synthetic fixture row, or waiting for natural authenticated order creation.]`
+- `[MISSING: Auth-valid real buyer bearer acquisition path that does not print token values.]`
+- `[MISSING: real forwarded Allegro order lifecycle display smoke.]`
+
+Next action:
+
+- Approve one of the packet options, then run bounded real buyer list/detail/lifecycle smoke.
+
 ## 2026-07-03 - Allegro Buyer Cabinet Runtime Gate Closed
 
 Intent chain:
