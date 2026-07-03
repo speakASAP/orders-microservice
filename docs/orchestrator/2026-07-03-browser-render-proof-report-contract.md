@@ -74,7 +74,7 @@ Required `evidencePolicy` booleans:
 
 ## Default Verifier Mode
 
-`npm run verify:browser-render-proof-report` is non-mutating by default. Without `BROWSER_RENDER_PROOF_REPORT_PATH`, it only validates this contract and reports the proof as gated. With `BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`, it validates the supplied sanitized report.
+`npm run verify:browser-render-proof-report` is non-mutating by default. Without `BROWSER_RENDER_PROOF_REPORT_PATH`, it only validates this contract and reports the proof as gated. With `BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`, it validates the supplied sanitized report. A real proven report must also set `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>`, and `ordersEvidenceCommit` must match `BROWSER_RENDER_PROOF_EXPECTED_COMMIT`. `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>` must be supplied when validating a real proven report. ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports.
 
 ## Remaining Gate
 
@@ -93,5 +93,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-unknown-channel.json` must be rejected because the report channel is not one of the approved sellable marketplaces.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-proof-mode-mismatch.json` must be rejected because route `authContext` does not match report-level `proofMode`.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-head-commit.json` must be rejected because `ordersEvidenceCommit=HEAD` is not immutable proof evidence.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-expected-commit-mismatch.json` must be rejected because `ordersEvidenceCommit` does not match `BROWSER_RENDER_PROOF_EXPECTED_COMMIT`.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

@@ -6,6 +6,7 @@ const path = require('path');
 const root = process.cwd();
 const contractPath = path.join(root, 'docs/orchestrator/2026-07-03-browser-render-proof-report-contract.md');
 const reportPath = String(process.env.BROWSER_RENDER_PROOF_REPORT_PATH || '').trim();
+const expectedEvidenceCommit = String(process.env.BROWSER_RENDER_PROOF_EXPECTED_COMMIT || '').trim();
 const validFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/valid-flipflop-service-scoped.json');
 const invalidSensitiveFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-sensitive-key.json');
 const invalidPublicShellFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-public-shell-route.json');
@@ -13,6 +14,7 @@ const invalidMismatchedStageFixturePath = path.join(root, 'docs/orchestrator/bro
 const invalidUnknownChannelFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-unknown-channel.json');
 const invalidProofModeMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-proof-mode-mismatch.json');
 const invalidHeadCommitFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-head-commit.json');
+const invalidExpectedCommitMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-expected-commit-mismatch.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -96,6 +98,8 @@ function validateContract() {
     '`dataSourceStatus`: optional numeric backing Orders/channel API status; `status=proven` cannot include `401` or `403` data-source statuses.',
     'Public shell routes, anonymous DOM snapshots, and route-only HTML checks cannot satisfy `status=proven`.',
     '`BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`',
+    '`BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>` must be supplied when validating a real proven report.',
+    'ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports',
     '[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]',
     '[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]',
     'ordersEvidenceCommit must be an immutable git commit hash for proven reports',
@@ -156,6 +160,14 @@ function validateFixtures() {
     /ordersEvidenceCommit must be an immutable git commit hash for proven reports/,
     'invalid HEAD commit fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidExpectedCommitMismatchFixturePath), {
+      expectedOrdersEvidenceCommit: validFixture.ordersEvidenceCommit,
+      requireExpectedOrdersEvidenceCommit: true,
+    }),
+    /ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports/,
+    'invalid expected-commit mismatch fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -164,10 +176,11 @@ function validateFixtures() {
     invalidUnknownChannelFixture: path.relative(root, invalidUnknownChannelFixturePath),
     invalidProofModeMismatchFixture: path.relative(root, invalidProofModeMismatchFixturePath),
     invalidHeadCommitFixture: path.relative(root, invalidHeadCommitFixturePath),
+    invalidExpectedCommitMismatchFixture: path.relative(root, invalidExpectedCommitMismatchFixturePath),
   };
 }
 
-function validateReport(rawReport) {
+function validateReport(rawReport, options = {}) {
   const report = JSON.parse(rawReport);
   assertNoSensitiveKeysOrValues(report);
   assert.equal(report.schemaVersion, 'orders.browser_render_proof.v1', 'report schemaVersion mismatch');
@@ -216,6 +229,18 @@ function validateReport(rawReport) {
       true,
       'ordersEvidenceCommit must be an immutable git commit hash for proven reports',
     );
+    if (options.requireExpectedOrdersEvidenceCommit) {
+      assert.equal(
+        /^[0-9a-f]{40}$/.test(String(options.expectedOrdersEvidenceCommit || '')),
+        true,
+        'BROWSER_RENDER_PROOF_EXPECTED_COMMIT must be supplied as a 40-character git commit for proven browser reports',
+      );
+      assert.equal(
+        report.ordersEvidenceCommit,
+        options.expectedOrdersEvidenceCommit,
+        'ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports',
+      );
+    }
     assert.equal(report.centralReadModelBacked, true, 'proven report must be centralReadModelBacked');
     assert.equal(report.routes.some((route) => route.httpStatus >= 200 && route.httpStatus < 400), true, 'proven report needs a 2xx/3xx route');
     assert.equal(report.routes.some((route) => route.renderedLifecycleLabel.trim()), true, 'proven report needs rendered lifecycle label');
@@ -273,12 +298,17 @@ let reportValidation = {
 
 if (reportPath) {
   const absolute = path.isAbsolute(reportPath) ? reportPath : path.join(root, reportPath);
-  const report = validateReport(read(absolute));
+  const report = validateReport(read(absolute), {
+    expectedOrdersEvidenceCommit: expectedEvidenceCommit,
+    requireExpectedOrdersEvidenceCommit: true,
+  });
   reportValidation = {
     status: 'report_validated',
     reportStatus: report.status,
     channel: report.channel,
     proofMode: report.proofMode,
+    ordersEvidenceCommit: report.ordersEvidenceCommit,
+    expectedOrdersEvidenceCommit: expectedEvidenceCommit,
     routeCount: report.routes.length,
     centralReadModelBacked: report.centralReadModelBacked,
     mutation: false,

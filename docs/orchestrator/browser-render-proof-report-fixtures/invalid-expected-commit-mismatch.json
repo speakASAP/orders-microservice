@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "orders.browser_render_proof.v1",
+  "status": "proven",
+  "channel": "flipflop",
+  "proofMode": "service_scoped_proxy",
+  "checkedAt": "2026-07-03T09:30:00.000Z",
+  "ordersEvidenceCommit": "abcdef0123456789abcdef0123456789abcdef01",
+  "mutationEvidence": {
+    "source": "smoke:lifecycle-mutation",
+    "approvalId": "negative-expected-commit-mismatch-fixture",
+    "summary": "Negative fixture intentionally uses a different immutable Orders commit than the expected proof commit.",
+    "artifactHash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "expectedLifecycleStage": "warehouse_collecting"
+  },
+  "routes": [
+    {
+      "url": "https://flipflop.alfares.cz/orders",
+      "httpStatus": 200,
+      "surface": "customer_cabinet",
+      "renderedLifecycleLabel": "Sklad pripravuje polozky",
+      "renderedLifecycleStage": "warehouse_collecting",
+      "artifact": {
+        "kind": "redacted_screenshot_hash",
+        "redacted": true,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "authContext": "service_scoped_proxy",
+      "dataSourceStatus": 200
+    },
+    {
+      "url": "https://flipflop.alfares.cz/admin/orders",
+      "httpStatus": 200,
+      "surface": "admin_cabinet",
+      "renderedLifecycleLabel": "Sklad pripravuje polozky",
+      "renderedLifecycleStage": "warehouse_collecting",
+      "artifact": {
+        "kind": "redacted_screenshot_hash",
+        "redacted": true,
+        "sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+      },
+      "authContext": "service_scoped_proxy",
+      "dataSourceStatus": 200
+    }
+  ],
+  "refreshMechanism": "manual_refresh",
+  "centralReadModelBacked": true,
+  "evidencePolicy": {
+    "noTokenValues": true,
+    "noCookies": true,
+    "noCustomerPii": true,
+    "noRawOrderRows": true,
+    "noDatabaseDump": true,
+    "noPaymentReference": true,
+    "noTrackingValues": true,
+    "noProviderPayload": true,
+    "artifactsRedacted": true
+  },
+  "result": {
+    "summary": "Negative fixture must be rejected because ordersEvidenceCommit does not match BROWSER_RENDER_PROOF_EXPECTED_COMMIT.",
+    "nextAction": "Use the exact expected Orders commit for the browser proof run."
+  }
+}
