@@ -530,6 +530,26 @@ export class OrdersService {
       throw new BadRequestException(error.message);
     }
 
+    if (transition.status === previousStatus) {
+      this.logger.audit(
+        {
+          operation: 'order.status.update.idempotent_replay',
+          resourceType: 'order',
+          resourceId: id,
+          actorId: context.actor?.sub,
+          actorEmail: context.actor?.email,
+          channel: order.channel,
+          previousStatus,
+          requestedStatus: status,
+          resultingStatus: previousStatus,
+          outcome: 'success',
+          durationMs: Date.now() - startedAt,
+        },
+        OrdersService.CONTEXT,
+      );
+      return order;
+    }
+
     try {
       order.status = transition.status;
       const updated = await this.orderRepository.save(order);
