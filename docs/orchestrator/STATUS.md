@@ -4227,7 +4227,7 @@ Runtime behavior enforced:
 - `pending|confirmed|processing -> cancelled` is allowed only with `approval.approved=true`, `approval.approvalType=human`, actor identity, safe `reasonCode`, and side-effect acknowledgements for payment, warehouse, notification, CRM, and channel.
 - Cancellation without approval or without complete side-effect acknowledgements returns `400 Bad Request`.
 - `shipped -> cancelled` remains rejected.
-- Terminal-state destructive corrections remain rejected through the normal status endpoint.
+- terminal-state destructive corrections remain rejected through the normal status endpoint.
 - Refund-like order statuses remain rejected as Payments-owned.
 - Synthetic item cancellation, refund, and return statuses remain rejected until owner-approved schema/API work exists.
 

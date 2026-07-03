@@ -91,7 +91,7 @@ requireIncludes(rollbackReadiness, "CANCELLATION_SOURCES = ['pending', 'confirme
 requireIncludes(rollbackReadiness, 'sideEffectsHandled.payment|warehouse|notification|crm|channel=true', 'rollback readiness source side-effect ack list');
 requireIncludes(transitionBoundary, '`pending|confirmed|processing -> cancelled` requires `approval.approved=true`, `approval.approvalType=human`', 'status transition cancellation gate docs');
 requireIncludes(transitionBoundary, 'side-effect acknowledgements for payment, warehouse, notification, CRM, and channel handling', 'status transition side-effect docs');
-requireIncludes(transitionBoundary, 'Terminal-state destructive corrections remain rejected', 'status transition terminal fail closed docs');
+requireIncludes(transitionBoundary, 'terminal-state destructive corrections remain rejected', 'status transition terminal fail closed docs');
 requireIncludes(ordersService, 'order.status.update.idempotency_key_replay', 'status update idempotency replay audit');
 requireIncludes(ordersService, 'return order;', 'status update idempotency no-op return');
 requireIncludes(ordersService, "transition.status === 'cancelled'", 'status update Warehouse cancel gate');
@@ -149,7 +149,7 @@ requireIncludes(ordersService, 'hasMatchingStatusIdempotencyKey', 'status transi
 requireIncludes(transitionBoundary, 'pending|confirmed|processing -> cancelled', 'status transition documented source matrix');
 requireIncludes(transitionBoundary, 'approvalType=human', 'status transition human approval');
 requireIncludes(transitionBoundary, 'side-effect acknowledgements for payment, warehouse, notification, CRM, and channel handling', 'status transition side-effect acknowledgements');
-requireIncludes(transitionBoundary, 'Terminal-state destructive corrections remain rejected', 'status transition terminal-state fail closed');
+requireIncludes(transitionBoundary, 'terminal-state destructive corrections remain rejected', 'status transition terminal-state fail closed');
 requireIncludes(ordersService, "previousPaymentStatus === 'paid' && normalized.paymentStatus !== 'paid'", 'payment paid downgrade fail closed');
 
 const ordersCheckoutSource = [ordersService, ordersController, paymentDto].join('\n');
