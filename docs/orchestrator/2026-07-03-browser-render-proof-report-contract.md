@@ -35,7 +35,7 @@ Each `routes[]` entry must include:
 - `surface`: one of `customer_cabinet`, `admin_cabinet`, or `admin_dashboard`.
 - `renderedLifecycleLabel`: localized visible lifecycle text or status shown in the UI.
 - `renderedLifecycleStage`: canonical lifecycle stage if visible or inferred from sanitized UI state.
-- `artifact`: object with `kind`, `redacted`, and either `sha256` or `path`; `sha256` must be 64 lowercase hex characters and `path` must stay under `reports/validation/orders-browser-render-proof/`.
+- `artifact`: object with `kind`, `redacted`, and either `sha256` or `path`; `sha256` must be 64 lowercase hex characters and `path` must stay under `reports/validation/orders-browser-render-proof/`. For supplied real reports, every referenced `artifact.path` file must exist.
 - `authContext`: optional route-level proof context; if present it must be `safe_human_session` or `service_scoped_proxy`.
 - `dataSourceStatus`: optional numeric backing Orders/channel API status; `status=proven` cannot include `401` or `403` data-source statuses.
 
@@ -74,6 +74,7 @@ Required `evidencePolicy` booleans:
 - Every artifact is marked `redacted=true`.
 - Artifact SHA-256 values must be 64 lowercase hex characters. artifact sha256 must be 64 lowercase hex characters for browser proof reports.
 - Artifact paths must be relative and under `reports/validation/orders-browser-render-proof/`. artifact path must be under reports/validation/orders-browser-render-proof for browser proof reports.
+- Supplied real reports must not reference missing artifact files. artifact.path file must exist for real browser proof reports.
 - All `evidencePolicy` controls are `true`.
 - `result.summary` is present and non-empty. report result.summary must not be empty.
 - `result.nextAction` is present and non-empty. report result.nextAction must not be empty.
@@ -88,7 +89,7 @@ Required `evidencePolicy` booleans:
 
 ## Default Verifier Mode
 
-`npm run verify:browser-render-proof-report` is non-mutating by default. Without `BROWSER_RENDER_PROOF_REPORT_PATH`, it only validates this contract and reports the proof as gated. With `BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`, it validates the supplied sanitized report and requires a real proven report to be no older than 24 hours. A real proven report must also set `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>`, and `ordersEvidenceCommit` must match `BROWSER_RENDER_PROOF_EXPECTED_COMMIT`. `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>` must be supplied when validating a real proven report. ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports.
+`npm run verify:browser-render-proof-report` is non-mutating by default. Without `BROWSER_RENDER_PROOF_REPORT_PATH`, it only validates this contract and reports the proof as gated. With `BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`, it validates the supplied sanitized report, requires referenced artifact files to exist, and requires a real proven report to be no older than 24 hours. A real proven report must also set `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>`, and `ordersEvidenceCommit` must match `BROWSER_RENDER_PROOF_EXPECTED_COMMIT`. `BROWSER_RENDER_PROOF_EXPECTED_COMMIT=<40-char-commit>` must be supplied when validating a real proven report. ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports.
 
 ## Remaining Gate
 
@@ -118,5 +119,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-duplicate-route-url.json` must be rejected because one route URL cannot satisfy multiple rendered surface proofs.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-stale-checked-at.json` must be rejected in real-report validation mode because stale rendered UI evidence cannot close the current browser proof gate.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-artifact-hash.json` must be rejected because mutation evidence lacks a reproducible `sha256:<64 lowercase hex>` artifact hash.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-missing-artifact-file.json` must be rejected in real-report validation mode because referenced artifact files must exist.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

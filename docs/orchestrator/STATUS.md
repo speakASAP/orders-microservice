@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Artifact File Guard Added
+
+Intent chain:
+
+- Vision: rendered lifecycle proof artifacts must be reproducible files, not only sanitized JSON references.
+- Goal Impact: supplied real `orders.browser_render_proof.v1` reports cannot close the browser gate with missing redacted screenshot or probe artifacts.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: artifact file existence validation for real browser proof reports.
+- Task: require every referenced `artifact.path` to exist when validating a supplied report; add a negative missing-artifact fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/state docs, validate without runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, missing-artifact fixture, proof contract, status/state docs.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-report.js`, `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report with existing redacted artifact files.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Mutation Artifact Hash Guard Added
 
 Intent chain:

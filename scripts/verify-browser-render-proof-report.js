@@ -25,6 +25,7 @@ const invalidFutureCheckedAtFixturePath = path.join(root, 'docs/orchestrator/bro
 const invalidDuplicateRouteUrlFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-duplicate-route-url.json');
 const invalidStaleCheckedAtFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-stale-checked-at.json');
 const invalidMutationArtifactHashFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-artifact-hash.json');
+const invalidMissingArtifactFileFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-missing-artifact-file.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -129,7 +130,7 @@ function assertRouteMatchesChannel(route, index, channel) {
   );
 }
 
-function assertArtifactEvidence(artifact, index) {
+function assertArtifactEvidence(artifact, index, options = {}) {
   if (artifact.sha256 !== undefined) {
     assert.equal(typeof artifact.sha256, 'string', `route ${index} artifact.sha256 must be a string`);
     assert.equal(artifactSha256Pattern.test(artifact.sha256), true, `route ${index} artifact.sha256 must be 64 lowercase hex characters`);
@@ -138,6 +139,10 @@ function assertArtifactEvidence(artifact, index) {
     assert.equal(typeof artifact.path, 'string', `route ${index} artifact.path must be a string`);
     assert.equal(allowedArtifactPathPattern.test(artifact.path), true, `route ${index} artifact.path must be under reports/validation/orders-browser-render-proof`);
     assert.equal(artifact.path.includes('..'), false, `route ${index} artifact.path must not traverse directories`);
+    if (options.requireArtifactFiles) {
+      const artifactPath = path.join(root, artifact.path);
+      assert.equal(fs.statSync(artifactPath).isFile(), true, `route ${index} artifact.path must point to a file for real browser proof reports`);
+    }
   }
 }
 
@@ -252,6 +257,7 @@ function validateContract() {
     'proven report route urls must be unique',
     'real proven browser proof report checkedAt must be recent within 24 hours',
     'proven report mutationEvidence.artifactHash must be sha256-prefixed 64 lowercase hex',
+    'artifact.path file must exist for real browser proof reports',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -313,7 +319,8 @@ function validateFixtures() {
     () => validateReport(read(invalidExpectedCommitMismatchFixturePath), {
       expectedOrdersEvidenceCommit: validFixture.ordersEvidenceCommit,
       requireExpectedOrdersEvidenceCommit: true,
-    requireFreshReport: true,
+      requireFreshReport: true,
+      requireArtifactFiles: true,
     }),
     /ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports/,
     'invalid expected-commit mismatch fixture must be rejected',
@@ -361,6 +368,7 @@ function validateFixtures() {
   assert.throws(
     () => validateReport(read(invalidStaleCheckedAtFixturePath), {
       requireFreshReport: true,
+      requireArtifactFiles: true,
       nowMs: Date.parse('2026-07-03T10:00:00.000Z'),
     }),
     /real proven browser proof report checkedAt must be recent within 24 hours/,
@@ -370,6 +378,10 @@ function validateFixtures() {
     () => validateReport(read(invalidMutationArtifactHashFixturePath)),
     /mutationEvidence.artifactHash must be sha256-prefixed 64 lowercase hex/,
     'invalid mutation-artifact-hash fixture must be rejected',
+  );
+  assert.throws(
+    () => validateReport(read(invalidMissingArtifactFileFixturePath), { requireArtifactFiles: true }),
+    'invalid missing-artifact-file fixture must be rejected in real-report mode',
   );
   return {
     validFixture: path.relative(root, validFixturePath),
@@ -390,6 +402,7 @@ function validateFixtures() {
     invalidDuplicateRouteUrlFixture: path.relative(root, invalidDuplicateRouteUrlFixturePath),
     invalidStaleCheckedAtFixture: path.relative(root, invalidStaleCheckedAtFixturePath),
     invalidMutationArtifactHashFixture: path.relative(root, invalidMutationArtifactHashFixturePath),
+    invalidMissingArtifactFileFixture: path.relative(root, invalidMissingArtifactFileFixturePath),
   };
 }
 
@@ -437,7 +450,7 @@ function validateReport(rawReport, options = {}) {
       assert.equal(route.dataSourceStatus >= 100 && route.dataSourceStatus < 600, true, `route ${index} dataSourceStatus must be valid`);
     }
     assert.equal(Boolean(route.artifact.sha256 || route.artifact.path), true, `route ${index} artifact sha256 or path is required`);
-    assertArtifactEvidence(route.artifact, index);
+    assertArtifactEvidence(route.artifact, index, options);
   }
   if (report.status === 'proven') {
     assert.equal(
@@ -530,7 +543,8 @@ if (reportPath) {
   const report = validateReport(read(absolute), {
     expectedOrdersEvidenceCommit: expectedEvidenceCommit,
     requireExpectedOrdersEvidenceCommit: true,
-    requireFreshReport: true,
+      requireFreshReport: true,
+      requireArtifactFiles: true,
   });
   reportValidation = {
     status: 'report_validated',
