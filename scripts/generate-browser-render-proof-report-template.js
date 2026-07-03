@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 const assert = require('assert/strict');
+const fs = require('fs');
+const path = require('path');
 const { execFileSync } = require('child_process');
 
 const allowedChannels = new Set(['flipflop', 'heureka', 'bazos', 'aukro', 'allegro']);
 const allowedProofModes = new Set(['safe_human_session', 'service_scoped_proxy']);
 const allowedArtifactModes = new Set(['path', 'sha256']);
+const allowedOutputPathPattern = /^reports\/validation\/orders-browser-render-proof\/[a-z0-9._-]+\.json$/;
 const channelHosts = {
   flipflop: 'flipflop.alfares.cz',
   heureka: 'heureka.alfares.cz',
@@ -23,10 +26,19 @@ function currentCommit() {
   return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 }
 
+function normalizeOutputPath(outputPath) {
+  if (!outputPath) return null;
+  assert.equal(path.isAbsolute(outputPath), false, 'output path must be relative');
+  assert.equal(outputPath.includes('..'), false, 'output path must not traverse directories');
+  assert.equal(allowedOutputPathPattern.test(outputPath), true, 'output path must be reports/validation/orders-browser-render-proof/<file>.json');
+  return outputPath;
+}
+
 const channel = readArg('channel', 'flipflop');
 const proofMode = readArg('proof-mode', 'service_scoped_proxy');
 const stage = readArg('stage', 'warehouse_collecting');
 const artifactMode = readArg('artifact-mode', 'path');
+const outputPath = normalizeOutputPath(readArg('output', ''));
 const commit = readArg('orders-evidence-commit', currentCommit());
 
 assert.equal(allowedChannels.has(channel), true, `channel must be one of ${Array.from(allowedChannels).join(', ')}`);
@@ -107,4 +119,22 @@ const report = {
   },
 };
 
-process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+const reportJson = `${JSON.stringify(report, null, 2)}\n`;
+if (outputPath) {
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, reportJson);
+  process.stdout.write(`${JSON.stringify({
+    schemaVersion: 'orders.browser_render_proof_template_output.v1',
+    status: 'template_written_incomplete',
+    outputPath,
+    ordersEvidenceCommit: report.ordersEvidenceCommit,
+    artifactMode,
+    mutation: false,
+    browserSessionUsed: false,
+    providerCall: false,
+    databaseRead: false,
+    tokenValuesReadOrPrinted: false,
+  }, null, 2)}\n`);
+} else {
+  process.stdout.write(reportJson);
+}

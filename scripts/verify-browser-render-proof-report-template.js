@@ -12,6 +12,14 @@ function generate(args = []) {
   ], { encoding: 'utf8' }));
 }
 
+function generateToOutput(outputPath, args = []) {
+  return JSON.parse(execFileSync(process.execPath, [
+    'scripts/generate-browser-render-proof-report-template.js',
+    `--output=${outputPath}`,
+    ...args,
+  ], { encoding: 'utf8' }));
+}
+
 function createTemporaryArtifactFiles(report) {
   const created = [];
   for (const route of report.routes) {
@@ -73,18 +81,47 @@ function verifyBaseTemplate(report, head) {
   assert.equal(report.result.summary.includes('[MISSING:'), true, 'template result must stay incomplete');
 }
 
+function verifyUnsafeOutputRejected() {
+  let rejected = false;
+  try {
+    execFileSync(process.execPath, [
+      'scripts/generate-browser-render-proof-report-template.js',
+      '--output=../unsafe.json',
+    ], { encoding: 'utf8', stdio: 'pipe' });
+  } catch (error) {
+    rejected = true;
+    assert.equal(error.status, 1, 'unsafe output path must fail template generation');
+    assert.match(
+      String(error.stderr),
+      /output path must not traverse directories|output path must be reports\/validation\/orders-browser-render-proof\/<file>\.json/,
+      'unsafe output path must explain the rejected path boundary',
+    );
+  }
+  assert.equal(rejected, true, 'template generator must reject unsafe output paths');
+}
+
+verifyUnsafeOutputRejected();
+
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const pathReport = generate();
 const hashReport = generate(['--artifact-mode=sha256']);
+const outputPath = `reports/validation/orders-browser-render-proof/template-output-${process.pid}.json`;
+const outputResult = generateToOutput(outputPath, ['--artifact-mode=sha256']);
+const outputReport = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
 
 verifyBaseTemplate(pathReport, head);
 verifyBaseTemplate(hashReport, head);
+verifyBaseTemplate(outputReport, head);
 verifyGeneratedReportWithMainVerifier(pathReport, 'path', head);
 verifyGeneratedReportWithMainVerifier(hashReport, 'sha256', head);
 assert.equal(pathReport.routes.every((route) => typeof route.artifact.path === 'string'), true, 'path template must use artifact paths');
 assert.equal(pathReport.routes.every((route) => route.artifact.sha256 === undefined), true, 'path template must not include placeholder artifact hashes');
 assert.equal(hashReport.routes.every((route) => /^[0-9a-f]{64}$/.test(route.artifact.sha256)), true, 'sha256 template must use schema-compatible artifact hashes');
 assert.equal(hashReport.routes.every((route) => route.artifact.path === undefined), true, 'sha256 template must not reference artifact files');
+assert.equal(outputResult.status, 'template_written_incomplete', 'output mode must report incomplete template write');
+assert.equal(outputResult.outputPath, outputPath, 'output mode must report written path');
+assert.equal(outputReport.status, 'incomplete', 'output report must stay incomplete');
+fs.unlinkSync(outputPath);
 
 process.stdout.write(`${JSON.stringify({
   schemaVersion: 'orders.browser_render_proof_template_verifier.v1',
@@ -93,6 +130,7 @@ process.stdout.write(`${JSON.stringify({
   routeCount: pathReport.routes.length,
   artifactModesVerified: ['path', 'sha256'],
   mainReportVerifierCrossCheck: true,
+  outputModeVerified: true,
   mutation: false,
   browserSessionUsed: false,
   providerCall: false,
