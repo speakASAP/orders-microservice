@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Completion Audit Browser Report Contract Linked
+
+Intent chain:
+
+- Vision: completion criteria should point at the same structured report contract that future rendered browser proof must satisfy.
+- Goal Impact: the completion audit now names `orders.browser_render_proof.v1` and `verify:browser-render-proof-report` as the required acceptance path for customer/admin rendered lifecycle proof.
+- System: Orders owns the completion audit and proof verifier; channel repos remain out of edit scope until approved validation finds a channel issue.
+- Feature: completion audit browser proof acceptance contract.
+- Task: link rendered browser proof completion gates to the checked browser report contract and fixtures.
+- Execution Plan: update the completion audit, extend `verify:completion-audit`, and validate through targeted plus full tests.
+- Coding Prompt: Orders-only docs/verifier change; keep fixtures classified as contract tests, not rendered proof.
+- Code: `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md` and `scripts/verify-completion-audit.js`.
+- Validation: `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `node scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-readiness.js`, `git diff --check`, and full `npm test` passed. Browser/session/provider proof remains gated and was not run.
+
+Remaining gate:
+
+- `[MISSING: real rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]`
+- `[MISSING: sanitized approved browser report supplied via BROWSER_RENDER_PROOF_REPORT_PATH.]`
+
 ## 2026-07-03 - Browser Render Proof Report Fixture Coverage Added
 
 Intent chain:

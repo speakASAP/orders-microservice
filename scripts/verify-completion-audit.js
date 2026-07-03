@@ -46,6 +46,8 @@ const proofMarkers = [
   'Orders service identity lifecycle list endpoints return HTTP `200` for FlipFlop, Allegro, Aukro, Bazos, and Heureka.',
   'FlipFlop first browser lane readiness is recorded in `docs/orchestrator/2026-07-03-flipflop-browser-proof-readiness-evidence.md`',
   'This is readiness evidence only, not rendered lifecycle proof.',
+  'Browser-render proof must be submitted as sanitized `orders.browser_render_proof.v1` JSON and validated by `verify:browser-render-proof-report`',
+  'checked-in fixtures prove the contract accepts a sanitized FlipFlop service-scoped report and rejects a sensitive-key report',
 ];
 
 const baselineMarkers = [
@@ -55,7 +57,7 @@ const baselineMarkers = [
 const missingGateMarkers = [
   'Merge-order review approval for the FlipFlop validation-only browser lane.',
   'Approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.',
-  'Rendered customer/admin UI evidence after an Orders lifecycle mutation.',
+  'Rendered customer/admin UI evidence after an Orders lifecycle mutation, submitted as sanitized `orders.browser_render_proof.v1` and validated with `BROWSER_RENDER_PROOF_REPORT_PATH`.',
   'Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.',
   'Provider-backed Bazos marketplace webhook/order source decision.',
   'Warehouse/Allegro shipment-status runtime enablement approvals:',
@@ -79,7 +81,7 @@ assert.equal(
   'completion audit must not mark the active lifecycle goal complete while browser/provider gates are missing',
 );
 assert.equal(
-  audit.includes('Rendered customer/admin UI evidence after an Orders lifecycle mutation.') &&
+  audit.includes('Rendered customer/admin UI evidence after an Orders lifecycle mutation, submitted as sanitized `orders.browser_render_proof.v1` and validated with `BROWSER_RENDER_PROOF_REPORT_PATH`.') &&
     audit.includes('Warehouse/Allegro shipment-status runtime enablement approvals:'),
   true,
   'completion audit must preserve both browser-render and shipment-status remaining gates',
