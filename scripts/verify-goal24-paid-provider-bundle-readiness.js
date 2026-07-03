@@ -28,6 +28,10 @@ requireIncludes(report, 'approval.idempotencyKey, which the current status endpo
 const flipflopOrdersService = readSibling('flipflop', 'services/order-service/src/orders/orders.service.ts');
 const flipflopOrdersHubVerifier = readSibling('flipflop', 'scripts/verify-orders-hub-integration.js');
 const paymentsCreateValidation = readSibling('payments-microservice', 'test/payment-create-validation.spec.ts');
+const paymentsProviderContract = readSibling('payments-microservice', 'docs/orchestrator/PROVIDER_ROLLBACK_EVENT_CONTRACT.md');
+const paymentsRollbackPacket = readSibling('payments-microservice', 'docs/orchestrator/2026-07-03-goal24-owner-approved-rollback-packet.md');
+const warehouseStatus = readSibling('warehouse-microservice', 'docs/orchestrator/STATUS.md');
+const catalogStatus = readSibling('catalog-microservice', 'docs/orchestrator/STATUS.md');
 
 function requireIncludes(source, needle, label) {
   assert.ok(source.includes(needle), `${label} missing: ${needle}`);
@@ -203,6 +207,14 @@ requireIncludes(paymentsCreateValidation, 'accepts FlipFlop central order correl
 requireIncludes(paymentsCreateValidation, "orderId: '86487d81-967b-42e5-9961-7a0eb83b1fe0'", 'Payments central orderId fixture');
 requireIncludes(paymentsCreateValidation, "centralOrderId: '86487d81-967b-42e5-9961-7a0eb83b1fe0'", 'Payments centralOrderId fixture');
 
+requireIncludes(paymentsProviderContract, '[RESOLVED: runtime verification of Payments Orders service token/role for the current bridge mechanism]', 'Payments provider contract current service-token proof');
+requireIncludes(paymentsRollbackPacket, '[MISSING: Fiobanka provider-side refund/reversal or unpaid cancel/void execution path with redacted evidence]', 'Payments rollback packet preserves Fiobanka execution blocker');
+requireIncludes(paymentsProviderContract, 'FIO_BANKA_REFUND_UPLOAD_ENABLED', 'Payments provider contract refund upload gate');
+requireIncludes(warehouseStatus, '[MISSING: owner-approved Warehouse stock hold/release window and max quantity]', 'Warehouse current max quantity/window blocker');
+requireIncludes(catalogStatus, '[RESOLVED/NARROWED: deployed FlipFlop bundle-preserving fixture gate and renewed runtime quote evidence passed before checkout]', 'Catalog current quote preflight evidence');
+requireIncludes(report, 'Current dependency heads consumed: Catalog `ca6a3b2`, FlipFlop `1e5102b`, Payments `bf96f5d`, Warehouse `46a66dc`; Orders pre-change `e3f6e18`.', 'readiness report current dependency heads');
+requireIncludes(rollbackReadiness, 'Orders consumed current pushed heads Catalog `ca6a3b2`, FlipFlop `1e5102b`, Payments `bf96f5d`, and Warehouse `46a66dc` as dependency evidence only.', 'rollback readiness current dependency heads');
+
 for (const required of [
   '[RESOLVED: owner-approved Rung 1 non-mutating real checkout smoke passed',
   '[RESOLVED: owner-approved Rung 2 live pending-order smoke proved pending Orders create',
@@ -224,7 +236,7 @@ for (const required of [
   'partial failures are cleaned line-by-line',
   '[RESOLVED/NARROWED: target order state matrix for Orders normal cancellation is pending|confirmed|processing -> cancelled; shipped/delivered/cancelled fail closed through the normal endpoint]',
   '[RESOLVED/NARROWED: Orders source requires approvalType=human, named actor/approvedBy, safe Goal 24 reason code, optional sanitized approval.idempotencyKey, and sideEffectsHandled.payment|warehouse|notification|crm|channel=true before Warehouse cancel]',
-  '[MISSING: runtime verification of Payments Orders service token/role]',
+  '[RESOLVED: runtime verification of Payments Orders service token/role for the current bridge mechanism]',
   '[RESOLVED/NARROWED: owner-approved Orders cancellation/refund correction packet shape is defined as route, targetOrderHash/state, actor/approvedBy, human approval, safe reason, sanitized idempotency key, all side-effect acknowledgements, provider evidence hash, Warehouse decision, and redaction acceptance]',
   '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
   '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
