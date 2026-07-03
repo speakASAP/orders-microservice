@@ -123,11 +123,17 @@ for (const required of [
   '[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]',
   '[MISSING: provider-specific side-effect-safe rollback contract for the selected payment method]',
   '[MISSING: owner-approved paid/provider payment provider source and callback contract]',
-  '[MISSING: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke]',
+  '[RESOLVED/NARROWED: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke at source-policy level in Warehouse 3043cad; live stock window and max quantity remain missing]',
+  '[RESOLVED/NARROWED: Warehouse cleanup operation selection for reserved-only, fulfilled/stock-decremented, return, partial, and unknown component-line states in Warehouse 3043cad]',
   '[MISSING: owner-approved Payments refund/cancel rollback workflow for paid bundle smoke]',
   '[RESOLVED: FlipFlop active checkout payment creation passes central Orders UUIDs to Payments from source]',
   '[RESOLVED/PARTIAL: Orders/Payments provider-success, provider-cancel, and provider-failure event mapping before fulfillment]',
   '[MISSING: Payments refund and post-fulfillment cancellation/return event contract that maps to Orders and Warehouse without inferred stock effects]',
+  'Warehouse 3043cad',
+  'reserved-only active holds use `release`',
+  'fulfilled cancellation rollback uses `cancel`',
+  'approved returns use `return`',
+  'partial failures are cleaned line-by-line',
   '[MISSING: runtime verification of Payments Orders service token/role]',
 ]) {
   requireIncludes(report, required, 'readiness report blocker/evidence');
