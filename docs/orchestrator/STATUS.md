@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Future Timestamp Guard Added
+
+Intent chain:
+
+- Vision: rendered lifecycle proof timestamps must describe evidence that has already been captured, not impossible future evidence.
+- Goal Impact: future `orders.browser_render_proof.v1` reports cannot close the browser gate with `checkedAt` beyond the verifier clock-skew allowance.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: future `checkedAt` rejection for browser proof reports.
+- Task: reject reports whose `checkedAt` is more than five minutes in the future; add a negative future timestamp fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/state docs, validate without runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, future-checkedAt fixture, proof contract, status/state docs.
+- Validation: pending targeted and full Orders test chain after this doc update.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report with current captured customer/admin lifecycle evidence.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Result Summary Guard Added
 
 Intent chain:

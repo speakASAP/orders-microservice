@@ -21,6 +21,7 @@ const invalidSurfaceHttpStatusFixturePath = path.join(root, 'docs/orchestrator/b
 const invalidMutationSourceFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-source.json');
 const invalidSurfaceRenderedLifecycleFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-rendered-lifecycle.json');
 const invalidResultSummaryFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-result-summary.json');
+const invalidFutureCheckedAtFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-future-checked-at.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -33,6 +34,7 @@ const requiredPolicyFlags = [
   'artifactsRedacted',
 ];
 const allowedStatuses = new Set(['proven', 'incomplete', 'blocked']);
+const maxCheckedAtFutureSkewMs = 5 * 60 * 1000;
 const allowedChannels = new Set(['flipflop', 'heureka', 'bazos', 'aukro', 'allegro']);
 const allowedProofModes = new Set(['safe_human_session', 'service_scoped_proxy']);
 const allowedChannelHosts = new Map([
@@ -182,6 +184,11 @@ function assertResultSummary(result) {
   assert.equal(Boolean(result.nextAction.trim()), true, 'report result.nextAction must not be empty');
 }
 
+function assertCheckedAtNotFuture(checkedAt) {
+  const checkedAtMs = Date.parse(checkedAt);
+  assert.equal(checkedAtMs <= Date.now() + maxCheckedAtFutureSkewMs, true, 'report checkedAt must not be in the future beyond allowed clock skew');
+}
+
 function validateContract() {
   const contract = read(contractPath);
   [
@@ -212,6 +219,7 @@ function validateContract() {
     'proven report needs rendered lifecycle label and stage on admin cabinet or dashboard route evidence',
     'report result.summary must not be empty',
     'report result.nextAction must not be empty',
+    'report checkedAt must not be in the future beyond allowed clock skew',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -307,6 +315,11 @@ function validateFixtures() {
     /report result.summary must not be empty/,
     'invalid result-summary fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidFutureCheckedAtFixturePath)),
+    /report checkedAt must not be in the future beyond allowed clock skew/,
+    'invalid future-checkedAt fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -322,6 +335,7 @@ function validateFixtures() {
     invalidMutationSourceFixture: path.relative(root, invalidMutationSourceFixturePath),
     invalidSurfaceRenderedLifecycleFixture: path.relative(root, invalidSurfaceRenderedLifecycleFixturePath),
     invalidResultSummaryFixture: path.relative(root, invalidResultSummaryFixturePath),
+    invalidFutureCheckedAtFixture: path.relative(root, invalidFutureCheckedAtFixturePath),
   };
 }
 
@@ -335,6 +349,7 @@ function validateReport(rawReport, options = {}) {
   assert.equal(allowedProofModes.has(report.proofMode), true, 'report proofMode is invalid');
   assert.equal(typeof report.checkedAt, 'string', 'report checkedAt is required');
   assert.equal(Number.isNaN(Date.parse(report.checkedAt)), false, 'report checkedAt must be parseable');
+  assertCheckedAtNotFuture(report.checkedAt);
   assert.equal(typeof report.ordersEvidenceCommit, 'string', 'report ordersEvidenceCommit is required');
   assert.equal(report.mutationEvidence && typeof report.mutationEvidence === 'object', true, 'report mutationEvidence is required');
   assert.equal(typeof report.mutationEvidence.summary, 'string', 'report mutationEvidence.summary is required');

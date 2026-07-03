@@ -18,7 +18,7 @@ A valid report is JSON with these top-level fields:
 - `status`: one of `proven`, `incomplete`, or `blocked`.
 - `channel`: one of `flipflop`, `heureka`, `bazos`, `aukro`, or `allegro`; for the first lane this must be `flipflop`.
 - `proofMode`: one of `safe_human_session` or `service_scoped_proxy`.
-- `checkedAt`: ISO timestamp.
+- `checkedAt`: ISO timestamp; it must not be in the future beyond a 5-minute verifier clock-skew allowance.
 - `ordersEvidenceCommit`: immutable 40-character lowercase git commit hash used for the proof; `HEAD` is not valid for `status=proven`. ordersEvidenceCommit must be an immutable git commit hash for proven reports.
 - `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, required `expectedLifecycleStage` for `status=proven`, and optional `artifactHash`; for `status=proven`, `source` must be `smoke:lifecycle-mutation` or `approved-existing-mutation-artifact`.
 - `routes`: non-empty array of route evidence entries.
@@ -75,6 +75,7 @@ Required `evidencePolicy` booleans:
 - All `evidencePolicy` controls are `true`.
 - `result.summary` is present and non-empty. report result.summary must not be empty.
 - `result.nextAction` is present and non-empty. report result.nextAction must not be empty.
+- `checkedAt` is not in the future beyond the verifier clock-skew allowance. report checkedAt must not be in the future beyond allowed clock skew.
 - At least one route must include `authContext=safe_human_session` or `authContext=service_scoped_proxy`.
 - Route `authContext` values must match report-level `proofMode`. route authContext must match report proofMode for proven browser reports.
 - Public shell routes, anonymous DOM snapshots, and route-only HTML checks cannot satisfy `status=proven`. Backing API `401`/`403` responses also cannot satisfy `status=proven`.
@@ -109,5 +110,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-source.json` must be rejected because `mutationEvidence.source` is not an approved lifecycle mutation source.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-rendered-lifecycle.json` must be rejected because one required surface lacks a rendered lifecycle label/stage.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-result-summary.json` must be rejected because the report result summary/next action is incomplete.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-future-checked-at.json` must be rejected because `checkedAt` is in the future beyond the allowed clock-skew window.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.
