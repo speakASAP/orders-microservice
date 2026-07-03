@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 const assert = require('assert/strict');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const { execFileSync } = require('child_process');
 
 function generate(args = []) {
@@ -7,6 +10,49 @@ function generate(args = []) {
     'scripts/generate-browser-render-proof-report-template.js',
     ...args,
   ], { encoding: 'utf8' }));
+}
+
+function createTemporaryArtifactFiles(report) {
+  const created = [];
+  for (const route of report.routes) {
+    if (!route.artifact.path) continue;
+    const artifactPath = path.join(process.cwd(), route.artifact.path);
+    fs.mkdirSync(path.dirname(artifactPath), { recursive: true });
+    if (!fs.existsSync(artifactPath)) {
+      fs.writeFileSync(artifactPath, 'redacted placeholder for template verifier\n');
+      created.push(artifactPath);
+    }
+  }
+  return created;
+}
+
+function removeTemporaryArtifactFiles(files) {
+  for (const file of files.reverse()) {
+    if (fs.existsSync(file)) fs.unlinkSync(file);
+  }
+}
+
+function verifyGeneratedReportWithMainVerifier(report, mode, head) {
+  const reportPath = path.join(os.tmpdir(), `orders-browser-proof-template-${mode}-${process.pid}.json`);
+  const temporaryArtifacts = createTemporaryArtifactFiles(report);
+  fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+  try {
+    const verifierOutput = execFileSync(process.execPath, ['scripts/verify-browser-render-proof-report.js'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        BROWSER_RENDER_PROOF_REPORT_PATH: reportPath,
+        BROWSER_RENDER_PROOF_EXPECTED_COMMIT: head,
+      },
+    });
+    const verification = JSON.parse(verifierOutput);
+    assert.equal(verification.reportValidation.status, 'report_validated', `${mode} template must pass main report verifier as supplied report`);
+    assert.equal(verification.reportValidation.reportStatus, 'incomplete', `${mode} template must remain incomplete in main report verifier`);
+    assert.deepEqual(verification.reportValidation.blockers, ['[MISSING: proven rendered lifecycle report]'], `${mode} template must keep rendered proof blocker`);
+  } finally {
+    if (fs.existsSync(reportPath)) fs.unlinkSync(reportPath);
+    removeTemporaryArtifactFiles(temporaryArtifacts);
+  }
 }
 
 function verifyBaseTemplate(report, head) {
@@ -33,6 +79,8 @@ const hashReport = generate(['--artifact-mode=sha256']);
 
 verifyBaseTemplate(pathReport, head);
 verifyBaseTemplate(hashReport, head);
+verifyGeneratedReportWithMainVerifier(pathReport, 'path', head);
+verifyGeneratedReportWithMainVerifier(hashReport, 'sha256', head);
 assert.equal(pathReport.routes.every((route) => typeof route.artifact.path === 'string'), true, 'path template must use artifact paths');
 assert.equal(pathReport.routes.every((route) => route.artifact.sha256 === undefined), true, 'path template must not include placeholder artifact hashes');
 assert.equal(hashReport.routes.every((route) => /^[0-9a-f]{64}$/.test(route.artifact.sha256)), true, 'sha256 template must use schema-compatible artifact hashes');
@@ -44,6 +92,7 @@ process.stdout.write(`${JSON.stringify({
   ordersEvidenceCommit: pathReport.ordersEvidenceCommit,
   routeCount: pathReport.routes.length,
   artifactModesVerified: ['path', 'sha256'],
+  mainReportVerifierCrossCheck: true,
   mutation: false,
   browserSessionUsed: false,
   providerCall: false,

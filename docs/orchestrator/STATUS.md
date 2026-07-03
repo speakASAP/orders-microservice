@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Template Main-Verifier Cross-Check Added
+
+Intent chain:
+
+- Vision: generated browser proof templates must stay aligned with the authoritative proof report verifier, not only a helper-specific verifier.
+- Goal Impact: both generated artifact modes are now checked through `verify:browser-render-proof-report` as supplied incomplete reports, proving they are structurally valid while still unable to close the browser proof gate.
+- System: Orders owns the proof report template generator/verifier, main report verifier, and IPS status; channel repos remain untouched.
+- Feature: main-verifier cross-check for generated browser proof templates.
+- Task: write generated path/hash templates to temporary JSON files, validate each through the main report verifier, and assert they remain `reportStatus=incomplete`.
+- Execution Plan: update template verifier/status/contract/state docs, validate without browser sessions or runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof template verifier, proof contract, status/state docs.
+- Validation: `node --check scripts/verify-browser-render-proof-report-template.js`, `npm run verify:browser-render-proof-template`, `npm run verify:browser-render-proof-report`, `npm run verify:completion-audit`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: generated template filled with approved real rendered browser evidence and validated as status=proven.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Template Artifact Modes Added
 
 Intent chain:
