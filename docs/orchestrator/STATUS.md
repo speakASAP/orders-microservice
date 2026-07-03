@@ -1,5 +1,26 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Runtime Evidence Gates Reconciled
+
+Intent chain:
+
+- Vision: Orders lifecycle evidence reports should not keep stale deployment blockers after runtime proof exists.
+- Goal Impact: the cross-channel runtime evidence verifier now separates proven Orders read-role/list endpoint deployment from still-missing rendered cabinet proof.
+- System: Orders owns lifecycle read authorization and evidence reporting; channel frontends remain responsible for rendered browser/API cabinet proof after merge-order review.
+- Feature: channel lifecycle runtime evidence gate reconciliation.
+- Task: update `verify-channel-lifecycle-runtime-evidence` so it no longer reports Orders read-role deploy/restart as missing after the successful lifecycle list runtime probe.
+- Execution Plan: adjust Orders verifier/report wording only; do not edit channel repos or shared contracts.
+- Coding Prompt: preserve missing browser/provider gates and avoid claiming rendered UI proof.
+- Code: `scripts/verify-channel-lifecycle-runtime-evidence.js`.
+- Validation: pending `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:browser-render-proof-readiness`, `npm test`, and `git diff --check`.
+
+Current evidence boundary:
+
+- `[PROVEN: Orders customer/admin lifecycle list endpoints return HTTP 200 for FlipFlop, Allegro, Aukro, Bazos, and Heureka service identities.]`
+- `[MISSING: Aukro rendered central lifecycle cabinet hydration proof remains merge-order/browser-or-API-smoke gated.]`
+- `[MISSING: approved authenticated customer/admin browser or API smoke per channel for real lifecycle refresh after status changes.]`
+- `[MISSING: Warehouse/Allegro shipment-status deploy, migration, env enablement, and safe live smoke approvals.]`
+
 ## 2026-07-03 - Browser Render Proof Readiness Verifier Added
 
 Intent chain:
@@ -194,13 +215,14 @@ Evidence classes:
 - Bazos: approved synthetic create/reservation smoke and customer/admin source-cabinet report are present; provider-backed webhook remains unknown.
 - Heureka: final live create/replay/readback/reservation/cleanup smoke evidence is present.
 - Allegro: live route/API isolation evidence is present; real subject-bound buyer order lifecycle smoke remains missing.
-- Aukro: approved synthetic live create/reservation/cleanup proof is present; customer/admin cabinet read-model runtime smoke remains read-role gated.
+- Aukro: approved synthetic live create/reservation/cleanup proof is present; Orders read-role deploy/list endpoints are now proven, while rendered cabinet hydration proof remains merge-order/browser-or-API-smoke gated.
 
 Remaining gates:
 
 - `[MISSING: approved authenticated customer/admin browser or API smoke per channel for real lifecycle refresh after status changes.]`
 - `[MISSING: real subject-bound Allegro order row and buyer bearer before Allegro cabinet lifecycle can be called live-complete.]`
-- `[MISSING: Orders read-role deployment/restart plus Aukro central lifecycle cabinet hydration runtime smoke.]`
+- `[PROVEN: Orders read-role deployment/list endpoint runtime acceptance for Aukro service identity is covered by the lifecycle list probe.]`
+- `[MISSING: Aukro rendered central lifecycle cabinet hydration proof remains merge-order/browser-or-API-smoke gated.]`
 - `[MISSING: Warehouse/Allegro shipment-status deploy, migration, env enablement, and safe live smoke approvals.]`
 - `[UNKNOWN: provider-backed Bazos marketplace webhook/order source.]`
 
