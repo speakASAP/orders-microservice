@@ -1,7 +1,7 @@
 {
   "schemaVersion": "orders.channel_deploy_browser_smoke_decision.v1",
-  "status": "partial_smoke_ready_with_merge_equivalents_and_data_gates",
-  "checkedAt": "2026-07-03T12:53:37.701Z",
+  "status": "partial_smoke_ready_with_current_runtime_and_product_gates",
+  "checkedAt": "2026-07-03T20:50:15.886Z",
   "policy": {
     "readOnlyProbe": true,
     "channelSourceEdits": false,
@@ -16,78 +16,77 @@
   },
   "channels": {
     "flipflop": {
-      "expectedWorkerCommit": "3110c6a",
-      "currentHead": "327169a",
-      "runtimeImageCommit": "unknown_latest_tag",
-      "sourceContainsExpectedCommit": true,
+      "currentHead": "64e7831",
+      "runtimeImages": [
+        "localhost:5000/flipflop-frontend:latest",
+        "localhost:5000/flipflop-service:latest"
+      ],
       "runtimeCommitProvableFromImageTag": false,
       "routeStatus": {
+        "/": 200,
         "/orders": 200,
         "/admin/orders": 200
       },
-      "proofStatus": "service_scoped_proxy_browser_proof_proven_direct_human_blocked",
-      "remainingGate": "direct safe-human browser session remains blocked by authenticated profile/session gate and mutable latest image provenance"
+      "proofStatus": "service_scoped_proxy_browser_proof_proven_direct_human_optional",
+      "remainingGate": "direct safe-human browser session remains optional/product-gated beyond proven service-scoped proxy proof; latest image tag keeps immutable runtime provenance unavailable"
     },
     "heureka": {
-      "expectedWorkerCommit": "358fba9",
-      "currentHead": "a0dbb24",
+      "currentHead": "712c3b0",
       "runtimeImages": [
-        "localhost:5000/heureka-service:358fba9",
-        "localhost:5000/heureka-api-gateway:358fba9"
+        "localhost:5000/heureka-service:1cf0f32",
+        "localhost:5000/heureka-api-gateway:1cf0f32"
       ],
-      "sourceContainsExpectedCommit": true,
-      "runtimeContainsExpectedCommit": true,
       "routeStatus": {
-        "/heureka/dashboard/orders": 404,
-        "/api/heureka/dashboard/orders": "401_external_or_404_service_scoped_artifact"
+        "/": 200,
+        "/api/health": 200,
+        "/dashboard/orders": 200,
+        "/heureka/dashboard/orders-list?limit=1&status=all": 401
       },
       "proofStatus": "orders_list_non_stale_lifecycle_api_proven_dom_optional",
-      "remainingGate": "optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient",
-      "runtimeImage": "localhost:5000/heureka-service:a0dbb24",
-      "notes": "Dashboard orders-list API is live with non-stale central lifecycle rows after synthetic create/replay/reservation/cleanup; optional DOM capture remains if visible-label proof is required."
+      "remainingGate": "direct human-session browser DOM proof remains optional/product-gated; unauthenticated dashboard orders-list API fails closed with HTTP 401"
     },
     "bazos": {
-      "expectedWorkerCommit": "26af3ae",
-      "currentHead": "adf1a03",
-      "runtimeImage": "localhost:5000/bazos-service:7365edc",
-      "sourceContainsExpectedCommit": true,
-      "runtimeContainsExpectedCommit": true,
+      "currentHead": "053a4d3",
+      "runtimeImage": "localhost:5000/bazos-service:27f325d",
       "routeStatus": {
-        "/orders": 401,
-        "/orders/webhook": 401
+        "/": 200,
+        "/orders": 401
       },
-      "proofStatus": "paid_replay_source_deployed_live_evidence_blocked",
-      "remainingGate": "live paid multi-product evidence and approved customer/admin lifecycle proof are missing"
+      "proofStatus": "bounded_paid_multi_product_customer_admin_lifecycle_proven_natural_provider_optional",
+      "remainingGate": "natural live provider-backed Bazos marketplace webhook/order proof and browser DOM capture remain optional/product-gated beyond approved bounded proof"
     },
     "allegro": {
-      "expectedWorkerCommit": "529a71d",
-      "integratedEquivalentCommit": "4ff3987",
-      "equivalentPatchId": "b7d9c16da34556d2efb30cff450259faaca6640b",
-      "currentHead": "4b08a7c",
-      "runtimeImage": "localhost:5000/allegro-service:ae9d381",
-      "mergeNeededForExpectedCommit": false,
-      "proofStatus": "buyer_route_live_isolation_proven_real_order_and_central_lifecycle_blocked",
-      "remainingGate": "real forwarded Allegro order already subject-bound through buyerAuthSubject and visible to a real Auth bearer"
+      "currentHead": "60fb3f3",
+      "runtimeImages": [
+        "localhost:5000/allegro-service:c979768",
+        "localhost:5000/allegro-frontend:c979768"
+      ],
+      "routeStatus": {
+        "/": 200,
+        "/api/health": 200,
+        "/cabinet/orders": 200,
+        "/dashboard/orders": 200
+      },
+      "proofStatus": "bounded_buyer_lifecycle_and_central_forwarded_shipment_proven_natural_buyer_provider_optional",
+      "remainingGate": "natural real buyer order proof and real provider non-UNKNOWN movement remain optional/product-gated beyond approved bounded proof and central-forwarded UNKNOWN readback"
     },
     "aukro": {
-      "expectedWorkerCommit": "f6502bb",
-      "integratedEquivalentCommit": "08ad5ce",
-      "equivalentPatchId": "2907522d96786ebc8abcab86845cc78296702847",
-      "currentHead": "e440fa1",
-      "runtimeImage": "localhost:5000/aukro-service:68784d7",
-      "mergeNeededForExpectedCommit": false,
-      "proofStatus": "cabinet_apis_live_lifecycle_data_blocked",
-      "remainingGate": "approved live Aukro row linked to a current non-stale canonical Orders lifecycle stage"
+      "currentHead": "e264a34",
+      "runtimeImage": "localhost:5000/aukro-service:94f3427",
+      "routeStatus": {
+        "/": 200,
+        "/dashboard": 200,
+        "/aukro/ui/dashboard": 403
+      },
+      "proofStatus": "protected_customer_admin_lifecycle_api_proven_dom_optional",
+      "remainingGate": "natural real customer-bound Aukro proof remains optional/product-gated; unauthenticated protected dashboard fails closed with HTTP 403"
     }
   },
   "safeOrder": [
-    "keep FlipFlop service-scoped proof as the only proven browser lifecycle evidence until safe-human session is available",
-    "select or create approved Heureka order data with a current non-stale canonical Orders lifecycle stage before rerunning rendered smoke",
-    "unblock Bazos provider-backed paid order source before provider-backed browser smoke",
-    "skip direct merge of Allegro 529a71d and accept patch-equivalent 4ff3987 already on main/runtime lineage",
-    "skip direct merge of Aukro f6502bb and accept patch-equivalent 08ad5ce already on main/runtime lineage",
-    "run Allegro buyer smoke only after real bearer and subject-bound row exist",
-    "run Aukro rendered proof only after approved non-stale canonical lifecycle row exists",
-    "run shipment-status runtime proof only after Allegro enablement, Warehouse URL/token config, safe order selection, sanitized readback, and mutation approval"
+    "do not duplicate the Allegro central-forwarded shipment proof already recorded in Orders commit 5aa9f3a",
+    "keep bounded/service-scoped customer/admin lifecycle proofs as current accepted evidence unless product asks for direct human-browser proof",
+    "run natural provider movement proof only when a real carrier returns a non-UNKNOWN tracking status",
+    "keep raw tracking number/URL hidden until a product-approved visibility matrix permits disclosure",
+    "use only distinct owner-approved runtime smokes; preserve fail-closed auth boundaries for protected routes"
   ]
 }

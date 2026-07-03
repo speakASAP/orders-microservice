@@ -47,7 +47,7 @@ const proofMarkers = [
   'admin lifecycle read HTTP `200`',
   'both customer/admin read-models saw `warehouse_collecting`',
   'Orders service identity lifecycle list endpoints return HTTP `200` for FlipFlop, Allegro, Aukro, Bazos, and Heureka.',
-  'Channel deploy/browser-smoke reconciliation refined current evidence: FlipFlop `main` contains `3110c6a` and routes return HTTP `200`, but runtime uses mutable `latest`; Heureka source/runtime is `a0dbb24`; `/heureka/dashboard/orders-list` returns HTTP `200` with aggregate data and non-stale central lifecycle rows; Bazos runtime `7365edc` contains `26af3ae` and protected replay returns HTTP `200` with zero records/candidates; Allegro `529a71d` is superseded by patch-equivalent `4ff3987` and runtime `ae9d381` is later; Aukro `f6502bb` is superseded by patch-equivalent `08ad5ce` and runtime `68784d7` includes it.',
+  'Channel deploy/browser-smoke reconciliation was refreshed against current remote source heads and k3s images: FlipFlop `64e7831` runs mutable `latest` images and `/orders` plus `/admin/orders` return HTTP `200`; Heureka `712c3b0` runs `heureka-service:1cf0f32` and `heureka-api-gateway:1cf0f32`, `/dashboard/orders` returns HTTP `200`, and unauthenticated `/heureka/dashboard/orders-list` fails closed with HTTP `401`; Bazos `053a4d3` runs `bazos-service:27f325d`, `/` returns HTTP `200`, and `/orders` fails closed with HTTP `401`; Allegro `60fb3f3` runs `allegro-service:c979768` and `allegro-frontend:c979768`, with `/api/health`, `/cabinet/orders`, and `/dashboard/orders` returning HTTP `200`; Aukro `e264a34` runs `aukro-service:94f3427`, `/dashboard` returns HTTP `200`, and protected `/aukro/ui/dashboard` fails closed with HTTP `403`.',
   'Anonymous FlipFlop browser-render preflight is blocked, not proven: artifact `/tmp/flipflop-browser-render-preflight-2026-07-03T09-34-31-524Z.json` SHA-256 `450f71e08497c99f545176d97ce047ace28496f66e0b263b182570c781fc22eb`; public `/orders` and `/admin/orders` HTML returned HTTP `200`, anonymous backing APIs `/api/orders` and `/api/admin/orders` returned HTTP `401`, and empty-profile Chromium found no rendered lifecycle labels/stages.',
   'Fresh gated FlipFlop route smoke returned HTTP `200` for `https://flipflop.alfares.cz/orders` and `https://flipflop.alfares.cz/admin/orders` with no browser session, lifecycle mutation, provider call, DB read, or token output. This is route readiness only, not rendered lifecycle proof.',
   'FlipFlop first browser lane readiness is recorded in `docs/orchestrator/2026-07-03-flipflop-browser-proof-readiness-evidence.md`',
@@ -76,18 +76,28 @@ const baselineMarkers = [
 
 
 assert.equal(channelDecision.schemaVersion, 'orders.channel_deploy_browser_smoke_decision.v1', 'channel deploy/browser smoke decision schema mismatch');
-assert.equal(channelDecision.status, 'partial_smoke_ready_with_merge_equivalents_and_data_gates', 'channel deploy/browser smoke decision status mismatch');
+assert.equal(channelDecision.status, 'partial_smoke_ready_with_current_runtime_and_product_gates', 'channel deploy/browser smoke decision status mismatch');
 assert.equal(channelDecision.policy.readOnlyProbe, true, 'channel decision must be read-only evidence');
 assert.equal(channelDecision.policy.channelSourceEdits, false, 'channel decision must not include channel source edits');
 assert.equal(channelDecision.policy.deploys, false, 'channel decision must not include deploys');
 assert.equal(channelDecision.policy.runtimeMutations, false, 'channel decision must not include runtime mutations');
-assert.equal(channelDecision.channels.allegro.mergeNeededForExpectedCommit, false, 'Allegro stale worker commit must not require direct merge');
-assert.equal(channelDecision.channels.allegro.integratedEquivalentCommit, '4ff3987', 'Allegro integrated equivalent commit mismatch');
-assert.equal(channelDecision.channels.aukro.mergeNeededForExpectedCommit, false, 'Aukro stale worker commit must not require direct merge');
-assert.equal(channelDecision.channels.aukro.integratedEquivalentCommit, '08ad5ce', 'Aukro integrated equivalent commit mismatch');
-assert.equal(channelDecision.channels.flipflop.proofStatus, 'service_scoped_proxy_browser_proof_proven_direct_human_blocked', 'FlipFlop proof status mismatch');
+assert.equal(channelDecision.channels.flipflop.currentHead, '64e7831', 'FlipFlop current head mismatch');
+assert.equal(channelDecision.channels.flipflop.routeStatus['/orders'], 200, 'FlipFlop /orders route status mismatch');
+assert.equal(channelDecision.channels.flipflop.routeStatus['/admin/orders'], 200, 'FlipFlop /admin/orders route status mismatch');
+assert.equal(channelDecision.channels.heureka.currentHead, '712c3b0', 'Heureka current head mismatch');
+assert.equal(channelDecision.channels.heureka.routeStatus['/dashboard/orders'], 200, 'Heureka dashboard route status mismatch');
+assert.equal(channelDecision.channels.heureka.routeStatus['/heureka/dashboard/orders-list?limit=1&status=all'], 401, 'Heureka protected route fail-closed status mismatch');
+assert.equal(channelDecision.channels.bazos.currentHead, '053a4d3', 'Bazos current head mismatch');
+assert.equal(channelDecision.channels.bazos.routeStatus['/orders'], 401, 'Bazos protected orders route fail-closed status mismatch');
+assert.equal(channelDecision.channels.allegro.currentHead, '60fb3f3', 'Allegro current head mismatch');
+assert.equal(channelDecision.channels.allegro.routeStatus['/cabinet/orders'], 200, 'Allegro cabinet orders route status mismatch');
+assert.equal(channelDecision.channels.aukro.currentHead, 'e264a34', 'Aukro current head mismatch');
+assert.equal(channelDecision.channels.aukro.routeStatus['/aukro/ui/dashboard'], 403, 'Aukro protected route fail-closed status mismatch');
+assert.equal(channelDecision.channels.flipflop.proofStatus, 'service_scoped_proxy_browser_proof_proven_direct_human_optional', 'FlipFlop proof status mismatch');
 assert.equal(channelDecision.channels.heureka.proofStatus, 'orders_list_non_stale_lifecycle_api_proven_dom_optional', 'Heureka proof status mismatch');
-assert.equal(channelDecision.channels.bazos.proofStatus, 'paid_replay_source_deployed_live_evidence_blocked', 'Bazos proof status mismatch');
+assert.equal(channelDecision.channels.bazos.proofStatus, 'bounded_paid_multi_product_customer_admin_lifecycle_proven_natural_provider_optional', 'Bazos proof status mismatch');
+assert.equal(channelDecision.channels.allegro.proofStatus, 'bounded_buyer_lifecycle_and_central_forwarded_shipment_proven_natural_buyer_provider_optional', 'Allegro proof status mismatch');
+assert.equal(channelDecision.channels.aukro.proofStatus, 'protected_customer_admin_lifecycle_api_proven_dom_optional', 'Aukro proof status mismatch');
 
 const missingGateMarkers = [
   'Direct safe-human FlipFlop browser proof if product requires it beyond the already proven service-scoped proxy proof.',
