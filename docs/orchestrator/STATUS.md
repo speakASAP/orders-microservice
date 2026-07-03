@@ -1,10 +1,10 @@
-## 2026-07-03 - Aukro Admin DOM Lifecycle Proof Proven, Customer DOM Rows Gated
+## 2026-07-03 - Aukro Customer/Admin DOM Lifecycle Proof Closed
 
-IPS: Vision -> reliable Orders lifecycle is visible in marketplace dashboards; Goal Impact -> Aukro admin dashboard visible lifecycle labels are now proven in a real browser, while customer visible rows are narrowed to an empty customer-bound data gate; System -> Aukro owns dashboard rendering and local account binding, Orders owns canonical lifecycle evidence, no provider/Warehouse/Orders mutation moved; Feature -> Aukro visible lifecycle labels; Task -> run service-scoped headless Chrome proof with redacted artifact; Execution Plan -> generate short-lived in-pod JWT, set Aukro dashboard auth on public Aukro origin, load dashboard, verify protected dashboard/admin calls, store only statuses/hashes/counts; Coding Prompt -> no token values, raw order ids, raw order rows, customer PII, DB rows, raw DOM, screenshots, provider payloads, payment refs, tracking values, or mutation; Code -> reports/validation/orders-browser-render-proof/aukro-dashboard-admin-dom-proven-customer-empty-artifact.json; Validation -> Aukro static lifecycle UI verifier, service-scoped Chrome proof, Orders channel lifecycle verifier/completion audit.
+IPS: Vision -> reliable Orders lifecycle is visible in marketplace customer/admin dashboards; Goal Impact -> Aukro no longer has a visible-label blocker after the dashboard no longer blocks Orders rendering on Catalog provisioning and a bounded customer-bound projection proved visible rows; System -> Aukro owns dashboard rendering and local projection, Orders owns canonical lifecycle readback, no provider/Warehouse/Orders mutation moved; Feature -> Aukro visible lifecycle labels; Task -> fix dashboard flow, deploy Aukro, run bounded customer/admin DOM proof, clean fixture; Execution Plan -> let Catalog provisioning fail non-blockingly, deploy Aukro 94f3427, create one temporary local Aukro projection linked to an existing central Orders id for the proof subject, render dashboard in headless Chrome, delete the temporary local row, store only statuses/hashes/counts; Coding Prompt -> no token values, raw order ids, raw order rows, customer PII, DB rows, raw DOM, screenshots, provider payloads, payment refs, tracking values, Warehouse mutation, Orders mutation, or provider call; Code -> Aukro 94f3427 and reports/validation/orders-browser-render-proof/aukro-dashboard-customer-admin-dom-proven-artifact.json; Validation -> Aukro build/test/static lifecycle verifier/deploy, bounded DOM fixture, Orders channel lifecycle verifier/completion audit.
 
-Live evidence: Aukro image localhost:5000/aukro-service:22662ea served /dashboard and the browser proof reached protected /aukro/ui/dashboard and /aukro/ui/admin/services with HTTP 200. The admin dashboard lifecycle breakdown rendered visibly with adminVisible=true, adminLifecycleVisible=true, and adminLifecycleKeys=2 using only hashed text evidence. The customer dashboard call also returned HTTP 200, but the available proof subject had ordersCount=0 and centralLifecycleCount=0, so customer visible order rows remain gated by an approved real customer bearer/order or bounded customer-bound Aukro fixture. No token, raw DOM, screenshot, raw row, customer data, provider payload, DB read, or mutation was used.
+Live evidence: Aukro image localhost:5000/aukro-service:94f3427 served the dashboard after deploy. The bounded proof created one temporary local Aukro projection only, performed no provider, Warehouse, or Orders mutation, then deleted the temporary local row. Browser proof reached protected /aukro/ui/dashboard and /aukro/ui/admin/services with HTTP 200, rendered 6 customer order cards, saw visible cancelled lifecycle text, and rendered admin lifecycle breakdown with adminVisible=true and adminLifecycleVisible=true. Evidence is redacted hashes/counts only; no token, raw DOM, screenshot, raw row, customer data, provider payload, DB dump, payment ref, tracking value, raw id, or provider call was printed.
 
-Remaining Aukro gate: [MISSING: approved real or bounded customer-bound Aukro order fixture to prove customer visible DOM order rows].
+Remaining Aukro gate: natural real customer-bound Aukro order proof remains optional/product-gated if bounded projection proof is insufficient.
 
 ## 2026-07-03 - Bazos Bounded Paid Lifecycle Proof Closed
 
@@ -118,7 +118,7 @@ Remaining gates:
 - `[MISSING: browser DOM capture for Heureka visible lifecycle labels if API-backed dashboard proof is not sufficient]`
 - `[MISSING: optional natural live Bazos provider-backed order proof if bounded fixture is insufficient]`
 - `[MISSING: real forwarded Allegro order visible to a real Auth bearer with central Orders lifecycle rendering]`
-- `[MISSING: approved real or bounded customer-bound Aukro order fixture to prove customer visible DOM order rows]`
+- `[MISSING: optional natural real customer-bound Aukro order proof if bounded projection proof is insufficient]`
 - `[MISSING: Allegro shipment OAuth/scope/account permission and sanitized fixture bundle for provider runtime smoke]`
 - `[MISSING: Warehouse ledger/correlation runtime readback proving no raw provider/customer fields enter Orders events]`
 - `[MISSING: product-approved tracking visibility matrix before raw tracking number or URL appears in any UI/API response]`
@@ -149,7 +149,7 @@ IPS: Vision -> reliable Orders lifecycle across channel services; Goal Impact ->
 
 Live evidence: `aukro-service` is ready `1/1` on image `localhost:5000/aukro-service:68784d7`; public `/dashboard` returned HTTP `200`; `/health` returned HTTP `200`; protected `/aukro/ui/dashboard` and `/aukro/ui/admin/services` returned HTTP `403` with the available pod `JWT_TOKEN`. The token value was not printed.
 
-Remaining Aukro gate: `[MISSING: approved real or bounded customer-bound Aukro order fixture to prove customer visible DOM order rows]`.
+Remaining Aukro gate: `[MISSING: optional natural real customer-bound Aukro order proof if bounded projection proof is insufficient]`.
 
 ## 2026-07-03 - Heureka API Lifecycle Proof Reconciled
 

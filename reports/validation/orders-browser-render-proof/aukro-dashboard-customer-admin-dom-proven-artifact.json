@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "orders.browser_render_artifact.v1",
+  "channel": "aukro",
+  "surface": "customer_admin_dashboard",
+  "proofMode": "service_scoped_proxy",
+  "checkedAt": "2026-07-03T15:53:10.697Z",
+  "url": "https://aukro.alfares.cz/dashboard",
+  "documentStatus": 200,
+  "runtime": {
+    "aukroImage": "localhost:5000/aukro-service:94f3427"
+  },
+  "rowCount": 6,
+  "ordersMessageHash": "c45dcc40957aefc2",
+  "visibleLifecycleCancelled": true,
+  "visibleLifecycleUnknownOrStale": false,
+  "visibleOrdersStatusLoaded": false,
+  "adminVisible": true,
+  "adminLifecycleVisible": true,
+  "cardTextHashes": [
+    "af6dd487ac54b5ca",
+    "c1f073b1249bec1e",
+    "c1f073b1249bec1e",
+    "c1f073b1249bec1e",
+    "c1f073b1249bec1e",
+    "74ac8021622abfbc"
+  ],
+  "adminOrderStatsHash": "00214ca062c02a04",
+  "redacted": true,
+  "pathValuesRedacted": true,
+  "tokenValuesPrinted": false,
+  "tokenPresentInDomText": false,
+  "rawOrderRowsPrinted": false,
+  "customerPiiPrinted": false,
+  "databaseRead": false,
+  "providerCall": false,
+  "rawDomCaptured": false,
+  "screenshotCaptured": false,
+  "mutationPerformed": false,
+  "protectedCallStatuses": [
+    {
+      "path": "/aukro/ui/dashboard",
+      "status": 200,
+      "ordersCount": 4,
+      "centralLifecycleCount": 2
+    },
+    {
+      "path": "/aukro/ui/admin/services",
+      "status": 200,
+      "adminLifecycleKeys": 2
+    }
+  ],
+  "adminLoadOk": true,
+  "adminLoadErrorHash": null,
+  "status": "customer_admin_dom_lifecycle_proven_bounded_projection_fixture",
+  "boundedFixture": {
+    "type": "local_aukro_projection_only",
+    "providerCall": false,
+    "warehouseMutation": false,
+    "ordersMutation": false,
+    "localAukroRowCreated": true,
+    "localAukroRowDeleted": true,
+    "rawIdsPrinted": false,
+    "rawRowsPrinted": false
+  },
+  "result": {
+    "summary": "A bounded local Aukro projection fixture proved customer and admin visible lifecycle rendering in the dashboard, then deleted the temporary local row.",
+    "nextAction": "Natural real customer-bound Aukro order proof remains optional/product-gated."
+  }
+}
