@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "orders.allegro_non_unknown_provider_scan.v1",
+  "status": "non_unknown_provider_status_unavailable",
+  "scannedAt": "2026-07-03T17:58:40.286Z",
+  "scope": {
+    "channel": "allegro",
+    "mode": "read_only_live_provider_scan",
+    "maxOrders": 50,
+    "candidates": 1,
+    "tokenUsableCandidates": 1
+  },
+  "providerReads": {
+    "shipmentEndpoint": {
+      "http200": 1,
+      "other": 0
+    },
+    "carrierTrackingEndpoint": {
+      "attempted": 1,
+      "http200": 1,
+      "other": 0
+    },
+    "shipmentsSeen": 1,
+    "packagesSeen": 1,
+    "trackingStatusEventsSeen": 0,
+    "statusClassCounts": {
+      "UNKNOWN": 1
+    },
+    "foundNonUnknown": false
+  },
+  "conclusion": {
+    "realProviderReadWorks": true,
+    "sanitizedWarehouseIntakeAlreadyProvenForUnknown": true,
+    "realProviderMutationEvidenceAvailableNow": false,
+    "blocker": "[MISSING: Allegro provider sample with carrier tracking status other than UNKNOWN]",
+    "reason": "[UNKNOWN: current accessible carrier tracking response contains no status events]"
+  },
+  "evidencePolicy": {
+    "readOnly": true,
+    "providerWrite": false,
+    "warehouseApply": false,
+    "ordersMutation": false,
+    "tokenPrinted": false,
+    "rawIdsPrinted": false,
+    "rawWaybillPrinted": false,
+    "rawPayloadPrinted": false,
+    "customerPiiPrinted": false,
+    "databaseRowsPrinted": false
+  }
+}
