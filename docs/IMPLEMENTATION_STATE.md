@@ -1,3 +1,4 @@
+2026-07-03: Worker G Allegro buyer API backend source landed in Allegro commits `78e0f5f` and `9f07efc`. Subject-bound buyer order reads are source-supported and isolation tests were hardened; deployment remains gated because buyer frontend cabinet files are still uncommitted/dirty and historical-row backfill remains no-visibility-by-default unless Auth subject binding exists.
 2026-07-03: Worker E Allegro shipment source contract landed in Allegro commit `2183fe8`. The approved source for Allegro-origin shipment status is now documented as read-only checkout-form shipments plus carrier tracking enrichment, with optional shipment-management detail only for existing shipment ids. Orders remains documentation-only for this slice; runtime implementation remains gated by OAuth-scope proof, credential source, Warehouse mapping, idempotency ledger decision, sanitized fixtures, and product-approved tracking visibility policy.
 2026-07-03: Provider/courier blockers were split into five additional per-blocker Codex threads after Allegro source approval: P1 Allegro source contract `019f265f-14b0-74c1-8817-3ee56a6c4fb7`, P2 Warehouse mapping `019f265f-42ac-7591-b946-bee3b0184384`, P3 sensitive-data policy `019f265f-9341-7492-971d-6f89bbe2644c`, P4 credential source `019f265f-ce89-77f2-a7d1-f584e88c5ed5`, and P5 fixture policy `019f2660-06ce-78a0-bc4f-5f4752ee1a48`. These are documentation/contract workers only; no deploy, migration, secret mutation, or runtime provider implementation is approved.
 2026-07-03: Allegro buyer Auth ownership Option 2 approved by product/Auth/security owner via orchestrator instruction `Approved. Option2`; Worker G `019f2660-fd62-7e90-ac26-994b34eb2620` started for source-only buyer API Workstream A. Buyer runtime implementation is now permitted only for orders with explicit Auth subject binding: `AllegroOrder.authUserId`/`buyerAuthSubject` or equivalent Orders `customer.authSubject`/`customer.authUserId` must equal the Auth bearer `sub`. Email-only authorization remains forbidden, seller/operator `/dashboard/orders` remains unchanged, unbound imported marketplace rows stay hidden from buyer APIs, cross-buyer detail reads return 404, and deploy remains gated after source validation. Remaining gates are `[MISSING: implementation source change that persists or derives Auth subject binding for eligible Allegro buyer orders]`, `[MISSING: migration/backfill decision for historical Allegro rows; default is no backfill and no buyer visibility without Auth subject binding]`, and `[MISSING: buyer-safe DTO implementation and isolation tests]`.
@@ -40,7 +41,7 @@ downstream:
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
 current_chunk: Allegro shipment source contract landed; FlipFlop admin RBAC and marketplace read-scope hardening complete; provider shipment-status remains Warehouse/OAuth/fixture gated
-next_recommended_goal: Complete Warehouse Allegro status mapping, Allegro OAuth/credential proof, idempotency ledger decision, sanitized fixtures, and Worker G buyer API validation before deploy
+next_recommended_goal: Complete Warehouse Allegro status mapping, Allegro OAuth/credential proof, idempotency ledger decision, sanitized fixtures, and Allegro buyer frontend Workstream B validation before deploy
 last_completed_goal: FlipFlop admin RBAC hardening deployed and marketplace order read-scope hardening completed
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
@@ -53,9 +54,9 @@ blockers:
   - [MISSING: Allegro OAuth scope proof and runtime credential source for shipment reads]
   - [MISSING: sanitized Allegro shipment fixture set]
   - [MISSING: Allegro-to-Warehouse status mapping after handed_to_delivery]
-  - [MISSING: implementation source change that persists or derives Auth subject binding for eligible Allegro buyer orders]
+  - [LANDED: Allegro backend subject-bound buyer reads in commits 78e0f5f and 9f07efc]
+  - [MISSING: committed and validated Allegro buyer frontend cabinet Workstream B]
   - [MISSING: migration/backfill decision for historical Allegro rows; default is no backfill and no buyer visibility without Auth subject binding]
-  - [MISSING: buyer-safe DTO implementation and isolation tests]
 ```
 
 ## Current Checkpoint

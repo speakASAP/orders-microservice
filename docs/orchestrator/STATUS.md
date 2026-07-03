@@ -1,5 +1,36 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Buyer API Source Landed
+
+Intent chain:
+
+- Vision: customer-facing Allegro order cabinets must expose only orders with explicit Auth subject ownership while Orders remains canonical lifecycle source.
+- Goal Impact: the approved Option 2 buyer-ownership contract now has backend source support and isolation test hardening; frontend cabinet files remain uncommitted and deployment is still gated.
+- System: Auth owns JWT `sub`; Allegro owns buyer-facing read projection and seller dashboard; Orders owns lifecycle source.
+- Feature: subject-bound Allegro buyer order API.
+- Task: integrate Worker G backend handoff into Orders orchestration status.
+- Execution Plan: accept source-only backend commits; keep `/dashboard/orders` unchanged; keep frontend Workstream B dependency-gated until UI files are validated and committed; no deploy.
+- Coding Prompt: no buyerEmail authorization, unbound rows hidden, cross-buyer detail returns 404, buyer DTO remains safe.
+- Code: Allegro `78e0f5f feat: add subject-bound allegro buyer order reads` and `9f07efc test: harden allegro buyer order isolation`.
+- Validation: Worker G reported focused orders service spec, Allegro service build, diff check, and pushed backend hardening; orchestrator verified pushed `origin/main` at `9f07efc`.
+
+Evidence:
+
+- Allegro `main` and `origin/main` are at `9f07efc`.
+- Backend source files changed by the hardening commit: `services/allegro-service/src/allegro/orders/orders.service.ts` and `orders.service.spec.ts`; `docs/orchestrator/STATUS.md` also updated in Allegro.
+- Worker G left frontend cabinet files uncommitted because they were outside source-only backend Workstream A.
+- Current dirty Allegro files are frontend/workstream docs only: `docs/orchestrator/2026-07-03-allegro-buyer-auth-contract-proposal.md`, `docs/orchestrator/STATUS.md`, `services/frontend/src/App.tsx`, and `services/frontend/src/pages/BuyerOrdersPage.tsx`.
+
+Remaining gates:
+
+- `[MISSING: committed and validated Allegro buyer frontend cabinet Workstream B.]`
+- `[MISSING: migration/backfill decision for historical Allegro rows; default remains no buyer visibility without Auth subject binding.]`
+- `[MISSING: deploy approval and runtime smoke after backend/frontend source validation.]`
+
+Next action:
+
+- Let Worker G or a dedicated frontend worker finish/validate the buyer cabinet UI before deployment.
+
 ## 2026-07-03 - Allegro Shipment Source Contract Landed
 
 Intent chain:
@@ -83,8 +114,8 @@ Intent chain:
 - Task: implement buyer-scoped read-only order list/detail and UI only for orders with explicit Auth subject binding.
 - Execution Plan: persist or derive `AllegroOrder.authUserId`/`buyerAuthSubject` or equivalent Orders `customer.authSubject`/`customer.authUserId`; add buyer APIs and `/cabinet/orders`; keep seller/operator `/dashboard/orders` unchanged; fail closed for unbound imported marketplace rows.
 - Coding Prompt: never authorize by `buyerEmail`; use Auth bearer `sub`; return 404 for cross-buyer detail reads; expose buyer-safe DTO only.
-- Code: pending.
-- Validation: pending implementation tests for Buyer A/B isolation, unauthenticated 401, unbound row exclusion, unchanged seller dashboard, and central lifecycle fail-soft labels; Worker G `019f2660-fd62-7e90-ac26-994b34eb2620` started for source-only Workstream A.
+- Code: Allegro `78e0f5f feat: add subject-bound allegro buyer order reads`; hardening `9f07efc test: harden allegro buyer order isolation`.
+- Validation: Worker G reported focused orders service spec, Allegro service build, diff check, and pushed backend hardening; frontend cabinet work remains uncommitted and deploy-gated.
 
 Evidence:
 
@@ -96,22 +127,22 @@ Evidence:
 
 Remaining gates:
 
-- `[MISSING: implementation source change that persists or derives Auth subject binding for eligible Allegro buyer orders.]`
+- `[LANDED: Allegro backend source support for subject-bound buyer order reads in commits 78e0f5f and 9f07efc.]`
 - `[MISSING: migration/backfill decision for historical Allegro rows; default is no backfill and no buyer visibility without Auth subject binding.]`
-- `[MISSING: buyer-safe DTO implementation and isolation tests.]`
+- `[LANDED: buyer-safe backend DTO/isolation tests in Allegro commits 78e0f5f and 9f07efc.]`
 - `[MISSING: deploy approval after source validation.]`
 
 Parallel execution:
 
 | Workstream | Status | Owner role | Scope | Allowed files | Forbidden files | Validation | Merge order |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| A Buyer API/schema | active: Worker G `019f2660-fd62-7e90-ac26-994b34eb2620` | Allegro backend owner | Add subject-bound persistence/derivation, buyer list/detail APIs, DTO, tests | `prisma/schema.prisma`, migrations only if required, `services/allegro-service/src/allegro/orders/*`, focused tests | Orders/Auth runtime, seller dashboard behavior, deploy scripts | orders service spec, build, isolation tests | 1 |
-| B Buyer UI | dependency-gated | Allegro frontend owner | Add `/cabinet/orders` only after API contract shape lands | `services/frontend/src/pages/*`, routing/auth client files | backend schema/API internals, seller `/dashboard/orders` rewrite | frontend build and route smoke | 2 |
+| A Buyer API/schema | source landed: Allegro `78e0f5f` + `9f07efc` | Allegro backend owner | Add subject-bound persistence/derivation, buyer list/detail APIs, DTO, tests | `prisma/schema.prisma`, migrations only if required, `services/allegro-service/src/allegro/orders/*`, focused tests | Orders/Auth runtime, seller dashboard behavior, deploy scripts | orders service spec, build, isolation tests | 1 |
+| B Buyer UI | ready after backend source; dirty frontend files exist in Allegro and need validation/commit | Allegro frontend owner | Add `/cabinet/orders` only after API contract shape lands | `services/frontend/src/pages/*`, routing/auth client files | backend schema/API internals, seller `/dashboard/orders` rewrite | frontend build and route smoke | 2 |
 | C Integration validation | final_integration | Orders/Allegro validation owner | Validate A+B together and update status | validation report/docs only | runtime deploy without approval | backend/frontend builds, buyer isolation evidence | 3 |
 
 Next action:
 
-- Wait for Worker G `019f2660-fd62-7e90-ac26-994b34eb2620` handoff for source-only Workstream A; do not deploy until validation evidence is reviewed.
+- Finish and validate Allegro buyer frontend Workstream B, then run integration validation before any deploy.
 
 ## 2026-07-03 - FlipFlop Admin Order Inventory Pricing RBAC Hardened
 
@@ -141,9 +172,9 @@ Evidence:
 Remaining blockers:
 
 - `[MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source.]`
-- `[MISSING: implementation source change that persists or derives Auth subject binding for eligible Allegro buyer orders.]`
+- `[LANDED: Allegro backend source support for subject-bound buyer order reads in commits 78e0f5f and 9f07efc.]`
 - `[MISSING: migration/backfill decision for historical Allegro rows; default is no backfill and no buyer visibility without Auth subject binding.]`
-- `[MISSING: buyer-safe DTO implementation and isolation tests.]`
+- `[LANDED: buyer-safe backend DTO/isolation tests in Allegro commits 78e0f5f and 9f07efc.]`
 
 Next action:
 
@@ -181,9 +212,9 @@ Validation notes:
 
 Remaining blockers:
 
-- `[MISSING: implementation source change that persists or derives Auth subject binding for eligible Allegro buyer orders.]`
+- `[LANDED: Allegro backend source support for subject-bound buyer order reads in commits 78e0f5f and 9f07efc.]`
 - `[MISSING: migration/backfill decision for historical Allegro rows; default is no backfill and no buyer visibility without Auth subject binding.]`
-- `[MISSING: buyer-safe DTO implementation and isolation tests.]`
+- `[LANDED: buyer-safe backend DTO/isolation tests in Allegro commits 78e0f5f and 9f07efc.]`
 - `[MISSING: stable Auth-owned account field for AukroAccount and HeurekaAccount if non-admin seller-scoped order reads are required.]`
 - `[MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source.]`
 
