@@ -67,7 +67,7 @@ Exact blockers:
 - `[LANDED: Warehouse docs-level mapping and consumer contract in warehouse-microservice commit d90bd93; runtime mapping fixtures/adapter remain gated.]`
 - `[LANDED: P3 sensitive-data policy in Orders commit 6743613; tracking number, tracking URL, raw provider payloads, credentials, customer address/contact data, and raw provider responses are excluded from events/logs/handoffs by default.]`
 - `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
-- `[MISSING: runtime credential source in Vault/ExternalSecret for allegro-service shipment/fulfillment scope, not Orders.]`
+- `[PROBED/FAILED: runtime Allegro token source exists but active token was expired and /order/checkout-forms/{id}/shipments returned 401 in allegro commit 8b1eb49.]`
 - `[LANDED: sanitized Allegro shipment snapshot fixture/verifier set in allegro commit e626e5c.]`
 
 Known non-blockers:

@@ -44,7 +44,7 @@ downstream:
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
 current_chunk: Allegro shipment contract, verifier, projection design, sensitive-data policy, and Warehouse consumer contract landed; runtime remains OAuth/migration/ledger/correlation gated
-next_recommended_goal: Resolve Warehouse ledger/correlation ownership and run sanitized Allegro OAuth capability proof before projection migration/runtime work
+next_recommended_goal: Fix Allegro OAuth token/scope/account permission, rerun sanitized capability probe, then resolve Warehouse ledger/correlation before runtime work
 last_completed_goal: FlipFlop admin RBAC hardening deployed and marketplace order read-scope hardening completed
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
@@ -56,7 +56,8 @@ blockers:
   - [LANDED: Allegro shipment source contract in allegro commit 2183fe8]
   - [LANDED: Orders Allegro shipment sensitive-data policy in commit 6743613]
   - [LANDED: sanitized Allegro shipment snapshot fixture/verifier set in allegro commit e626e5c]
-  - [MISSING: Allegro OAuth scope proof and runtime credential source for shipment reads]
+  - [PROBED/FAILED: Allegro shipment read token present but expired; /order/checkout-forms/{id}/shipments returned 401 in allegro commit 8b1eb49]
+  - [UNKNOWN: carrier tracking and shipment-management detail read capability; not probed after shipment read failed closed]
   - [LANDED: durable Allegro shipment projection schema/client design in allegro commit 9834f09]
   - [MISSING: owner approval for Allegro shipment projection Prisma migration/service implementation]
   - [MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses]
@@ -72,6 +73,8 @@ blockers:
 ```
 
 ## Current Checkpoint
+
+2026-07-03: Allegro sanitized shipment OAuth capability probe landed in Allegro commit `8b1eb49`. The probe used live `allegro-service` runtime context without printing tokens, raw order ids, buyer data, addresses, waybills, shipment ids, or raw payloads. Active account/token existed, scopes were configured, seller identity was verified, but the token was expired and `GET /order/checkout-forms/{id}/shipments` returned 401. Carrier tracking and shipment-management detail were not attempted because shipment read failed closed. Runtime projection/client/adapter work remains blocked until token/scope/account permission is fixed and re-probed.
 
 2026-07-03: Warehouse Allegro shipment snapshot consumer contract landed in Warehouse commit `d90bd93`. Worker H updated Warehouse fulfillment provider-status intake and fulfillment handoff docs plus validation report `VAL-WH-ALLEGRO-SNAPSHOT-CONSUMER`, defining accepted redacted snapshot fields, post-`handed_to_delivery` status mapping boundaries, idempotency/ledger expectations, rejection rules, and the role of the existing Orders lifecycle callback. Validation passed with Warehouse `git diff --check`, `npm run check:hosted-auth`, and pre-commit. No runtime code, DB migration, secret, deploy, live call, Allegro edit, or Orders runtime code was performed.
 

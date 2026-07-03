@@ -1,5 +1,40 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Shipment OAuth Capability Probe Integrated
+
+Intent chain:
+
+- Vision: runtime shipment reads must be proven with sanitized evidence before any projection migration, Warehouse adapter, or deploy.
+- Goal Impact: the OAuth capability gate moved from unproven to concrete failed-closed evidence: active account/token exist, but the token is expired and checkout-form shipment read returned 401.
+- System: Allegro owns OAuth/provider read capability; Warehouse owns downstream intake; Orders owns lifecycle orchestration and records the gate.
+- Feature: sanitized live shipment-read capability probe integration.
+- Task: integrate Allegro commit `8b1eb49` capability-probe result into Orders orchestration state.
+- Execution Plan: accept sanitized probe evidence, do not implement runtime code, and block projection/client/adapter work until credentials/scopes are fixed and re-probed.
+- Coding Prompt: no token printing, no raw order id/waybill/shipment id/payload, no write endpoints, no deploy.
+- Code: Allegro `8b1eb49 docs: record allegro shipment capability probe`; Orders docs checkpoint in this commit.
+- Validation: Allegro docs commit/pre-commit and Orders `git diff --check`.
+
+Evidence:
+
+- Runtime target documented by Allegro: live `allegro-service` pod in `statex-apps`, image `localhost:5000/allegro-service:2c72f6b`.
+- Probe used in-pod runtime env, decrypted token in memory only, selected one active account and one local Allegro-origin order sample, and printed only a hashed external order id.
+- Active account found: true; token present: true; token scopes configured: true; seller identity verified: true; token expired: true.
+- `GET /order/checkout-forms/{id}/shipments` attempted and returned 401.
+- Carrier tracking and shipment-management detail were not attempted because the first read failed closed.
+- No token, raw order id, buyer data, address, waybill, shipment id, or raw provider payload was printed.
+
+Remaining gates:
+
+- `[MISSING: refresh or replace active Allegro OAuth token and prove /order/checkout-forms/{id}/shipments read succeeds.]`
+- `[UNKNOWN: carrier tracking read capability; not probed because shipment read returned 401.]`
+- `[UNKNOWN: shipment-management detail read capability; not probed because shipment read returned 401.]`
+- `[MISSING: owner approval for Allegro shipment projection Prisma migration/service implementation.]`
+- `[MISSING: Warehouse consumer/runtime adapter and approved ledger/correlation source.]`
+
+Next action:
+
+- Fix Allegro OAuth token/scope/account permission, rerun the sanitized capability probe, then decide whether projection migration/runtime client work can start.
+
 ## 2026-07-03 - Allegro Shipment Projection And Warehouse Consumer Contracts Integrated
 
 Intent chain:
@@ -23,7 +58,7 @@ Evidence:
 
 Remaining gates:
 
-- `[MISSING: sanitized live OAuth capability proof for shipment and tracking reads.]`
+- `[PROBED/FAILED: Allegro shipment read capability in commit 8b1eb49; active token was expired and /order/checkout-forms/{id}/shipments returned 401.]`
 - `[MISSING: owner approval for Allegro shipment projection Prisma migration/service implementation.]`
 - `[MISSING: Warehouse consumer/runtime adapter for read-only shipment snapshots.]`
 - `[MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store.]`
@@ -58,7 +93,7 @@ Evidence:
 
 Remaining gates:
 
-- `[MISSING: sanitized live OAuth capability proof for /order/checkout-forms/{id}/shipments and /order/carriers/{carrierId}/tracking.]`
+- `[PROBED/FAILED: Allegro /order/checkout-forms/{id}/shipments returned 401 with expired token; carrier tracking not attempted.]`
 - `[LANDED: durable Allegro shipment projection schema/client design in allegro commit 9834f09; migration/service implementation still gated.]`
 - `[MISSING: Warehouse consumer/runtime adapter for read-only shipment snapshots.]`
 - `[MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store.]`
@@ -91,7 +126,7 @@ Evidence:
 
 Remaining gates:
 
-- `[MISSING: Allegro OAuth scope proof and runtime credential source for shipment reads.]`
+- `[PROBED/FAILED: Allegro shipment read runtime token present but expired; /order/checkout-forms/{id}/shipments returned 401.]`
 - `[MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store.]`
 - `[LANDED: sanitized Allegro shipment snapshot fixture/verifier set in allegro commit e626e5c; runtime adapter tests still gated.]`
 - `[LANDED: source build validation for Allegro buyer backend/frontend route; runtime authenticated smoke remains deploy-gated.]`
@@ -156,7 +191,7 @@ Evidence:
 
 Remaining gates:
 
-- `[MISSING: proof that active Allegro OAuth token/scopes can read checkout-form shipments, carrier tracking, and optional shipment-management detail without write scopes.]`
+- `[PROBED/FAILED: active Allegro token/scopes did not prove checkout-form shipment read; token expired and read returned 401. Carrier tracking and shipment-management remain unknown.]`
 - `[LANDED: Warehouse bounded intake contract in warehouse-microservice commit f104202.]`
 - `[MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store.]`
 - `[LANDED: sanitized Allegro shipment snapshot fixture/verifier set in allegro commit e626e5c; runtime adapter tests still gated.]`
