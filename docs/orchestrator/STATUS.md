@@ -4,7 +4,7 @@ IPS: Vision -> buyers and admins see reliable delivery progress without leaking 
 
 Decision: current customer/admin cabinets may show canonical lifecycle, delivery, fulfillment, shipment status names, `shipmentLookupRequired`, optional `trackingAvailable` booleans, and aggregate delivery counts. They must not show raw tracking numbers, waybills, tracking URLs, courier deep links, provider payloads, labels/documents, customer PII, credentials, payment data, or Warehouse internals. Future full-value reveal requires a separate audited product/security contract.
 
-Remaining gates: optional real provider live-read evidence if the sanitized existing-correlation smoke is insufficient; optional future audited full-tracking reveal API if product/security approves it.
+Remaining gates: optional real provider live-read evidence if the sanitized existing-correlation smoke is insufficient; minimal Allegro service role before recurring provider ingestion; optional future audited full-tracking reveal API if product/security approves it.
 
 ## 2026-07-03 - Shipment Runtime Gate Report Refreshed
 
