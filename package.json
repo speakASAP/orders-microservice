@@ -8,7 +8,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
-    "test": "npm run build && npm run verify:transitions && npm run verify:sensitive-logging && npm run verify:create-order-contract && npm run verify:idempotency-contract && npm run verify:duplicate-order-protection && npm run verify:order-reservation-gate && npm run verify:order-lifecycle-read-model && npm run verify:order-fulfillment-handoff && npm run verify:event-contracts && npm run verify:warehouse-handoff && npm run verify:payment-boundary && npm run verify:pricing-safety && npm run verify:pricing-consolidation-contract && npm run verify:product-sales-statistics && npm run verify:admin-operations-console && npm run verify:shipment-runtime-readiness && npm run verify:channel-lifecycle-surfaces",
+    "test": "npm run build && npm run verify:transitions && npm run verify:sensitive-logging && npm run verify:create-order-contract && npm run verify:idempotency-contract && npm run verify:duplicate-order-protection && npm run verify:order-reservation-gate && npm run verify:order-lifecycle-read-model && npm run verify:order-fulfillment-handoff && npm run verify:event-contracts && npm run verify:warehouse-handoff && npm run verify:payment-boundary && npm run verify:pricing-safety && npm run verify:pricing-consolidation-contract && npm run verify:product-sales-statistics && npm run verify:admin-operations-console && npm run verify:shipment-runtime-readiness && npm run verify:channel-lifecycle-surfaces && npm run verify:channel-lifecycle-runtime-evidence",
     "verify:transitions": "node scripts/verify-status-transitions.js",
     "verify:sensitive-logging": "node scripts/verify-sensitive-logging.js",
     "verify:create-order-contract": "node scripts/verify-create-order-contract.js",
@@ -28,7 +28,8 @@
     "verify:product-sales-statistics": "node scripts/verify-product-sales-statistics.js",
     "verify:order-affinity-replay": "node scripts/verify-order-affinity-replay-contract.js",
     "verify:shipment-runtime-readiness": "node scripts/verify-shipment-runtime-readiness.js",
-    "verify:channel-lifecycle-surfaces": "node scripts/verify-channel-lifecycle-surfaces.js"
+    "verify:channel-lifecycle-surfaces": "node scripts/verify-channel-lifecycle-surfaces.js",
+    "verify:channel-lifecycle-runtime-evidence": "node scripts/verify-channel-lifecycle-runtime-evidence.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

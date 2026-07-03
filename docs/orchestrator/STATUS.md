@@ -1,5 +1,35 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Cross-Channel Runtime Lifecycle Evidence Preflight
+
+Intent chain:
+
+- Vision: every commerce customer/admin surface should show central Orders lifecycle from real runtime evidence, not only source markers.
+- Goal Impact: Orders orchestration now has machine-readable evidence levels for FlipFlop, Bazos, Heureka, Allegro, and Aukro runtime lifecycle/create/cabinet proof.
+- System: Orders owns the cross-channel evidence preflight; channel services own their local smoke artifacts and live customer/admin surfaces.
+- Feature: channel lifecycle runtime evidence verifier.
+- Task: verify existing sanitized runtime artifacts and preserve exact remaining live buyer/provider/browser gates.
+- Execution Plan: read validation artifacts only; no browser automation, secret read, DB read, provider call, Warehouse call, Orders callback, deploy, or runtime mutation.
+- Coding Prompt: distinguish live synthetic create/reservation proof from real buyer/provider lifecycle proof; do not collapse partial evidence into complete status.
+- Code: `scripts/verify-channel-lifecycle-runtime-evidence.js` plus `verify:channel-lifecycle-runtime-evidence`.
+- Validation: `npm run verify:channel-lifecycle-runtime-evidence`; the standard `npm test` chain now enforces this verifier.
+
+Evidence classes:
+
+- FlipFlop: live approved create/reservation smoke evidence is present.
+- Bazos: approved synthetic create/reservation smoke and customer/admin source-cabinet report are present; provider-backed webhook remains unknown.
+- Heureka: final live create/replay/readback/reservation/cleanup smoke evidence is present.
+- Allegro: live route/API isolation evidence is present; real subject-bound buyer order lifecycle smoke remains missing.
+- Aukro: approved synthetic live create/reservation/cleanup proof is present; customer/admin cabinet read-model runtime smoke remains read-role gated.
+
+Remaining gates:
+
+- `[MISSING: approved authenticated customer/admin browser or API smoke per channel for real lifecycle refresh after status changes.]`
+- `[MISSING: real subject-bound Allegro order row and buyer bearer before Allegro cabinet lifecycle can be called live-complete.]`
+- `[MISSING: Orders read-role approval for Aukro central lifecycle cabinet hydration runtime smoke.]`
+- `[MISSING: Warehouse/Allegro shipment-status deploy, migration, env enablement, and safe live smoke approvals.]`
+- `[UNKNOWN: provider-backed Bazos marketplace webhook/order source.]`
+
 ## 2026-07-03 - Cross-Channel Lifecycle Surface Verifier
 
 Intent chain:
