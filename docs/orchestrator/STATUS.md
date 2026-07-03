@@ -1,3 +1,44 @@
+## 2026-07-03 - Session Cleanup Child Lane Reconciliation
+
+Current focus: consume completed child lane results into Orders IPS before any new worker threads or cross-repo edits.
+
+Intent Preservation Chain:
+
+- Vision: marketplace users and admins see canonical Orders lifecycle status, while Warehouse remains fulfillment authority and provider data stays bounded.
+- Goal Impact: the coordinator now has a single current ledger for completed channel UI, provider/courier, and Warehouse contract lanes, preventing repeated worker loops and unsafe overlapping edits.
+- System: Orders owns orchestration evidence; channel services own customer/admin UI surfaces; Warehouse owns provider-status intake/correlation; provider systems own courier data capability.
+- Feature: channel lifecycle proof sequencing and shipment-status runtime gate control.
+- Task: integrate session-cleanup handoff results from Frontend-A, Frontend-B, Provider/courier P lanes, and Warehouse Worker F.
+- Execution Plan: Orders-only docs/status update; no channel source edit, deploy, restart, DB read/write, provider call, credential read, browser session, raw DOM, or runtime mutation.
+- Coding Prompt: mark unproven runtime gates as `[MISSING: ...]` / `[UNKNOWN: ...]`; do not claim deploy/browser proof from source-only commits.
+- Code: `docs/orchestrator/2026-07-03-session-cleanup-child-lane-reconciliation.md`, `docs/orchestrator/STATUS.md`, and `docs/IMPLEMENTATION_STATE.md`.
+- Validation: `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:shipment-runtime-readiness`, `npm run verify:completion-audit`, and `git diff --check`.
+
+Consumed child results:
+
+- Frontend-A: FlipFlop `3110c6a` and Heureka `358fba9` source validation/build lanes are consumed; no new source worker should rerun them. FlipFlop service-scoped proof remains proven; Heureka later runtime/API proof supersedes the original no-deploy state, with optional DOM proof still open if product requires visible-label evidence.
+- Frontend-B: Allegro `529a71d`, Bazos `26af3ae`, and Aukro `f6502bb` source validation/build lanes are consumed; no new channel UI source worker should rerun them before deploy/smoke or explicit defer. Allegro and Aukro stale direct commits must not be merged over patch-equivalent current lineage; Bazos remains live-data gated.
+- Provider/courier P3: Orders shipment sensitive-data policy is integrated; raw tracking display remains blocked by product-approved visibility matrix.
+- Warehouse Worker F: Warehouse fulfillment provider status intake contract `f104202` is landed; runtime correlation/readback remains gated.
+- Provider/courier P1/P2/P4/P5 and boundary workers: docs/read-only handoffs are complete; runtime provider integration remains blocked by Allegro OAuth/scope/account permission, sanitized fixtures, Warehouse ledger/correlation, deploy/runtime smoke approval, and approved tracking visibility.
+
+Active sequencing decision:
+
+- Do not run another source edit over FlipFlop, Heureka, Allegro, Bazos, or Aukro until these UI commits are deployed/smoked, superseded by patch-equivalent deployed evidence, or explicitly deferred.
+- Do not start Orders runtime provider implementation until Allegro source capability and Warehouse ledger/correlation are resolved with approved config, credentials, fixtures, and sensitive-data policy.
+- Safe next integration action is a deployment/browser-smoke decision for already-integrated channel UI/runtime commits, starting only with a lane whose data/auth blocker is satisfied.
+
+Remaining gates:
+
+- `[MISSING: browser DOM capture for Heureka visible lifecycle labels if API-backed dashboard proof is not sufficient]`
+- `[MISSING: live Bazos paid multi-product order replay evidence or approved bounded fixture]`
+- `[MISSING: real forwarded Allegro order visible to a real Auth bearer with central Orders lifecycle rendering]`
+- `[MISSING: approved Aukro human/admin bearer or bounded fixture plus non-stale canonical lifecycle row]`
+- `[MISSING: Allegro shipment OAuth/scope/account permission and sanitized fixture bundle for provider runtime smoke]`
+- `[MISSING: Warehouse ledger/correlation runtime readback proving no raw provider/customer fields enter Orders events]`
+- `[MISSING: product-approved tracking visibility matrix before raw tracking number or URL appears in any UI/API response]`
+- `[MISSING: owner approval to enable shipment correlation runtime env and run bounded live smoke]`
+
 
 ## 2026-07-03 - Bazos Paid Replay Zero-Order Evidence
 
