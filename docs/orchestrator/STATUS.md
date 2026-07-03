@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Shipment Dead-Letter Retention Location Integrated
+
+Intent chain:
+
+- Vision: failed Allegro-to-Warehouse shipment correlation attempts must have a durable operational review location without raw provider payloads or direct Orders ingestion.
+- Goal Impact: the operational retention-location gate moved from missing to source-supported default plus explicit override paths, leaving runtime volume/permission confirmation and live smoke gates explicit.
+- System: Allegro owns retry artifact creation and retention path selection; Warehouse owns correlation, provider-status ledger, and fulfillment transitions; Orders owns lifecycle read models from Warehouse callbacks.
+- Feature: bounded shipment dead-letter retention location.
+- Task: integrate Allegro commit `40872d5` into Orders orchestration state.
+- Execution Plan: accept source-only path resolver and replay evidence; keep live provider reads, live Warehouse calls, deployment, migration run, Orders callbacks, and fulfillment status mutation blocked until approved.
+- Coding Prompt: no Orders runtime code, no raw Allegro id/waybill/tracking/customer fields in report output, no direct provider payload ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Allegro `40872d5 feat: add shipment dead-letter retention path`; Orders docs checkpoint in this commit.
+- Validation: Allegro `npm run verify:shipment-status-replay`, `npm run verify:shipment-status-snapshot-export`, `npm run verify:shipment-status-handoff`, `npm run verify:warehouse-shipment-correlation`, `npm run verify:shipment-status-snapshot`, `npm run build`, `git diff --check`, pre-commit checks, push to `main`, and Orders `git diff --check`.
+
+Evidence:
+
+- `replay-shipment-status-handoff.ts` now supports `--dead-letter-file`, `--dead-letter-dir`, `ALLEGRO_SHIPMENT_DEAD_LETTER_DIR`, and default directory `/var/lib/allegro-service/shipment-correlation-dead-letter`.
+- Apply-mode replay writes a bounded `allegro.shipment_status_dead_letter.v1` report only when handoff results include blocked, failed, or terminal skipped items.
+- The resolver prefers explicit file, then explicit directory, then environment directory, then the default service retention directory.
+- Report output remains bounded to retry/idempotency metadata and does not include raw provider, customer, waybill, or tracking values.
+
+Remaining gates:
+
+- `[LANDED: source-only shipment dead-letter retention location in allegro commit 40872d5.]`
+- `[MISSING: runtime volume and permission confirmation for /var/lib/allegro-service/shipment-correlation-dead-letter before deployment.]`
+- `[MISSING: owner-approved live runtime smoke with a safe order selection file and real token source.]`
+- `[MISSING: Warehouse deploy/migration approval for fulfillment_provider_shipment_correlations.]`
+- `[MISSING: owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or production fulfillment-row mutation.]`
+
+Next action:
+
+- Confirm runtime volume/permissions for the default dead-letter directory, then run an approved sanitized live smoke before Warehouse correlation deployment/migration and runtime status mutation.
+
 ## 2026-07-03 - Allegro Shipment Correlation Dead-Letter Report Integrated
 
 Intent chain:
