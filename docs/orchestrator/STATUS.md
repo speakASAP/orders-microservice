@@ -1,5 +1,41 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Warehouse Shipment Correlation Producer Integrated
+
+Intent chain:
+
+- Vision: Allegro-origin shipment status should reach Orders only through sanitized Warehouse-owned fulfillment correlation and bounded lifecycle callbacks.
+- Goal Impact: the channel producer path moved from missing to source-validated Allegro client evidence, leaving deploy/migration/runtime caller/status-mutation gates explicit.
+- System: Allegro owns provider reads and hashed shipment snapshot identity; Warehouse owns correlation registry, provider-status ledger, and fulfillment transitions; Orders owns central lifecycle and customer/admin read models.
+- Feature: disabled-by-default Allegro producer client for Warehouse shipment correlation registration.
+- Task: integrate Allegro commit `c434d1a` into Orders orchestration state.
+- Execution Plan: accept source-only producer evidence; keep live Warehouse calls, deployment, migration run, runtime replay caller, Orders callbacks, and fulfillment status mutation blocked until approved.
+- Coding Prompt: no Orders runtime code, no raw Allegro id/waybill/tracking/customer fields, no direct provider payload ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Allegro `c434d1a feat: add warehouse shipment correlation producer`; Orders docs checkpoint in this commit.
+- Validation: Allegro `npm run verify:warehouse-shipment-correlation`, `npm run verify:shipment-status-snapshot`, `npm run build`, `git diff --check`, pre-commit checks, push to `main`, and Orders `git diff --check`.
+
+Evidence:
+
+- Allegro source now has `WarehouseShipmentCorrelationClient.publishSnapshotCorrelation()` and `buildWarehouseShipmentCorrelationRequest()`.
+- The producer maps sanitized `allegro.shipment_status_snapshot.v1` snapshots to `POST /api/fulfillment-orders/order/:centralOrderId/provider-shipment-correlations`.
+- The request contains only `provider`, `sourceChannel`, hashed account/order/shipment/waybill identities, Warehouse-compatible `sourceReferenceHash`, `reasonCode`, and bounded reference.
+- Runtime posting is disabled unless `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true` and a Warehouse/internal service token is configured.
+- The verifier proves disabled-by-default behavior, missing-central-order skip, configured post headers, source-reference hash shape, and no raw provider/buyer marker leakage.
+
+Remaining gates:
+
+- `[LANDED: source-only Allegro Warehouse shipment correlation producer in allegro commit c434d1a.]`
+- `[LANDED: source-only Warehouse shipment correlation endpoint in warehouse-microservice commit 174f92e.]`
+- `[MISSING: deploy/migration approval for Warehouse correlation table and endpoint.]`
+- `[MISSING: approved Allegro shipment projection/replay runtime caller that invokes the producer.]`
+- `[MISSING: approved retention/retry/dead-letter policy for failed correlation posts.]`
+- `[MISSING: product-approved tracking visibility matrix before tracking number/URL display.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or production fulfillment-row mutation.]`
+
+Next action:
+
+- Approve Warehouse deploy/migration plus the Allegro runtime replay caller gate, then run a sanitized smoke proving correlations register before enabling provider-status consumption.
+
 ## 2026-07-03 - Warehouse Shipment Correlation Producer Surface Integrated
 
 Intent chain:
