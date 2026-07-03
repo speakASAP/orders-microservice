@@ -57,12 +57,14 @@ assert.equal(runtimeGateReport.schemaVersion, 'orders.shipment_runtime_gate.v1',
 assert.equal(runtimeGateReport.status, 'runtime_proven_source_hardened_minimal_token_projected', 'shipment runtime gate must record proven runtime path plus minimal projected token');
 assert.equal(runtimeGateReport.runtimeEvidence.deployments.orders.image, 'localhost:5000/orders-microservice:ad83d15', 'Orders runtime image evidence mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.deployments.warehouse.image, 'localhost:5000/warehouse-microservice:d9ebb47', 'Warehouse runtime image evidence mismatch');
-assert.equal(runtimeGateReport.runtimeEvidence.deployments.allegro.image, 'localhost:5000/allegro-service:d088104', 'Allegro runtime image evidence mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.deployments.allegro.image, 'localhost:5000/allegro-service:b6cd31a', 'Allegro runtime image evidence mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.appliedMigrations.includes('CreateFulfillmentProviderShipmentCorrelations1781700000000'), true, 'Warehouse correlation migration must be applied at runtime');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.appliedMigrations.includes('CreateFulfillmentProviderStatusObservations1781600000000'), true, 'Warehouse provider status observation migration must be applied at runtime');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.deadLetterEnv, 'set', 'Allegro runtime must have dead-letter env set');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.correlationEnabledEnv, 'true', 'Allegro correlation gate must be explicitly enabled for the proven smoke');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.warehouseServiceTokenPresent, true, 'Allegro runtime must have a Warehouse-capable service token');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.warehouseServiceTokenPresent, false, 'Allegro runtime must not keep the temporary WAREHOUSE_SERVICE_TOKEN env');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.warehouseInternalServiceTokenPresent, true, 'Allegro runtime must have the Vault-managed internal Warehouse service token');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.warehouseCapableServiceTokenPresent, true, 'Allegro runtime must have a Warehouse-capable service token');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.posted, 1, 'sanitized replay must post exactly one Warehouse correlation');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.disabled, 0, 'enabled replay must not be disabled');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.blocked, 0, 'enabled replay must not be blocked');
@@ -93,14 +95,17 @@ assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardeni
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.hasAllegroServiceRole, true, 'current runtime token must have the Allegro service role');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.hasWarehouseAdminRole, false, 'current runtime token must not carry the broad Warehouse-admin role');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.requiredRole, 'internal:allegro-service:service', 'runtime required role mismatch');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.projectedRuntimeEnv, 'WAREHOUSE_SERVICE_TOKEN', 'projected runtime env mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.projectedRuntimeEnv, 'WAREHOUSE_INTERNAL_SERVICE_TOKEN', 'projected runtime env mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.roleAcceptedByWarehouseShipmentEndpoint, true, "projected runtime token must pass Warehouse shipment endpoint auth");
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.adminRouteRejected, true, "projected runtime token must not access default Warehouse admin routes");
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.broadFallbackRejectedByWarehouseShipmentEndpoint, true, "broad fallback token must be rejected by hardened shipment endpoint");
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.projectedRuntimeEnv, "WAREHOUSE_SERVICE_TOKEN", "runtime projection env mismatch");
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.projectedRuntimeEnv, "WAREHOUSE_INTERNAL_SERVICE_TOKEN", "runtime projection env mismatch");
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.additionalProjectedRuntimeEnv, "WAREHOUSE_INTERNAL_SERVICE_TOKEN", "additional runtime projection env mismatch");
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.deploymentManifestCommit, "d088104", "Allegro token projection manifest commit mismatch");
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.unmanagedKubernetesSecretCreated, true, "Allegro Warehouse service token must be projected through the Kubernetes secret");
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.deploymentManifestCommit, "b6cd31a", "Allegro token projection manifest commit mismatch");
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.unmanagedKubernetesSecretCreated, false, "Allegro Warehouse service token must be projected through the Vault-managed internal token path");
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.unmanagedKubernetesSecretRemoved, true, "temporary unmanaged Kubernetes token secret must be removed after cutover");
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.livePodWarehouseServiceTokenPresent, false, "live Allegro pod must not keep temporary WAREHOUSE_SERVICE_TOKEN env");
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.livePodWarehouseInternalServiceTokenPresent, true, "live Allegro pod must keep WAREHOUSE_INTERNAL_SERVICE_TOKEN env");
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.authProvisioningEvidence.roleExists, true, 'Auth Allegro service role must exist');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.authProvisioningEvidence.printedEmails, false, 'Auth provisioning evidence must not print emails');
 
