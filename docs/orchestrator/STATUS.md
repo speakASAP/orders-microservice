@@ -1,5 +1,38 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Warehouse Provider-Status Ledger Policy Integrated
+
+Intent chain:
+
+- Vision: Orders lifecycle projection should receive bounded Warehouse fulfillment updates while raw provider shipment evidence stays outside Orders.
+- Goal Impact: the durable ledger ownership and timestamp/replay gate moved from missing to Warehouse-owned provisional contract evidence.
+- System: Warehouse owns fulfillment status mutation, transition validation, and the future provider-status observation ledger; Allegro/source services own raw provider reads and sanitized projections; Orders owns customer/admin lifecycle projection from Warehouse callbacks.
+- Feature: Warehouse provider-status ledger and timestamp policy integration.
+- Task: integrate Warehouse commit `72d73ec` into Orders orchestration state.
+- Execution Plan: accept docs-only policy evidence, keep runtime adapter/deploy blocked, and preserve Orders as a bounded lifecycle consumer rather than a provider payload processor.
+- Coding Prompt: no Orders runtime code, DB migration, deploy, secret read, live provider call, raw provider/tracking/customer fields, or production fulfillment-row mutation.
+- Code: Warehouse `72d73ec docs: define provider status ledger policy`; Orders docs checkpoint in this commit.
+- Validation: Warehouse `git diff --check`, `npm run check:hosted-auth`, commit hook pre-commit checks, and Orders `git diff --check`.
+
+Evidence:
+
+- Warehouse ledger ownership is decided: Warehouse owns the durable provider-status observation ledger beside fulfillment transition validation.
+- The policy defines sanitized logical fields for idempotency key, content hash, provider/source channel, central order id, fulfillment order id, hashed source reference, normalized Warehouse status, timestamp classes, decision, rejection reason, and replay diagnostics.
+- Timestamp classes are explicitly separated as `sourceUpdatedAt`, `statusObservedAt`, and `observedAt`; Orders callback `occurredAt` remains bounded to trusted status occurrence time or local observation time.
+- Replay/conflict rules fail closed for duplicate same-content, same-key different-content, stale source updates, future timestamps, missing joins, unknown statuses, raw provider/tracking/customer fields, and invalid Warehouse transition skips.
+
+Remaining gates:
+
+- `[DECIDED: Warehouse-owned provider-status observation ledger policy in warehouse-microservice commit 72d73ec.]`
+- `[MISSING: approved Warehouse ledger migration/schema implementation.]`
+- `[MISSING: approved future clock-skew window, stale-event age, and retention/retry/dead-letter policy.]`
+- `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
+- `[MISSING: owner approval before Warehouse runtime adapter, migration, deploy, or production fulfillment-row mutation.]`
+
+Next action:
+
+- Implement approved source-only Warehouse ledger migration/tests and keep Allegro/provider adapter runtime disabled until correlation, retention, visibility, and deploy/smoke gates are approved.
+
 ## 2026-07-03 - Orders Allegro Source-Reference Preservation Verified
 
 Intent chain:
@@ -24,13 +57,13 @@ Remaining gates:
 
 - `[PROVEN: Orders source-reference preservation for synthetic Allegro Warehouse fulfillment handoff payloads.]`
 - `[MISSING: live Allegro-origin central order with fulfilled reservations for runtime Warehouse handoff join smoke.]`
-- `[MISSING: approved durable Warehouse adapter ledger for checkout-form status observations.]`
-- `[MISSING: approved timestamp ordering/replay semantics for Allegro updatedAt, local observation time, and Warehouse transition occurredAt.]`
+- `[DECIDED: Warehouse-owned provider-status observation ledger policy in warehouse-microservice commit 72d73ec.]`
+- `[PARTIAL: provisional timestamp/replay semantics landed in Warehouse commit 72d73ec; runtime constants remain missing.]`
 - `[MISSING: owner approval before Warehouse runtime adapter, Allegro projection migration, deployment, or production fulfillment-row mutation.]`
 
 Next action:
 
-- Decide durable Warehouse adapter ledger ownership, then implement disabled-by-default provider/status adapter code behind explicit runtime gates.
+- Implement approved source-only Warehouse ledger migration/tests and keep provider/status adapter runtime disabled until remaining constants, correlation, visibility, and deploy gates are approved.
 
 ## 2026-07-03 - Warehouse Allegro Checkout Fulfillment Mapping Integrated
 
@@ -60,8 +93,8 @@ Remaining gates:
 - `[LANDED: Warehouse provisional Allegro checkout-form fulfillment status mapping in warehouse-microservice commit b44ea08.]`
 - `[MISSING: sanitized checkout-form fulfillment.status fixture set and approved enum/class list.]`
 - `[MISSING: approved Orders source-reference preservation evidence proving Allegro-origin central orders preserve source evidence and fulfilled reservation ids for Warehouse joins.]`
-- `[MISSING: approved durable Warehouse adapter ledger for checkout-form status observations.]`
-- `[MISSING: approved timestamp ordering/replay semantics for Allegro updatedAt, local observation time, and Warehouse transition occurredAt.]`
+- `[DECIDED: Warehouse-owned provider-status observation ledger policy in warehouse-microservice commit 72d73ec.]`
+- `[PARTIAL: provisional timestamp/replay semantics landed in Warehouse commit 72d73ec; runtime constants remain missing.]`
 - `[MISSING: owner approval before any Warehouse runtime adapter, src/** mutation, migration, deploy, or production fulfillment-row mutation.]`
 
 Next action:
