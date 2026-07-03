@@ -1,7 +1,7 @@
 {
   "schemaVersion": "orders.channel_deploy_browser_smoke_decision.v1",
   "status": "partial_smoke_ready_with_merge_equivalents_and_data_gates",
-  "checkedAt": "2026-07-03T12:29:19.232Z",
+  "checkedAt": "2026-07-03T12:53:37.701Z",
   "policy": {
     "readOnlyProbe": true,
     "channelSourceEdits": false,
@@ -46,7 +46,7 @@
     },
     "bazos": {
       "expectedWorkerCommit": "26af3ae",
-      "currentHead": "1ccb93d",
+      "currentHead": "c6c1ce0",
       "runtimeImage": "localhost:5000/bazos-service:9059605",
       "sourceContainsExpectedCommit": true,
       "runtimeContainsExpectedCommit": true,

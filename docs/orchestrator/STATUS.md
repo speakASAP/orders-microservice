@@ -1,5 +1,35 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Channel Deploy Browser Smoke Decision Refreshed
+
+Intent chain:
+
+- Vision: channel customer/admin surfaces must prove lifecycle rendering from the central Orders state without stale worker commit assumptions.
+- Goal Impact: the deploy/browser-smoke order remains bounded to route/data blockers instead of rerunning already-integrated UI commits.
+- System: Orders owns the cross-channel evidence ledger; channel repos own their deployed UI/API surfaces.
+- Feature: channel lifecycle deploy/browser-smoke decision.
+- Task: refresh live source/runtime heads after worker merges and deployment waves.
+- Execution Plan: read channel git heads and Kubernetes image tags, update the Orders deploy-decision artifact, and preserve remaining gates.
+- Coding Prompt: no channel source edits, no deploy, no runtime mutation, no DB read, no provider call, no secrets or raw DOM/order output.
+- Code: `reports/validation/channel-lifecycle-runtime-evidence/channel-deploy-browser-smoke-decision-current.json`.
+- Validation: `npm run verify:channel-lifecycle-runtime-evidence` and `npm run verify:completion-audit` passed after gate alignment.
+
+Evidence:
+
+- FlipFlop source contains worker UI commit `3110c6a`; runtime uses mutable `latest` image tags, with service-scoped browser proof already proven.
+- Heureka source/runtime are at `358fba9`, but rendered lifecycle proof remains blocked by `/heureka/dashboard/orders` route/API `404`.
+- Bazos current head advanced to `c6c1ce0`; worker UI commit `26af3ae` remains in history and runtime image `9059605` is still the deployed proof baseline.
+- Allegro current head is `4b08a7c`; direct worker commit `529a71d` remains superseded by patch-equivalent `4ff3987`, with runtime image `ae9d381`.
+- Aukro current head is `e440fa1`; direct worker commit `f6502bb` remains superseded by patch-equivalent `08ad5ce`, with runtime image `68784d7`.
+
+Remaining gates:
+
+- `[MISSING: Heureka dashboard orders route/API fix or approved alternative proof path.]`
+- `[MISSING: real forwarded Allegro order visible to a real Auth bearer with central Orders lifecycle rendering.]`
+- `[MISSING: Aukro approved live row linked to a current non-stale canonical Orders lifecycle stage.]`
+- `[MISSING: Bazos provider-backed paid order source and persisted item snapshot contract.]`
+- `[MISSING: shipment-status enablement/config/safe-smoke/readback/mutation approvals.]`
+
 ## 2026-07-03 - Allegro Buyer Personal-Cabinet Ownership Mapping Reconciled
 
 Intent chain:
