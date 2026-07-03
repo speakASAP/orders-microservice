@@ -22,6 +22,9 @@ const createContract = read('docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md'
 const createVerifier = read('scripts/verify-create-order-contract.js');
 const paymentVerifier = read('scripts/verify-payment-boundary.js');
 const report = read(reportPath);
+const staleIdempotencyClaim = 'current status endpoint has no dedicated idempotency-key field';
+assert.equal(report.includes(staleIdempotencyClaim), false, 'readiness report must not preserve stale idempotency endpoint wording');
+requireIncludes(report, 'approval.idempotencyKey, which the current status endpoint accepts and persists in statusTransitionAudit', 'readiness report idempotency endpoint wording');
 const flipflopOrdersService = readSibling('flipflop', 'services/order-service/src/orders/orders.service.ts');
 const flipflopOrdersHubVerifier = readSibling('flipflop', 'scripts/verify-orders-hub-integration.js');
 const paymentsCreateValidation = readSibling('payments-microservice', 'test/payment-create-validation.spec.ts');
