@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Aukro Lifecycle Runtime Data Blocker Recorded
+
+Intent chain:
+
+- Vision: customer and admin order lifecycle proof must reflect live rendered data, not only source wiring or stale local rows.
+- Goal Impact: Aukro is now separated from missing-route/auth blockers; its authenticated dashboard/admin APIs are live, but the current live rows cannot prove a non-unknown canonical lifecycle stage.
+- System: Orders owns the verifier, redacted runtime evidence artifacts, and IPS status; Aukro source, channel DB rows, providers, deployments, and secrets were not changed.
+- Feature: Aukro customer/admin lifecycle runtime proof gate.
+- Task: probe live Aukro service surfaces with an in-pod short-lived smoke JWT, summarize only redacted aggregate evidence, and record a blocked browser proof report.
+- Execution Plan: inspect Aukro route/auth shape, call protected `/aukro/orders`, `/aukro/ui/dashboard`, and `/aukro/ui/admin/services` inside the running pod, hash identifiers, omit tokens and raw rows, then add Orders-only artifacts and verifier assertions.
+- Coding Prompt: do not print credentials, tokens, cookies, customer PII, raw order rows, raw DOM, database dumps, tracking values, payment refs, or provider payloads.
+- Code: `reports/validation/orders-browser-render-proof/blocked-aukro-live-data-no-canonical-lifecycle.json`, `reports/validation/orders-browser-render-proof/aukro-dashboard-live-data-blocked-artifact.json`, and `scripts/verify-channel-lifecycle-runtime-evidence.js`.
+- Validation: live protected Aukro probe returned HTTP 200 for orders API, customer dashboard data, and admin services. The redacted aggregate showed 3 dashboard orders, 1 central read available, 2 missing central order ids, and no non-unknown canonical lifecycle stage; the single forwarded central read returned raw status `cancelled` with no lifecycle/payment/fulfillment/delivery fields.
+
+Remaining gate:
+
+- `[MISSING: approved Aukro live order row linked to a current canonical Orders lifecycle read model with a non-unknown stage, then rerun customer/admin rendered lifecycle proof as status=proven.]`
+
 ## 2026-07-03 - Blocked Browser Proof Report Recorded
 
 Intent chain:

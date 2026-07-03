@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "orders.browser_blocked_live_data_probe.v1",
+  "checkedAt": "2026-07-03T12:11:02.691Z",
+  "channel": "aukro",
+  "runtime": {
+    "podScopedProbe": true,
+    "serviceSurfaceOnly": true,
+    "ordersApiHttpStatus": 200,
+    "dashboardHttpStatus": 200,
+    "adminHttpStatus": 200
+  },
+  "dashboardEvidence": {
+    "dashboardOrders": 3,
+    "ordersWithCentralStatus": 1,
+    "staleOrders": 2,
+    "unforwardedOrders": 2,
+    "byLifecycleStage": {
+      "unknown": 3
+    },
+    "byOrdersReadStatus": {
+      "missing_order_id": 2,
+      "available": 1
+    },
+    "hasCentralLifecycleStage": false,
+    "hasWarehouseCollecting": false
+  },
+  "adminEvidence": {
+    "totalOrders": 3,
+    "forwardedOrders": 1,
+    "ordersWithCentralStatus": 1,
+    "staleOrders": 2,
+    "byLifecycleStage": {
+      "available": 1,
+      "missing_order_id": 2
+    },
+    "byOrdersReadStatus": {
+      "available": 1,
+      "missing_order_id": 2
+    },
+    "hasCentralReadStatus": true
+  },
+  "centralReadModelEvidence": {
+    "forwardedLocalOrders": 1,
+    "centralReadHttpStatus": 200,
+    "centralReadStatus": "cancelled",
+    "canonicalLifecycleStagePresent": false,
+    "paymentStatusPresent": false,
+    "fulfillmentStatusPresent": false,
+    "deliveryStatusPresent": false,
+    "hashedOrderIdentifiersOnly": true
+  },
+  "blocker": "Aukro dashboard and admin APIs are live, but the current live Aukro rows do not include a non-stale canonical lifecycle example: one forwarded row reads central Orders as cancelled without lifecycle fields and two rows are missing central order ids.",
+  "nextAction": "Seed or replay an approved Aukro order with a current canonical Orders lifecycle read model, then rerun the customer/admin rendered lifecycle proof.",
+  "redacted": true,
+  "tokenValuesPrinted": false,
+  "rawOrderRowsPrinted": false,
+  "rawCustomerPrinted": false,
+  "rawDomPrinted": false,
+  "databaseDump": false,
+  "providerCall": false
+}

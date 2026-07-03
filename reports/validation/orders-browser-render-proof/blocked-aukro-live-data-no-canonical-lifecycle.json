@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "orders.browser_render_proof.v1",
+  "status": "blocked",
+  "channel": "aukro",
+  "proofMode": "service_scoped_proxy",
+  "checkedAt": "2026-07-03T12:11:02.691Z",
+  "ordersEvidenceCommit": "4b08bb5b870bfec87bea5724ed9b515b5690857a",
+  "mutationEvidence": {
+    "summary": "Aukro rendered lifecycle proof is blocked after live authenticated API proof because available live Aukro rows do not contain a non-stale canonical lifecycle stage."
+  },
+  "refreshMechanism": "api_backed_render_probe",
+  "centralReadModelBacked": false,
+  "evidencePolicy": {
+    "noTokenValues": true,
+    "noCookies": true,
+    "noCustomerPii": true,
+    "noRawOrderRows": true,
+    "noDatabaseDump": true,
+    "noPaymentReference": true,
+    "noTrackingValues": true,
+    "noProviderPayload": true,
+    "artifactsRedacted": true
+  },
+  "routes": [
+    {
+      "surface": "customer_cabinet",
+      "url": "https://aukro.alfares.cz/dashboard",
+      "httpStatus": 200,
+      "dataSourceStatus": 200,
+      "authContext": "service_scoped_proxy",
+      "renderedLifecycleStage": "",
+      "renderedLifecycleLabel": "",
+      "artifact": {
+        "kind": "blocked_live_data_probe",
+        "path": "reports/validation/orders-browser-render-proof/aukro-dashboard-live-data-blocked-artifact.json",
+        "sha256": "b07c16873b90f8211c86e4581365ea4498d6f2a9e9cff2122144bf922e79cda9",
+        "redacted": true
+      }
+    },
+    {
+      "surface": "admin_dashboard",
+      "url": "https://aukro.alfares.cz/dashboard",
+      "httpStatus": 200,
+      "dataSourceStatus": 200,
+      "authContext": "service_scoped_proxy",
+      "renderedLifecycleStage": "",
+      "renderedLifecycleLabel": "",
+      "artifact": {
+        "kind": "blocked_live_data_probe",
+        "path": "reports/validation/orders-browser-render-proof/aukro-dashboard-live-data-blocked-artifact.json",
+        "sha256": "b07c16873b90f8211c86e4581365ea4498d6f2a9e9cff2122144bf922e79cda9",
+        "redacted": true
+      }
+    }
+  ],
+  "result": {
+    "summary": "Aukro customer dashboard and admin services APIs are live under authenticated service-scoped proof, but current live rows cannot render a non-unknown canonical lifecycle stage.",
+    "nextAction": "Create or replay an approved Aukro order that remains linked to a current Orders lifecycle read model, then rerun this proof as status=proven."
+  }
+}
