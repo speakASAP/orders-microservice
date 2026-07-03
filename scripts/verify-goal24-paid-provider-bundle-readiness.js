@@ -4,6 +4,7 @@ const path = require('path');
 
 const root = path.join(__dirname, '..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
+const readSibling = (repo, relativePath) => fs.readFileSync(path.join(root, '..', repo, relativePath), 'utf8');
 
 const reportPath = 'reports/validation/VAL-GOAL-24-orders-paid-provider-bundle-readiness.md';
 const createDto = read('src/orders/create-order.dto.ts');
@@ -21,6 +22,9 @@ const createContract = read('docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md'
 const createVerifier = read('scripts/verify-create-order-contract.js');
 const paymentVerifier = read('scripts/verify-payment-boundary.js');
 const report = read(reportPath);
+const flipflopOrdersService = readSibling('flipflop', 'services/order-service/src/orders/orders.service.ts');
+const flipflopOrdersHubVerifier = readSibling('flipflop', 'scripts/verify-orders-hub-integration.js');
+const paymentsCreateValidation = readSibling('payments-microservice', 'test/payment-create-validation.spec.ts');
 
 function requireIncludes(source, needle, label) {
   assert.ok(source.includes(needle), `${label} missing: ${needle}`);
@@ -91,6 +95,27 @@ assert.equal(
   'Orders source must not claim active Payments checkout creation proof',
 );
 
+requireIncludes(flipflopOrdersService, 'createCentralOrderBeforePayment', 'FlipFlop active checkout source');
+requireIncludes(flipflopOrdersService, 'orderId: centralAcceptance.centralOrderId', 'FlipFlop active create/guest payment source');
+requireIncludes(flipflopOrdersService, 'centralOrderId: centralAcceptance.centralOrderId', 'FlipFlop active create/guest payment source');
+requireIncludes(flipflopOrdersService, 'metadata: this.buildPaymentMetadata(order, centralAcceptance.centralOrderId)', 'FlipFlop active create/guest payment metadata');
+requireIncludes(flipflopOrdersService, 'let centralOrderId = this.getAcceptedCentralOrderId(order);', 'FlipFlop legacy create-payment central id lookup');
+requireIncludes(flipflopOrdersService, 'orderId: centralOrderId', 'FlipFlop legacy create-payment source');
+requireIncludes(flipflopOrdersService, 'centralOrderId,', 'FlipFlop legacy create-payment source');
+assert.equal(
+  flipflopOrdersService.includes('orderId: order.orderNumber,'),
+  false,
+  'FlipFlop payment creation must not send the local order number as Payments orderId',
+);
+requireIncludes(
+  flipflopOrdersHubVerifier,
+  'payment creation must use the central Orders UUID and local callback metadata, never the local order number',
+  'FlipFlop source verifier central UUID assertion',
+);
+requireIncludes(paymentsCreateValidation, 'accepts FlipFlop central order correlation without persistence or provider calls', 'Payments create validation');
+requireIncludes(paymentsCreateValidation, "orderId: '86487d81-967b-42e5-9961-7a0eb83b1fe0'", 'Payments central orderId fixture');
+requireIncludes(paymentsCreateValidation, "centralOrderId: '86487d81-967b-42e5-9961-7a0eb83b1fe0'", 'Payments centralOrderId fixture');
+
 for (const required of [
   '[RESOLVED: owner-approved Rung 1 non-mutating real checkout smoke passed',
   '[RESOLVED: owner-approved Rung 2 live pending-order smoke proved pending Orders create',
@@ -100,8 +125,9 @@ for (const required of [
   '[MISSING: owner-approved paid/provider payment provider source and callback contract]',
   '[MISSING: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke]',
   '[MISSING: owner-approved Payments refund/cancel rollback workflow for paid bundle smoke]',
-  '[MISSING: proof that active checkout paths pass central Orders UUIDs to Payments]',
-  '[MISSING: Orders/Payments provider-success, provider-cancel, refund, and post-fulfillment cancellation event contract that maps to Warehouse fulfill/cancel/return calls]',
+  '[RESOLVED: FlipFlop active checkout payment creation passes central Orders UUIDs to Payments from source]',
+  '[RESOLVED/PARTIAL: Orders/Payments provider-success, provider-cancel, and provider-failure event mapping before fulfillment]',
+  '[MISSING: Payments refund and post-fulfillment cancellation/return event contract that maps to Orders and Warehouse without inferred stock effects]',
   '[MISSING: runtime verification of Payments Orders service token/role]',
 ]) {
   requireIncludes(report, required, 'readiness report blocker/evidence');
