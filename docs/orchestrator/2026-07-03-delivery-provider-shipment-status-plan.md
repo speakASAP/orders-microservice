@@ -2,11 +2,11 @@
 
 ```yaml
 id: ORDERS-DELIVERY-PROVIDER-SHIPMENT-STATUS-PLAN
-status: approved-source-contract-gated
+status: source-contract-landed-implementation-gated
 owner: Orders orchestrator
 created: 2026-07-03
 last_updated: 2026-07-03
-completeness_level: source-approved-contract-gated
+completeness_level: source-contract-landed
 upstream:
   - docs/IMPLEMENTATION_ORCHESTRATOR.md
   - docs/IMPLEMENTATION_STATE.md
@@ -63,7 +63,7 @@ Reason: Allegro is the only inspected repo with a concrete marketplace shipment 
 Exact blockers:
 
 - `[APPROVED: initial delivery-provider/courier owner source is allegro Ship with Allegro/shipment APIs for Allegro-origin orders only.]`
-- `[MISSING: Allegro shipment status source contract: read/polling endpoint selection, OAuth scopes, authentication method, idempotency key, timestamp semantics, retry/error semantics, and sanitized sample payloads.]`
+- `[LANDED: Allegro shipment source contract in allegro commit 2183fe8, including endpoint choice, snapshot contract, idempotency/timestamp/retry rules, and sanitized fixture requirements.]`
 - `[MISSING: mapping from Allegro shipment/package/fulfillment statuses to Warehouse fulfillment statuses and Orders lifecycle stages after handed_to_delivery.]`
 - `[MISSING: approved sensitive-data policy for tracking number/URL visibility by role and event exclusion.]`
 - `[MISSING: runtime credential source in Vault/ExternalSecret for allegro-service shipment/fulfillment scope, not Orders.]`
@@ -103,14 +103,14 @@ Rules:
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | P1 Provider discovery | completed | Orders orchestrator | repo discovery docs, `docs/orchestrator/STATUS.md`, `docs/IMPLEMENTATION_STATE.md` | code, secrets, DB, deploy | none | approved initial source: `allegro` Ship with Allegro/shipment APIs for Allegro-origin orders only | `find`/`rg` evidence, git status | Source is named; implementation remains contract-gated. |
 | P2 Warehouse provider-status intake contract | active: Worker F `019f265e-a504-78b3-acd8-c8ff42c745c1` | Warehouse owner | `warehouse-microservice/docs/**`, narrow `src/fulfillment/**` contract/tests after Allegro status contract is drafted | raw provider credentials, Orders code, DB migrations without approval | Allegro source approval; exact Allegro status payloads may remain `[MISSING]` | accepted statuses after `handed_to_delivery`, idempotency and validation rules | focused fulfillment service tests, build, diff check | Warehouse is the bounded intake before Orders projection. |
-| P3 Allegro provider contract/adapter lane | active contract thread: Worker E `019f265e-7e9e-7a03-b621-f030cc2ffd4e`; adapter dependency-gated | Allegro provider owner | `allegro` docs plus narrow read-only shipment client/projection files after contract approval | Orders/Warehouse broad schema changes, fake simulator, Vault mutations without approval, shipment label/document writes | P2 plus OAuth scopes and credential source | read-only Allegro shipment polling/projection normalizes provider events to Warehouse contract | provider fixture tests, sensitive-field checks, retry/idempotency tests | Must keep raw payloads/credentials in Allegro owner. |
+| P3 Allegro provider contract/adapter lane | source contract landed: Allegro `2183fe8`; adapter dependency-gated | Allegro provider owner | `allegro` docs plus narrow read-only shipment client/projection files after contract approval | Orders/Warehouse broad schema changes, fake simulator, Vault mutations without approval, shipment label/document writes | P2 plus OAuth scopes and credential source | read-only Allegro shipment polling/projection normalizes provider events to Warehouse contract | provider fixture tests, sensitive-field checks, retry/idempotency tests | Must keep raw payloads/credentials in Allegro owner. |
 | P4 Orders lifecycle verification | final integration | Orders owner | Orders lifecycle/event docs and focused verifier only if Warehouse contract changes | DB migration, broad schema change, raw tracking fields in events | P2/P3 | prove Warehouse status callback still maps to lifecycle stages/events | `npm run verify:order-lifecycle-read-model`, `npm run verify:event-contracts`, `git diff --check` | No Orders code expected unless bounded status enum changes. |
 | P5 Notifications copy/recipient verification | dependency-gated | Notifications owner | `notifications-microservice/src/notifications/orders-events/**`, docs/tests | direct provider consumption, tracking values in notifications | P4 event evidence | shipment/lifecycle notification remains bounded | focused router spec, build, health smoke if deployed | Existing consumer can route bounded lifecycle events. |
 
 Merge order:
 
 1. Provider source approval docs.
-2. Allegro shipment status contract and sensitive-data policy.
+2. Allegro shipment source contract and sensitive-data policy. Completed for source contract in Allegro `2183fe8`; sensitive-data policy in Orders `6743613`.
 3. Warehouse bounded status intake and tests.
 4. Allegro-owned read-only provider adapter and fixture tests.
 5. Orders verifier/doc update only if the Warehouse status enum or event projection changes.

@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Shipment Source Contract Landed
+
+Intent chain:
+
+- Vision: post-warehouse delivery progress for Allegro-origin orders should be based on a concrete provider source without Orders owning raw courier payloads.
+- Goal Impact: the provider lane now has an Allegro-owned read-only shipment source contract; runtime adapter implementation remains gated by OAuth/credential proof, Warehouse mapping, and validated sanitized fixtures.
+- System: Allegro owns Ship with Allegro API/OAuth and raw provider reads; Warehouse owns bounded fulfillment status intake; Orders owns lifecycle projection and events.
+- Feature: Allegro shipment status source contract integration.
+- Task: integrate Worker E handoff and update blocker scope from missing source contract to remaining implementation gates.
+- Execution Plan: keep Orders documentation-only; do not deploy or add provider runtime code until Warehouse and Allegro workers finish source validation.
+- Coding Prompt: preserve sensitive-data exclusion, no tracking numbers/URLs in Orders events, no raw provider payloads, no credential reads.
+- Code: Allegro commit `2183fe8 docs: add allegro shipment status source contract`; Orders docs checkpoint in this commit.
+- Validation: remote Allegro commit inspection plus Orders `git diff --check`.
+
+Evidence:
+
+- Worker E thread `019f265e-7e9e-7a03-b621-f030cc2ffd4e` pushed Allegro `2183fe8`.
+- New Allegro contract doc: `docs/orchestrator/2026-07-03-allegro-shipment-status-source-contract.md`.
+- Source decision: primary discovery `GET /order/checkout-forms/{allegroOrderId}/shipments`; primary tracking enrichment `GET /order/carriers/{carrierId}/tracking?waybill={waybill}` batched by carrier; optional `GET /shipment-management/shipments/{shipmentId}` only when a durable shipment id already exists.
+- Explicitly forbidden for this lane: create/cancel shipment commands, label/protocol/pickup endpoints, fulfillment writes, fake provider simulators, raw provider payload persistence, and exposing tracking number/URL to Orders events.
+- Contract `allegro.shipment_status_snapshot.v1` requires hashed external ids/waybills and bounded statuses only.
+
+Remaining gates:
+
+- `[MISSING: proof that active Allegro OAuth token/scopes can read checkout-form shipments, carrier tracking, and optional shipment-management detail without write scopes.]`
+- `[MISSING: Warehouse accepted status mapping from Allegro snapshot statuses to fulfillment statuses after handed_to_delivery; Worker F in progress.]`
+- `[MISSING: provider adapter durable idempotency store or Warehouse provider-status ledger decision.]`
+- `[MISSING: sanitized fixture set for order-with-no-shipments, delivered, multi-package, mixed-carrier, tracking-null, oauth-403, redaction, and non-Allegro filter cases.]`
+- `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
+
+Next action:
+
+- Wait for Worker F Warehouse intake contract and Worker G buyer API handoffs, then decide whether Allegro read-only adapter source can start without deploy.
+
 ## 2026-07-03 - Delivery Provider Source Approved For Contracting
 
 Intent chain:
@@ -17,7 +51,7 @@ Intent chain:
 Decision:
 
 - Approved initial source: `allegro` / Ship with Allegro shipment APIs for Allegro-origin orders only.
-- Still blocked for implementation: no Allegro shipment status contract, OAuth-scope confirmation, credential source, status mapping, or sensitive-data policy has been completed yet. Worker E `019f265e-7e9e-7a03-b621-f030cc2ffd4e` owns the Allegro source contract; Worker F `019f265e-a504-78b3-acd8-c8ff42c745c1` owns the Warehouse bounded intake contract.
+- Allegro shipment source contract completed in Allegro `2183fe8`; implementation remains blocked by OAuth-scope confirmation, credential source, Warehouse mapping, idempotency ledger decision, sanitized fixtures, and product tracking visibility policy. Worker F `019f265e-a504-78b3-acd8-c8ff42c745c1` owns the Warehouse bounded intake contract.
 
 Remaining blockers split to worker threads:
 Additional per-blocker worker threads started by the orchestrator after source approval:
@@ -28,7 +62,7 @@ Additional per-blocker worker threads started by the orchestrator after source a
 - P4 Allegro shipment credential source: `019f265f-ce89-77f2-a7d1-f584e88c5ed5`.
 - P5 Allegro shipment fixture policy: `019f2660-06ce-78a0-bc4f-5f4752ee1a48`.
 
-- `[MISSING: Allegro shipment status source contract: read/polling endpoint selection, OAuth scopes, authentication method, idempotency key, timestamp semantics, retry/error semantics, and sanitized sample payloads.]`
+- `[LANDED: Allegro shipment source contract in allegro commit 2183fe8; endpoint choice and sanitized snapshot contract documented.]`
 - `[MISSING: mapping from Allegro shipment/package/fulfillment statuses to Warehouse fulfillment statuses and Orders lifecycle stages after handed_to_delivery.]`
 - `[MISSING: approved sensitive-data policy for tracking number/URL visibility by role and event exclusion.]`
 - `[MISSING: runtime credential source in Vault/ExternalSecret for allegro-service shipment/fulfillment scope, not Orders.]`
@@ -36,7 +70,7 @@ Additional per-blocker worker threads started by the orchestrator after source a
 
 Next action:
 
-- Wait for worker handoffs, then integrate the Allegro source contract before any Warehouse or Allegro runtime implementation.
+- Wait for Worker F/G handoffs, then decide whether source-only Allegro read adapter work can start without runtime deploy.
 
 ## 2026-07-03 - Allegro Buyer Ownership Option 2 Approved
 
