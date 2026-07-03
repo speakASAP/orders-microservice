@@ -34,7 +34,7 @@ Each `routes[]` entry must include:
 - `surface`: one of `customer_cabinet`, `admin_cabinet`, or `admin_dashboard`.
 - `renderedLifecycleLabel`: localized visible lifecycle text or status shown in the UI.
 - `renderedLifecycleStage`: canonical lifecycle stage if visible or inferred from sanitized UI state.
-- `artifact`: object with `kind`, `redacted`, and either `sha256` or `path`.
+- `artifact`: object with `kind`, `redacted`, and either `sha256` or `path`; `sha256` must be 64 lowercase hex characters and `path` must stay under `reports/validation/orders-browser-render-proof/`.
 - `authContext`: optional route-level proof context; if present it must be `safe_human_session` or `service_scoped_proxy`.
 - `dataSourceStatus`: optional numeric backing Orders/channel API status; `status=proven` cannot include `401` or `403` data-source statuses.
 
@@ -67,6 +67,8 @@ Required `evidencePolicy` booleans:
 - `centralReadModelBacked=true`.
 - `mutationEvidence.summary` is present and sanitized.
 - Every artifact is marked `redacted=true`.
+- Artifact SHA-256 values must be 64 lowercase hex characters. artifact sha256 must be 64 lowercase hex characters for browser proof reports.
+- Artifact paths must be relative and under `reports/validation/orders-browser-render-proof/`. artifact path must be under reports/validation/orders-browser-render-proof for browser proof reports.
 - All `evidencePolicy` controls are `true`.
 - At least one route must include `authContext=safe_human_session` or `authContext=service_scoped_proxy`.
 - Route `authContext` values must match report-level `proofMode`. route authContext must match report proofMode for proven browser reports.
@@ -97,5 +99,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-head-commit.json` must be rejected because `ordersEvidenceCommit=HEAD` is not immutable proof evidence.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-expected-commit-mismatch.json` must be rejected because `ordersEvidenceCommit` does not match `BROWSER_RENDER_PROOF_EXPECTED_COMMIT`.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-route-channel-mismatch.json` must be rejected because route URLs belong to a different marketplace host than the declared report `channel`.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-artifact-evidence.json` must be rejected because route artifact evidence has an invalid SHA-256/path shape.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

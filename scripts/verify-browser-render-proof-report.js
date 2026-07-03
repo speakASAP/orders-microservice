@@ -16,6 +16,7 @@ const invalidProofModeMismatchFixturePath = path.join(root, 'docs/orchestrator/b
 const invalidHeadCommitFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-head-commit.json');
 const invalidExpectedCommitMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-expected-commit-mismatch.json');
 const invalidRouteChannelMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-route-channel-mismatch.json');
+const invalidArtifactEvidenceFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-artifact-evidence.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -38,6 +39,8 @@ const allowedChannelHosts = new Map([
   ['allegro', new Set(['allegro.alfares.cz'])],
 ]);
 const orderRoutePathPattern = /\b(admin\/)?orders?\b|\bobjednavk/i;
+const artifactSha256Pattern = /^[0-9a-f]{64}$/;
+const allowedArtifactPathPattern = /^reports\/validation\/orders-browser-render-proof\/[a-z0-9._/-]+$/;
 const allowedRefreshMechanisms = new Set(['manual_refresh', 'visible_polling_30s', 'full_reload', 'api_backed_render_probe']);
 const allowedSurfaces = new Set(['customer_cabinet', 'admin_cabinet', 'admin_dashboard']);
 const allowedAuthContexts = new Set(['safe_human_session', 'service_scoped_proxy']);
@@ -114,6 +117,18 @@ function assertRouteMatchesChannel(route, index, channel) {
   );
 }
 
+function assertArtifactEvidence(artifact, index) {
+  if (artifact.sha256 !== undefined) {
+    assert.equal(typeof artifact.sha256, 'string', `route ${index} artifact.sha256 must be a string`);
+    assert.equal(artifactSha256Pattern.test(artifact.sha256), true, `route ${index} artifact.sha256 must be 64 lowercase hex characters`);
+  }
+  if (artifact.path !== undefined) {
+    assert.equal(typeof artifact.path, 'string', `route ${index} artifact.path must be a string`);
+    assert.equal(allowedArtifactPathPattern.test(artifact.path), true, `route ${index} artifact.path must be under reports/validation/orders-browser-render-proof`);
+    assert.equal(artifact.path.includes('..'), false, `route ${index} artifact.path must not traverse directories`);
+  }
+}
+
 function validateContract() {
   const contract = read(contractPath);
   [
@@ -135,6 +150,8 @@ function validateContract() {
     'ordersEvidenceCommit must be an immutable git commit hash for proven reports',
     'route url host must match report channel for proven browser reports',
     'route url path must target an order lifecycle surface for proven browser reports',
+    'artifact sha256 must be 64 lowercase hex characters for browser proof reports',
+    'artifact path must be under reports/validation/orders-browser-render-proof for browser proof reports',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -205,6 +222,11 @@ function validateFixtures() {
     /route 0 url host must match report channel flipflop/,
     'invalid route-channel mismatch fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidArtifactEvidenceFixturePath)),
+    /artifact.sha256 must be 64 lowercase hex characters/,
+    'invalid artifact evidence fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -215,6 +237,7 @@ function validateFixtures() {
     invalidHeadCommitFixture: path.relative(root, invalidHeadCommitFixturePath),
     invalidExpectedCommitMismatchFixture: path.relative(root, invalidExpectedCommitMismatchFixturePath),
     invalidRouteChannelMismatchFixture: path.relative(root, invalidRouteChannelMismatchFixturePath),
+    invalidArtifactEvidenceFixture: path.relative(root, invalidArtifactEvidenceFixturePath),
   };
 }
 
@@ -260,6 +283,7 @@ function validateReport(rawReport, options = {}) {
       assert.equal(route.dataSourceStatus >= 100 && route.dataSourceStatus < 600, true, `route ${index} dataSourceStatus must be valid`);
     }
     assert.equal(Boolean(route.artifact.sha256 || route.artifact.path), true, `route ${index} artifact sha256 or path is required`);
+    assertArtifactEvidence(route.artifact, index);
   }
   if (report.status === 'proven') {
     assert.equal(

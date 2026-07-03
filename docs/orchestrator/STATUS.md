@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Artifact Evidence Guard Added
+
+Intent chain:
+
+- Vision: rendered lifecycle proof artifacts must be reproducible, redacted, and stored in a predictable validation evidence area.
+- Goal Impact: future `orders.browser_render_proof.v1` reports cannot close the browser gate with malformed artifact hashes or unsafe filesystem paths.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: artifact evidence shape validation for browser proof reports.
+- Task: require artifact SHA-256 values to be 64 lowercase hex characters and artifact paths to stay under `reports/validation/orders-browser-render-proof/`; add a negative fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/state docs, validate without runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, artifact-evidence mismatch fixture, proof contract, status/state docs.
+- Validation: pending targeted and full Orders test chain after this doc update.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report with valid redacted artifact hashes/paths and rendered customer/admin lifecycle stage.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
 ## 2026-07-03 - Provider/Courier Shipment Correlation Deploy Gate Advanced
 
 Intent chain:
