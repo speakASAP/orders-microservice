@@ -1,5 +1,33 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Orders Lifecycle Mutation Propagation Smoke Passed
+
+Intent chain:
+
+- Vision: every lifecycle mutation in Orders should be visible through the same canonical customer/admin lifecycle read model used by channel cabinets.
+- Goal Impact: Orders now has a repeatable, approval-gated live smoke proving create -> reservation -> paid -> Warehouse collecting -> customer/admin lifecycle read propagation for a sellable channel order.
+- System: Orders remains lifecycle/read-model owner; Payments and Warehouse boundaries are exercised only through their existing internal service roles; channel scope is represented by the FlipFlop service identity.
+- Feature: bounded lifecycle mutation propagation smoke.
+- Task: add a non-default live smoke script, run one approved synthetic mutation, and record sanitized evidence.
+- Execution Plan: keep default mode non-mutating; require explicit env gates for live mutation; create one synthetic FlipFlop order with Warehouse-owned product/warehouse IDs; mark it paid; apply Warehouse `collecting`; read customer/admin lifecycle; print only statuses, booleans, and short hashes.
+- Coding Prompt: do not print tokens, raw order rows, customer payloads, DB rows, provider payloads, or tracking values.
+- Code: `scripts/smoke-lifecycle-mutation-propagation.js`, npm script `smoke:lifecycle-mutation`.
+- Validation: source-only gate preflight and one live synthetic mutation run passed.
+
+Runtime evidence:
+
+- Source-only command: `node scripts/smoke-lifecycle-mutation-propagation.js` returned approval blockers only, while confirming Orders deployment `1/1`, image `localhost:5000/orders-microservice:a12b40e`, `WAREHOUSE_RESERVATION_ENABLED=true`, and required internal token env presence without printing values.
+- Live command: `RUN_LIVE_LIFECYCLE_MUTATION_SMOKE=1 LIFECYCLE_MUTATION_SMOKE_APPROVAL_ID=user-go-ahead-2026-07-03 LIFECYCLE_MUTATION_SMOKE_CONFIRM=CREATE_PAY_WAREHOUSE_READ node scripts/smoke-lifecycle-mutation-propagation.js` returned `ok=true`.
+- Live assertions: create HTTP `201`, initial Warehouse reservation true, payment update HTTP `200`, Warehouse fulfillment status update HTTP `200`, customer lifecycle HTTP `200`, admin lifecycle HTTP `200`, customer saw `warehouse_collecting`, admin saw `warehouse_collecting`, customer scoped count positive, admin aggregate stage count positive.
+- Sanitization: output included only HTTP statuses, booleans, and short hashes; no token values, customer payloads, raw order rows, DB rows, tracking values, or provider payloads were printed.
+
+Remaining gates:
+
+- `[PROVEN: Orders runtime mutation-to-read-model propagation for one synthetic FlipFlop-channel sellable order using existing internal Payments/Warehouse/channel boundaries.]`
+- `[MISSING: browser-render proof with a real safe human buyer/admin session showing cabinet UI refresh after lifecycle mutation.]`
+- `[MISSING: repeat this style of mutation proof for other channels only after orchestrator merge-order review, because non-Orders repo edits are currently out of scope for this master thread.]`
+- `[MISSING: Warehouse/Allegro shipment-status runtime enablement approvals before provider-driven late lifecycle stages can be proven end to end.]`
+
 ## 2026-07-03 - Channel Lifecycle UI Refresh Deployed
 
 Intent chain:

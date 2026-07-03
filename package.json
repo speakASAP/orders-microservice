@@ -29,7 +29,8 @@
     "verify:order-affinity-replay": "node scripts/verify-order-affinity-replay-contract.js",
     "verify:shipment-runtime-readiness": "node scripts/verify-shipment-runtime-readiness.js",
     "verify:channel-lifecycle-surfaces": "node scripts/verify-channel-lifecycle-surfaces.js",
-    "verify:channel-lifecycle-runtime-evidence": "node scripts/verify-channel-lifecycle-runtime-evidence.js"
+    "verify:channel-lifecycle-runtime-evidence": "node scripts/verify-channel-lifecycle-runtime-evidence.js",
+    "smoke:lifecycle-mutation": "node scripts/smoke-lifecycle-mutation-propagation.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
