@@ -8,7 +8,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
-    "test": "npm run build && npm run verify:transitions && npm run verify:sensitive-logging && npm run verify:create-order-contract && npm run verify:idempotency-contract && npm run verify:duplicate-order-protection && npm run verify:order-reservation-gate && npm run verify:order-lifecycle-read-model && npm run verify:order-fulfillment-handoff && npm run verify:event-contracts && npm run verify:warehouse-handoff && npm run verify:payment-boundary && npm run verify:pricing-safety && npm run verify:pricing-consolidation-contract && npm run verify:product-sales-statistics && npm run verify:admin-operations-console && npm run verify:shipment-runtime-readiness && npm run verify:tracking-visibility-policy && npm run verify:channel-lifecycle-surfaces && npm run verify:channel-lifecycle-runtime-evidence && npm run verify:browser-render-proof-readiness && npm run verify:browser-proof-mutation-evidence && npm run verify:browser-render-proof-report && npm run verify:browser-render-proof-template && npm run verify:completion-audit",
+    "test": "npm run build && npm run verify:transitions && npm run verify:sensitive-logging && npm run verify:create-order-contract && npm run verify:idempotency-contract && npm run verify:duplicate-order-protection && npm run verify:order-reservation-gate && npm run verify:order-lifecycle-read-model && npm run verify:order-fulfillment-handoff && npm run verify:event-contracts && npm run verify:warehouse-handoff && npm run verify:payment-boundary && npm run verify:pricing-safety && npm run verify:pricing-consolidation-contract && npm run verify:product-sales-statistics && npm run verify:admin-operations-console && npm run verify:shipment-runtime-readiness && npm run verify:tracking-visibility-policy && npm run verify:channel-lifecycle-surfaces && npm run verify:channel-lifecycle-runtime-evidence && npm run verify:channel-deploy-browser-smoke-decision && npm run verify:browser-render-proof-readiness && npm run verify:browser-proof-mutation-evidence && npm run verify:browser-render-proof-report && npm run verify:browser-render-proof-template && npm run verify:completion-audit",
     "verify:transitions": "node scripts/verify-status-transitions.js",
     "verify:sensitive-logging": "node scripts/verify-sensitive-logging.js",
     "verify:create-order-contract": "node scripts/verify-create-order-contract.js",
@@ -40,7 +40,8 @@
     "generate:browser-render-proof-template": "node scripts/generate-browser-render-proof-report-template.js",
     "verify:browser-render-proof-template": "node scripts/verify-browser-render-proof-report-template.js",
     "verify:tracking-visibility-policy": "node scripts/verify-tracking-visibility-policy.js",
-    "verify:goal24-paid-provider-bundle-readiness": "node scripts/verify-goal24-paid-provider-bundle-readiness.js"
+    "verify:goal24-paid-provider-bundle-readiness": "node scripts/verify-goal24-paid-provider-bundle-readiness.js",
+    "verify:channel-deploy-browser-smoke-decision": "node scripts/verify-channel-deploy-browser-smoke-decision.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
