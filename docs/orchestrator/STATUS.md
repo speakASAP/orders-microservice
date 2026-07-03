@@ -1,5 +1,41 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Live Shipment Read Bundle Producer Integrated
+
+Intent chain:
+
+- Vision: selected Allegro shipment observations should become sanitized Warehouse correlation input without raw provider payloads or direct Orders ingestion.
+- Goal Impact: the live-read implementation gate moved from missing to source-validated Allegro explicit-selection reader evidence, leaving runtime smoke, Warehouse deploy/migration, and status mutation gates explicit.
+- System: Allegro owns selected live shipment reads and snapshot-file production; Warehouse owns correlation, provider-status ledger, and fulfillment transitions; Orders owns lifecycle read models from Warehouse callbacks.
+- Feature: confirmed Allegro live shipment read bundle producer.
+- Task: integrate Allegro commit `7ec7ad2` into Orders orchestration state.
+- Execution Plan: accept source-only live-read evidence; keep runtime smoke, DB writes, live Warehouse calls, deployment, migration run, Orders callbacks, and fulfillment status mutation blocked until approved.
+- Coding Prompt: no Orders runtime code, no raw Allegro id/waybill/tracking/customer fields in output, no direct provider payload ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Allegro `7ec7ad2 feat: add live shipment read bundle producer`; Orders docs checkpoint in this commit.
+- Validation: Allegro `npm run verify:shipment-status-snapshot-export`, `npm run verify:shipment-status-replay`, `npm run verify:shipment-status-handoff`, `npm run verify:warehouse-shipment-correlation`, `npm run verify:shipment-status-snapshot`, `npm run build`, `git diff --check`, pre-commit checks, push to `main`, and Orders `git diff --check`.
+
+Evidence:
+
+- `export-shipment-status-snapshots.ts --live-read` now accepts an explicit order selection file.
+- The path requires `--confirm-live-read ALLEGRO_SHIPMENT_STATUS_LIVE_READ`.
+- It reads only `/order/checkout-forms/{id}/shipments` and `/order/carriers/{carrierId}/tracking?waybill=...`.
+- Raw provider identifiers are kept in memory only and mapped into sanitized snapshots before file output.
+- Tests prove selected endpoints, successful tracking mapping, partial tracking failure handling, and no raw shipment/waybill marker leakage in the snapshot file.
+
+Remaining gates:
+
+- `[LANDED: source-only Allegro live shipment read bundle producer in allegro commit 7ec7ad2.]`
+- `[LANDED: source-only Allegro shipment snapshot-file producer in allegro commit de81866.]`
+- `[MISSING: owner-approved live runtime smoke with a safe order selection file and real token source.]`
+- `[MISSING: deploy/migration approval for Warehouse correlation table and endpoint.]`
+- `[MISSING: owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true.]`
+- `[MISSING: approved retention/retry/dead-letter policy for failed correlation posts.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or production fulfillment-row mutation.]`
+
+Next action:
+
+- Run an owner-approved sanitized live smoke with a safe order selection and real token source, then deploy Warehouse correlation migration/endpoint and run correlation smoke before enabling status mutation.
+
 ## 2026-07-03 - Allegro Shipment Snapshot File Producer Integrated
 
 Intent chain:
