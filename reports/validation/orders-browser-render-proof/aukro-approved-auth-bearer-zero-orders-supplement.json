@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "orders.browser_render_artifact.v1",
+  "channel": "aukro",
+  "surface": "customer_admin_dashboard",
+  "proofMode": "auth_issued_owner_approved_bearer",
+  "status": "auth_bearer_valid_zero_customer_order_cards",
+  "checkedAt": "2026-07-03T16:46:00.000Z",
+  "runtime": {
+    "aukroImage": "localhost:5000/aukro-service:94f3427",
+    "authTrustedInternalService": "orders-microservice",
+    "authTrustedInternalServicePersistent": true,
+    "authTrustedInternalServiceReversible": true,
+    "authBearerIssuerPath": "auth_internal_magic_link",
+    "authUserMayHaveBeenCreatedByAuthIfMissing": true,
+    "minimalRole": "app:aukro-service:admin",
+    "minimalRoleAssigned": true,
+    "minimalRolePersistent": true,
+    "minimalRoleReversible": true
+  },
+  "approvedSubject": {
+    "emailHashPrefix": "a6ab3412dfc829c8",
+    "rawEmailPrinted": false
+  },
+  "browserEvidence": {
+    "documentStatus": 200,
+    "authViewVisible": false,
+    "clientViewVisible": true,
+    "ordersVisible": true,
+    "ordersCardCount": 0,
+    "ordersMessageLength": 52,
+    "catalogMessageLength": 81
+  },
+  "protectedCallStatuses": [
+    {
+      "path": "/aukro/ui/catalog/provision",
+      "status": 201
+    },
+    {
+      "path": "/aukro/ui/dashboard",
+      "status": 200
+    },
+    {
+      "path": "/aukro/ui/admin/services",
+      "status": 200
+    },
+    {
+      "path": "/aukro/ui/offers",
+      "status": 200
+    },
+    {
+      "path": "/aukro/ui/catalog/products",
+      "status": 200
+    }
+  ],
+  "blocker": "[MISSING: natural or bounded Aukro order row bound to the owner-approved Auth subject if product requires non-fixture proof]",
+  "canonicalAukroDomProofSupersedesThisForVisibleLabels": true,
+  "redacted": true,
+  "tokenValuesPrinted": false,
+  "secretValuesPrinted": false,
+  "rawOrderRowsPrinted": false,
+  "customerPiiPrinted": false,
+  "rawCustomerPrinted": false,
+  "rawUserIdPrinted": false,
+  "providerCall": false,
+  "rawDomCaptured": false,
+  "screenshotCaptured": false
+}
