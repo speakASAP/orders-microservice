@@ -9,7 +9,8 @@
     "source": "smoke:lifecycle-mutation",
     "approvalId": "sanitized-fixture",
     "summary": "Sanitized fixture: lifecycle reached warehouse_collecting in customer and admin read models.",
-    "artifactHash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    "artifactHash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "expectedLifecycleStage": "warehouse_collecting"
   },
   "routes": [
     {

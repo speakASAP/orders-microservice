@@ -8,7 +8,8 @@
   "mutationEvidence": {
     "source": "anonymous_public_shell_preflight",
     "approvalId": "negative-public-shell-fixture",
-    "summary": "Negative fixture intentionally tries to use public HTML shell availability and anonymous API 401 as proof."
+    "summary": "Negative fixture intentionally tries to use public HTML shell availability and anonymous API 401 as proof.",
+    "expectedLifecycleStage": "warehouse_collecting"
   },
   "routes": [
     {

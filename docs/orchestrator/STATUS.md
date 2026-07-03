@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Expected Stage Consistency Required
+
+Intent chain:
+
+- Vision: customer and admin lifecycle proof must show the same canonical Orders lifecycle stage after a mutation.
+- Goal Impact: a future browser report can no longer pass with divergent customer/admin stages or a stage unrelated to the mutation evidence.
+- System: Orders owns the proof contract and verifier; channel repos remain untouched.
+- Feature: expected lifecycle stage consistency for browser reports.
+- Task: require `mutationEvidence.expectedLifecycleStage` and enforce route stage equality for proven reports.
+- Execution Plan: update verifier, contract, fixtures, and IPS docs; validate without runtime mutation.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: `scripts/verify-browser-render-proof-report.js`, browser proof contract, fixtures, completion audit/status/state docs.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-report.js`, `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report whose customer/admin rendered stages match mutationEvidence.expectedLifecycleStage.]`
+
 ## 2026-07-03 - Browser Proof Customer Admin Coverage Required
 
 Intent chain:

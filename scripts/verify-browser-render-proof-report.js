@@ -98,6 +98,11 @@ function validateFixtures() {
   assert.equal(validFixture.status, 'proven', 'valid browser proof fixture must be proven');
   assert.equal(validFixture.channel, 'flipflop', 'valid browser proof fixture must cover first FlipFlop lane');
   assert.equal(
+    validFixture.mutationEvidence.expectedLifecycleStage,
+    'warehouse_collecting',
+    'valid browser proof fixture must declare expected lifecycle stage',
+  );
+  assert.equal(
     validFixture.routes.some((route) => route.surface === 'customer_cabinet'),
     true,
     'valid browser proof fixture must cover customer cabinet',
@@ -136,6 +141,10 @@ function validateReport(rawReport) {
   assert.equal(typeof report.ordersEvidenceCommit, 'string', 'report ordersEvidenceCommit is required');
   assert.equal(report.mutationEvidence && typeof report.mutationEvidence === 'object', true, 'report mutationEvidence is required');
   assert.equal(typeof report.mutationEvidence.summary, 'string', 'report mutationEvidence.summary is required');
+  if (report.mutationEvidence.expectedLifecycleStage !== undefined) {
+    assert.equal(typeof report.mutationEvidence.expectedLifecycleStage, 'string', 'report mutationEvidence.expectedLifecycleStage must be a string');
+    assert.equal(Boolean(report.mutationEvidence.expectedLifecycleStage.trim()), true, 'report mutationEvidence.expectedLifecycleStage must not be empty');
+  }
   assert.equal(Array.isArray(report.routes), true, 'report routes must be an array');
   assert.equal(report.routes.length > 0, true, 'report routes must not be empty');
   assert.equal(allowedRefreshMechanisms.has(report.refreshMechanism), true, 'report refreshMechanism is invalid');
@@ -167,6 +176,16 @@ function validateReport(rawReport) {
     assert.equal(report.routes.some((route) => route.httpStatus >= 200 && route.httpStatus < 400), true, 'proven report needs a 2xx/3xx route');
     assert.equal(report.routes.some((route) => route.renderedLifecycleLabel.trim()), true, 'proven report needs rendered lifecycle label');
     assert.equal(report.routes.some((route) => route.renderedLifecycleStage.trim()), true, 'proven report needs rendered lifecycle stage');
+    assert.equal(
+      typeof report.mutationEvidence.expectedLifecycleStage === 'string' && Boolean(report.mutationEvidence.expectedLifecycleStage.trim()),
+      true,
+      'proven report needs mutationEvidence.expectedLifecycleStage',
+    );
+    assert.deepEqual(
+      Array.from(new Set(report.routes.map((route) => route.renderedLifecycleStage.trim()))),
+      [report.mutationEvidence.expectedLifecycleStage.trim()],
+      'proven report routes must all render the expected lifecycle stage',
+    );
     assert.equal(
       report.routes.some((route) => route.surface === 'customer_cabinet'),
       true,

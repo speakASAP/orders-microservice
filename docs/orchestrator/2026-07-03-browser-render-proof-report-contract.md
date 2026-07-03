@@ -18,7 +18,7 @@ A valid report is JSON with these top-level fields:
 - `proofMode`: one of `safe_human_session` or `service_scoped_proxy`.
 - `checkedAt`: ISO timestamp.
 - `ordersEvidenceCommit`: current Orders repository `HEAD` or commit used for the proof.
-- `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, and optional `artifactHash`.
+- `mutationEvidence`: sanitized object with `source`, `approvalId`, `summary`, required `expectedLifecycleStage` for `status=proven`, and optional `artifactHash`.
 - `routes`: non-empty array of route evidence entries.
 - `refreshMechanism`: one of `manual_refresh`, `visible_polling_30s`, `full_reload`, or `api_backed_render_probe`.
 - `centralReadModelBacked`: boolean proving the rendered state came from Orders lifecycle read model or a channel API backed by it.
@@ -59,6 +59,7 @@ Required `evidencePolicy` booleans:
 - At least one customer or admin route has HTTP `2xx` or `3xx`.
 - At least one route has a non-empty `renderedLifecycleLabel`.
 - At least one route has a non-empty `renderedLifecycleStage`.
+- Every proven route must render the same canonical stage as `mutationEvidence.expectedLifecycleStage`.
 - At least one route must cover `customer_cabinet`.
 - At least one route must cover `admin_cabinet` or `admin_dashboard`.
 - `centralReadModelBacked=true`.
