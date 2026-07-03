@@ -1,5 +1,77 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Delivery Provider Source Approved For Contracting
+
+Intent chain:
+
+- Vision: customers and admins should see post-warehouse delivery progress without Orders owning courier credentials or raw provider tracking payloads.
+- Goal Impact: the provider/courier lane is unblocked only at the source-selection level; implementation remains gated by Allegro-specific contract, credentials, mapping, and sensitive-data policy.
+- System: Allegro owns the initial provider source for Allegro-origin orders through Ship with Allegro/shipment APIs; Warehouse owns bounded fulfillment status intake; Orders owns lifecycle projection/events; Notifications consumes bounded Orders events.
+- Feature: Allegro shipment status source approval for future delivery-provider integration.
+- Task: name and approve the concrete provider/courier owner source, split remaining blockers into parallel worker threads, and avoid runtime implementation until contracts are complete.
+- Execution Plan: use `allegro` as the first provider owner source, scoped to Allegro-origin orders only; do not generalize to all channels and do not implement provider logic in Orders.
+- Coding Prompt: remote-only on Alfares; documentation-only; no deploys, migrations, secret mutation, raw provider payloads, or shipment label/document writes.
+- Code: `docs/orchestrator/2026-07-03-delivery-provider-shipment-status-plan.md`, `docs/orchestrator/STATUS.md`, `docs/IMPLEMENTATION_STATE.md`.
+- Validation: remote doc diff hygiene and thread creation evidence: Worker E `019f265e-7e9e-7a03-b621-f030cc2ffd4e` and Worker F `019f265e-a504-78b3-acd8-c8ff42c745c1`.
+
+Decision:
+
+- Approved initial source: `allegro` / Ship with Allegro shipment APIs for Allegro-origin orders only.
+- Still blocked for implementation: no Allegro shipment status contract, OAuth-scope confirmation, credential source, status mapping, or sensitive-data policy has been completed yet. Worker E `019f265e-7e9e-7a03-b621-f030cc2ffd4e` owns the Allegro source contract; Worker F `019f265e-a504-78b3-acd8-c8ff42c745c1` owns the Warehouse bounded intake contract.
+
+Remaining blockers split to worker threads:
+
+- `[MISSING: Allegro shipment status source contract: read/polling endpoint selection, OAuth scopes, authentication method, idempotency key, timestamp semantics, retry/error semantics, and sanitized sample payloads.]`
+- `[MISSING: mapping from Allegro shipment/package/fulfillment statuses to Warehouse fulfillment statuses and Orders lifecycle stages after handed_to_delivery.]`
+- `[MISSING: approved sensitive-data policy for tracking number/URL visibility by role and event exclusion.]`
+- `[MISSING: runtime credential source in Vault/ExternalSecret for allegro-service shipment/fulfillment scope, not Orders.]`
+- `[MISSING: validation fixture set with sensitive provider fields redacted or explicitly forbidden.]`
+
+Next action:
+
+- Wait for worker handoffs, then integrate the Allegro source contract before any Warehouse or Allegro runtime implementation.
+
+## 2026-07-03 - Allegro Buyer Ownership Option 2 Approved
+
+Intent chain:
+
+- Vision: customer-facing Allegro order cabinets must show only orders proven to belong to the authenticated buyer while Orders remains the canonical lifecycle source.
+- Goal Impact: the buyer-cabinet blocker is reduced from ownership approval to source implementation and validation of Auth subject binding.
+- System: Auth owns human identity and JWT `sub`; Allegro owns marketplace order projection and seller/operator workspace; Orders owns canonical lifecycle and immutable order snapshots.
+- Feature: Allegro buyer personal cabinet ownership contract.
+- Task: implement buyer-scoped read-only order list/detail and UI only for orders with explicit Auth subject binding.
+- Execution Plan: persist or derive `AllegroOrder.authUserId`/`buyerAuthSubject` or equivalent Orders `customer.authSubject`/`customer.authUserId`; add buyer APIs and `/cabinet/orders`; keep seller/operator `/dashboard/orders` unchanged; fail closed for unbound imported marketplace rows.
+- Coding Prompt: never authorize by `buyerEmail`; use Auth bearer `sub`; return 404 for cross-buyer detail reads; expose buyer-safe DTO only.
+- Code: pending.
+- Validation: pending implementation tests for Buyer A/B isolation, unauthenticated 401, unbound row exclusion, unchanged seller dashboard, and central lifecycle fail-soft labels; Worker G `019f2660-fd62-7e90-ac26-994b34eb2620` started for source-only Workstream A.
+
+Evidence:
+
+- Owner approval received in orchestrator chat on 2026-07-03: `Approved. Option2`.
+- Allegro contract doc updated in `docs/orchestrator/2026-07-03-allegro-buyer-auth-contract-proposal.md`.
+- Approved route/API defaults: `/cabinet/orders`, `GET /api/allegro/buyer/orders`, `GET /api/allegro/buyer/orders/:id`.
+- Approved cross-buyer behavior: 404.
+- Email-only matching remains rejected; unbound marketplace-imported rows remain hidden.
+
+Remaining gates:
+
+- `[MISSING: implementation source change that persists or derives Auth subject binding for eligible Allegro buyer orders.]`
+- `[MISSING: migration/backfill decision for historical Allegro rows; default is no backfill and no buyer visibility without Auth subject binding.]`
+- `[MISSING: buyer-safe DTO implementation and isolation tests.]`
+- `[MISSING: deploy approval after source validation.]`
+
+Parallel execution:
+
+| Workstream | Status | Owner role | Scope | Allowed files | Forbidden files | Validation | Merge order |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A Buyer API/schema | active: Worker G `019f2660-fd62-7e90-ac26-994b34eb2620` | Allegro backend owner | Add subject-bound persistence/derivation, buyer list/detail APIs, DTO, tests | `prisma/schema.prisma`, migrations only if required, `services/allegro-service/src/allegro/orders/*`, focused tests | Orders/Auth runtime, seller dashboard behavior, deploy scripts | orders service spec, build, isolation tests | 1 |
+| B Buyer UI | dependency-gated | Allegro frontend owner | Add `/cabinet/orders` only after API contract shape lands | `services/frontend/src/pages/*`, routing/auth client files | backend schema/API internals, seller `/dashboard/orders` rewrite | frontend build and route smoke | 2 |
+| C Integration validation | final_integration | Orders/Allegro validation owner | Validate A+B together and update status | validation report/docs only | runtime deploy without approval | backend/frontend builds, buyer isolation evidence | 3 |
+
+Next action:
+
+- Wait for Worker G `019f2660-fd62-7e90-ac26-994b34eb2620` handoff for source-only Workstream A; do not deploy until validation evidence is reviewed.
+
 ## 2026-07-03 - FlipFlop Admin Order Inventory Pricing RBAC Hardened
 
 Intent chain:
@@ -12,7 +84,7 @@ Intent chain:
 - Execution Plan: reuse the local marketing admin RBAC pattern; validate by focused source verifier and service build; deploy via FlipFlop standard script; smoke public/admin unauthenticated behavior.
 - Coding Prompt: no new auth model, no customer cabinet ownership changes, no provider/courier runtime implementation.
 - Code: FlipFlop commit `79dba51 feat: enhance admin controllers with role-based access control`.
-- Validation: focused RBAC verifier passed; `git diff --check`; `python3 scripts/pre_coding_gate.py --root .`; strict doc audit 100/100; `cd services/order-service && npm run build`; production deploy and public smokes passed.
+- Validation: focused RBAC verifier passed; `git diff --check`; `python3 scripts/pre_coding_gate.py --root .`; strict doc audit 100/100; `cd services/order-service && npm run build`; production deploy, public smokes, unauthenticated 401 smokes, and authenticated non-FlipFlop-admin 403 smokes passed.
 
 Evidence:
 
@@ -23,12 +95,14 @@ Evidence:
 - Kubernetes post-deploy status showed `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, and `flipflop-user-service` ready/available/updated `1/1`.
 - Public smoke: storefront root returned HTTP 200.
 - Protected admin route smokes without credentials returned HTTP 401 for `/api/admin/orders`, `/api/admin/inventory/low-stock`, and `/api/admin/pricing/suggestions`.
+- Authenticated non-FlipFlop-admin runtime smoke, using an existing in-pod service token without printing it, returned HTTP 403 for `/admin/orders`, `/admin/inventory/low-stock`, and `/admin/pricing/suggestions`.
 
 Remaining blockers:
 
-- `[MISSING: approved runtime smoke with a non-admin authenticated user proving RolesGuard returns 403 rather than data.]`
 - `[MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source.]`
-- `[MISSING: buyer-facing personal cabinet ownership contract for marketplaces where buyer snapshots do not map to Auth subject.]`
+- `[MISSING: implementation source change that persists or derives Auth subject binding for eligible Allegro buyer orders.]`
+- `[MISSING: migration/backfill decision for historical Allegro rows; default is no backfill and no buyer visibility without Auth subject binding.]`
+- `[MISSING: buyer-safe DTO implementation and isolation tests.]`
 
 Next action:
 
@@ -66,13 +140,15 @@ Validation notes:
 
 Remaining blockers:
 
-- `[MISSING: buyer-facing personal cabinet ownership contract for marketplaces where buyer snapshots do not map to Auth subject.]`
+- `[MISSING: implementation source change that persists or derives Auth subject binding for eligible Allegro buyer orders.]`
+- `[MISSING: migration/backfill decision for historical Allegro rows; default is no backfill and no buyer visibility without Auth subject binding.]`
+- `[MISSING: buyer-safe DTO implementation and isolation tests.]`
 - `[MISSING: stable Auth-owned account field for AukroAccount and HeurekaAccount if non-admin seller-scoped order reads are required.]`
 - `[MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source.]`
 
 Next action:
 
-- Continue with the provider/courier owner contract lane or buyer ownership contract lane; do not implement buyer personal cabinets until Auth ownership is approved.
+- Start source-only Allegro buyer API Workstream A behind the approved Option 2 subject-binding contract; do not deploy until validation evidence is reviewed.
 
 ## 2026-07-03 - Allegro Seller Workspace Order Read Scope Hardened
 
@@ -107,7 +183,7 @@ Remaining blockers:
 
 Next action:
 
-- Continue with provider/courier owner identification or buyer ownership contract approval; do not implement buyer personal cabinet runtime until one ownership model is approved.
+- Start source-only Allegro buyer API Workstream A behind the approved Option 2 subject-binding contract; do not deploy until validation evidence is reviewed.
 
 ## 2026-07-03 - Allegro Buyer Auth Ownership Audit Integrated
 

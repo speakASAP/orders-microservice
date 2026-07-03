@@ -2,11 +2,11 @@
 
 ```yaml
 id: ORDERS-DELIVERY-PROVIDER-SHIPMENT-STATUS-PLAN
-status: blocked-pending-provider-source
+status: approved-source-contract-gated
 owner: Orders orchestrator
 created: 2026-07-03
 last_updated: 2026-07-03
-completeness_level: planned
+completeness_level: source-approved-contract-gated
 upstream:
   - docs/IMPLEMENTATION_ORCHESTRATOR.md
   - docs/IMPLEMENTATION_STATE.md
@@ -28,10 +28,10 @@ related_adrs: []
 - System: Warehouse owns fulfillment and carrier handoff state; a delivery-provider owner must own courier credentials, provider polling/webhooks, and raw tracking payloads; Orders owns canonical lifecycle projection and bounded lifecycle events; Notifications consumes bounded Orders events.
 - Feature: delivery-provider shipment/tracking status integration after Warehouse fulfillment status projection.
 - Task: discover provider ownership, define the bounded status contract, then implement the smallest adapter only after a concrete provider/source exists.
-- Execution Plan: keep this slice blocked until the provider repo/API/credential source is identified; do not create fake simulators or move provider ownership into Orders.
+- Execution Plan: use Allegro Ship with Allegro/shipment APIs as the approved initial provider source for Allegro-origin orders, then keep implementation blocked until source-specific contracts, credentials, mapping, and sensitive-data policy are resolved; do not create fake simulators or move provider ownership into Orders.
 - Coding Prompt: remote-only on Alfares; mark missing provider facts explicitly; avoid DB migrations, deploys, secret changes, raw tracking data in events, and broad lifecycle schema changes.
 - Code: documentation only in this slice.
-- Validation: remote repository/status discovery plus `git diff --check` after docs update.
+- Validation: remote repository/status discovery, Worker E `019f265e-7e9e-7a03-b621-f030cc2ffd4e` and Worker F `019f265e-a504-78b3-acd8-c8ff42c745c1` creation evidence, plus `git diff --check` after docs update.
 
 ## Discovery Evidence
 
@@ -44,7 +44,7 @@ Remote repositories inspected under `/home/ssf/Documents/Github` on 2026-07-03:
 | `notifications-microservice` | `20cd12a` | clean | Consumes bounded Orders lifecycle/shipped events and rejects tracking fields. |
 | `suppliers-microservice` | `9745f5f` | clean | No delivery-provider shipment-status source found in focused scan. |
 | `catalog-microservice` | `5c6c033` | dirty unrelated docs/contract work | Catalog owns product truth, not shipment provider status. |
-| `allegro` | `ed0dedd` | clean | Prior docs note `[MISSING: shipment-management implementation]`. |
+| `allegro` | `ee7b2ad` | clean | Approved initial provider/courier owner source for Allegro-origin orders: Allegro Ship with Allegro/shipment APIs in `allegro`; docs still gate OAuth scopes, fulfillment owner, read-only shipment projection, credential source, and write actions. |
 | `aukro` | `f0847cf` | clean | No provider tracking source found. |
 | `heureka` | `824465e` | clean | No provider tracking source found. |
 | `bazos` | `2d47d16` | clean | No provider tracking source found. |
@@ -54,17 +54,19 @@ Repository-name discovery for `delivery`, `courier`, `carrier`, `shipment`, `shi
 
 ## Boundary Decision
 
-Decision: blocked for implementation now.
+Decision: source approved, implementation still blocked.
 
-Reason: no concrete provider/status source, provider repo, courier webhook contract, polling API, credential source, or owned adapter service was safely discoverable. Implementing an adapter in Orders would invent provider ownership and conflict with existing boundaries.
+Approved initial source: `allegro` owns the first provider/courier source lane for Allegro-origin orders, using Allegro Ship with Allegro/shipment APIs. This is not a generic all-channel courier source and does not approve Orders-owned courier integration.
+
+Reason: Allegro is the only inspected repo with a concrete marketplace shipment API surface and existing channel/order projection context. Allegro docs already separate shipment/package/document projection and One Fulfillment from Orders, and mark shipment label/document creation as fulfillment-owner gated. Orders remains only the lifecycle projection owner; Warehouse remains the bounded status intake; Allegro/provider code must own raw provider payloads and credentials.
 
 Exact blockers:
 
-- `[MISSING: delivery-provider/courier owner repository or approved existing service that owns courier credentials and raw tracking payloads.]`
-- `[MISSING: provider status source contract: webhook or polling, authentication method, idempotency key, timestamp semantics, retry/error semantics, and sample payloads.]`
-- `[MISSING: mapping from provider statuses to Warehouse fulfillment statuses and Orders lifecycle stages after handed_to_delivery.]`
+- `[APPROVED: initial delivery-provider/courier owner source is allegro Ship with Allegro/shipment APIs for Allegro-origin orders only.]`
+- `[MISSING: Allegro shipment status source contract: read/polling endpoint selection, OAuth scopes, authentication method, idempotency key, timestamp semantics, retry/error semantics, and sanitized sample payloads.]`
+- `[MISSING: mapping from Allegro shipment/package/fulfillment statuses to Warehouse fulfillment statuses and Orders lifecycle stages after handed_to_delivery.]`
 - `[MISSING: approved sensitive-data policy for tracking number/URL visibility by role and event exclusion.]`
-- `[MISSING: runtime credential source in Vault/ExternalSecret for the provider owner, not Orders.]`
+- `[MISSING: runtime credential source in Vault/ExternalSecret for allegro-service shipment/fulfillment scope, not Orders.]`
 - `[MISSING: validation fixture set with sensitive provider fields redacted or explicitly forbidden.]`
 
 Known non-blockers:
@@ -83,7 +85,7 @@ Provider-owned adapter output should be a bounded internal status update to Ware
   "reasonCode": "PROVIDER_STATUS_UPDATE",
   "statusReference": "provider-event-or-poll-id",
   "occurredAt": "2026-07-03T00:00:00.000Z",
-  "provider": "[MISSING: approved provider key]",
+  "provider": "allegro",
   "shipmentLookupRequired": true
 }
 ```
@@ -99,19 +101,20 @@ Rules:
 
 | Workstream | Status | Owner role | Allowed files | Forbidden files/actions | Dependencies | Expected output | Validation evidence | Handoff notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| P1 Provider discovery | ready now | Orchestrator/discovery owner | repo discovery docs, `docs/orchestrator/STATUS.md`, `docs/IMPLEMENTATION_STATE.md` | code, secrets, DB, deploy | none | name the provider owner repo/service or confirm missing | `find`/`rg` evidence, git status | This slice completed initial discovery and found no source. |
-| P2 Warehouse provider-status intake contract | dependency-gated | Warehouse owner | `warehouse-microservice/docs/**`, narrow `src/fulfillment/**` contract/tests after approval | raw provider credentials, Orders code, DB migrations without approval | P1 provider owner and payload contract | accepted statuses after `handed_to_delivery`, idempotency and validation rules | focused fulfillment service tests, build, diff check | Warehouse is the preferred bounded intake before Orders projection. |
-| P3 Provider adapter implementation | blocked | Provider owner | owning provider repo adapter/client files and docs | Orders lifecycle schema, fake simulator, Vault mutations without approval | P1/P2 plus credential source | polling/webhook adapter normalizes provider events to Warehouse contract | provider fixture tests, sensitive-field checks, retry/idempotency tests | Must keep raw payloads/credentials in provider owner. |
+| P1 Provider discovery | completed | Orders orchestrator | repo discovery docs, `docs/orchestrator/STATUS.md`, `docs/IMPLEMENTATION_STATE.md` | code, secrets, DB, deploy | none | approved initial source: `allegro` Ship with Allegro/shipment APIs for Allegro-origin orders only | `find`/`rg` evidence, git status | Source is named; implementation remains contract-gated. |
+| P2 Warehouse provider-status intake contract | active: Worker F `019f265e-a504-78b3-acd8-c8ff42c745c1` | Warehouse owner | `warehouse-microservice/docs/**`, narrow `src/fulfillment/**` contract/tests after Allegro status contract is drafted | raw provider credentials, Orders code, DB migrations without approval | Allegro source approval; exact Allegro status payloads may remain `[MISSING]` | accepted statuses after `handed_to_delivery`, idempotency and validation rules | focused fulfillment service tests, build, diff check | Warehouse is the bounded intake before Orders projection. |
+| P3 Allegro provider contract/adapter lane | active contract thread: Worker E `019f265e-7e9e-7a03-b621-f030cc2ffd4e`; adapter dependency-gated | Allegro provider owner | `allegro` docs plus narrow read-only shipment client/projection files after contract approval | Orders/Warehouse broad schema changes, fake simulator, Vault mutations without approval, shipment label/document writes | P2 plus OAuth scopes and credential source | read-only Allegro shipment polling/projection normalizes provider events to Warehouse contract | provider fixture tests, sensitive-field checks, retry/idempotency tests | Must keep raw payloads/credentials in Allegro owner. |
 | P4 Orders lifecycle verification | final integration | Orders owner | Orders lifecycle/event docs and focused verifier only if Warehouse contract changes | DB migration, broad schema change, raw tracking fields in events | P2/P3 | prove Warehouse status callback still maps to lifecycle stages/events | `npm run verify:order-lifecycle-read-model`, `npm run verify:event-contracts`, `git diff --check` | No Orders code expected unless bounded status enum changes. |
 | P5 Notifications copy/recipient verification | dependency-gated | Notifications owner | `notifications-microservice/src/notifications/orders-events/**`, docs/tests | direct provider consumption, tracking values in notifications | P4 event evidence | shipment/lifecycle notification remains bounded | focused router spec, build, health smoke if deployed | Existing consumer can route bounded lifecycle events. |
 
 Merge order:
 
-1. Provider discovery/contract docs.
-2. Warehouse bounded status intake and tests.
-3. Provider-owned adapter and fixture tests.
-4. Orders verifier/doc update only if the Warehouse status enum or event projection changes.
-5. Notifications copy/routing validation only after bounded Orders event evidence exists.
+1. Provider source approval docs.
+2. Allegro shipment status contract and sensitive-data policy.
+3. Warehouse bounded status intake and tests.
+4. Allegro-owned read-only provider adapter and fixture tests.
+5. Orders verifier/doc update only if the Warehouse status enum or event projection changes.
+6. Notifications copy/routing validation only after bounded Orders event evidence exists.
 
 Integration owner: Orders orchestrator.
 
@@ -121,11 +124,11 @@ Validation owner: final integration lane, with service owners providing focused 
 
 ### Warehouse Contract Agent
 
-Objective: define the Warehouse-owned bounded intake for delivery-provider status updates after fulfillment order `handed_to_delivery`, without raw provider payloads or credentials in Orders. Work remote-only on Alfares in `/home/ssf/Documents/Github/warehouse-microservice`. Allowed files: Warehouse fulfillment docs, focused DTO/service/tests under `src/fulfillment/**` only if an approved provider contract exists. Forbidden: DB migrations, deploys, secrets, raw tracking payload persistence, Orders edits. Output: contract diff, status mapping, idempotency rules, validation commands/results, blockers.
+Objective: define the Warehouse-owned bounded intake for Allegro shipment status updates after fulfillment order `handed_to_delivery`, without raw provider payloads or credentials in Orders. Work remote-only on Alfares in `/home/ssf/Documents/Github/warehouse-microservice`. Approved source: `allegro` Ship with Allegro/shipment APIs for Allegro-origin orders only. Allowed files: Warehouse fulfillment docs, focused DTO/service/tests under `src/fulfillment/**` only after the Allegro status contract is drafted. Forbidden: DB migrations, deploys, secrets, raw tracking payload persistence, Orders edits. Output: contract diff, status mapping, idempotency rules, validation commands/results, blockers.
 
-### Provider Adapter Agent
+### Allegro Provider Contract Agent
 
-Objective: implement a provider-owned adapter only after the provider repo/API/credential source is identified. Work remote-only on Alfares in the owning provider repo. Allowed files: narrow adapter/client/test docs for the provider owner. Forbidden: Orders/Warehouse broad schema changes, fake simulators, Vault mutations, deploys. Output: provider fixture mapping, sensitive-field rejection, retry/idempotency evidence, and handoff to Warehouse contract owner.
+Objective: draft the Allegro-owned read-only shipment status source contract for Ship with Allegro/shipment APIs. Work remote-only on Alfares in `/home/ssf/Documents/Github/allegro`. Allowed files: Allegro orchestrator docs and, after contract approval only, narrow read-only client/projection/test files. Forbidden: Orders/Warehouse edits, fake simulators, Vault mutations, deploys, shipment label/document writes. Output: endpoint/source choice, OAuth scope blockers, sanitized payload contract, sensitive-field rejection, retry/idempotency policy, and handoff to Warehouse contract owner.
 
 ### Orders Verification Agent
 
