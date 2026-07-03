@@ -1,5 +1,26 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Channel Lifecycle Read Role Alignment
+
+Intent chain:
+
+- Vision: every selling channel can hydrate customer/admin order surfaces from central Orders lifecycle without becoming lifecycle owner.
+- Goal Impact: FlipFlop, Bazos, Heureka, Allegro, and Aukro service identities now share the same bounded Orders lifecycle/detail read role set.
+- System: Orders owns lifecycle read authorization; channel services own customer/admin display and subject scoping.
+- Feature: channel service lifecycle read role alignment.
+- Task: align `GET /api/orders/:id`, `GET /api/orders/customer/lifecycle`, and `GET /api/orders/admin/lifecycle` role sets for the selling-channel service clients.
+- Execution Plan: source/test/docs only; no secret read, token change, deploy, DB query, provider call, Warehouse call, or runtime mutation.
+- Coding Prompt: authorize service-to-service lifecycle hydration for known selling channels while keeping human customer auth separate.
+- Code: `ORDER_CHANNEL_LIFECYCLE_READ_ROLES` in `src/orders/orders.controller.ts`.
+- Validation: `npm run verify:order-lifecycle-read-model`, `npm run verify:channel-lifecycle-surfaces`, and `git diff --check`.
+
+Remaining gates:
+
+- `[MISSING: runtime deploy/restart before live pods can enforce the expanded lifecycle read roles.]`
+- `[MISSING: approved authenticated customer/admin browser or API smoke per channel proving lifecycle refresh.]`
+- `[MISSING: real subject-bound Allegro order row and buyer bearer.]`
+- `[UNKNOWN: provider-backed Bazos marketplace webhook/order source.]`
+
 ## 2026-07-03 - Cross-Channel Runtime Lifecycle Evidence Preflight
 
 Intent chain:
@@ -26,7 +47,7 @@ Remaining gates:
 
 - `[MISSING: approved authenticated customer/admin browser or API smoke per channel for real lifecycle refresh after status changes.]`
 - `[MISSING: real subject-bound Allegro order row and buyer bearer before Allegro cabinet lifecycle can be called live-complete.]`
-- `[MISSING: Orders read-role approval for Aukro central lifecycle cabinet hydration runtime smoke.]`
+- `[MISSING: Orders read-role deployment/restart plus Aukro central lifecycle cabinet hydration runtime smoke.]`
 - `[MISSING: Warehouse/Allegro shipment-status deploy, migration, env enablement, and safe live smoke approvals.]`
 - `[UNKNOWN: provider-backed Bazos marketplace webhook/order source.]`
 

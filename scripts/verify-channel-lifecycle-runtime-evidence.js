@@ -147,7 +147,7 @@ const CHANNELS = {
       },
     ],
     remainingGates: [
-      'authorized customer/admin runtime smoke for the central lifecycle cabinet read model remains blocked by Orders read-role approval',
+      'authorized customer/admin runtime smoke for the central lifecycle cabinet read model remains deploy/restart gated by Orders read-role source alignment',
     ],
   },
 };
@@ -222,7 +222,7 @@ const result = {
   remainingIntegrationGates: [
     'approved authenticated customer/admin browser or API smoke per channel for real lifecycle refresh after status changes',
     'real subject-bound Allegro order row and buyer bearer before Allegro cabinet lifecycle can be called live-complete',
-    'Orders read-role approval for Aukro central lifecycle cabinet hydration runtime smoke',
+    'Orders read-role deployment/restart plus Aukro central lifecycle cabinet hydration runtime smoke',
     'Warehouse/Allegro shipment-status deploy, migration, env enablement, and safe live smoke approvals',
     'provider-backed Bazos marketplace webhook/order source remains unknown',
   ],

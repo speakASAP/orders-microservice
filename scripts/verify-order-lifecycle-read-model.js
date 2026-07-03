@@ -14,6 +14,7 @@ const {
 } = require('../dist/orders/order-lifecycle');
 const {
   ORDER_ADMIN_LIFECYCLE_READ_ROLES,
+  ORDER_CHANNEL_LIFECYCLE_READ_ROLES,
   ORDER_CUSTOMER_LIFECYCLE_READ_ROLES,
   ORDER_DETAIL_READ_ROLES,
 } = require('../dist/orders/orders.controller');
@@ -226,11 +227,22 @@ assert.equal(buildLifecycleAggregates([
 ]).exceptionCounts.notReceived, 1);
 assert.equal(aggregates.totalsByCurrency.CZK.orderCount, 3);
 
+const sellingChannelLifecycleReadRoles = [
+  'internal:flipflop-service:service',
+  'internal:allegro-service:service',
+  'internal:aukro-service:service',
+  'internal:bazos-service:service',
+  'internal:heureka-service:service',
+];
 assert.equal(ORDER_ADMIN_LIFECYCLE_READ_ROLES.includes('global:superadmin'), true);
 assert.equal(ORDER_ADMIN_LIFECYCLE_READ_ROLES.includes('internal:orders-microservice:readonly'), true);
-assert.equal(ORDER_ADMIN_LIFECYCLE_READ_ROLES.includes('internal:aukro-service:service'), true);
 assert.equal(ORDER_CUSTOMER_LIFECYCLE_READ_ROLES.includes('authenticated:user'), true);
-assert.equal(ORDER_DETAIL_READ_ROLES.includes('internal:aukro-service:service'), true);
+for (const role of sellingChannelLifecycleReadRoles) {
+  assert.equal(ORDER_CHANNEL_LIFECYCLE_READ_ROLES.includes(role), true, `channel lifecycle read role missing ${role}`);
+  assert.equal(ORDER_ADMIN_LIFECYCLE_READ_ROLES.includes(role), true, `admin lifecycle read role missing ${role}`);
+  assert.equal(ORDER_CUSTOMER_LIFECYCLE_READ_ROLES.includes(role), true, `customer lifecycle read role missing ${role}`);
+  assert.equal(ORDER_DETAIL_READ_ROLES.includes(role), true, `detail read role missing ${role}`);
+}
 
 const controllerSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/orders/orders.controller.ts'), 'utf8');
 assert.match(controllerSource, /@Get\('customer\/lifecycle'\)/);

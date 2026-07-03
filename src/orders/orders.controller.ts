@@ -40,12 +40,20 @@ export const PRODUCT_SALES_STATISTICS_READ_ROLES = [
   'internal:catalog-microservice:service',
 ] as const;
 
+export const ORDER_CHANNEL_LIFECYCLE_READ_ROLES = [
+  'internal:flipflop-service:service',
+  'internal:allegro-service:service',
+  'internal:aukro-service:service',
+  'internal:bazos-service:service',
+  'internal:heureka-service:service',
+] as const;
+
 export const ORDER_ADMIN_LIFECYCLE_READ_ROLES = [
   'global:superadmin',
   'internal:orders-microservice:admin',
   'internal:orders-microservice:readonly',
   'internal:orders-microservice:operator',
-  'internal:aukro-service:service',
+  ...ORDER_CHANNEL_LIFECYCLE_READ_ROLES,
 ] as const;
 
 export const ORDER_CUSTOMER_LIFECYCLE_READ_ROLES = [
@@ -57,7 +65,7 @@ export const ORDER_DETAIL_READ_ROLES = [
   'global:superadmin',
   'internal:orders-microservice:admin',
   'internal:invoices-microservice:service',
-  'internal:aukro-service:service',
+  ...ORDER_CHANNEL_LIFECYCLE_READ_ROLES,
 ] as const;
 
 export const ORDER_WAREHOUSE_FULFILLMENT_UPDATE_ROLES = [
