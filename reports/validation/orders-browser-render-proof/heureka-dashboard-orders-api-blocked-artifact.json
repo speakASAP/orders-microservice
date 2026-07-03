@@ -1,30 +1,52 @@
 {
-  "schemaVersion": "orders.browser_blocked_route_probe.v1",
-  "checkedAt": "2026-07-03T12:02:03.544Z",
+  "schemaVersion": "orders.browser_route_probe.v1",
+  "checkedAt": "2026-07-03T12:52:30.000Z",
   "channel": "heureka",
   "route": "https://heureka.alfares.cz/dashboard/orders",
   "protectedDataApiCandidates": [
     {
-      "path": "/heureka/dashboard/orders",
+      "path": "/heureka/dashboard/orders-list?limit=5&status=all",
+      "httpStatus": 200
+    },
+    {
+      "path": "/heureka/dashboard/orders?limit=5&status=all",
       "httpStatus": 404
     },
     {
-      "path": "/api/heureka/dashboard/orders",
-      "httpStatus": 404
+      "path": "/api/heureka/dashboard/orders-list?limit=5&status=all",
+      "httpStatus": 401
     },
     {
       "path": "/api/heureka/dashboard/admin/stats",
-      "httpStatus": 200
+      "httpStatus": 401
     },
     {
       "path": "/api/heureka/dashboard/me",
-      "httpStatus": 200
+      "httpStatus": 401
     }
   ],
-  "blocker": "Heureka rendered orders proof cannot be central-read-model-backed because the browser order data API route is unavailable while admin stats/me are reachable.",
+  "blocker": "Heureka rendered orders proof cannot yet be central-read-model-backed because the fixed orders-list API returns only stale/unknown central lifecycle counts.",
   "redacted": true,
   "tokenValuesPrinted": false,
   "rawOrderRowsPrinted": false,
   "databaseRead": false,
-  "providerCall": false
+  "providerCall": false,
+  "authenticatedInPodProbe": {
+    "path": "/heureka/dashboard/orders-list?limit=5&status=all",
+    "httpStatus": 200,
+    "total": 4,
+    "orders": 4,
+    "statusCounts": {
+      "pending": 4,
+      "forwarded": 3,
+      "failed": 0,
+      "cancelled": 0
+    },
+    "centralStatusCounts": {
+      "available": 0,
+      "missingId": 1,
+      "stale": 4,
+      "unknown": 4
+    }
+  }
 }

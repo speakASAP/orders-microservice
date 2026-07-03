@@ -151,7 +151,7 @@ const CHANNELS = {
   heureka: {
     env: 'HEUREKA_REPO_PATH',
     defaults: ['/home/ssf/Documents/Github/heureka'],
-    status: 'live_create_replay_reservation_cleanup_proven_browser_blocked_orders_api_404',
+    status: 'live_create_replay_reservation_cleanup_proven_orders_api_fixed_lifecycle_data_blocked',
     artifactChecks: [
       {
         file: 'docs/orchestrator/TASK-ORDERS-007-heureka-orders-smoke-readiness.md',
@@ -187,7 +187,7 @@ const CHANNELS = {
           ['centralReadModelBacked', false],
           ['routes.0.surface', 'customer_cabinet'],
           ['routes.0.httpStatus', 200],
-          ['routes.0.dataSourceStatus', 404],
+          ['routes.0.dataSourceStatus', 200],
           ['routes.1.surface', 'admin_dashboard'],
           ['routes.1.httpStatus', 200],
           ['routes.1.dataSourceStatus', 200],
@@ -200,7 +200,7 @@ const CHANNELS = {
         file: 'reports/validation/orders-browser-render-proof/heureka-dashboard-orders-api-blocked-artifact.json',
         type: 'json',
         assertions: [
-          ['schemaVersion', 'orders.browser_blocked_route_probe.v1'],
+          ['schemaVersion', 'orders.browser_route_probe.v1'],
           ['channel', 'heureka'],
           ['redacted', true],
           ['tokenValuesPrinted', false],
@@ -211,7 +211,7 @@ const CHANNELS = {
       },
     ],
     remainingGates: [
-      'Heureka rendered order lifecycle proof is blocked because /heureka/dashboard/orders and /api/heureka/dashboard/orders return 404 while dashboard shell and admin stats are live',
+      'Heureka rendered order lifecycle proof is blocked because /heureka/dashboard/orders-list returns only stale/unknown central lifecycle counts while dashboard shell and protected API are live',
       'external Heureka shop registration details remain unknown',
     ],
   },
@@ -409,7 +409,7 @@ const result = {
   remainingIntegrationGates: [
     'approved authenticated customer/admin browser or API smoke for remaining channels after route/data blockers are resolved',
     'real forwarded Allegro order visible to a real Auth bearer before Allegro cabinet lifecycle can be called live-complete; current live admin statistics show centralForwarded=0',
-    'Heureka dashboard orders API route must be fixed or exposed before rendered lifecycle proof can pass',
+    'Heureka live row with current non-stale canonical Orders lifecycle data is required before rendered lifecycle proof can pass',
     'Aukro rendered central lifecycle cabinet hydration proof remains blocked by live data lacking a non-stale canonical Orders lifecycle stage',
     'Warehouse/Allegro shipment-status runtime is deployed with migrations applied; remaining gates are Allegro enablement, Warehouse URL/token config, safe live smoke, sanitized readback, and approved fulfillment/Orders callback mutation',
     'provider-backed Bazos marketplace webhook/order source is live-fail-closed pending a real paid order ingestion and persisted item snapshot contract',

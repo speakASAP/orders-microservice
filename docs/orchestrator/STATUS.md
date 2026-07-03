@@ -17,14 +17,14 @@ Intent chain:
 Evidence:
 
 - FlipFlop source contains worker UI commit `3110c6a`; runtime uses mutable `latest` image tags, with service-scoped browser proof already proven.
-- Heureka source/runtime are at `358fba9`, but rendered lifecycle proof remains blocked by `/heureka/dashboard/orders` route/API `404`.
+- Heureka source/runtime are at `e4b97fe`; rendered lifecycle proof remains blocked by stale/unknown central lifecycle data from `/heureka/dashboard/orders-list`, not by route availability.
 - Bazos current head advanced to `c6c1ce0`; worker UI commit `26af3ae` remains in history and runtime image `9059605` is still the deployed proof baseline.
 - Allegro current head is `4b08a7c`; direct worker commit `529a71d` remains superseded by patch-equivalent `4ff3987`, with runtime image `ae9d381`.
 - Aukro current head is `e440fa1`; direct worker commit `f6502bb` remains superseded by patch-equivalent `08ad5ce`, with runtime image `68784d7`.
 
 Remaining gates:
 
-- `[MISSING: Heureka dashboard orders route/API fix or approved alternative proof path.]`
+- `[MISSING: Heureka live row with current non-stale canonical Orders lifecycle data for rendered proof.]`
 - `[MISSING: real forwarded Allegro order visible to a real Auth bearer with central Orders lifecycle rendering.]`
 - `[MISSING: Aukro approved live row linked to a current non-stale canonical Orders lifecycle stage.]`
 - `[MISSING: Bazos provider-backed paid order source and persisted item snapshot contract.]`
@@ -59,23 +59,23 @@ Remaining gates:
 - `[MISSING: approved historical binding/backfill source if product wants imported marketplace rows visible to buyers.]`
 - `[FORBIDDEN: email-only buyer ownership mapping without explicit product/Auth/security risk acceptance.]`
 
-## 2026-07-03 - Heureka Dashboard Orders Route Fix Handoff Recorded
+## 2026-07-03 - Heureka Dashboard Orders Route Fix Deployed
 
 Intent chain:
 
 - Vision: Heureka customer/admin dashboards must render central Orders lifecycle state from an authenticated dashboard orders API.
-- Goal Impact: the Heureka browser proof blocker is isolated to a route collision and ready for a small Heureka-owned implementation lane after merge-order approval.
-- System: Orders owns this evidence and handoff; Heureka owns the route/API implementation.
+- Goal Impact: the Heureka route collision is fixed and deployed; the remaining blocker is stale/unknown central lifecycle data for rendered proof.
+- System: Orders owns this evidence; Heureka owns the deployed route/API implementation.
 - Feature: Heureka dashboard orders list API for rendered lifecycle proof.
-- Task: diagnose `/heureka/dashboard/orders` 404 and stop before non-Orders edits.
-- Execution Plan: inspect source/runtime mappings, run redacted in-pod JWT probes, record root cause and patch scope.
+- Task: deploy `/heureka/dashboard/orders-list` alias and prove the protected orders API no longer returns 404.
+- Execution Plan: inspect source/runtime mappings, run redacted in-pod JWT probes, record root cause, patch scope, deploy evidence, and sanitized post-deploy smoke.
 - Coding Prompt: do not print credentials, JWTs, raw order rows, customer PII, provider payloads, tracking values, DB rows, or raw DOM.
 - Code: `docs/orchestrator/2026-07-03-heureka-dashboard-orders-route-fix-handoff.md` and `reports/validation/channel-lifecycle-runtime-evidence/heureka-dashboard-orders-route-collision-current.json`.
-- Validation: public shell `/dashboard/orders` returned `200`; authenticated in-pod `/heureka/dashboard/me` and `/heureka/dashboard/admin/stats` returned `200`; authenticated `/heureka/dashboard/orders?limit=5&status=all` returned `404`, proving the blocker is route mapping rather than auth.
+- Validation: source validation passed, commit `e4b97fe` deployed, public shell `/dashboard/orders` returned `200`, unauthenticated `/api/heureka/dashboard/orders-list?limit=5&status=all` returned `401`, and authenticated in-pod `/heureka/dashboard/orders-list?limit=5&status=all` returned `200` with `total=4`, `orders=4`, and central counts `available=0`, `missingId=1`, `stale=4`, `unknown=4`.
 
 Remaining gate:
 
-- `[MISSING: explicit approval to edit non-Orders Heureka source for the route-collision fix lane.]`
+- `[MISSING: approved Heureka live row linked to a current non-stale canonical Orders lifecycle stage, then rendered customer/admin lifecycle proof.]`
 
 ## 2026-07-03 - Allegro Real Buyer Smoke Approval Gate Reconciled
 
@@ -117,11 +117,11 @@ Intent chain:
 - Execution Plan: record machine-readable channel decision evidence, refresh browser gate docs, update completion audit markers, then validate.
 - Coding Prompt: do not print tokens, cookies, customer PII, raw order rows, raw DOM, provider payloads, tracking values, DB rows, or secret values.
 - Code: `reports/validation/channel-lifecycle-runtime-evidence/channel-deploy-browser-smoke-decision-current.json`, `docs/orchestrator/2026-07-03-channel-browser-gate-reconciliation.md`, `docs/orchestrator/2026-07-03-channel-browser-smoke-order.md`, `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`, `scripts/verify-completion-audit.js`, and IPS state docs.
-- Validation: read-only subagent handoffs confirmed FlipFlop service-scoped proof remains proven, Heureka is route/API-blocked, Bazos is provider-source-blocked, Allegro `529a71d` is patch-equivalent to integrated `4ff3987`, and Aukro `f6502bb` is patch-equivalent to integrated `08ad5ce`.
+- Validation: read-only subagent handoffs confirmed FlipFlop service-scoped proof remains proven, Heureka route/API is fixed but lifecycle data is stale/unknown, Bazos is provider-source-blocked, Allegro `529a71d` is patch-equivalent to integrated `4ff3987`, and Aukro `f6502bb` is patch-equivalent to integrated `08ad5ce`.
 
 Remaining gates:
 
-- `[MISSING: Heureka dashboard orders route/API fix or approved alternative proof path.]`
+- `[MISSING: Heureka live row with current non-stale canonical Orders lifecycle data for rendered proof.]`
 - `[MISSING: Aukro approved live row linked to non-stale canonical Orders lifecycle stage.]`
 - `[MISSING: Bazos provider-backed paid order source and persisted item snapshot contract.]`
 - `[MISSING: real forwarded Allegro order already subject-bound through buyerAuthSubject and visible to a real Auth bearer.]`
@@ -5590,13 +5590,13 @@ Intent Preservation Chain:
 - Execution Plan: read-only route/API probes, no source edits, no deploy, no DB reads, no provider calls, no order mutations.
 - Coding Prompt: do not invent order rows or inject synthetic central lifecycle data; if the data route is unavailable, record a blocked proof report.
 - Code: `reports/validation/orders-browser-render-proof/blocked-heureka-dashboard-orders-api.json`, `reports/validation/orders-browser-render-proof/heureka-dashboard-orders-api-blocked-artifact.json`, and `scripts/verify-channel-lifecycle-runtime-evidence.js`.
-- Validation: blocked browser-proof report validated with `npm run verify:browser-render-proof-report`; `npm run verify:channel-lifecycle-runtime-evidence` reports `live_create_replay_reservation_cleanup_proven_browser_blocked_orders_api_404`.
+- Validation: blocked browser-proof report validated with `npm run verify:browser-render-proof-report`; `npm run verify:channel-lifecycle-runtime-evidence` now reports `live_create_replay_reservation_cleanup_proven_orders_api_fixed_lifecycle_data_blocked`.
 
 Evidence:
 
 - `https://heureka.alfares.cz/dashboard/orders` returned HTTP 200 for the static dashboard shell.
 - `/api/heureka/dashboard/admin/stats` and `/api/heureka/dashboard/me` returned HTTP 200 with an in-memory pod-local admin JWT.
-- `/heureka/dashboard/orders` and `/api/heureka/dashboard/orders` returned HTTP 404, so no real order lifecycle data can be rendered by the browser route.
+- `/heureka/dashboard/orders-list` now returns HTTP 200 with aggregate data, but central read-model counts are stale/unknown, so rendered lifecycle proof remains blocked on current non-stale Orders lifecycle data.
 
 Remaining gates:
 

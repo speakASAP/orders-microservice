@@ -3,10 +3,10 @@
   "status": "blocked",
   "channel": "heureka",
   "proofMode": "service_scoped_proxy",
-  "checkedAt": "2026-07-03T12:02:03.544Z",
-  "ordersEvidenceCommit": "dca05123dc83dcdc2ec70b3d9230ef1555b32530",
+  "checkedAt": "2026-07-03T12:52:30.000Z",
+  "ordersEvidenceCommit": "e4b97fe",
   "mutationEvidence": {
-    "summary": "Heureka browser lifecycle proof is blocked before mutation evidence can be bound because the dashboard orders data API returns 404."
+    "summary": "Heureka dashboard orders data API route is fixed through /heureka/dashboard/orders-list, but rendered lifecycle proof remains blocked because live central read-model counts are stale/unknown."
   },
   "refreshMechanism": "api_backed_render_probe",
   "centralReadModelBacked": false,
@@ -26,7 +26,7 @@
       "surface": "customer_cabinet",
       "url": "https://heureka.alfares.cz/dashboard/orders",
       "httpStatus": 200,
-      "dataSourceStatus": 404,
+      "dataSourceStatus": 200,
       "authContext": "service_scoped_proxy",
       "renderedLifecycleStage": "",
       "renderedLifecycleLabel": "",
@@ -54,7 +54,7 @@
     }
   ],
   "result": {
-    "summary": "Heureka customer/admin shell routes are live, but rendered Orders lifecycle proof is blocked by missing orders dashboard data API route.",
-    "nextAction": "Open a Heureka owner-reviewed route/API fix lane or provide a live Heureka order data endpoint before rerunning browser proof."
+    "summary": "Heureka customer/admin shell routes and protected orders-list API are live, but rendered Orders lifecycle proof remains blocked by stale/unknown central read-model data.",
+    "nextAction": "Provide or select a Heureka order with a current non-stale central Orders lifecycle read model, then rerun rendered customer/admin lifecycle proof."
   }
 }

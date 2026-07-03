@@ -30,7 +30,7 @@
     },
     "heureka": {
       "expectedWorkerCommit": "358fba9",
-      "currentHead": "358fba9",
+      "currentHead": "e4b97fe",
       "runtimeImages": [
         "localhost:5000/heureka-service:358fba9",
         "localhost:5000/heureka-api-gateway:358fba9"
@@ -41,8 +41,9 @@
         "/heureka/dashboard/orders": 404,
         "/api/heureka/dashboard/orders": "401_external_or_404_service_scoped_artifact"
       },
-      "proofStatus": "browser_proof_blocked_orders_route_or_api_unavailable",
-      "remainingGate": "fix or approve dashboard orders route/API proof path before rendered lifecycle smoke can pass"
+      "proofStatus": "orders_list_api_fixed_lifecycle_data_blocked",
+      "remainingGate": "approved live Heureka row linked to a current non-stale canonical Orders lifecycle stage",
+      "runtimeImage": "localhost:5000/heureka-service:e4b97fe"
     },
     "bazos": {
       "expectedWorkerCommit": "26af3ae",
@@ -80,7 +81,7 @@
   },
   "safeOrder": [
     "keep FlipFlop service-scoped proof as the only proven browser lifecycle evidence until safe-human session is available",
-    "fix or approve Heureka dashboard orders route/API proof path before rerunning rendered smoke",
+    "select or create approved Heureka order data with a current non-stale canonical Orders lifecycle stage before rerunning rendered smoke",
     "unblock Bazos provider-backed paid order source before provider-backed browser smoke",
     "skip direct merge of Allegro 529a71d and accept patch-equivalent 4ff3987 already on main/runtime lineage",
     "skip direct merge of Aukro f6502bb and accept patch-equivalent 08ad5ce already on main/runtime lineage",

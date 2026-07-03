@@ -1,26 +1,25 @@
 {
-  "schemaVersion": "orders.heureka_dashboard_orders_route_collision.v1",
-  "status": "non_orders_edit_requires_merge_order_review",
-  "checkedAt": "2026-07-03T12:42:06.000Z",
+  "schemaVersion": "orders.heureka_dashboard_orders_route_fixed.v1",
+  "status": "fixed_route_alias_deployed_rendered_lifecycle_data_blocked",
+  "checkedAt": "2026-07-03T12:52:30.000Z",
   "channel": "heureka",
   "readOnlyEvidence": {
-    "sourceHead": "358fba9",
+    "sourceHead": "e4b97fe",
     "runtimeImages": [
-      "localhost:5000/heureka-service:358fba9",
-      "localhost:5000/heureka-api-gateway:358fba9"
+      "localhost:5000/heureka-service:e4b97fe",
+      "localhost:5000/heureka-api-gateway:e4b97fe"
     ],
     "publicShell": {
       "/dashboard/orders": 200
     },
     "protectedApiWithoutAuth": {
-      "/heureka/dashboard/me": 401,
-      "/heureka/dashboard/admin/stats": 401,
+      "/heureka/dashboard/orders-list": 401,
       "/heureka/dashboard/orders": 404
     },
     "protectedApiWithShortLivedInPodAdminJwt": {
-      "/heureka/dashboard/me": 200,
-      "/heureka/dashboard/admin/stats": 200,
-      "/heureka/dashboard/orders?limit=5&status=all": 404
+      "/heureka/dashboard/orders-list?limit=5&status=all": 200,
+      "/heureka/dashboard/orders?limit=5&status=all": 404,
+      "/heureka/dashboard/me": 200
     },
     "compiledRuntimeMarkers": {
       "dashboardControllerHasOrdersMethod": true,
@@ -29,7 +28,23 @@
       "routerLogMapsProtectedOrderDetail": true,
       "routerLogDoesNotMapProtectedOrderList": true
     },
-    "rootCause": "Nest global-prefix exclude for public shell path dashboard/orders strips the protected DashboardController list route raw path dashboard/orders; public shell and protected list API cannot share the same raw path with different prefix behavior."
+    "rootCause": "Nest global-prefix exclude for public shell path dashboard/orders strips the protected DashboardController list route raw path dashboard/orders; public shell and protected list API cannot share the same raw path with different prefix behavior.",
+    "fixedRouteSummary": {
+      "total": 4,
+      "orders": 4,
+      "statusCounts": {
+        "pending": 4,
+        "forwarded": 3,
+        "failed": 0,
+        "cancelled": 0
+      },
+      "centralStatusCounts": {
+        "available": 0,
+        "missingId": 1,
+        "stale": 4,
+        "unknown": 4
+      }
+    }
   },
   "proposedHeurekaPatch": {
     "allowedFiles": [
@@ -55,17 +70,19 @@
       "verify:heureka-orders-runtime-readiness passes and asserts protected list alias",
       "services/heureka-service build passes",
       "post-deploy read-only smoke: /dashboard/orders 200, unauth /heureka/dashboard/orders-list 401, authenticated in-pod /heureka/dashboard/orders-list 200 with aggregate-only output"
-    ]
+    ],
+    "implementedCommit": "e4b97fe",
+    "deployEvidence": "heureka-service and heureka-api-gateway ready/available 1/1 on e4b97fe"
   },
   "policy": {
-    "ordersOnlyHandoff": true,
-    "heurekaSourceEdited": false,
-    "deployRun": false,
+    "ordersOnlyHandoff": false,
+    "heurekaSourceEdited": true,
+    "deployRun": true,
     "runtimeMutation": false,
     "tokenValuesPrinted": false,
     "rawOrderRowsPrinted": false,
     "customerPiiPrinted": false,
     "providerPayloadPrinted": false
   },
-  "remainingGate": "[MISSING: orchestrator merge-order approval for Heureka route-collision fix lane]"
+  "remainingGate": "[MISSING: approved Heureka live row linked to a current non-stale canonical Orders lifecycle stage, then rendered customer/admin lifecycle proof]"
 }
