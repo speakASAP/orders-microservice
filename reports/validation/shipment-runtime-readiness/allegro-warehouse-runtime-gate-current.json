@@ -1,7 +1,7 @@
 {
   "schemaVersion": "orders.shipment_runtime_gate.v1",
   "status": "runtime_proven_allegro_warehouse_orders",
-  "checkedAt": "2026-07-03T17:10:00.000Z",
+  "checkedAt": "2026-07-03T17:09:13.457918Z",
   "runtimeEvidence": {
     "k3s": "recovered_verified",
     "deployments": {
@@ -52,6 +52,11 @@
       "fulfillmentMutation": {
         "statusMutationApplied": true,
         "fulfillmentStatus": "in_delivery"
+      },
+      "supplementalAggregateCountsAfterNoCentralOrderSmoke": {
+        "correlations": 1,
+        "observations": 1,
+        "printedRows": false
       }
     },
     "allegro": {
@@ -65,6 +70,23 @@
         "disabled": 0,
         "blocked": 0,
         "failed": 0
+      },
+      "supplementalNoCentralOrderSmoke": {
+        "posted": 0,
+        "disabled": 0,
+        "skipped": 1,
+        "blocked": 0,
+        "failed": 0,
+        "reason": "MISSING_CENTRAL_ORDER_ID",
+        "warehouseCountsUnchanged": true
+      },
+      "tokenAuthEvidence": {
+        "valid": true,
+        "hasAllegroServiceRole": false,
+        "hasWarehouseAdminRole": true,
+        "roleCount": 1,
+        "printedToken": false,
+        "printedIdentity": false
       }
     },
     "orders": {
@@ -85,6 +107,7 @@
   },
   "remainingGates": [
     "optional real provider live-read selection using raw Allegro account/order ids if product requires provider API evidence beyond sanitized existing-correlation smoke",
-    "product-approved tracking visibility policy"
+    "product-approved tracking visibility policy",
+    "replace broad Warehouse-admin bearer fallback with a minimal Auth-validated internal:allegro-service:service token/role before recurring provider ingestion"
   ]
 }
