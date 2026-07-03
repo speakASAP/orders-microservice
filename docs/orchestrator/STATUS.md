@@ -1,5 +1,36 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Lifecycle List Runtime Query Stabilized
+
+Intent chain:
+
+- Vision: every selling channel can reliably hydrate central Orders lifecycle lists for customer/admin cabinets without query-shape runtime failures.
+- Goal Impact: the deployed Orders lifecycle list endpoints now return successful bounded read models for FlipFlop, Allegro, Aukro, Bazos, and Heureka service identities.
+- System: Orders owns lifecycle read models and authorization; channel services own display and subject scoping.
+- Feature: runtime-safe lifecycle list query ordering.
+- Task: fix the TypeORM/Postgres ordering alias used by `GET /api/orders/customer/lifecycle` and `GET /api/orders/admin/lifecycle`.
+- Execution Plan: patch the Orders query builder in the isolated remote worktree, extend verifier source assertions, run the full standard test chain, deploy the committed image, and run a pod-local redacted service-identity probe.
+- Coding Prompt: keep lifecycle filtering and ordering by `COALESCE(orders.orderedAt, orders.createdAt)` while using a SQL-safe selected alias for `ORDER BY`.
+- Code: `src/orders/orders.service.ts` uses `order_sort_at`; `scripts/verify-order-lifecycle-read-model.js` asserts the SQL-safe alias contract.
+- Validation: `npm test`, `git diff --check`, commit `a12b40e`, `./scripts/deploy.sh a12b40e`, rollout health check, and pod-local redacted lifecycle list probe.
+
+Runtime evidence:
+
+- k3s node `alfares` was `Ready`; Orders, Warehouse, Allegro, Notifications, FlipFlop, Bazos, Heureka, and Aukro deployments were all `1/1` ready before runtime probing.
+- Deployed image: `localhost:5000/orders-microservice:a12b40e`; `/health` returned `status=healthy` from the new pod.
+- The first post-`12b61a4` admin list probe failed with `QueryFailedError: column "ordersortat" does not exist`, proving the remaining defect was SQL alias casing, not authorization.
+- The final pod-local probe used `x-service-name` plus `x-internal-service-token`; it did not print token values, order rows, customer fields, DB rows, provider payloads, or Warehouse data.
+- `GET /api/orders/customer/lifecycle?limit=1` returned HTTP `200`, `success=true`, `count=0`, and `ordersLength=0` for `flipflop-service`, `allegro-service`, `aukro-service`, `bazos-service`, and `heureka-service`.
+- `GET /api/orders/admin/lifecycle?limit=1` returned HTTP `200`, `success=true`, `count=1`, `ordersLength=1`, and aggregate keys `byChannel`, `byDeliveryStatus`, `byLifecycleStage`, `byPaymentStatus`, `exceptionCounts`, `totalOrders`, and `totalsByCurrency` for all five service identities.
+
+Remaining gates:
+
+- `[PROVEN: Orders deployed image localhost:5000/orders-microservice:a12b40e serves customer/admin lifecycle list endpoints with HTTP 200 for FlipFlop, Allegro, Aukro, Bazos, and Heureka service identities.]`
+- `[MISSING: approved authenticated customer/admin browser smoke per channel proving visible lifecycle refresh in each cabinet UI.]`
+- `[MISSING: real subject-bound Allegro order row and buyer bearer before Allegro buyer lifecycle can be called live-complete.]`
+- `[MISSING: Warehouse/Allegro shipment-status deploy, migration, env enablement, and safe live smoke approvals before provider-driven late lifecycle stages can be proven end to end.]`
+- `[UNKNOWN: provider-backed Bazos marketplace webhook/order source.]`
+
 ## 2026-07-03 - Channel Lifecycle Read Role Alignment
 
 Intent chain:
