@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "orders.browser_blocked_route_probe.v1",
+  "checkedAt": "2026-07-03T12:02:03.544Z",
+  "channel": "heureka",
+  "route": "https://heureka.alfares.cz/dashboard/orders",
+  "protectedDataApiCandidates": [
+    {
+      "path": "/heureka/dashboard/orders",
+      "httpStatus": 404
+    },
+    {
+      "path": "/api/heureka/dashboard/orders",
+      "httpStatus": 404
+    },
+    {
+      "path": "/api/heureka/dashboard/admin/stats",
+      "httpStatus": 200
+    },
+    {
+      "path": "/api/heureka/dashboard/me",
+      "httpStatus": 200
+    }
+  ],
+  "blocker": "Heureka rendered orders proof cannot be central-read-model-backed because the browser order data API route is unavailable while admin stats/me are reachable.",
+  "redacted": true,
+  "tokenValuesPrinted": false,
+  "rawOrderRowsPrinted": false,
+  "databaseRead": false,
+  "providerCall": false
+}

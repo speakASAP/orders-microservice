@@ -5363,3 +5363,31 @@ Remaining gates:
 
 - `[MISSING: browser/API lifecycle proof for Heureka, Aukro, Bazos, and Allegro according to each channel blocker.]`
 - `[MISSING: Warehouse/Allegro shipment-status deploy/migration/env/smoke approvals.]`
+
+
+## 2026-07-03 - Heureka Browser Lifecycle Proof Blocked By Orders API Route
+
+Current focus: attempt the next safe channel browser/API lifecycle lane after FlipFlop without editing Heureka source.
+
+Intent Preservation Chain:
+
+- Vision: each channel has explicit evidence for customer/admin lifecycle visibility, either proven or blocked with a concrete owner-actionable reason.
+- Goal Impact: Heureka is no longer a vague browser-smoke gap; the blocker is narrowed to a missing dashboard orders data route while existing create/replay/reservation evidence remains valid.
+- System: Orders remains lifecycle authority; Heureka dashboard is the channel renderer; gateway/static routes must expose the order data API before rendered proof can be central-read-model-backed.
+- Feature: Heureka rendered lifecycle proof blocker artifact.
+- Task: probe public dashboard shell, protected admin/me APIs, and orders dashboard API candidates using an in-memory pod-local JWT without printing token values or rows.
+- Execution Plan: read-only route/API probes, no source edits, no deploy, no DB reads, no provider calls, no order mutations.
+- Coding Prompt: do not invent order rows or inject synthetic central lifecycle data; if the data route is unavailable, record a blocked proof report.
+- Code: `reports/validation/orders-browser-render-proof/blocked-heureka-dashboard-orders-api.json`, `reports/validation/orders-browser-render-proof/heureka-dashboard-orders-api-blocked-artifact.json`, and `scripts/verify-channel-lifecycle-runtime-evidence.js`.
+- Validation: blocked browser-proof report validated with `npm run verify:browser-render-proof-report`; `npm run verify:channel-lifecycle-runtime-evidence` reports `live_create_replay_reservation_cleanup_proven_browser_blocked_orders_api_404`.
+
+Evidence:
+
+- `https://heureka.alfares.cz/dashboard/orders` returned HTTP 200 for the static dashboard shell.
+- `/api/heureka/dashboard/admin/stats` and `/api/heureka/dashboard/me` returned HTTP 200 with an in-memory pod-local admin JWT.
+- `/heureka/dashboard/orders` and `/api/heureka/dashboard/orders` returned HTTP 404, so no real order lifecycle data can be rendered by the browser route.
+
+Remaining gates:
+
+- `[MISSING: Heureka owner-reviewed fix/exposure for dashboard orders API route before rendered lifecycle proof can pass.]`
+- `[MISSING: external Heureka shop registration details if product requires real marketplace-backed order proof.]`

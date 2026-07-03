@@ -126,7 +126,7 @@ const CHANNELS = {
   heureka: {
     env: 'HEUREKA_REPO_PATH',
     defaults: ['/home/ssf/Documents/Github/heureka'],
-    status: 'live_create_replay_reservation_cleanup_smoke_proven',
+    status: 'live_create_replay_reservation_cleanup_proven_browser_blocked_orders_api_404',
     artifactChecks: [
       {
         file: 'docs/orchestrator/TASK-ORDERS-007-heureka-orders-smoke-readiness.md',
@@ -150,10 +150,44 @@ const CHANNELS = {
           '`npm run verify:heureka-orders-runtime-readiness`: passed in source mode with `blockers: []`',
         ],
       },
+      {
+        root: 'orders',
+        file: 'reports/validation/orders-browser-render-proof/blocked-heureka-dashboard-orders-api.json',
+        type: 'json',
+        assertions: [
+          ['schemaVersion', 'orders.browser_render_proof.v1'],
+          ['status', 'blocked'],
+          ['channel', 'heureka'],
+          ['proofMode', 'service_scoped_proxy'],
+          ['centralReadModelBacked', false],
+          ['routes.0.surface', 'customer_cabinet'],
+          ['routes.0.httpStatus', 200],
+          ['routes.0.dataSourceStatus', 404],
+          ['routes.1.surface', 'admin_dashboard'],
+          ['routes.1.httpStatus', 200],
+          ['routes.1.dataSourceStatus', 200],
+          ['evidencePolicy.noTokenValues', true],
+          ['evidencePolicy.noRawOrderRows', true],
+        ],
+      },
+      {
+        root: 'orders',
+        file: 'reports/validation/orders-browser-render-proof/heureka-dashboard-orders-api-blocked-artifact.json',
+        type: 'json',
+        assertions: [
+          ['schemaVersion', 'orders.browser_blocked_route_probe.v1'],
+          ['channel', 'heureka'],
+          ['redacted', true],
+          ['tokenValuesPrinted', false],
+          ['rawOrderRowsPrinted', false],
+          ['databaseRead', false],
+          ['providerCall', false],
+        ],
+      },
     ],
     remainingGates: [
+      'Heureka rendered order lifecycle proof is blocked because /heureka/dashboard/orders and /api/heureka/dashboard/orders return 404 while dashboard shell and admin stats are live',
       'external Heureka shop registration details remain unknown',
-      'approved authenticated dashboard/browser smoke for real customer/admin order views',
     ],
   },
   allegro: {
@@ -278,8 +312,9 @@ const result = {
     sourceAndValidationArtifactOnly: true,
   },
   remainingIntegrationGates: [
-    'approved authenticated customer/admin browser or API smoke for remaining non-FlipFlop channels',
+    'approved authenticated customer/admin browser or API smoke for remaining channels after route/data blockers are resolved',
     'real subject-bound Allegro order row and buyer bearer before Allegro cabinet lifecycle can be called live-complete',
+    'Heureka dashboard orders API route must be fixed or exposed before rendered lifecycle proof can pass',
     'Aukro rendered central lifecycle cabinet hydration proof remains merge-order/browser-or-API-smoke gated',
     'Warehouse/Allegro shipment-status deploy, migration, env enablement, and safe live smoke approvals',
     'provider-backed Bazos marketplace webhook/order source remains unknown',

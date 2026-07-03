@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "orders.browser_render_proof.v1",
+  "status": "blocked",
+  "channel": "heureka",
+  "proofMode": "service_scoped_proxy",
+  "checkedAt": "2026-07-03T12:02:03.544Z",
+  "ordersEvidenceCommit": "dca05123dc83dcdc2ec70b3d9230ef1555b32530",
+  "mutationEvidence": {
+    "summary": "Heureka browser lifecycle proof is blocked before mutation evidence can be bound because the dashboard orders data API returns 404."
+  },
+  "refreshMechanism": "api_backed_render_probe",
+  "centralReadModelBacked": false,
+  "evidencePolicy": {
+    "noTokenValues": true,
+    "noCookies": true,
+    "noCustomerPii": true,
+    "noRawOrderRows": true,
+    "noDatabaseDump": true,
+    "noPaymentReference": true,
+    "noTrackingValues": true,
+    "noProviderPayload": true,
+    "artifactsRedacted": true
+  },
+  "routes": [
+    {
+      "surface": "customer_cabinet",
+      "url": "https://heureka.alfares.cz/dashboard/orders",
+      "httpStatus": 200,
+      "dataSourceStatus": 404,
+      "authContext": "service_scoped_proxy",
+      "renderedLifecycleStage": "",
+      "renderedLifecycleLabel": "",
+      "artifact": {
+        "kind": "blocked_route_probe",
+        "path": "reports/validation/orders-browser-render-proof/heureka-dashboard-orders-api-blocked-artifact.json",
+        "sha256": "895572f4c8b5b83dc16a41a16b47d3d41bf0a3838ba72e2eda6007598220a81e",
+        "redacted": true
+      }
+    },
+    {
+      "surface": "admin_dashboard",
+      "url": "https://heureka.alfares.cz/dashboard/admin/users",
+      "httpStatus": 200,
+      "dataSourceStatus": 200,
+      "authContext": "service_scoped_proxy",
+      "renderedLifecycleStage": "",
+      "renderedLifecycleLabel": "",
+      "artifact": {
+        "kind": "blocked_route_probe",
+        "path": "reports/validation/orders-browser-render-proof/heureka-dashboard-orders-api-blocked-artifact.json",
+        "sha256": "895572f4c8b5b83dc16a41a16b47d3d41bf0a3838ba72e2eda6007598220a81e",
+        "redacted": true
+      }
+    }
+  ],
+  "result": {
+    "summary": "Heureka customer/admin shell routes are live, but rendered Orders lifecycle proof is blocked by missing orders dashboard data API route.",
+    "nextAction": "Open a Heureka owner-reviewed route/API fix lane or provide a live Heureka order data endpoint before rerunning browser proof."
+  }
+}
