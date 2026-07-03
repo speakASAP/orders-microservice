@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Heureka Preflight Blocker Added To Runtime Evidence Verifier
+
+Intent chain:
+
+- Vision: Heureka rendered lifecycle proof must be gated by current auth/runtime evidence, not stale route wording.
+- Goal Impact: automated Orders evidence now enforces the Catalog-auth and Orders-admin-token blocker before the Heureka rendered proof lane can be called ready.
+- System: Orders owns the cross-channel evidence verifier; Heureka owns the future runner patch; Catalog/Auth/Orders own the required auth boundaries.
+- Feature: Heureka rendered proof preflight evidence.
+- Task: add the sanitized preflight blocker artifact to `verify:channel-lifecycle-runtime-evidence` and correct completion-audit wording.
+- Execution Plan: verify the existing blocker artifact fields, keep the route/API blocker closed, and preserve the active runner-auth gate.
+- Coding Prompt: Orders-only verifier/docs update; no channel source edit, deploy, runtime mutation, DB read, provider call, token output, raw row, PII, or raw DOM.
+- Code: `scripts/verify-channel-lifecycle-runtime-evidence.js`, `scripts/verify-completion-audit.js`, and `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`.
+- Validation: `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:completion-audit`, and `git diff --check`.
+
+Remaining gate:
+
+- `[MISSING: explicit approval to edit Heureka runner auth lane, then bounded create -> rendered proof -> cancel smoke.]`
+
 ## 2026-07-03 - Heureka Rendered Proof Preflight Blocked By Auth Boundary
 
 Intent chain:

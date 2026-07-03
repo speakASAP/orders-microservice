@@ -91,7 +91,7 @@ assert.equal(channelDecision.channels.bazos.proofStatus, 'source_ui_verified_pro
 
 const missingGateMarkers = [
   'Direct safe-human FlipFlop browser proof if product requires it beyond the already proven service-scoped proxy proof.',
-  'Heureka live row with current non-stale canonical Orders lifecycle data for rendered proof.',
+  'Heureka rendered proof runner auth: Catalog internal auth for product preflight plus short-lived Orders admin/global-superadmin bearer for readback/cleanup, then a live row with current non-stale canonical Orders lifecycle data.',
   'Aukro approved live order row linked to a current non-stale canonical Orders lifecycle stage.',
   'Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.',
   'Provider-backed Bazos marketplace webhook/order source decision and persisted item snapshot contract.',
@@ -116,7 +116,7 @@ assert.equal(
   'completion audit must not mark the active lifecycle goal complete while browser/provider gates are missing',
 );
 assert.equal(
-  audit.includes('Heureka live row with current non-stale canonical Orders lifecycle data for rendered proof.') &&
+  audit.includes('Heureka rendered proof runner auth: Catalog internal auth for product preflight plus short-lived Orders admin/global-superadmin bearer for readback/cleanup, then a live row with current non-stale canonical Orders lifecycle data.') &&
     audit.includes('Warehouse/Allegro shipment-status runtime enablement gates:'),
   true,
   'completion audit must preserve both channel browser/data/auth and shipment-status remaining gates',
