@@ -11,6 +11,7 @@ const invalidSensitiveFixturePath = path.join(root, 'docs/orchestrator/browser-r
 const invalidPublicShellFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-public-shell-route.json');
 const invalidMismatchedStageFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mismatched-stage.json');
 const invalidUnknownChannelFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-unknown-channel.json');
+const invalidProofModeMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-proof-mode-mismatch.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -90,6 +91,7 @@ function validateContract() {
     '`proofMode`: one of `safe_human_session` or `service_scoped_proxy`.',
     '`centralReadModelBacked`: boolean proving the rendered state came from Orders lifecycle read model or a channel API backed by it.',
     '`authContext`: optional route-level proof context; if present it must be `safe_human_session` or `service_scoped_proxy`.',
+    'route authContext must match report proofMode for proven browser reports',
     '`dataSourceStatus`: optional numeric backing Orders/channel API status; `status=proven` cannot include `401` or `403` data-source statuses.',
     'Public shell routes, anonymous DOM snapshots, and route-only HTML checks cannot satisfy `status=proven`.',
     '`BROWSER_RENDER_PROOF_REPORT_PATH=/path/to/report.json`',
@@ -137,12 +139,18 @@ function validateFixtures() {
     /browser proof report channel must be one of approved sellable marketplaces/,
     'invalid unknown-channel fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidProofModeMismatchFixturePath)),
+    /route authContext must match report proofMode/,
+    'invalid proof-mode mismatch fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
     invalidPublicShellFixture: path.relative(root, invalidPublicShellFixturePath),
     invalidMismatchedStageFixture: path.relative(root, invalidMismatchedStageFixturePath),
     invalidUnknownChannelFixture: path.relative(root, invalidUnknownChannelFixturePath),
+    invalidProofModeMismatchFixture: path.relative(root, invalidProofModeMismatchFixturePath),
   };
 }
 
@@ -223,6 +231,11 @@ function validateReport(rawReport) {
       report.routes.some((route) => route.dataSourceStatus === 401 || route.dataSourceStatus === 403 || isPublicShellArtifact(route.artifact.kind) || route.authContext === 'anonymous'),
       false,
       'public shell or anonymous route evidence cannot prove rendered lifecycle',
+    );
+    assert.equal(
+      report.routes.some((route) => route.authContext && route.authContext !== report.proofMode),
+      false,
+      'route authContext must match report proofMode',
     );
   }
   return report;

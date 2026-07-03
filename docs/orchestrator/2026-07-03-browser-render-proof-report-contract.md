@@ -69,6 +69,7 @@ Required `evidencePolicy` booleans:
 - Every artifact is marked `redacted=true`.
 - All `evidencePolicy` controls are `true`.
 - At least one route must include `authContext=safe_human_session` or `authContext=service_scoped_proxy`.
+- Route `authContext` values must match report-level `proofMode`. route authContext must match report proofMode for proven browser reports.
 - Public shell routes, anonymous DOM snapshots, and route-only HTML checks cannot satisfy `status=proven`. Backing API `401`/`403` responses also cannot satisfy `status=proven`.
 
 ## Default Verifier Mode
@@ -90,5 +91,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-public-shell-route.json` must be rejected because route-only anonymous shell evidence cannot prove lifecycle rendering.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-mismatched-stage.json` must be rejected because customer/admin rendered stages diverge from `mutationEvidence.expectedLifecycleStage`.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-unknown-channel.json` must be rejected because the report channel is not one of the approved sellable marketplaces.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-proof-mode-mismatch.json` must be rejected because route `authContext` does not match report-level `proofMode`.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Mode Consistency Guard Added
+
+Intent chain:
+
+- Vision: browser proof mode must be unambiguous so completion evidence cannot mix human-session and service-proxy proof semantics.
+- Goal Impact: a future `orders.browser_render_proof.v1` report can no longer pass with route auth context that contradicts report-level proof mode.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: proof-mode consistency guard.
+- Task: add proofMode/authContext equality validation and a negative fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/audit, then validate without runtime mutation.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, fixture, contract, completion audit/status/state docs.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-report.js`, `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report with route authContext aligned to proofMode.]`
+
 ## 2026-07-03 - Browser Proof Known Channel Guard Added
 
 Intent chain:
