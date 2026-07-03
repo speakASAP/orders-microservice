@@ -65,7 +65,7 @@
       "deadLetterEnv": "set",
       "correlationEnabledEnv": "true",
       "warehouseServiceTokenPresent": false,
-      "providerRead": "not_run",
+      "providerRead": "live_read_refreshed_unknown_only",
       "sanitizedReplay": {
         "posted": 1,
         "disabled": 0,
@@ -165,7 +165,62 @@
         "internalCorrelationPostStatus": 400
       },
       "warehouseInternalServiceTokenPresent": true,
-      "warehouseCapableServiceTokenPresent": true
+      "warehouseCapableServiceTokenPresent": true,
+      "providerLiveReadRefreshScan": {
+        "schemaVersion": "allegro.live_shipment_status_scan.v1",
+        "oauthRefresh": {
+          "attempted": true,
+          "providerRefreshStatus": 200,
+          "dbUpdateAttempted": true,
+          "dbUpdateUpdated": true,
+          "tokenExpiresAtInPastAfter": false,
+          "printedTokens": false,
+          "printedIds": false,
+          "printedEmails": false,
+          "printedRows": false
+        },
+        "readiness": {
+          "accounts": 3,
+          "activeAccounts": 2,
+          "accountsWithToken": 3,
+          "accountsWithFutureToken": 1,
+          "forwardingAttempts": 1,
+          "forwardingAttemptsWithAccount": 1
+        },
+        "scan": {
+          "candidateCount": 1,
+          "accountTokenReadyCount": 1,
+          "shipmentEndpoint": {
+            "http200": 1,
+            "http404": 0,
+            "other": 0
+          },
+          "shipmentAvailability": {
+            "available": 1,
+            "empty": 0
+          },
+          "trackingEndpoint": {
+            "attempted": 1,
+            "http200": 1,
+            "other": 0
+          },
+          "latestStatusCounts": {
+            "UNKNOWN": 1
+          },
+          "nonUnknownStatusCount": 0,
+          "printedTokens": false,
+          "printedRawOrderIds": false,
+          "printedRawAccountIds": false,
+          "printedRawWaybills": false,
+          "printedProviderPayload": false,
+          "wroteFiles": false,
+          "mutatedProvider": false,
+          "mutatedWarehouse": false,
+          "mutatedOrders": false
+        },
+        "nonUnknownProviderSampleAvailable": false,
+        "blocker": "[BLOCKED: no real provider sample with carrier tracking status other than UNKNOWN is currently available]"
+      }
     },
     "orders": {
       "warehouseCallbackReadback": {
@@ -185,7 +240,7 @@
     "statusOnlyTrackingVisibilityApproved": true
   },
   "remainingGates": [
-    "optional real provider live-read selection using raw Allegro account/order ids if product requires provider API evidence beyond sanitized existing-correlation smoke",
+    "optional future real provider sample with carrier tracking status other than UNKNOWN if product requires live mutation evidence beyond sanitized existing-correlation smoke",
     "optional future audited full-tracking reveal API if product/security approves it"
   ],
   "sourceEvidence": {

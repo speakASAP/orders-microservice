@@ -67,6 +67,17 @@ assert.equal(runtimeGateReport.runtimeEvidence.allegro.correlationEnabledEnv, 't
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.warehouseServiceTokenPresent, false, 'Allegro runtime must not keep the temporary WAREHOUSE_SERVICE_TOKEN env');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.warehouseInternalServiceTokenPresent, true, 'Allegro runtime must have the Vault-managed internal Warehouse service token');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.warehouseCapableServiceTokenPresent, true, 'Allegro runtime must have a Warehouse-capable service token');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerRead, 'live_read_refreshed_unknown_only', 'provider live-read refresh scan evidence mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerLiveReadRefreshScan.oauthRefresh.providerRefreshStatus, 200, 'Allegro OAuth refresh must have succeeded for refreshed live-read scan');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerLiveReadRefreshScan.oauthRefresh.printedTokens, false, 'OAuth refresh evidence must not print token values');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerLiveReadRefreshScan.readiness.accountsWithFutureToken, 1, 'Allegro live-read readiness must record one refreshed future token');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerLiveReadRefreshScan.scan.shipmentEndpoint.http200, 1, 'Allegro shipment live-read endpoint must be reachable');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerLiveReadRefreshScan.scan.trackingEndpoint.http200, 1, 'Allegro tracking live-read endpoint must be reachable');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerLiveReadRefreshScan.scan.latestStatusCounts.UNKNOWN, 1, 'current provider scan must record the available UNKNOWN status sample');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerLiveReadRefreshScan.scan.nonUnknownStatusCount, 0, 'current provider scan must preserve the non-UNKNOWN live sample blocker');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerLiveReadRefreshScan.scan.printedProviderPayload, false, 'provider scan must not print provider payloads');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerLiveReadRefreshScan.scan.mutatedWarehouse, false, 'provider scan must not mutate Warehouse');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.providerLiveReadRefreshScan.nonUnknownProviderSampleAvailable, false, 'non-UNKNOWN provider sample must remain blocked until provider data exists');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.posted, 1, 'sanitized replay must post exactly one Warehouse correlation');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.disabled, 0, 'enabled replay must not be disabled');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.blocked, 0, 'enabled replay must not be blocked');
@@ -89,10 +100,16 @@ assert.equal(runtimeGateReport.policy.secretsDisplayed, false, 'shipment gate re
 assert.equal(runtimeGateReport.policy.rawDatabaseRowsDisplayed, false, 'shipment gate report must not expose raw DB rows');
 assert.equal(runtimeGateReport.policy.statusOnlyTrackingVisibilityApproved, true, 'shipment gate report must record status-only tracking visibility approval');
 assert.equal(liveProviderGateReport.schemaVersion, 'orders.allegro_live_provider_non_unknown_gate.v1', 'live provider blocker report schema mismatch');
-assert.equal(liveProviderGateReport.status, 'blocked_expired_oauth_tokens_refresh_requires_explicit_approval', 'live provider blocker status mismatch');
+assert.equal(liveProviderGateReport.status, 'blocked_no_non_unknown_provider_sample_after_refresh', 'live provider blocker status mismatch');
+assert.equal(liveProviderGateReport.oauthRefresh.providerRefreshStatus, 200, 'live provider gate must record successful OAuth refresh');
+assert.equal(liveProviderGateReport.oauthRefresh.dbUpdateUpdated, true, 'live provider gate must record encrypted token refresh update');
+assert.equal(liveProviderGateReport.liveScan.shipmentEndpoint.http200, 1, 'live provider gate must reach shipment endpoint after refresh');
+assert.equal(liveProviderGateReport.liveScan.trackingEndpoint.http200, 1, 'live provider gate must reach tracking endpoint after refresh');
+assert.equal(liveProviderGateReport.liveScan.latestStatusCounts.UNKNOWN, 1, 'live provider gate must record current UNKNOWN provider sample');
 assert.equal(liveProviderGateReport.liveScan.nonUnknownStatusCount, 0, 'live provider non-UNKNOWN count must be zero while blocked');
-assert.equal(liveProviderGateReport.aggregateReadiness.accountsWithFutureToken, 0, 'live provider blocker must record zero future-valid tokens');
-assert.equal(liveProviderGateReport.blocker.mutationRejectedByPolicy, true, 'OAuth refresh mutation must remain explicitly blocked without approval');
+assert.equal(liveProviderGateReport.aggregateReadiness.accountsWithFutureToken, 1, 'live provider blocker must record one refreshed future-valid token');
+assert.equal(liveProviderGateReport.blocker.code, 'NO_REAL_NON_UNKNOWN_PROVIDER_STATUS_SAMPLE', 'live provider blocker code mismatch');
+assert.equal(liveProviderGateReport.blocker.mutationRejectedByPolicy, false, 'OAuth refresh mutation is no longer the blocker after approval');
 assert.equal(liveProviderGateReport.redaction.tokenValuesPrinted, false, 'live provider blocker must not print token values');
 assert.equal(liveProviderGateReport.redaction.rawOrderIdsPrinted, false, 'live provider blocker must not print raw order ids');
 

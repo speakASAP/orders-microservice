@@ -1,48 +1,63 @@
 {
   "schemaVersion": "orders.allegro_live_provider_non_unknown_gate.v1",
-  "status": "blocked_expired_oauth_tokens_refresh_requires_explicit_approval",
+  "status": "blocked_no_non_unknown_provider_sample_after_refresh",
   "checkedAt": "2026-07-03T17:56:51.198Z",
   "scope": {
     "goal": "optional real Allegro provider shipment status sample with non-UNKNOWN status",
-    "mode": "read_only_scan_plus_policy_blocker_record",
+    "mode": "bounded_oauth_refresh_plus_sanitized_provider_read_scan",
     "providerWrite": false,
     "warehouseMutation": false,
     "ordersMutation": false,
-    "credentialMutation": false
+    "credentialMutation": true,
+    "credentialMutationScope": "encrypted_allegro_oauth_token_fields_only"
+  },
+  "oauthRefresh": {
+    "attempted": true,
+    "providerRefreshStatus": 200,
+    "returnedAccessToken": true,
+    "returnedRefreshToken": true,
+    "dbUpdateAttempted": true,
+    "dbUpdateUpdated": true,
+    "tokenExpiresAtInPastAfter": false,
+    "tokenValuesPrinted": false,
+    "rawAccountIdsPrinted": false,
+    "rawRowsPrinted": false
   },
   "liveScan": {
     "candidateCount": 1,
-    "accountTokenReadyCount": 0,
+    "accountTokenReadyCount": 1,
     "shipmentEndpoint": {
-      "http200": 0,
+      "http200": 1,
       "http404": 0,
       "other": 0
     },
     "shipmentAvailability": {
-      "available": 0,
+      "available": 1,
       "empty": 0
     },
     "trackingEndpoint": {
-      "attempted": 0,
-      "http200": 0,
+      "attempted": 1,
+      "http200": 1,
       "other": 0
     },
-    "latestStatusCounts": {},
+    "latestStatusCounts": {
+      "UNKNOWN": 1
+    },
     "nonUnknownStatusCount": 0
   },
   "aggregateReadiness": {
     "accounts": 3,
     "activeAccounts": 2,
     "accountsWithToken": 3,
-    "accountsWithFutureToken": 0,
+    "accountsWithFutureToken": 1,
     "forwardingAttempts": 1,
     "forwardingAttemptsWithAccount": 1
   },
   "blocker": {
-    "code": "ALLEGRO_OAUTH_ACCESS_TOKENS_EXPIRED",
-    "detail": "No forwarded-order Allegro account currently has a future-valid access token; refreshing OAuth tokens would mutate encrypted credential fields and requires explicit approval before continuing this optional provider proof.",
-    "mutationRejectedByPolicy": true,
-    "rejectedMutation": "allegro_accounts.accessToken, allegro_accounts.refreshToken, allegro_accounts.tokenExpiresAt"
+    "code": "NO_REAL_NON_UNKNOWN_PROVIDER_STATUS_SAMPLE",
+    "detail": "The only currently available real Allegro shipment/tracking sample is reachable but returns UNKNOWN, so no live provider-driven non-UNKNOWN fulfillment mutation can be proven until provider data changes or product approves a fixture.",
+    "mutationRejectedByPolicy": false,
+    "rejectedMutation": null
   },
   "redaction": {
     "tokenValuesPrinted": false,
@@ -53,5 +68,5 @@
     "rawRowsPrinted": false,
     "customerPiiPrinted": false
   },
-  "remainingGate": "optional real provider non-UNKNOWN shipment status sample requires explicitly approved OAuth token refresh or new valid Allegro OAuth authorization"
+  "remainingGate": "optional future real provider non-UNKNOWN shipment status sample requires a provider order/shipment whose carrier tracking status is not UNKNOWN, or a product-approved fixture"
 }
