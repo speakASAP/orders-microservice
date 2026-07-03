@@ -76,6 +76,7 @@ const report = {
     approvalId: '[MISSING: approval id for approved lifecycle mutation or existing mutation artifact]',
     summary: '[MISSING: sanitized lifecycle mutation summary]',
     artifactHash: 'sha256:[MISSING: 64 lowercase hex artifact hash]',
+    artifactPath: '[MISSING: reports/validation/lifecycle-mutation-smoke/report-latest.json]',
     expectedLifecycleStage: stage,
   },
   routes: [

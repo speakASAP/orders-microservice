@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const assert = require('assert/strict');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
@@ -25,6 +26,7 @@ const invalidFutureCheckedAtFixturePath = path.join(root, 'docs/orchestrator/bro
 const invalidDuplicateRouteUrlFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-duplicate-route-url.json');
 const invalidStaleCheckedAtFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-stale-checked-at.json');
 const invalidMutationArtifactHashFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-artifact-hash.json');
+const invalidMutationArtifactPathFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mutation-artifact-path.json');
 const invalidMissingArtifactFileFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-missing-artifact-file.json');
 const requiredPolicyFlags = [
   'noTokenValues',
@@ -53,6 +55,7 @@ const orderRoutePathPattern = /\b(admin\/)?orders?\b|\bobjednavk/i;
 const artifactSha256Pattern = /^[0-9a-f]{64}$/;
 const artifactHashPattern = /^sha256:[0-9a-f]{64}$/;
 const allowedArtifactPathPattern = /^reports\/validation\/orders-browser-render-proof\/[a-z0-9._/-]+$/;
+const allowedMutationArtifactPathPattern = /^reports\/validation\/(lifecycle-mutation-smoke|orders-browser-render-proof)\/[a-z0-9._/-]+\.json$/;
 const allowedRefreshMechanisms = new Set(['manual_refresh', 'visible_polling_30s', 'full_reload', 'api_backed_render_probe']);
 const allowedSurfaces = new Set(['customer_cabinet', 'admin_cabinet', 'admin_dashboard']);
 const allowedAuthContexts = new Set(['safe_human_session', 'service_scoped_proxy']);
@@ -81,6 +84,10 @@ const nonPiiValueTrailPattern = /(checkedAt|ordersEvidenceCommit|artifactHash|sh
 function read(file) {
   assert.equal(fs.existsSync(file), true, `${path.relative(root, file)} is missing`);
   return fs.readFileSync(file, 'utf8');
+}
+
+function sha256File(file) {
+  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 
 function assertIncludes(source, marker, label) {
@@ -175,6 +182,28 @@ function assertSurfaceHasRenderedLifecycle(routes, surfacePredicate, label) {
   );
 }
 
+function assertMutationArtifactEvidence(mutationEvidence, options = {}) {
+  if (!options.requireMutationArtifactFiles) return;
+  assert.equal(typeof mutationEvidence.artifactPath, 'string', 'proven real report mutationEvidence.artifactPath is required');
+  assert.equal(
+    allowedMutationArtifactPathPattern.test(mutationEvidence.artifactPath),
+    true,
+    'proven real report mutationEvidence.artifactPath must be a sanitized validation JSON path',
+  );
+  assert.equal(mutationEvidence.artifactPath.includes('..'), false, 'proven real report mutationEvidence.artifactPath must not traverse directories');
+  const artifactPath = path.join(root, mutationEvidence.artifactPath);
+  assert.equal(
+    fs.existsSync(artifactPath) && fs.statSync(artifactPath).isFile(),
+    true,
+    'proven real report mutationEvidence.artifactPath must point to an existing file',
+  );
+  assert.equal(
+    mutationEvidence.artifactHash,
+    `sha256:${sha256File(artifactPath)}`,
+    'proven real report mutationEvidence.artifactHash must match mutationEvidence.artifactPath file content',
+  );
+}
+
 function assertApprovedMutationEvidence(mutationEvidence) {
   assert.equal(typeof mutationEvidence.source, 'string', 'report mutationEvidence.source is required');
   assert.equal(
@@ -257,6 +286,8 @@ function validateContract() {
     'proven report route urls must be unique',
     'real proven browser proof report checkedAt must be recent within 24 hours',
     'proven report mutationEvidence.artifactHash must be sha256-prefixed 64 lowercase hex',
+    'proven real report mutationEvidence.artifactPath must be a sanitized validation JSON path',
+    'proven real report mutationEvidence.artifactHash must match mutationEvidence.artifactPath file content',
     'artifact.path file must exist for real browser proof reports',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
@@ -321,6 +352,7 @@ function validateFixtures() {
       requireExpectedOrdersEvidenceCommit: true,
       requireFreshReport: true,
       requireArtifactFiles: true,
+      requireMutationArtifactFiles: true,
     }),
     /ordersEvidenceCommit must match BROWSER_RENDER_PROOF_EXPECTED_COMMIT for proven browser reports/,
     'invalid expected-commit mismatch fixture must be rejected',
@@ -380,6 +412,11 @@ function validateFixtures() {
     'invalid mutation-artifact-hash fixture must be rejected',
   );
   assert.throws(
+    () => validateReport(read(invalidMutationArtifactPathFixturePath), { requireMutationArtifactFiles: true }),
+    /mutationEvidence.artifactPath must point to an existing file|mutationEvidence.artifactPath must be a sanitized validation JSON path/,
+    'invalid mutation-artifact-path fixture must be rejected in real-report mode',
+  );
+  assert.throws(
     () => validateReport(read(invalidMissingArtifactFileFixturePath), { requireArtifactFiles: true }),
     'invalid missing-artifact-file fixture must be rejected in real-report mode',
   );
@@ -402,6 +439,7 @@ function validateFixtures() {
     invalidDuplicateRouteUrlFixture: path.relative(root, invalidDuplicateRouteUrlFixturePath),
     invalidStaleCheckedAtFixture: path.relative(root, invalidStaleCheckedAtFixturePath),
     invalidMutationArtifactHashFixture: path.relative(root, invalidMutationArtifactHashFixturePath),
+    invalidMutationArtifactPathFixture: path.relative(root, invalidMutationArtifactPathFixturePath),
     invalidMissingArtifactFileFixture: path.relative(root, invalidMissingArtifactFileFixturePath),
   };
 }
@@ -485,6 +523,7 @@ function validateReport(rawReport, options = {}) {
       'route authContext must match report proofMode',
     );
     assertApprovedMutationEvidence(report.mutationEvidence);
+    assertMutationArtifactEvidence(report.mutationEvidence, options);
     assertSurfaceHasSuccessfulRoute(report.routes, (surface) => surface === 'customer_cabinet', 'customer cabinet');
     assertSurfaceHasSuccessfulRoute(
       report.routes,
@@ -543,8 +582,9 @@ if (reportPath) {
   const report = validateReport(read(absolute), {
     expectedOrdersEvidenceCommit: expectedEvidenceCommit,
     requireExpectedOrdersEvidenceCommit: true,
-      requireFreshReport: true,
-      requireArtifactFiles: true,
+    requireFreshReport: true,
+    requireArtifactFiles: true,
+    requireMutationArtifactFiles: true,
   });
   reportValidation = {
     status: 'report_validated',

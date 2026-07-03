@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Mutation Artifact Binding Added
+
+Intent chain:
+
+- Vision: rendered browser proof must be tied to a concrete approved lifecycle mutation artifact, not only a hand-written hash string.
+- Goal Impact: a future real `orders.browser_render_proof.v1` report cannot close the customer/admin rendered proof gate unless its mutation evidence points to an existing sanitized validation JSON artifact and the SHA-256 matches.
+- System: Orders owns the proof report verifier/template and IPS status; channel repos, browser sessions, providers, databases, and runtime lifecycle state remain untouched.
+- Feature: mutation evidence artifact path/hash binding for real browser proof reports.
+- Task: require supplied real proven reports to include `mutationEvidence.artifactPath`, validate the path boundary, require the file to exist, hash the artifact, and compare it to `mutationEvidence.artifactHash`.
+- Execution Plan: update verifier/template/fixture/contract/status/state docs, validate without browser sessions or runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier/template, invalid mutation-artifact-path fixture, proof contract, status/state docs.
+- Validation: `node --check scripts/generate-browser-render-proof-report-template.js`, `node --check scripts/verify-browser-render-proof-report-template.js`, `node --check scripts/verify-browser-render-proof-report.js`, `npm run verify:browser-render-proof-template`, `npm run verify:browser-render-proof-report`, `npm run verify:completion-audit`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report with mutationEvidence.artifactPath bound to an approved mutation artifact hash.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Template Output Path Added
 
 Intent chain:

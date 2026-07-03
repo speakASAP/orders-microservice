@@ -109,19 +109,22 @@ const outputPath = `reports/validation/orders-browser-render-proof/template-outp
 const outputResult = generateToOutput(outputPath, ['--artifact-mode=sha256']);
 const outputReport = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
 
-verifyBaseTemplate(pathReport, head);
-verifyBaseTemplate(hashReport, head);
-verifyBaseTemplate(outputReport, head);
-verifyGeneratedReportWithMainVerifier(pathReport, 'path', head);
-verifyGeneratedReportWithMainVerifier(hashReport, 'sha256', head);
-assert.equal(pathReport.routes.every((route) => typeof route.artifact.path === 'string'), true, 'path template must use artifact paths');
-assert.equal(pathReport.routes.every((route) => route.artifact.sha256 === undefined), true, 'path template must not include placeholder artifact hashes');
-assert.equal(hashReport.routes.every((route) => /^[0-9a-f]{64}$/.test(route.artifact.sha256)), true, 'sha256 template must use schema-compatible artifact hashes');
-assert.equal(hashReport.routes.every((route) => route.artifact.path === undefined), true, 'sha256 template must not reference artifact files');
-assert.equal(outputResult.status, 'template_written_incomplete', 'output mode must report incomplete template write');
-assert.equal(outputResult.outputPath, outputPath, 'output mode must report written path');
-assert.equal(outputReport.status, 'incomplete', 'output report must stay incomplete');
-fs.unlinkSync(outputPath);
+try {
+  verifyBaseTemplate(pathReport, head);
+  verifyBaseTemplate(hashReport, head);
+  verifyBaseTemplate(outputReport, head);
+  verifyGeneratedReportWithMainVerifier(pathReport, 'path', head);
+  verifyGeneratedReportWithMainVerifier(hashReport, 'sha256', head);
+  assert.equal(pathReport.routes.every((route) => typeof route.artifact.path === 'string'), true, 'path template must use artifact paths');
+  assert.equal(pathReport.routes.every((route) => route.artifact.sha256 === undefined), true, 'path template must not include placeholder artifact hashes');
+  assert.equal(hashReport.routes.every((route) => /^[0-9a-f]{64}$/.test(route.artifact.sha256)), true, 'sha256 template must use schema-compatible artifact hashes');
+  assert.equal(hashReport.routes.every((route) => route.artifact.path === undefined), true, 'sha256 template must not reference artifact files');
+  assert.equal(outputResult.status, 'template_written_incomplete', 'output mode must report incomplete template write');
+  assert.equal(outputResult.outputPath, outputPath, 'output mode must report written path');
+  assert.equal(outputReport.status, 'incomplete', 'output report must stay incomplete');
+} finally {
+  if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+}
 
 process.stdout.write(`${JSON.stringify({
   schemaVersion: 'orders.browser_render_proof_template_verifier.v1',
