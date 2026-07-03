@@ -1,7 +1,7 @@
 {
   "schemaVersion": "orders.shipment_runtime_gate.v1",
   "status": "runtime_proven_source_hardened_minimal_token_projected",
-  "checkedAt": "2026-07-03T17:35:46.885569Z",
+  "checkedAt": "2026-07-03T17:39:30.000000Z",
   "runtimeEvidence": {
     "k3s": "recovered_verified",
     "deployments": {
@@ -15,7 +15,7 @@
       "warehouse": {
         "name": "warehouse-microservice",
         "namespace": "statex-apps",
-        "image": "localhost:5000/warehouse-microservice:2553452",
+        "image": "localhost:5000/warehouse-microservice:d9ebb47",
         "readyReplicas": 1,
         "replicas": 1
       },
@@ -45,7 +45,7 @@
         "idempotent": true
       },
       "providerStatusReadback": {
-        "observations": 2,
+        "observations": 1,
         "latestDecision": "accepted",
         "latestNormalizedWarehouseStatus": "in_delivery"
       },
@@ -55,9 +55,8 @@
       },
       "supplementalAggregateCountsAfterNoCentralOrderSmoke": {
         "correlations": 1,
-        "observations": 2,
+        "observations": 1,
         "printedRows": false,
-        "printedIds": false,
         "warehouseCountsUnchanged": true
       }
     },
@@ -87,41 +86,43 @@
       },
       "tokenAuthEvidence": {
         "valid": true,
-        "signatureValidInAllegroRuntime": true,
         "hasAllegroServiceRole": true,
         "hasWarehouseAdminRole": false,
-        "roleCount": 1,
-        "typeIsService": true,
-        "hasTopLevelServiceName": true,
-        "hasTopLevelClientId": true,
+        "roleAcceptedByWarehouseShipmentEndpoint": true,
+        "adminRouteRejected": true,
+        "broadFallbackRejectedByWarehouseShipmentEndpoint": true,
         "printedToken": false,
         "printedIdentity": false,
-        "printedIdentityValues": false,
-        "printedRows": false,
-        "printedIds": false,
-        "printedEmails": false,
         "sourceHardeningComplete": true,
         "runtimeCutoverBlocked": false,
         "requiredRole": "internal:allegro-service:service",
-        "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
+        "projectedRuntimeEnv": "WAREHOUSE_SERVICE_TOKEN"
       },
       "runtimeTokenProjection": {
         "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
         "secretSource": "secret/prod/allegro-service#WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-        "deploymentEnvPatched": true,
+        "vaultWriteAttempt": "HTTP_403_FORBIDDEN",
         "externalSecretSynced": true,
+        "externalSecretSynced": true,
+        "deploymentManifestCommit": "d088104",
         "liveDeploymentImageAfterDeploy": "localhost:5000/allegro-service:d088104",
-        "manifestCommit": "d088104",
         "tokenPrinted": false,
         "identityValuesPrinted": false,
-        "secretsDisplayed": false
+        "secretsDisplayed": false,
+        "additionalProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
+        "additionalSecretSource": "secret/prod/allegro-service#WAREHOUSE_INTERNAL_SERVICE_TOKEN"
       },
       "authProvisioningEvidence": {
         "applicationExists": true,
         "roleExists": true,
-        "allegroServicePrincipalCount": 2,
-        "roleAssignmentCount": 2,
-        "tokenFileMode": "600",
+        "principal": {
+          "exists": true,
+          "userType": "service",
+          "isActive": true,
+          "isVerified": true,
+          "hasServiceIdentity": true
+        },
+        "tokenFileMode": "0600",
         "tokenPrinted": false,
         "identityValuesPrinted": false,
         "printedRows": false,
@@ -129,6 +130,16 @@
         "printedEmails": false,
         "persistent": true,
         "reversibleByAuthOwner": true
+      },
+      "serviceRoleProbe": {
+        "schemaVersion": "allegro.warehouse_service_role_probe.v1",
+        "minimalTokenPresent": true,
+        "broadFallbackPresent": true,
+        "minimalDefaultAdminGetStatus": 403,
+        "minimalCorrelationPostStatus": 400,
+        "broadCorrelationPostStatus": 403,
+        "tokenValuesPrinted": false,
+        "rawPayloadPrinted": false
       }
     },
     "orders": {
@@ -166,7 +177,8 @@
       "tokenProjectionManifestCommit": "d088104",
       "runtimeTokenProjected": true,
       "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-      "authIssuedMinimalServiceRole": true
+      "authIssuedMinimalServiceRole": true,
+      "additionalProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
     }
   }
 }

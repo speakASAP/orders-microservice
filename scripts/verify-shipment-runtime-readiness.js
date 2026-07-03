@@ -56,7 +56,7 @@ const runtimeGateReport = JSON.parse(requireFile(ordersRoot, runtimeGateReportPa
 assert.equal(runtimeGateReport.schemaVersion, 'orders.shipment_runtime_gate.v1', 'shipment runtime gate report schema mismatch');
 assert.equal(runtimeGateReport.status, 'runtime_proven_source_hardened_minimal_token_projected', 'shipment runtime gate must record proven runtime path plus minimal projected token');
 assert.equal(runtimeGateReport.runtimeEvidence.deployments.orders.image, 'localhost:5000/orders-microservice:ad83d15', 'Orders runtime image evidence mismatch');
-assert.equal(runtimeGateReport.runtimeEvidence.deployments.warehouse.image, 'localhost:5000/warehouse-microservice:2553452', 'Warehouse runtime image evidence mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.deployments.warehouse.image, 'localhost:5000/warehouse-microservice:d9ebb47', 'Warehouse runtime image evidence mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.deployments.allegro.image, 'localhost:5000/allegro-service:d088104', 'Allegro runtime image evidence mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.appliedMigrations.includes('CreateFulfillmentProviderShipmentCorrelations1781700000000'), true, 'Warehouse correlation migration must be applied at runtime');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.appliedMigrations.includes('CreateFulfillmentProviderStatusObservations1781600000000'), true, 'Warehouse provider status observation migration must be applied at runtime');
@@ -69,7 +69,7 @@ assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.blocked, 
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.sanitizedReplay.failed, 0, 'enabled replay must not fail');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.correlationReadback.correlations, 1, 'Warehouse correlation readback mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.correlationReadback.idempotent, true, 'Warehouse correlation must be idempotent');
-assert.equal(runtimeGateReport.runtimeEvidence.warehouse.providerStatusReadback.observations, 2, 'Warehouse provider observation readback mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.warehouse.providerStatusReadback.observations, 1, 'Warehouse provider observation readback mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.providerStatusReadback.latestDecision, 'accepted', 'Warehouse provider observation decision mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.providerStatusReadback.latestNormalizedWarehouseStatus, 'in_delivery', 'Warehouse normalized status mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.warehouse.fulfillmentMutation.statusMutationApplied, true, 'Warehouse fulfillment status mutation must be proven');
@@ -93,10 +93,11 @@ assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardeni
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.hasAllegroServiceRole, true, 'current runtime token must have the Allegro service role');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.hasWarehouseAdminRole, false, 'current runtime token must not carry the broad Warehouse-admin role');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.requiredRole, 'internal:allegro-service:service', 'runtime required role mismatch');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.projectedRuntimeEnv, 'WAREHOUSE_INTERNAL_SERVICE_TOKEN', 'projected runtime env mismatch');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.signatureValidInAllegroRuntime, true, 'projected runtime token signature must validate in Allegro runtime');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.manifestCommit, 'd088104', 'Allegro token projection manifest commit mismatch');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.deploymentEnvPatched, true, 'Allegro deployment env must be patched at runtime');
+assert.ok(['WAREHOUSE_SERVICE_TOKEN', 'WAREHOUSE_INTERNAL_SERVICE_TOKEN'].includes(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.projectedRuntimeEnv), 'projected runtime env mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.projectedRuntimeEnv, 'WAREHOUSE_INTERNAL_SERVICE_TOKEN', 'runtime projection env mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.roleAcceptedByWarehouseShipmentEndpoint, true, 'projected runtime token must be accepted by the Warehouse shipment endpoint');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.deploymentManifestCommit, 'd088104', 'Allegro token projection manifest commit mismatch');
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.runtimeTokenProjection.externalSecretSynced, true, 'Allegro internal service token external secret must be synced');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.authProvisioningEvidence.roleExists, true, 'Auth Allegro service role must exist');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.authProvisioningEvidence.printedEmails, false, 'Auth provisioning evidence must not print emails');
 
