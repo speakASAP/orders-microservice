@@ -1,43 +1,5 @@
 # Orders Orchestrator Status
 
-## 2026-07-03 - FlipFlop Admin RBAC And Provider Discovery Integrated
-
-Intent chain:
-
-- Vision: marketplace admin order, inventory, and pricing routes must not be exposed to any authenticated user while Orders remains the lifecycle source of truth.
-- Goal Impact: FlipFlop customer order reads were already scoped to the authenticated user; admin order, admin inventory, and pricing mutation/read surfaces now require explicit admin roles, reducing order/pricing leakage and unauthorized operational mutation risk.
-- System: Auth provides JWT identity and roles; FlipFlop owns its marketplace admin surfaces; Orders owns canonical lifecycle projection; Warehouse/provider ownership remains separate after paid handoff.
-- Feature: FlipFlop admin RBAC hardening plus delivery-provider source discovery integration.
-- Task: add `RolesGuard`/`@Roles(...)` to FlipFlop admin controllers, validate, deploy, smoke protected routes, and record the still-missing provider/courier contract.
-- Execution Plan: keep customer order reads unchanged, harden only admin surfaces with the existing Auth guard stack, deploy FlipFlop, then preserve provider blockers in Orders docs without inventing courier infrastructure.
-- Coding Prompt: remote-only on Alfares; do not expose admin routes to generic authenticated users; do not fabricate provider tracking adapters, credentials, or payload mappings.
-- Code: FlipFlop `79dba51 feat: enhance admin controllers with role-based access control`; Orders docs checkpoint in this commit.
-- Validation: FlipFlop pre-coding gate, strict doc audit, source verifier, `cd services/order-service && npm run build`, `git diff --check`, production deployment, Kubernetes rollout checks, public smoke, and protected admin-route smoke.
-
-Evidence:
-
-- FlipFlop commit `79dba51` is pushed on `main` and the remote worktree was clean before deploy.
-- Hardened files: `services/order-service/src/orders/admin-orders.controller.ts`, `services/order-service/src/orders/admin-inventory.controller.ts`, and `services/order-service/src/pricing/pricing.controller.ts`.
-- Admin controllers now use `JwtAuthGuard`, `RolesGuard`, and `@Roles(...)` with accepted roles `global:superadmin`, `global:platform_admin`, `app:flipflop-service:admin`, `app:flipflop:admin`, and `flipflop:admin`.
-- Independent source verifier passed after confirming customer reads still scope by `req.user.id` and admin surfaces use role guards.
-- FlipFlop deploy completed successfully in `195.52s`; built/pushed images included `flipflop-service` digest `sha256:518bb10a54e7afc11636117831db007c68b3b2a93c2b7a0cdc5d2b5dcf51fbbb` and `flipflop-order-service` digest `sha256:eee3771d8ab10719d6f16bd5115ff4d88fa3012551cc7fb329169bbf7da24c4d`.
-- Kubernetes rollout passed for `flipflop-service`, `flipflop-frontend`, `flipflop-product-service`, `flipflop-cart-service`, `flipflop-order-service`, and `flipflop-user-service`; all report ready/available/updated `1`.
-- Production smoke passed: `https://flipflop.alfares.cz/` HTTP 200, `https://flipflop.alfares.cz/api/products?limit=1` HTTP 200, and unauthenticated `https://flipflop.alfares.cz/api/orders/admin/orders` HTTP 401.
-- Provider/courier discovery was rechecked after k3s recovery: no standalone delivery/courier/provider/tracking source repo, provider webhook/polling contract, credential source, status mapping, or sample payload was discoverable across Orders, Warehouse, Notifications, Suppliers, Catalog, FlipFlop, Allegro, Aukro, Bazos, Heureka, Cliplot, Kubernetes manifests, or Vault/ExternalSecret manifests.
-
-Remaining blockers:
-
-- `[MISSING: delivery-provider/courier owner repository or approved existing service that owns courier credentials and raw tracking payloads.]`
-- `[MISSING: provider webhook or polling contract, authentication method, idempotency key, timestamp semantics, retry/error semantics, and sample payloads.]`
-- `[MISSING: provider-to-Warehouse status mapping after handed_to_delivery.]`
-- `[MISSING: approved sensitive-data policy for tracking number/URL visibility and exclusion from Orders events.]`
-- `[MISSING: provider-owner runtime credential source in Vault/ExternalSecret.]`
-- `[MISSING: buyer-facing personal cabinet ownership contract for marketplaces where buyer snapshots do not map to Auth subject.]`
-
-Next action:
-
-- Continue with contract-owner discovery for delivery-provider/courier ownership and buyer Auth/order ownership; no runtime provider adapter or buyer personal cabinet should be implemented until those contracts are approved.
-
 ## 2026-07-03 - Marketplace Order Read Scope Hardened
 
 Intent chain:
@@ -72,12 +34,11 @@ Remaining blockers:
 
 - `[MISSING: buyer-facing personal cabinet ownership contract for marketplaces where buyer snapshots do not map to Auth subject.]`
 - `[MISSING: stable Auth-owned account field for AukroAccount and HeurekaAccount if non-admin seller-scoped order reads are required.]`
-- `[MISSING: FlipFlop admin route role-enforcement review for admin order, inventory, and pricing controllers.]`
 - `[MISSING: delivery-provider/courier owner repository or approved existing service for shipment-status source.]`
 
 Next action:
 
-- Continue with FlipFlop admin role hardening and the provider/courier owner contract lane; do not implement buyer personal cabinets until Auth ownership is approved.
+- Continue with the provider/courier owner contract lane or buyer ownership contract lane; do not implement buyer personal cabinets until Auth ownership is approved.
 
 ## 2026-07-03 - Allegro Seller Workspace Order Read Scope Hardened
 
