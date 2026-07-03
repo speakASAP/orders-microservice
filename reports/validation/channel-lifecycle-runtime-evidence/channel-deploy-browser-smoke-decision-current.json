@@ -30,7 +30,7 @@
     },
     "heureka": {
       "expectedWorkerCommit": "358fba9",
-      "currentHead": "e4b97fe",
+      "currentHead": "a0dbb24",
       "runtimeImages": [
         "localhost:5000/heureka-service:358fba9",
         "localhost:5000/heureka-api-gateway:358fba9"
@@ -41,22 +41,23 @@
         "/heureka/dashboard/orders": 404,
         "/api/heureka/dashboard/orders": "401_external_or_404_service_scoped_artifact"
       },
-      "proofStatus": "orders_list_api_fixed_lifecycle_data_blocked",
-      "remainingGate": "approved live Heureka row linked to a current non-stale canonical Orders lifecycle stage",
-      "runtimeImage": "localhost:5000/heureka-service:e4b97fe"
+      "proofStatus": "orders_list_non_stale_lifecycle_api_proven_dom_optional",
+      "remainingGate": "optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient",
+      "runtimeImage": "localhost:5000/heureka-service:a0dbb24",
+      "notes": "Dashboard orders-list API is live with non-stale central lifecycle rows after synthetic create/replay/reservation/cleanup; optional DOM capture remains if visible-label proof is required."
     },
     "bazos": {
       "expectedWorkerCommit": "26af3ae",
-      "currentHead": "c6c1ce0",
-      "runtimeImage": "localhost:5000/bazos-service:9059605",
+      "currentHead": "adf1a03",
+      "runtimeImage": "localhost:5000/bazos-service:7365edc",
       "sourceContainsExpectedCommit": true,
       "runtimeContainsExpectedCommit": true,
       "routeStatus": {
         "/orders": 401,
         "/orders/webhook": 401
       },
-      "proofStatus": "source_ui_verified_provider_backed_order_source_blocked",
-      "remainingGate": "real paid order ingestion and persisted item snapshot source are missing"
+      "proofStatus": "paid_replay_source_deployed_live_evidence_blocked",
+      "remainingGate": "live paid multi-product evidence and approved customer/admin lifecycle proof are missing"
     },
     "allegro": {
       "expectedWorkerCommit": "529a71d",

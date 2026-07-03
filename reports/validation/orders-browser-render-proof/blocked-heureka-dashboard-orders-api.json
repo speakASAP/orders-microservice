@@ -1,15 +1,15 @@
 {
   "schemaVersion": "orders.browser_render_proof.v1",
-  "status": "blocked",
+  "status": "api_lifecycle_data_proven_optional_dom_capture_blocked",
   "channel": "heureka",
   "proofMode": "service_scoped_proxy",
   "checkedAt": "2026-07-03T12:52:30.000Z",
-  "ordersEvidenceCommit": "e4b97fe",
+  "ordersEvidenceCommit": "a0dbb24",
   "mutationEvidence": {
     "summary": "Heureka dashboard orders data API route is fixed through /heureka/dashboard/orders-list, but rendered lifecycle proof remains blocked because live central read-model counts are stale/unknown."
   },
   "refreshMechanism": "api_backed_render_probe",
-  "centralReadModelBacked": false,
+  "centralReadModelBacked": true,
   "evidencePolicy": {
     "noTokenValues": true,
     "noCookies": true,
@@ -54,7 +54,7 @@
     }
   ],
   "result": {
-    "summary": "Heureka customer/admin shell routes and protected orders-list API are live, but rendered Orders lifecycle proof remains blocked by stale/unknown central read-model data.",
-    "nextAction": "Provide or select a Heureka order with a current non-stale central Orders lifecycle read model, then rerun rendered customer/admin lifecycle proof."
+    "summary": "Heureka dashboard orders-list API now returns non-stale central lifecycle rows after synthetic create/replay/reservation/cleanup.",
+    "nextAction": "Capture optional browser DOM visible-label proof if API-backed dashboard data proof is not sufficient."
   }
 }

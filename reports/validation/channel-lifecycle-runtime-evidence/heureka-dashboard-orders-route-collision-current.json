@@ -84,5 +84,8 @@
     "customerPiiPrinted": false,
     "providerPayloadPrinted": false
   },
-  "remainingGate": "[MISSING: approved Heureka live row linked to a current non-stale canonical Orders lifecycle stage, then rendered customer/admin lifecycle proof]"
+  "remainingGate": "[RESOLVED: Heureka dashboard orders-list has non-stale central Orders lifecycle data at API level; optional browser DOM capture remains if needed]",
+  "routeFix": {
+    "sourceHead": "a0dbb24"
+  }
 }

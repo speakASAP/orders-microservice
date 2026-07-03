@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "orders.heureka_rendered_lifecycle_api_proof.v1",
+  "checkedAt": "2026-07-03T13:11:00.000Z",
+  "channel": "heureka",
+  "status": "orders_list_non_stale_central_lifecycle_proven_after_synthetic_create_cleanup",
+  "deployedHeurekaCommit": "a0dbb24",
+  "proofMode": "service_scoped_api_probe",
+  "route": "/heureka/dashboard/orders-list?limit=10&status=all",
+  "httpStatus": 200,
+  "success": true,
+  "syntheticSmoke": {
+    "preflightMissing": [],
+    "firstPostStatus": 201,
+    "replayPostStatus": 201,
+    "orderIdPresent": true,
+    "secondReplay": true,
+    "sameOrderId": true,
+    "ordersReadbackStatus": 200,
+    "reservationStatuses": [
+      "reserved"
+    ],
+    "cleanupStatus": 200,
+    "cleanupCancelled": true,
+    "missing": []
+  },
+  "dashboardOrdersList": {
+    "total": 6,
+    "returned": 6,
+    "statusCounts": {
+      "pending": 6,
+      "forwarded": 4,
+      "failed": 0,
+      "cancelled": 0
+    },
+    "centralStatusCounts": {
+      "available": 4,
+      "missingId": 2,
+      "stale": 2,
+      "unknown": 2
+    },
+    "nonStaleSample": [
+      {
+        "lifecycleStatus": "cancelled",
+        "status": "cancelled",
+        "lifecycleStage": "cancelled",
+        "centralState": "available",
+        "centralStale": false,
+        "centralStatus": "cancelled",
+        "centralStage": "cancelled",
+        "reservationStatus": "cancelled",
+        "warehouseHandoffStatus": "cancelled",
+        "reason": "orders_read_available"
+      }
+    ]
+  },
+  "policy": {
+    "tokenValuesPrinted": false,
+    "rawOrderRowsPrinted": false,
+    "customerPiiPrinted": false,
+    "databaseRowsPrinted": false,
+    "providerCall": false,
+    "rawDomCaptured": false,
+    "syntheticOrderLeftOpen": false
+  },
+  "remainingGate": "[MISSING: optional browser DOM render capture for visible Heureka lifecycle labels if API-backed proof is not sufficient]"
+}

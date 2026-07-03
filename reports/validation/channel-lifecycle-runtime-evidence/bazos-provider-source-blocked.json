@@ -1,8 +1,8 @@
 {
   "schemaVersion": "orders.channel_runtime_blocker.v1",
-  "checkedAt": "2026-07-03T12:14:51.208Z",
+  "checkedAt": "2026-07-03T12:58:00.000Z",
   "channel": "bazos",
-  "status": "provider_backed_order_source_blocked",
+  "status": "paid_replay_source_deployed_live_evidence_blocked",
   "runtimeProbe": {
     "podScopedProbe": true,
     "serviceSurfaceOnly": true,
@@ -14,25 +14,34 @@
     "replayChannel": "bazos",
     "replayCount": 0,
     "replayEventsLength": 0,
-    "replayFailClosed": true,
+    "replayFailClosed": false,
+    "replayBlockers": [],
+    "marketingDryRunStatus": "dry_run_passed",
+    "marketingInputRecords": 0,
+    "marketingAcceptedCreatedEvents": 0,
+    "marketingCandidateCount": 0,
     "unauthOrdersHttpStatus": 401,
     "unauthWebhookHttpStatus": 401
   },
   "sourceEvidence": {
     "liveWebhookSupport": "[UNKNOWN: live Bazos marketplace webhook support]",
-    "syntheticWebhookOnly": true,
-    "requestTimeItemMappingOnly": true,
-    "persistedPaidOrderHistory": false,
-    "persistedOrderItemReplaySource": false,
-    "orderItemIngestionContract": false
+    "syntheticWebhookOnly": false,
+    "requestTimeItemMappingOnly": false,
+    "persistedPaidOrderHistory": true,
+    "persistedOrderItemReplaySource": true,
+    "orderItemIngestionContract": true,
+    "sourceCommit": "7365edc feat: persist bazos paid order replay source",
+    "runtimeEvidenceCommit": "adf1a03 docs: record bazos paid replay runtime evidence",
+    "deployedImage": "localhost:5000/bazos-service:7365edc",
+    "evidenceReport": "bazos:reports/validation/2026-07-03-goal24-bazos-paid-order-source-implementation.md"
   },
   "blockers": [
-    "[MISSING: Bazos paid order history source]",
-    "[MISSING: Bazos persisted order item replay source]",
-    "[MISSING: Bazos order item ingestion contract]",
-    "[UNKNOWN: live Bazos marketplace webhook support]"
+    "[MISSING: live Bazos paid multi-product order replay evidence]",
+    "[MISSING: owner approval to activate recurring Bazos affinity publish after live dry-run evidence]",
+    "[UNKNOWN: live Bazos marketplace webhook support]",
+    "[MISSING: approved authenticated Bazos customer/admin lifecycle proof backed by a real eligible Bazos order]"
   ],
-  "nextAction": "Define and implement a Bazos-owned live paid order ingestion contract with persisted item snapshots and Warehouse-owned warehouseId before rerunning provider-backed customer/admin lifecycle proof.",
+  "nextAction": "Wait for a real eligible paid multi-product Bazos order or approved bounded fixture, then rerun provider-backed customer/admin lifecycle proof before treating Bazos as complete.",
   "redacted": true,
   "rawRowsPrinted": false,
   "customerPrinted": false,

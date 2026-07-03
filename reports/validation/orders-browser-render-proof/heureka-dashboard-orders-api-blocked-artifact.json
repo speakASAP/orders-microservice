@@ -25,7 +25,7 @@
       "httpStatus": 401
     }
   ],
-  "blocker": "Heureka rendered orders proof cannot yet be central-read-model-backed because the fixed orders-list API returns only stale/unknown central lifecycle counts.",
+  "blocker": "Optional browser DOM render capture remains if API-backed dashboard lifecycle proof is not sufficient.",
   "redacted": true,
   "tokenValuesPrinted": false,
   "rawOrderRowsPrinted": false,
@@ -48,5 +48,13 @@
       "stale": 4,
       "unknown": 4
     }
+  },
+  "status": "api_lifecycle_data_proven_optional_dom_capture_blocked",
+  "centralReadModelBacked": true,
+  "centralStatusCounts": {
+    "available": 4,
+    "missingId": 2,
+    "stale": 2,
+    "unknown": 2
   }
 }

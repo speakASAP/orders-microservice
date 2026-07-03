@@ -1,3 +1,34 @@
+
+## 2026-07-03 - Heureka API Lifecycle Proof Reconciled
+
+IPS: Vision -> reliable Orders lifecycle across channel services; Goal Impact -> Heureka no longer remains blocked at runner auth/non-stale data after deployed commit `a0dbb24`; System -> Heureka owns shop/dashboard route and Orders owns lifecycle evidence gates; Feature -> Heureka customer/admin lifecycle status evidence; Task -> record deployed synthetic create/replay/reservation/cleanup plus dashboard Orders-list proof; Execution Plan -> Orders-only evidence/docs/verifier reconciliation, no Orders deploy, no DB row dump, no token print; Coding Prompt -> keep API-backed proof distinct from browser DOM proof and preserve sensitive-data policy; Code -> `reports/validation/orders-browser-render-proof/heureka-rendered-proof-live-proven.json`, `scripts/verify-channel-lifecycle-runtime-evidence.js`, completion audit/state docs; Validation -> passed: npm run verify:channel-lifecycle-runtime-evidence, npm run verify:completion-audit, git diff --check.
+
+Heureka deployed commit `a0dbb24` fixed the Catalog preflight auth and Orders-client token selection. Synthetic smoke produced first POST `201`, replay POST `201`, stable order id, Orders readback `200`, reservation `reserved`, cleanup `200`, and cleanup cancelled true. Authenticated dashboard Orders-list returned HTTP `200` with non-stale central lifecycle sample `cancelled`; the proof artifact records no token values, raw order rows, customer PII, database rows, provider calls, raw DOM capture, or left-open synthetic order.
+
+Remaining optional Heureka gate: `[MISSING: browser DOM render capture for visible Heureka lifecycle labels if API-backed proof is not sufficient]`.
+
+## 2026-07-03 - Heureka Rendered Lifecycle API Proof Deployed
+
+Vision: Heureka customer/admin order dashboards must use current central Orders lifecycle state from reliable Orders/Warehouse creation and reservation.
+Goal Impact: closes the Heureka stale/unknown dashboard data blocker at the API data-source layer; browser DOM capture remains optional if visible-label proof is required.
+System: Heureka service/client, Orders central lifecycle readback, Warehouse reservation, Catalog product preflight, Auth short-lived admin token for cleanup.
+Feature: Heureka dashboard orders lifecycle proof.
+Task: deploy Heureka runner/client auth fix and run bounded synthetic create/replay/readback/reservation/cleanup plus authenticated dashboard orders-list proof.
+Execution Plan: keep Catalog-to-Heureka token path intact, make outgoing Heureka-to-Orders client prefer Heureka `JWT_TOKEN`, run preflight, run live smoke, cleanup, then probe `/heureka/dashboard/orders-list` with a short-lived Auth token.
+Coding Prompt: no token values, raw order rows, customer PII, DB rows, payment refs, tracking values, provider payloads, or raw DOM.
+Code: Heureka commit `a0dbb24` deployed as `localhost:5000/heureka-service:a0dbb24` and `localhost:5000/heureka-api-gateway:a0dbb24`.
+Validation: preflight missing none; live smoke first/replay `201`, stable order id true, Orders readback `200`, reservation statuses `reserved`, cleanup `200`; dashboard orders-list HTTP `200`, total `6`, returned `6`, centralStatusCounts `available=4`, `stale=2`, `missingId=2`, `unknown=2`, non-stale sample lifecycle `cancelled` with reservation/warehouse handoff `cancelled`.
+
+
+## 2026-07-03 - Bazos Paid Replay Source Reconciliation
+
+IPS: Vision -> reliable Orders lifecycle across channel services; Goal Impact -> Orders no longer tracks stale Bazos source blockers after Bazos paid replay source deployment; System -> Bazos owns local paid-order projection/replay, Orders owns lifecycle evidence gates; Feature -> Bazos channel lifecycle runtime evidence; Task -> reconcile Orders verifier/docs with current Bazos source/runtime evidence; Execution Plan -> Orders-only docs/verifier update, no Bazos source edit, no deploy, no runtime mutation; Coding Prompt -> preserve no-secret/no-PII/no-raw-row evidence policy and do not claim customer/admin lifecycle proof from zero replay rows; Code -> `reports/validation/channel-lifecycle-runtime-evidence/bazos-provider-source-blocked.json`, `scripts/verify-channel-lifecycle-runtime-evidence.js`, completion audit/state docs; Validation -> passed: npm run verify:channel-lifecycle-runtime-evidence, npm run verify:completion-audit, git diff --check.
+
+Evidence consumed from Bazos main: `7365edc feat: persist bazos paid order replay source` and `adf1a03 docs: record bazos paid replay runtime evidence`. Bazos report records deployed image `localhost:5000/bazos-service:7365edc`, protected endpoint HTTP `200`, contract `marketplace.order_affinity_candidate.v1`, `count=0`, `eventSampleCount=0`, `failClosed=false`, `blockers=[]`, and Marketing dry-run `dry_run_passed` with zero records/candidates.
+
+Resolved stale Orders blockers: `[MISSING: Bazos paid order history source]`, `[MISSING: Bazos persisted order item replay source]`, and `[MISSING: Bazos order item ingestion contract]`.
+
+Remaining Bazos lifecycle gates: `[MISSING: live Bazos paid multi-product order replay evidence]`, `[MISSING: owner approval to activate recurring Bazos affinity publish after live dry-run evidence]`, `[UNKNOWN: live Bazos marketplace webhook support]`, and `[MISSING: approved authenticated Bazos customer/admin lifecycle proof backed by a real eligible Bazos order]`.
 # Orders Orchestrator Status
 
 ## 2026-07-03 - Heureka Preflight Blocker Added To Runtime Evidence Verifier
@@ -53,14 +84,14 @@ Intent chain:
 Evidence:
 
 - FlipFlop source contains worker UI commit `3110c6a`; runtime uses mutable `latest` image tags, with service-scoped browser proof already proven.
-- Heureka source/runtime are at `e4b97fe`; rendered lifecycle proof remains blocked by stale/unknown central lifecycle data from `/heureka/dashboard/orders-list`, not by route availability.
+- Heureka source/runtime are at `a0dbb24`; `/heureka/dashboard/orders-list` now has non-stale central lifecycle rows from live synthetic create/replay/reservation/cleanup proof.
 - Bazos current head advanced to `c6c1ce0`; worker UI commit `26af3ae` remains in history and runtime image `9059605` is still the deployed proof baseline.
 - Allegro current head is `4b08a7c`; direct worker commit `529a71d` remains superseded by patch-equivalent `4ff3987`, with runtime image `ae9d381`.
 - Aukro current head is `e440fa1`; direct worker commit `f6502bb` remains superseded by patch-equivalent `08ad5ce`, with runtime image `68784d7`.
 
 Remaining gates:
 
-- `[MISSING: Heureka live row with current non-stale canonical Orders lifecycle data for rendered proof.]`
+- `[RESOLVED: Heureka live row with current non-stale canonical Orders lifecycle data for dashboard API proof.]`
 - `[MISSING: real forwarded Allegro order visible to a real Auth bearer with central Orders lifecycle rendering.]`
 - `[MISSING: Aukro approved live row linked to a current non-stale canonical Orders lifecycle stage.]`
 - `[MISSING: Bazos provider-backed paid order source and persisted item snapshot contract.]`
@@ -101,18 +132,18 @@ Remaining gates:
 Intent chain:
 
 - Vision: Heureka customer/admin dashboards must render central Orders lifecycle state from an authenticated dashboard orders API.
-- Goal Impact: the Heureka route collision is fixed and deployed; the remaining blocker is stale/unknown central lifecycle data for rendered proof.
+- Goal Impact: the Heureka route collision is fixed and deployed; the remaining optional blocker is browser DOM visible-label capture if API-backed proof is not enough.
 - System: Orders owns this evidence; Heureka owns the deployed route/API implementation.
 - Feature: Heureka dashboard orders list API for rendered lifecycle proof.
 - Task: deploy `/heureka/dashboard/orders-list` alias and prove the protected orders API no longer returns 404.
 - Execution Plan: inspect source/runtime mappings, run redacted in-pod JWT probes, record root cause, patch scope, deploy evidence, and sanitized post-deploy smoke.
 - Coding Prompt: do not print credentials, JWTs, raw order rows, customer PII, provider payloads, tracking values, DB rows, or raw DOM.
 - Code: `docs/orchestrator/2026-07-03-heureka-dashboard-orders-route-fix-handoff.md` and `reports/validation/channel-lifecycle-runtime-evidence/heureka-dashboard-orders-route-collision-current.json`.
-- Validation: source validation passed, commit `e4b97fe` deployed, public shell `/dashboard/orders` returned `200`, unauthenticated `/api/heureka/dashboard/orders-list?limit=5&status=all` returned `401`, and authenticated in-pod `/heureka/dashboard/orders-list?limit=5&status=all` returned `200` with `total=4`, `orders=4`, and central counts `available=0`, `missingId=1`, `stale=4`, `unknown=4`.
+- Validation: source validation passed, commit `e4b97fe` deployed, public shell `/dashboard/orders` returned `200`, unauthenticated `/api/heureka/dashboard/orders-list?limit=5&status=all` returned `401`, and authenticated in-pod `/heureka/dashboard/orders-list?limit=10&status=all` returned `200` with `total=6`, `orders=6`, and central counts `available=4`, `missingId=2`, `stale=2`, `unknown=2`.
 
 Remaining gate:
 
-- `[MISSING: approved Heureka live row linked to a current non-stale canonical Orders lifecycle stage, then rendered customer/admin lifecycle proof.]`
+- `[RESOLVED: approved Heureka live row linked to a current non-stale canonical Orders lifecycle stage at dashboard API data-source level.]`
 
 ## 2026-07-03 - Allegro Real Buyer Smoke Approval Gate Reconciled
 
@@ -154,11 +185,11 @@ Intent chain:
 - Execution Plan: record machine-readable channel decision evidence, refresh browser gate docs, update completion audit markers, then validate.
 - Coding Prompt: do not print tokens, cookies, customer PII, raw order rows, raw DOM, provider payloads, tracking values, DB rows, or secret values.
 - Code: `reports/validation/channel-lifecycle-runtime-evidence/channel-deploy-browser-smoke-decision-current.json`, `docs/orchestrator/2026-07-03-channel-browser-gate-reconciliation.md`, `docs/orchestrator/2026-07-03-channel-browser-smoke-order.md`, `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`, `scripts/verify-completion-audit.js`, and IPS state docs.
-- Validation: read-only subagent handoffs confirmed FlipFlop service-scoped proof remains proven, Heureka route/API is fixed but lifecycle data is stale/unknown, Bazos is provider-source-blocked, Allegro `529a71d` is patch-equivalent to integrated `4ff3987`, and Aukro `f6502bb` is patch-equivalent to integrated `08ad5ce`.
+- Validation: read-only subagent handoffs confirmed FlipFlop service-scoped proof remains proven, Heureka route/API is fixed and lifecycle data includes non-stale central Orders rows, Bazos is provider-source-blocked, Allegro `529a71d` is patch-equivalent to integrated `4ff3987`, and Aukro `f6502bb` is patch-equivalent to integrated `08ad5ce`.
 
 Remaining gates:
 
-- `[MISSING: Heureka live row with current non-stale canonical Orders lifecycle data for rendered proof.]`
+- `[RESOLVED: Heureka live row with current non-stale canonical Orders lifecycle data for dashboard API proof.]`
 - `[MISSING: Aukro approved live row linked to non-stale canonical Orders lifecycle stage.]`
 - `[MISSING: Bazos provider-backed paid order source and persisted item snapshot contract.]`
 - `[MISSING: real forwarded Allegro order already subject-bound through buyerAuthSubject and visible to a real Auth bearer.]`
@@ -5627,7 +5658,7 @@ Intent Preservation Chain:
 - Execution Plan: read-only route/API probes, no source edits, no deploy, no DB reads, no provider calls, no order mutations.
 - Coding Prompt: do not invent order rows or inject synthetic central lifecycle data; if the data route is unavailable, record a blocked proof report.
 - Code: `reports/validation/orders-browser-render-proof/blocked-heureka-dashboard-orders-api.json`, `reports/validation/orders-browser-render-proof/heureka-dashboard-orders-api-blocked-artifact.json`, and `scripts/verify-channel-lifecycle-runtime-evidence.js`.
-- Validation: blocked browser-proof report validated with `npm run verify:browser-render-proof-report`; `npm run verify:channel-lifecycle-runtime-evidence` now reports `live_create_replay_reservation_cleanup_proven_orders_api_fixed_lifecycle_data_blocked`.
+- Validation: blocked browser-proof report validated with `npm run verify:browser-render-proof-report`; `npm run verify:channel-lifecycle-runtime-evidence` now reports `live_create_replay_reservation_cleanup_proven_orders_list_non_stale_lifecycle_proven`.
 
 Evidence:
 

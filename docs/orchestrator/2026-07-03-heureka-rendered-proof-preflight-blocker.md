@@ -45,3 +45,16 @@ Validation: pod-local preflight returned Heureka health 200, Warehouse stock 200
 ## Remaining Gate
 
 `[MISSING: approved Heureka synthetic rendered-proof runner with Catalog auth header and short-lived Orders admin readback/cleanup token]`
+
+
+## Resolution
+
+Heureka commit `a0dbb24` resolves the preflight/runtime blockers without changing Orders contracts. The smoke runner sends Catalog internal auth for product preflight, and the Heureka Orders client now prefers `ORDERS_INTERNAL_SERVICE_TOKEN` / `JWT_TOKEN` before the Catalog-to-Heureka `HEUREKA_INTERNAL_SERVICE_TOKEN` when calling Orders.
+
+Post-deploy evidence:
+
+- Preflight: Catalog `200`, Warehouse `200`, one reservable route, required Heureka tables present, missing markers none.
+- Live smoke: first POST `201`, replay POST `201`, stable order id true, Orders readback `200`, reservation statuses `reserved`, cleanup `200`, cleanup cancelled true, missing markers none.
+- Dashboard API proof: authenticated `/heureka/dashboard/orders-list?limit=10&status=all` returned `200` with total `6`, returned `6`, central lifecycle counts `available=4`, `stale=2`, `missingId=2`, `unknown=2`, and non-stale central sample lifecycle `cancelled` with reservation/warehouse handoff `cancelled`.
+
+Remaining optional gate: `[MISSING: browser DOM render capture for visible Heureka lifecycle labels if API-backed dashboard data proof is not sufficient]`.
