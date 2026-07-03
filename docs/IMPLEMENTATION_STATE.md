@@ -394,3 +394,6 @@ enablement was run.
 
 
 2026-07-03 follow-up: Post-deploy smoke of `d8ac74d` proved the FlipFlop normalizer reads nested `lifecycle.status` before top-level `lifecycleStage`; Orders lifecycle detail projection now sets nested `lifecycle.stage` and `lifecycle.status` to the canonical lifecycle stage while preserving raw order status as `lifecycle.rawStatus` and top-level `rawStatus`. Validation passed: `npm test`.
+
+
+2026-07-03 continuation: FlipFlop customer/admin browser render proof is now proven in Orders validation artifacts. Orders commit `dd3765a` is deployed as `localhost:5000/orders-microservice:dd3765a`; rollout and health passed. Sanitized FlipFlop API counts showed customer/admin `warehouse_collecting=true`. Generated service-scoped proxy browser proof artifacts under `reports/validation/orders-browser-render-proof/`; customer and admin surfaces both rendered `warehouse_collecting` / `Sklad připravuje položky` with label count 2. Contract validation passed with `browser_render_proof_report_proven`. Separate non-Orders follow-up remains: direct FlipFlop safe-human browser session is blocked by `/api/users/profile` 401 and an `/orders` auth-loading redirect race; no FlipFlop source edit was made in this Orders lane.

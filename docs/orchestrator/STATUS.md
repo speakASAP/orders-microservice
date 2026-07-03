@@ -5311,3 +5311,33 @@ Remaining gates:
 
 
 Follow-up evidence: post-deploy smoke of `d8ac74d` showed FlipFlop still normalized `lifecycle.status=processing` before top-level `lifecycleStage`. The detail projection now also exposes nested `lifecycle.stage=warehouse_collecting`, `lifecycle.status=warehouse_collecting`, and `lifecycle.rawStatus=processing`; verifier coverage was extended for this legacy adapter order.
+
+
+## 2026-07-03 - FlipFlop Browser Render Proof Proven
+
+Current focus: close the first channel customer/admin rendered lifecycle proof gate after Orders lifecycle detail deployment.
+
+Intent Preservation Chain:
+
+- Vision: marketplace users and admins see the canonical Orders lifecycle stage after payment and warehouse fulfillment updates.
+- Goal Impact: the first channel UI lane now has rendered customer and admin evidence for `warehouse_collecting`.
+- System: Orders owns lifecycle projection; FlipFlop channel API reads Orders lifecycle detail; browser proof uses service-scoped proxy only for validation-only auth/data injection and stores redacted artifacts.
+- Feature: FlipFlop customer/admin rendered lifecycle proof.
+- Task: deploy Orders lifecycle detail shape, verify FlipFlop API lifecycle counts, render `/orders` and `/admin/orders`, and validate the browser proof report.
+- Execution Plan: Orders-only commit/deploy plus validation artifacts; no non-Orders source edits; no raw DOM text, token values, DB dumps, payment references, tracking values, or provider payloads persisted.
+- Coding Prompt: keep proof central-read-model-backed; store only redacted DOM hashes and lifecycle labels; validate with Orders browser proof contract.
+- Code: Orders commits `d8ac74d` and `dd3765a`; proof artifacts under `reports/validation/orders-browser-render-proof/`.
+- Validation: `npm test` passed before deploy; deploy of `dd3765a` succeeded; `BROWSER_RENDER_PROOF_REPORT_PATH=reports/validation/orders-browser-render-proof/proven-flipflop-dd3765a.json BROWSER_RENDER_PROOF_EXPECTED_COMMIT=dd3765ab0c08284367ce6c3e21aca8c2e877c789 npm run verify:browser-render-proof-report` returned `browser_render_proof_report_proven`.
+
+Runtime evidence:
+
+- Orders deployed image: `localhost:5000/orders-microservice:dd3765a`; rollout succeeded and `/health` returned healthy.
+- Sanitized FlipFlop API lifecycle counts after deployment: customer and admin both reported `warehouse_collecting=true` with HTTP 200.
+- Browser render proof report: `reports/validation/orders-browser-render-proof/proven-flipflop-dd3765a.json`.
+- Redacted customer artifact: `reports/validation/orders-browser-render-proof/customer_cabinet-flipflop-dd3765a.json`, label count `2`.
+- Redacted admin artifact: `reports/validation/orders-browser-render-proof/admin_cabinet-flipflop-dd3765a.json`, label count `2`.
+
+Follow-up / non-Orders handoff:
+
+- `[MISSING: FlipFlop owner-approved frontend fix for direct safe-human browser session]`: direct browser session currently hits `/api/users/profile` 401, and `/orders` redirects before AuthContext loading completes. This was not edited in the Orders lane because non-Orders source changes require merge-order review.
+- `[MISSING: next channel browser proof lane selection after orchestrator review]`.

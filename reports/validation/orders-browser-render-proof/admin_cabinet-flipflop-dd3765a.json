@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "orders.browser_render_artifact.v1",
+  "checkedAt": "2026-07-03T11:54:13.695Z",
+  "channel": "flipflop",
+  "surface": "admin_cabinet",
+  "url": "https://flipflop.alfares.cz/admin/orders",
+  "documentStatus": 200,
+  "renderedLifecycleStage": "warehouse_collecting",
+  "renderedLifecycleLabel": "Sklad připravuje položky",
+  "redactedDomTextSha256": "a24fc804ba0ad25bd44260ef61863862abf8a199d1460d94bc17547b5821849a",
+  "labelCount": 2,
+  "redacted": true,
+  "tokenValuesPrinted": false,
+  "rawOrderRowsPrinted": false
+}

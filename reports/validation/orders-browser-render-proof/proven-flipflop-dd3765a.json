@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "orders.browser_render_proof.v1",
+  "status": "proven",
+  "channel": "flipflop",
+  "proofMode": "service_scoped_proxy",
+  "checkedAt": "2026-07-03T11:54:13.695Z",
+  "ordersEvidenceCommit": "dd3765ab0c08284367ce6c3e21aca8c2e877c789",
+  "mutationEvidence": {
+    "source": "approved-existing-mutation-artifact",
+    "approvalId": "approved-browser-proof",
+    "summary": "Existing sanitized Orders lifecycle mutation artifact proves paid warehouse collecting state.",
+    "expectedLifecycleStage": "warehouse_collecting",
+    "artifactPath": "reports/validation/lifecycle-mutation-smoke/report-latest.json",
+    "artifactHash": "sha256:2fb275cb936ccafa9e027852b59c103b2efb49f90de6a5c5639ceb054a0ea296"
+  },
+  "refreshMechanism": "full_reload",
+  "centralReadModelBacked": true,
+  "evidencePolicy": {
+    "noTokenValues": true,
+    "noCookies": true,
+    "noCustomerPii": true,
+    "noRawOrderRows": true,
+    "noDatabaseDump": true,
+    "noPaymentReference": true,
+    "noTrackingValues": true,
+    "noProviderPayload": true,
+    "artifactsRedacted": true
+  },
+  "routes": [
+    {
+      "surface": "customer_cabinet",
+      "url": "https://flipflop.alfares.cz/orders",
+      "httpStatus": 200,
+      "dataSourceStatus": 200,
+      "authContext": "service_scoped_proxy",
+      "renderedLifecycleStage": "warehouse_collecting",
+      "renderedLifecycleLabel": "Sklad připravuje položky",
+      "artifact": {
+        "kind": "redacted_dom_text_hash",
+        "path": "reports/validation/orders-browser-render-proof/customer_cabinet-flipflop-dd3765a.json",
+        "sha256": "95a0683ef570136ef3cbdbe5c161dde90b9a16a3be73f56fc8e3197dc8a77070",
+        "redacted": true
+      }
+    },
+    {
+      "surface": "admin_cabinet",
+      "url": "https://flipflop.alfares.cz/admin/orders",
+      "httpStatus": 200,
+      "dataSourceStatus": 200,
+      "authContext": "service_scoped_proxy",
+      "renderedLifecycleStage": "warehouse_collecting",
+      "renderedLifecycleLabel": "Sklad připravuje položky",
+      "artifact": {
+        "kind": "redacted_dom_text_hash",
+        "path": "reports/validation/orders-browser-render-proof/admin_cabinet-flipflop-dd3765a.json",
+        "sha256": "b986678108c738cd589436297374f57bb2a4cf58e0b1d9b7b176f5b6593d6fe3",
+        "redacted": true
+      }
+    }
+  ],
+  "result": {
+    "summary": "FlipFlop customer and admin order views rendered the expected warehouse collecting lifecycle label.",
+    "nextAction": "Use the same guarded browser proof pattern for the next approved channel UI smoke."
+  }
+}
