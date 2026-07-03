@@ -1,3 +1,4 @@
+2026-07-03: Worker P3 sensitive-data policy landed in Orders commit `6743613`. The policy keeps tracking numbers, tracking URLs, raw Allegro provider payloads, provider credentials/tokens, customer address/contact data, and raw provider responses out of Orders events, Notifications event DTO/template data, Warehouse-to-Orders callbacks, fixtures, and logs. Future UI/API display of tracking number or URL remains blocked by `[MISSING: product-approved tracking visibility matrix for buyer, support/operator, admin, warehouse operator, and service-to-service readers]`.
 2026-07-03: Worker F Warehouse intake and Allegro buyer UI source landed. Warehouse commit `f104202` documents the bounded provider-status intake contract after `handed_to_delivery`; Allegro commit `735ad1f` commits the buyer cabinet route source. All three source repos are clean/pushed after these handoffs. Deployment remains gated by runtime migration/deploy approval, OAuth/credential proof, sanitized shipment fixtures, idempotency ledger decision, and explicit runtime smoke approval. Source validation passed for Warehouse focused spec plus Allegro backend/frontend builds.
 2026-07-03: Allegro buyer personal-cabinet source implementation landed and pushed. Allegro commit `78e0f5f` adds the subject-bound `buyerAuthSubject` projection, guarded migration, buyer list/detail APIs, buyer-safe DTOs, and isolation specs; `9f07efc` hardens buyer order isolation tests; `735ad1f` adds the frontend `/cabinet/orders` route backed by `GET /api/allegro/buyer/orders`. Validation passed with Allegro `orders.service.spec: PASS`, `services/allegro-service npm run build`, `services/frontend npm run build`, and `git diff --check`. No Orders runtime code, deploy, DB migration, production row read, or secret access was performed. Remaining gates are `[MISSING: owner-approved Allegro DB migration/deploy for buyerAuthSubject]`, `[MISSING: historical row backfill decision; default remains no backfill and no buyer visibility without subject binding]`, and `[MISSING: live authenticated buyer list/detail smoke after deploy]`.
 2026-07-03: Worker G Allegro buyer API backend source landed in Allegro commits `78e0f5f` and `9f07efc`. Subject-bound buyer order reads are source-supported and isolation tests were hardened; deployment remains gated because buyer frontend cabinet files are still uncommitted/dirty and historical-row backfill remains no-visibility-by-default unless Auth subject binding exists.
@@ -42,8 +43,8 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Allegro buyer cabinet source landed; Allegro shipment source contract and sanitized verifier landed; provider shipment-status remains OAuth/projection/Warehouse-runtime gated
-next_recommended_goal: Run sanitized Allegro OAuth capability probe and durable shipment projection design, or prepare deploy approval packet for Allegro buyer cabinet migration/runtime smoke
+current_chunk: Allegro buyer cabinet source landed; Allegro shipment contract, verifier, and projection design landed; provider shipment-status remains OAuth/migration/Warehouse-runtime gated
+next_recommended_goal: Integrate Warehouse shipment snapshot consumer contract, then run sanitized Allegro OAuth capability probe before projection migration/runtime work
 last_completed_goal: FlipFlop admin RBAC hardening deployed and marketplace order read-scope hardening completed
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
@@ -53,9 +54,11 @@ blockers:
   - [MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]
   - non-marketplace app contracts require owner approval before runtime integration
   - [LANDED: Allegro shipment source contract in allegro commit 2183fe8]
+  - [LANDED: Orders Allegro shipment sensitive-data policy in commit 6743613]
   - [LANDED: sanitized Allegro shipment snapshot fixture/verifier set in allegro commit e626e5c]
   - [MISSING: Allegro OAuth scope proof and runtime credential source for shipment reads]
   - [MISSING: durable Allegro shipment projection schema/client before runtime handoff]
+  - [MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses]
   - [LANDED: Warehouse bounded provider-status intake contract in commit f104202]
   - [LANDED: Allegro buyer backend/frontend source in commits 78e0f5f, 9f07efc, and 735ad1f]
   - [MISSING: owner-approved Allegro DB migration/deploy for buyerAuthSubject]
@@ -65,6 +68,8 @@ blockers:
 ```
 
 ## Current Checkpoint
+
+2026-07-03: Allegro shipment projection design landed in Allegro commit `9834f09`. The docs-only design proposes `AllegroShipmentProjection`, `AllegroShipmentPackageProjection`, `AllegroShipmentTrackingEventProjection`, and `AllegroShipmentSnapshotLedger`, reusing the existing sync/cursor/raw-payload/audit foundation and keeping raw shipment payload persistence blocked by default. Validation passed with Allegro `git diff --check` and pre-commit checks. No migration, runtime code, live Allegro read, OAuth token access, Warehouse handoff, or deploy was performed. Worker H `019f2671-8a90-7c93-8e79-cb5f27669c76` is running the Warehouse consumer contract lane in parallel.
 
 2026-07-03: Allegro shipment snapshot source verifier landed in Allegro commit `e626e5c`. The source-only mapper and synthetic fixtures cover no-shipments, delivered waybill, multi-package carrier batching, mixed carriers, tracking-null, OAuth 403, shipment-management redaction, and non-Allegro filter cases. Validation passed with `cd services/allegro-service && npm run verify:shipment-status-snapshot`, `cd services/allegro-service && npm run build`, and `git diff --check`. No live Allegro API/OAuth call, DB migration, deploy, provider simulator, secret read, raw provider payload, tracking number/URL exposure, Warehouse runtime consumer, or Orders runtime code was added. Remaining gates are OAuth capability proof, durable shipment projection/client, Warehouse consumer/runtime adapter, idempotency ledger decision, deploy approval, and runtime smoke.
 
@@ -294,4 +299,3 @@ DB row read/write, payment provider call, secret value print, or consumer
 enablement was run.
 
 2026-07-03 continuation: k3s recovery was verified first, then the paid Orders-to-Warehouse core path was completed live. Orders commits `af0a4ea` and `fff0314` are pushed and deployed; `af0a4ea` exposes `/health/order-events` outside `/api`, and `fff0314` normalizes fulfillment delivery country names such as `Czech Republic` to ISO2 `CZ`. Warehouse image `4d0fa85` is deployed with `CreateFulfillmentOrders1781500000000` applied. Fresh FlipFlop live smoke order `ORD-1783032147411-920` / central order `94ce9a4b-7c6a-4625-85c7-8d1b13228b2d` was marked paid through the internal Payments boundary and produced `warehouseHandoff.status=fulfilled`, `fulfillmentOrderHandoff.status=requested`, and Warehouse fulfillment order `6ada14af-20f8-4928-9a37-94a331d97be2` with one line and delivery country `CZ`. Orders `/health/order-events` remained ready with pending/failed `0` and outbox counts `published|42`. Remaining blockers: `[MISSING: Notifications orders-events recipient/consumer gate]`, `[MISSING: marketplace customer/admin cabinet realtime or polling refresh]`, and `[MISSING: delivery-provider shipment status source after Warehouse handoff]`. Existing unrelated dirty Orders repo changes were preserved and not staged.
-

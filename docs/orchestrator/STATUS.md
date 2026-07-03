@@ -161,7 +161,8 @@ Additional per-blocker worker threads started by the orchestrator after source a
 
 - `[LANDED: Allegro shipment source contract in allegro commit 2183fe8; endpoint choice and sanitized snapshot contract documented.]`
 - `[MISSING: mapping from Allegro shipment/package/fulfillment statuses to Warehouse fulfillment statuses and Orders lifecycle stages after handed_to_delivery.]`
-- `[MISSING: approved sensitive-data policy for tracking number/URL visibility by role and event exclusion.]`
+- `[LANDED: P3 sensitive-data policy in Orders commit 6743613; event/log exclusion rules are documented.]`
+- `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
 - `[MISSING: runtime credential source in Vault/ExternalSecret for allegro-service shipment/fulfillment scope, not Orders.]`
 - `[MISSING: validation fixture set with sensitive provider fields redacted or explicitly forbidden.]`
 
@@ -422,7 +423,7 @@ Remaining blockers:
 - `[MISSING: delivery-provider/courier owner repository or approved existing service that owns courier credentials and raw tracking payloads.]`
 - `[MISSING: provider status source contract: webhook or polling, authentication method, idempotency key, timestamp semantics, retry/error semantics, and sample payloads.]`
 - `[MISSING: mapping from provider statuses to Warehouse fulfillment statuses and Orders lifecycle stages after handed_to_delivery.]`
-- `[MISSING: approved sensitive-data policy for tracking number/URL visibility by role and event exclusion.]`
+- `[LANDED/SUPERSEDED: P3 sensitive-data policy landed later in Orders commit 6743613; product-approved tracking visibility matrix remains missing before any tracking number/URL display.]`
 - `[MISSING: runtime credential source in Vault/ExternalSecret for the provider owner, not Orders.]`
 
 Parallel execution:

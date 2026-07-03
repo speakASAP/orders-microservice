@@ -65,7 +65,8 @@ Exact blockers:
 - `[APPROVED: initial delivery-provider/courier owner source is allegro Ship with Allegro/shipment APIs for Allegro-origin orders only.]`
 - `[LANDED: Allegro shipment source contract in allegro commit 2183fe8, including endpoint choice, snapshot contract, idempotency/timestamp/retry rules, and sanitized fixture requirements.]`
 - `[MISSING: mapping from Allegro shipment/package/fulfillment statuses to Warehouse fulfillment statuses and Orders lifecycle stages after handed_to_delivery.]`
-- `[MISSING: approved sensitive-data policy for tracking number/URL visibility by role and event exclusion.]`
+- `[LANDED: P3 sensitive-data policy in Orders commit 6743613; tracking number, tracking URL, raw provider payloads, credentials, customer address/contact data, and raw provider responses are excluded from events/logs/handoffs by default.]`
+- `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
 - `[MISSING: runtime credential source in Vault/ExternalSecret for allegro-service shipment/fulfillment scope, not Orders.]`
 - `[MISSING: validation fixture set with sensitive provider fields redacted or explicitly forbidden.]`
 
