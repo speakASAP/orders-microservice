@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Lifecycle Mutation Artifact Prepared For Browser Proof
+
+Intent chain:
+
+- Vision: rendered browser proof should be backed by a current sanitized lifecycle mutation artifact that proves Orders create/reserve/pay/Warehouse/read-model propagation before UI capture.
+- Goal Impact: the final FlipFlop customer/admin browser proof can now reference `reports/validation/lifecycle-mutation-smoke/report-latest.json` and `sha256:2fb275cb936ccafa9e027852b59c103b2efb49f90de6a5c5639ceb054a0ea296` as mutation evidence.
+- System: Orders runtime was exercised only through the guarded lifecycle mutation smoke; channel repos, browser sessions, providers, databases, deployments, and secret values were not touched.
+- Feature: prepared lifecycle mutation evidence artifact for browser proof.
+- Task: run guarded synthetic FlipFlop lifecycle mutation smoke, derive browser proof mutation evidence, and record sanitized validation evidence.
+- Execution Plan: preflight Orders readiness, run one explicit confirmed synthetic mutation, prepare mutation evidence, update IPS evidence, validate the helper/report gates, then commit and push.
+- Coding Prompt: do not print credentials, customer PII, raw order rows, DB rows, provider payloads, tracking values, or token values.
+- Code: no runtime code change; validation artifact and IPS docs only.
+- Validation: `npm run smoke:lifecycle-mutation` first gated without live env and showed readiness with missing approval gates; guarded run with `RUN_LIVE_LIFECYCLE_MUTATION_SMOKE=1`, `LIFECYCLE_MUTATION_SMOKE_APPROVAL_ID=goal-continuation-2026-07-03`, and `LIFECYCLE_MUTATION_SMOKE_CONFIRM=CREATE_PAY_WAREHOUSE_READ` passed. `npm run prepare:browser-proof-mutation-evidence -- --artifact-path=reports/validation/lifecycle-mutation-smoke/report-latest.json` returned `status=mutation_artifact_ready`, artifact hash `sha256:2fb275cb936ccafa9e027852b59c103b2efb49f90de6a5c5639ceb054a0ea296`, and no blockers. No browser automation, DB reads, provider calls, deploys, channel repo edits, secret values, customer payloads, raw order rows, tracking values, or provider payloads were used.
+
+Remaining gate:
+
+- `[MISSING: approved real rendered customer/admin browser proof report using the prepared mutation evidence.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Mutation Evidence Helper Added
 
 Intent chain:

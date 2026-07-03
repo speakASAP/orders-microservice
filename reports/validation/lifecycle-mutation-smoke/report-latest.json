@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "mode": "live_synthetic_lifecycle_mutation",
+  "generatedAt": "2026-07-03T11:15:22.978Z",
+  "mutation": true,
+  "approvalIdPresent": true,
+  "confirmation": "CREATE_PAY_WAREHOUSE_READ",
+  "channel": "flipflop",
+  "serviceName": "flipflop-service",
+  "externalOrderIdHash": "272770889d0c",
+  "catalogProductIdHash": "4da78e861d69",
+  "warehouseIdHash": "797d67862614",
+  "preflight": {
+    "deploymentReady": "1/1",
+    "deploymentAvailable": "1/1",
+    "image": "localhost:5000/orders-microservice:a12b40e",
+    "envPresence": {
+      "port": true,
+      "WAREHOUSE_RESERVATION_ENABLED": true,
+      "FLIPFLOP_INTERNAL_SERVICE_TOKEN": true,
+      "PAYMENTS_INTERNAL_SERVICE_TOKEN": true,
+      "WAREHOUSE_INTERNAL_SERVICE_TOKEN": true
+    },
+    "blockers": []
+  },
+  "result": {
+    "createHttpStatus": 201,
+    "orderIdPresent": true,
+    "orderIdHash": "9cb13b726cd4",
+    "initialWarehouseReserved": true,
+    "paymentHttpStatus": 200,
+    "warehouseHttpStatus": 200,
+    "customerLifecycleHttpStatus": 200,
+    "adminLifecycleHttpStatus": 200,
+    "customerSawWarehouseCollecting": true,
+    "adminSawWarehouseCollecting": true,
+    "customerScopedCountPositive": true,
+    "adminAggregateStageCountPositive": true,
+    "tokenValuesPrinted": false,
+    "rawOrderRowsPrinted": false
+  },
+  "blockers": []
+}
