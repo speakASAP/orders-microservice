@@ -59,6 +59,8 @@ Required `evidencePolicy` booleans:
 - At least one customer or admin route has HTTP `2xx` or `3xx`.
 - At least one route has a non-empty `renderedLifecycleLabel`.
 - At least one route has a non-empty `renderedLifecycleStage`.
+- At least one route must cover `customer_cabinet`.
+- At least one route must cover `admin_cabinet` or `admin_dashboard`.
 - `centralReadModelBacked=true`.
 - `mutationEvidence.summary` is present and sanitized.
 - Every artifact is marked `redacted=true`.
@@ -80,7 +82,7 @@ Required `evidencePolicy` booleans:
 
 `verify:browser-render-proof-report` validates two checked-in sanitized fixtures by default:
 
-- `docs/orchestrator/browser-render-proof-report-fixtures/valid-flipflop-service-scoped.json` must pass the schema and proven criteria.
+- `docs/orchestrator/browser-render-proof-report-fixtures/valid-flipflop-service-scoped.json` must pass the schema and proven criteria, including customer and admin surfaces.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-sensitive-key.json` must be rejected because it contains a forbidden sensitive key name.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-public-shell-route.json` must be rejected because route-only anonymous shell evidence cannot prove lifecycle rendering.
 

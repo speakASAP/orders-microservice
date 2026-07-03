@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Customer Admin Coverage Required
+
+Intent chain:
+
+- Vision: lifecycle status propagation is only complete when both customer-facing and administrator-facing surfaces render the Orders state.
+- Goal Impact: a future `orders.browser_render_proof.v1` report can no longer pass `status=proven` with only one side of the UI.
+- System: Orders owns the proof contract and verifier; channel repos remain untouched.
+- Feature: customer plus admin browser proof coverage.
+- Task: require customer and admin surfaces in browser proof reports and fixtures.
+- Execution Plan: extend the report verifier, update the contract/fixture, record IPS status, and validate without runtime mutation.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: `scripts/verify-browser-render-proof-report.js`, browser proof contract, valid fixture, completion audit/status/state docs.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-report.js`, `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report covering customer and admin surfaces after lifecycle mutation.]`
+
 +## 2026-07-03 - Browser Proof Public Shell Guard Added
 +
 +Intent chain:

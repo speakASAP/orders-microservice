@@ -24,6 +24,20 @@
       },
       "dataSourceStatus": 401,
       "authContext": "service_scoped_proxy"
+    },
+    {
+      "url": "https://flipflop.alfares.cz/admin/orders",
+      "httpStatus": 200,
+      "surface": "admin_cabinet",
+      "renderedLifecycleLabel": "Orders",
+      "renderedLifecycleStage": "warehouse_collecting",
+      "artifact": {
+        "kind": "public_shell_dom_hash",
+        "redacted": true,
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "dataSourceStatus": 401,
+      "authContext": "service_scoped_proxy"
     }
   ],
   "refreshMechanism": "full_reload",

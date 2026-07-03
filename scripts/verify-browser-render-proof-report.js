@@ -97,6 +97,16 @@ function validateFixtures() {
   const validFixture = validateReport(read(validFixturePath));
   assert.equal(validFixture.status, 'proven', 'valid browser proof fixture must be proven');
   assert.equal(validFixture.channel, 'flipflop', 'valid browser proof fixture must cover first FlipFlop lane');
+  assert.equal(
+    validFixture.routes.some((route) => route.surface === 'customer_cabinet'),
+    true,
+    'valid browser proof fixture must cover customer cabinet',
+  );
+  assert.equal(
+    validFixture.routes.some((route) => route.surface === 'admin_cabinet' || route.surface === 'admin_dashboard'),
+    true,
+    'valid browser proof fixture must cover admin cabinet or dashboard',
+  );
   assert.throws(
     () => validateReport(read(invalidSensitiveFixturePath)),
     /sensitive key is not allowed/,
@@ -157,6 +167,16 @@ function validateReport(rawReport) {
     assert.equal(report.routes.some((route) => route.httpStatus >= 200 && route.httpStatus < 400), true, 'proven report needs a 2xx/3xx route');
     assert.equal(report.routes.some((route) => route.renderedLifecycleLabel.trim()), true, 'proven report needs rendered lifecycle label');
     assert.equal(report.routes.some((route) => route.renderedLifecycleStage.trim()), true, 'proven report needs rendered lifecycle stage');
+    assert.equal(
+      report.routes.some((route) => route.surface === 'customer_cabinet'),
+      true,
+      'proven report needs customer cabinet route evidence',
+    );
+    assert.equal(
+      report.routes.some((route) => route.surface === 'admin_cabinet' || route.surface === 'admin_dashboard'),
+      true,
+      'proven report needs admin cabinet or dashboard route evidence',
+    );
     assert.equal(
       report.routes.some((route) => route.authContext === 'safe_human_session' || route.authContext === 'service_scoped_proxy'),
       true,

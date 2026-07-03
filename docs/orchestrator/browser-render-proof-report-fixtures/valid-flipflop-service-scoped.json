@@ -25,6 +25,20 @@
       },
       "authContext": "service_scoped_proxy",
       "dataSourceStatus": 200
+    },
+    {
+      "url": "https://flipflop.alfares.cz/admin/orders",
+      "httpStatus": 200,
+      "surface": "admin_cabinet",
+      "renderedLifecycleLabel": "Sklad pripravuje polozky",
+      "renderedLifecycleStage": "warehouse_collecting",
+      "artifact": {
+        "kind": "redacted_screenshot_hash",
+        "redacted": true,
+        "sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+      },
+      "authContext": "service_scoped_proxy",
+      "dataSourceStatus": 200
     }
   ],
   "refreshMechanism": "manual_refresh",
@@ -41,7 +55,7 @@
     "artifactsRedacted": true
   },
   "result": {
-    "summary": "Sanitized fixture validates the report contract only.",
+    "summary": "Sanitized fixture validates customer and admin report contract coverage only.",
     "nextAction": "Replace with approved real proof report path after browser validation."
   }
 }
