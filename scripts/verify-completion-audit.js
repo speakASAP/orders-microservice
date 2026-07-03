@@ -56,9 +56,9 @@ const proofMarkers = [
   'Channel create/reservation evidence boundary from `verify:channel-lifecycle-runtime-evidence`:',
   'FlipFlop: `live_create_reservation_and_browser_lifecycle_proven`.',
   'Heureka: `live_create_replay_reservation_cleanup_orders_list_non_stale_lifecycle_api_proven_dom_optional`.',
-  'Aukro: `live_synthetic_create_reservation_cleanup_proven_cabinet_protected_data_auth_blocked`.',
-  'Bazos: `synthetic_create_reservation_smoke_proven_paid_replay_source_deployed_live_evidence_blocked`.',
-  'Allegro: `buyer_route_live_isolation_proven_real_order_and_central_lifecycle_blocked`.',
+  'Aukro: `protected_customer_admin_lifecycle_api_proven_dom_optional`.',
+  'Bazos: `bounded_paid_multi_product_customer_admin_lifecycle_proven_natural_provider_optional`.',
+  'Allegro: `bounded_buyer_lifecycle_proven_natural_buyer_gated`.',
   'checked-in fixtures prove the contract accepts a sanitized FlipFlop service-scoped report and rejects a sensitive-key report',
   'Browser proof report guard now rejects anonymous/public-shell evidence: `invalid-public-shell-route.json` must fail because route-only HTML, anonymous DOM snapshots, and backing API `401`/`403` responses cannot prove rendered lifecycle propagation.',
   'Browser proof report guard now requires both customer and admin rendered surfaces for `status=proven`: at least one `customer_cabinet` route plus at least one `admin_cabinet` or `admin_dashboard` route.',
@@ -102,9 +102,9 @@ assert.equal(channelDecision.channels.aukro.proofStatus, 'protected_customer_adm
 const missingGateMarkers = [
   'Direct safe-human FlipFlop browser proof if product requires it beyond the already proven service-scoped proxy proof.',
   'Heureka optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient.',
-  'Aukro approved human/admin bearer or bounded fixture for protected customer/admin lifecycle proof.',
-  'Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.',
-  'Bazos paid replay source is deployed, but current aggregate has totalOrders=0; live paid multi-product evidence and approved customer/admin lifecycle proof remain missing.',
+  'Natural real customer-bound Aukro proof if product requires it beyond accepted bounded/customer-admin proof.',
+  'Natural real Allegro buyer order proof if product requires it beyond accepted bounded buyer proof.',
+  'Natural live provider-backed Bazos marketplace webhook/order proof if product requires it beyond accepted bounded paid multi-product proof.',
   'Warehouse/Allegro shipment-status runtime proof is closed for bounded status-only display; optional real provider live-read and future audited full-tracking reveal remain product-gated:',
   'FlipFlop service-scoped browser-render proof is proven; tracking visibility is status-only and raw tracking values remain forbidden, while optional channel human/DOM proofs and optional real provider live-read evidence remain product-gated.',
   'Status: incomplete.',
@@ -127,6 +127,7 @@ assert.equal(
 );
 assert.equal(
   audit.includes('Heureka optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient.') &&
+    audit.includes('Natural live provider-backed Bazos marketplace webhook/order proof if product requires it beyond accepted bounded paid multi-product proof.') &&
     audit.includes('Warehouse/Allegro shipment-status runtime proof is closed for bounded status-only display; optional real provider live-read and future audited full-tracking reveal remain product-gated:'),
   true,
   'completion audit must preserve both channel browser/data/auth and shipment-status remaining gates',

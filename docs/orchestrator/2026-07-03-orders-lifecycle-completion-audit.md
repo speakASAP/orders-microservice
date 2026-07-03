@@ -16,17 +16,17 @@ This audit does not mark the goal complete. It records the current proof boundar
 
 | Requirement | Current status | Authoritative evidence | Completion evidence still needed |
 | --- | --- | --- | --- |
-| Every sellable order checks Warehouse stock and reserves on creation | Bounded channel evidence proven, real-provider gates remain | `verify:order-reservation-gate`; `verify:channel-lifecycle-runtime-evidence`; FlipFlop live create/reservation artifacts; Heureka live create/replay/reservation cleanup artifacts; Aukro live synthetic create/reservation cleanup artifacts; Bazos owner-approved synthetic reservation artifact | Bazos paid replay source is deployed, but live eligible paid multi-product evidence and customer/admin lifecycle proof remain missing; Allegro still needs real subject-bound buyer/order proof before provider-backed create/reservation can be called complete. |
+| Every sellable order checks Warehouse stock and reserves on creation | Bounded channel evidence proven, real-provider gates remain | `verify:order-reservation-gate`; `verify:channel-lifecycle-runtime-evidence`; FlipFlop live create/reservation artifacts; Heureka live create/replay/reservation cleanup artifacts; Aukro live synthetic create/reservation cleanup artifacts; Bazos owner-approved synthetic reservation artifact | Bazos bounded paid multi-product customer/admin lifecycle proof is proven; natural provider-backed Bazos proof remains optional/product-gated. Allegro buyer lifecycle is proven through an approved bounded fixture; natural real-buyer proof remains optional/product-gated. |
 | Order creation fails closed if Warehouse reservation is unavailable | Source/contract proven | `verify:order-reservation-gate`; `verify:warehouse-handoff`; sellable-channel reservation gate in Orders service | Repeat live fail-closed negative smoke only if owner approves controlled stock/unavailable scenario. |
-| Orders store item list, per-item price, totals, shipping cost, and delivery address | Source/contract proven | `verify:create-order-contract`; DTO/entity contract; lifecycle read model serialization; product-sales statistics verifier | Browser/customer-facing rendered proof of those fields across every cabinet is not complete. |
-| Paid order triggers Warehouse fulfillment handoff | Runtime proven for bounded Orders path | `smoke:lifecycle-mutation` live run: payment update HTTP 200, Warehouse fulfillment update HTTP 200, lifecycle moved to `warehouse_collecting`; `verify:order-fulfillment-handoff` | Provider shipment/courier late-stage runtime remains gated; per-channel paid checkout browser proof is incomplete. |
-| Orders lifecycle read model exposes customer/admin status | Runtime proven at service/API level | lifecycle list runtime probe returned HTTP 200 for FlipFlop, Allegro, Aukro, Bazos, Heureka service identities; `verify:order-lifecycle-read-model`; `verify:channel-lifecycle-runtime-evidence` | Human/browser-render proof after actual lifecycle mutation remains missing. |
-| Customer cabinet shows updated order lifecycle | Partial rendered proof proven, remaining channels gated | FlipFlop service-scoped proof `proven-flipflop-dd3765a.json`; channel UI commits/deploys/equivalents: FlipFlop `3110c6a`, Heureka `358fba9`, Bazos `26af3ae`, Aukro `08ad5ce`, Allegro `4ff3987`; route smokes; `verify:channel-lifecycle-surfaces`; `verify:browser-render-proof-report` report contract | Direct safe-human FlipFlop proof if required; Heureka runner auth plus non-stale lifecycle proof; Aukro non-stale lifecycle row; Bazos provider-backed source; Allegro real buyer bearer and subject-bound row. |
-| Admin cabinet/statistics show updated lifecycle and delivery status | Partial rendered proof proven, remaining channels gated | `verify:product-sales-statistics`; `verify:admin-operations-console`; FlipFlop service-scoped customer/admin proof; channel UI route smokes and source markers; `verify:browser-render-proof-report` report contract | Approved admin browser/API rendered proof for Heureka, Aukro, Bazos, and Allegro after each channel's route/data/auth blocker is cleared. |
-| Lifecycle stages include ordered/unpaid, paid/not delivered, Warehouse collecting/forming/formed, handed to delivery, in delivery, received/not received/returned | Source/read-model proven | `verify:order-lifecycle-read-model`; STATUS late-stage coverage entries | Provider-backed late-stage runtime feed remains gated. |
-| Delivery provider/shipment status updates drive late lifecycle | Runtime deployed but enablement/config/smoke/mutation-gated | `verify:shipment-runtime-readiness`; Warehouse image `174f92e`; Allegro image `ae9d381`; Warehouse in-pod migration evidence; STATUS shipment gates | Allegro correlation enablement, Warehouse URL/token config projection, safe runtime smoke with real provider source, sanitized Warehouse/Orders readback, and approval before fulfillment-row mutation. |
+| Orders store item list, per-item price, totals, shipping cost, and delivery address | Source/contract proven | `verify:create-order-contract`; DTO/entity contract; lifecycle read model serialization; product-sales statistics verifier | Bounded/customer-facing lifecycle proofs are accepted for current release; natural human-browser field rendering remains optional/product-gated where product requires it. |
+| Paid order triggers Warehouse fulfillment handoff | Runtime proven for bounded Orders path | `smoke:lifecycle-mutation` live run: payment update HTTP 200, Warehouse fulfillment update HTTP 200, lifecycle moved to `warehouse_collecting`; `verify:order-fulfillment-handoff` | Bounded Warehouse/Allegro shipment-status runtime and Orders callback are proven; optional real provider non-UNKNOWN movement remains product/data-gated. |
+| Orders lifecycle read model exposes customer/admin status | Runtime proven at service/API level | lifecycle list runtime probe returned HTTP 200 for FlipFlop, Allegro, Aukro, Bazos, Heureka service identities; `verify:order-lifecycle-read-model`; `verify:channel-lifecycle-runtime-evidence` | Service-scoped/bounded browser and API proofs are accepted; direct human-session browser proof remains optional/product-gated. |
+| Customer cabinet shows updated order lifecycle | Partial rendered proof proven, remaining channels gated | FlipFlop service-scoped proof `proven-flipflop-dd3765a.json`; channel UI commits/deploys/equivalents: FlipFlop `3110c6a`, Heureka `358fba9`, Bazos `26af3ae`, Aukro `08ad5ce`, Allegro `4ff3987`; route smokes; `verify:channel-lifecycle-surfaces`; `verify:browser-render-proof-report` report contract | Direct safe-human/browser proof is optional/product-gated beyond accepted bounded/service-scoped proofs for FlipFlop, Heureka, Aukro, Bazos, and Allegro. |
+| Admin cabinet/statistics show updated lifecycle and delivery status | Partial rendered proof proven, remaining channels gated | `verify:product-sales-statistics`; `verify:admin-operations-console`; FlipFlop service-scoped customer/admin proof; channel UI route smokes and source markers; `verify:browser-render-proof-report` report contract | Natural human/admin browser proof remains optional/product-gated beyond accepted bounded/service-scoped customer/admin proofs. |
+| Lifecycle stages include ordered/unpaid, paid/not delivered, Warehouse collecting/forming/formed, handed to delivery, in delivery, received/not received/returned | Source/read-model proven | `verify:order-lifecycle-read-model`; STATUS late-stage coverage entries | Bounded shipment-status feed is runtime-proven; optional real carrier non-UNKNOWN movement remains product/data-gated. |
+| Delivery provider/shipment status updates drive late lifecycle | Runtime deployed but enablement/config/smoke/mutation-gated | `verify:shipment-runtime-readiness`; Warehouse image `174f92e`; Allegro image `ae9d381`; Warehouse in-pod migration evidence; STATUS shipment gates | Optional real carrier non-UNKNOWN movement proof and any future audited full-tracking reveal remain product/data-gated; status-only bounded runtime path is proven. |
 | Cross-repo IPS-backed plan and subagent orchestration are recorded | Proven for current wave | `docs/orchestrator/STATUS.md`, `docs/IMPLEMENTATION_STATE.md`, browser proof handoff, channel worker commits/deploy evidence | Keep docs current as browser/provider gates close. |
-| No secrets, tokens, raw order rows, customer payloads, DB rows, tracking values, or provider payloads are printed in validation | Proven for added Orders validation paths | `smoke:lifecycle-mutation` sanitized output policy; `verify:browser-render-proof-readiness`; `verify:channel-lifecycle-runtime-evidence`; STATUS sanitation statements | Future browser screenshots must be redacted or use safe synthetic data only. |
+| No secrets, tokens, raw order rows, customer payloads, DB rows, tracking values, or provider payloads are printed in validation | Proven for added Orders validation paths | `smoke:lifecycle-mutation` sanitized output policy; `verify:browser-render-proof-readiness`; `verify:channel-lifecycle-runtime-evidence`; STATUS sanitation statements | Future optional browser evidence must remain redacted or use safe synthetic data only. |
 
 ## Current Proven Evidence
 
@@ -64,9 +64,9 @@ This audit does not mark the goal complete. It records the current proof boundar
 - Channel create/reservation evidence boundary from `verify:channel-lifecycle-runtime-evidence`:
   - FlipFlop: `live_create_reservation_and_browser_lifecycle_proven`.
   - Heureka: `live_create_replay_reservation_cleanup_orders_list_non_stale_lifecycle_api_proven_dom_optional`.
-  - Aukro: `live_synthetic_create_reservation_cleanup_proven_cabinet_protected_data_auth_blocked`.
-  - Bazos: `synthetic_create_reservation_smoke_proven_paid_replay_source_deployed_live_evidence_blocked`.
-  - Allegro: `buyer_route_live_isolation_proven_real_order_and_central_lifecycle_blocked`.
+  - Aukro: `protected_customer_admin_lifecycle_api_proven_dom_optional`.
+  - Bazos: `bounded_paid_multi_product_customer_admin_lifecycle_proven_natural_provider_optional`.
+  - Allegro: `bounded_buyer_lifecycle_proven_natural_buyer_gated`.
 
 ## Remaining Gates
 
@@ -74,24 +74,22 @@ The goal is not complete until these are closed or explicitly descoped by produc
 
 1. Direct safe-human FlipFlop browser proof if product requires it beyond the already proven service-scoped proxy proof.
 2. Heureka optional browser DOM render capture if API-backed dashboard lifecycle proof is not sufficient.
-3. Aukro approved human/admin bearer or bounded fixture for protected customer/admin lifecycle proof.
-4. Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.
-5. Bazos paid replay source is deployed, but current aggregate has totalOrders=0; live paid multi-product evidence and approved customer/admin lifecycle proof remain missing.
+3. Natural real customer-bound Aukro proof if product requires it beyond accepted bounded/customer-admin proof.
+4. Natural real Allegro buyer order proof if product requires it beyond accepted bounded buyer proof.
+5. Natural live provider-backed Bazos marketplace webhook/order proof if product requires it beyond accepted bounded paid multi-product proof.
 6. Warehouse/Allegro shipment-status runtime proof is closed for bounded status-only display; optional real provider live-read and future audited full-tracking reveal remain product-gated:
-   - Approval to enable `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true`.
-   - Warehouse URL/token configuration projected into Allegro runtime.
-   - Owner-approved live runtime smoke with safe selection and real token source.
-   - Sanitized Warehouse correlation readback proving no raw provider/customer fields enter Orders events.
-   - Approval before runtime fulfillment-row mutation or Orders lifecycle callback smoke.
+   - Real carrier tracking status other than `UNKNOWN`.
+   - Product/security approval before any audited full-tracking reveal beyond status-only UI.
+   - Continued sanitized Warehouse/Orders readback proving no raw provider/customer fields enter Orders events.
 
 ## Recommended Next Execution Order
 
 1. Keep FlipFlop service-scoped proof as current proven browser evidence; collect direct safe-human proof only if a safe session is provided.
-2. Run Heureka browser DOM capture only if product requires visible-label proof beyond the API-backed dashboard lifecycle proof.
-3. Provide an approved Aukro human/admin bearer or approved bounded fixture, then rerun protected customer/admin lifecycle proof.
-4. Bazos after a real eligible paid multi-product Bazos order or approved bounded fixture exists; current aggregate has totalOrders=0, then authenticated customer/admin lifecycle proof can run.
-5. Allegro buyer proof only after real subject-bound buyer order row and bearer are approved.
-6. Shipment-status runtime proof after Allegro enablement, Warehouse URL/token config, safe live smoke, sanitized readback, and mutation approvals.
+2. Run Heureka browser DOM capture only if product requires visible-label proof beyond accepted service-scoped/API dashboard lifecycle proof.
+3. Run natural Aukro proof only if product requires real customer-bound evidence beyond accepted bounded customer/admin proof.
+4. Run natural Bazos provider-backed proof only if product requires marketplace-webhook evidence beyond accepted bounded paid multi-product proof.
+5. Run natural Allegro buyer proof only if product requires real-buyer evidence beyond accepted bounded buyer proof.
+6. Run real provider non-UNKNOWN shipment proof only when carrier data exists; keep full tracking reveal blocked until product/security approves an audited contract.
 
 ## Completion Decision
 
