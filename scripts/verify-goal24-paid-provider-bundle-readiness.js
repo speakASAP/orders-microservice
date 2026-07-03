@@ -84,7 +84,7 @@ for (const required of [
   'GOAL24_PAID_PROVIDER_ROLLBACK',
   'GOAL24_PROVIDER_UNPAID_CANCEL',
   '[MISSING: named Orders cancellation actor/approvedBy for Goal 24 paid/provider cleanup]',
-  '[MISSING: approved Orders cleanup idempotency execution path]',
+  '[MISSING: migration/deploy approval for persisted Orders cleanup idempotency key]',
   'payment=true',
   'warehouse=true',
   'notification=true',

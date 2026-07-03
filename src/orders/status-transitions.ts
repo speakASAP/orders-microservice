@@ -12,6 +12,7 @@ export interface OrderStatusApprovalInput {
   approvedBy?: string;
   reasonCode?: string;
   sideEffectsHandled?: Partial<Record<CancellationSideEffectKey, boolean>>;
+  idempotencyKey?: string;
 }
 
 export interface OrderStatusActorContext {
@@ -33,6 +34,7 @@ export interface OrderStatusApprovalAudit {
   actorEmail?: string;
   reasonCode: string;
   sideEffectsHandled: Record<CancellationSideEffectKey, true>;
+  idempotencyKey?: string;
   previousStatus: OrderStatus;
   requestedStatus: OrderStatus;
   resultingStatus: OrderStatus;
@@ -51,6 +53,7 @@ const REFUND_LIKE_ORDER_STATUSES = new Set(['refund', 'refunded', 'refund_pendin
 const REFUND_LIKE_ITEM_STATUSES = new Set(['cancelled', 'refund', 'refunded', 'returned', 'return_pending']);
 const REQUIRED_CANCELLATION_SIDE_EFFECTS: CancellationSideEffectKey[] = ['payment', 'warehouse', 'notification', 'crm', 'channel'];
 const SAFE_REASON_CODE_PATTERN = /^[A-Z0-9][A-Z0-9_-]{2,79}$/;
+const SAFE_IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:-]{7,159}$/;
 
 const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending: ['confirmed'],
@@ -212,6 +215,7 @@ function validateCancellationApproval(
 
   const reasonCode = normalizeReasonCode(approval.reasonCode);
   const sideEffectsHandled = validateCancellationSideEffects(approval.sideEffectsHandled);
+  const idempotencyKey = normalizeIdempotencyKey(approval.idempotencyKey);
   const approvedAt = (context.now || new Date()).toISOString();
 
   return {
@@ -222,6 +226,7 @@ function validateCancellationApproval(
     actorEmail,
     reasonCode,
     sideEffectsHandled,
+    ...(idempotencyKey ? { idempotencyKey } : {}),
     previousStatus: current,
     requestedStatus: requested,
     resultingStatus: requested,
@@ -239,6 +244,15 @@ function normalizeReasonCode(reasonCode?: string): string {
     throw new Error('Order cancellation approval.reasonCode must be 3-80 safe uppercase letters, numbers, underscores, or hyphens');
   }
 
+  return normalized;
+}
+
+function normalizeIdempotencyKey(value?: string): string | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  const normalized = String(value).trim();
+  if (!SAFE_IDEMPOTENCY_KEY_PATTERN.test(normalized) || /bearer\s+/i.test(normalized)) {
+    throw new Error('Order cancellation approval.idempotencyKey must be 8-160 safe letters, numbers, dots, colons, underscores, or hyphens');
+  }
   return normalized;
 }
 

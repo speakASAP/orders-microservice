@@ -109,6 +109,9 @@ export class Order {
   warehouseHandoff: WarehouseHandoffSummary;
 
   @Column({ type: 'jsonb', nullable: true })
+  statusTransitionAudit: Record<string, unknown>;
+
+  @Column({ type: 'jsonb', nullable: true })
   bundleEvidence: Array<{
     contractVersion: 'catalog.bundle.v1';
     bundleId: string;
