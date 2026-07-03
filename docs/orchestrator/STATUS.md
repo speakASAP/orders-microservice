@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Warehouse Shipment Snapshot Adapter Mapper Integrated
+
+Intent chain:
+
+- Vision: Allegro delivery progress should reach Orders only through sanitized Warehouse-owned fulfillment observations and bounded Warehouse callbacks.
+- Goal Impact: Warehouse can now validate and map sanitized Allegro shipment snapshots into its provider-status ledger source path, while runtime mutation remains correlation/deploy gated.
+- System: Allegro owns raw provider reads and sanitized snapshot production; Warehouse owns snapshot validation, candidate status mapping, ledger observation, and future fulfillment mutation; Orders owns lifecycle projection from Warehouse callbacks only.
+- Feature: source-only Warehouse adapter mapper for `allegro.shipment_status_snapshot.v1`.
+- Task: integrate Warehouse commit `ad8746a` into Orders orchestration state.
+- Execution Plan: accept source-only mapper evidence, keep correlation resolver, status mutation, migration run, deploy, live provider calls, and Orders callback changes blocked.
+- Coding Prompt: no Orders runtime code, no raw provider/tracking/customer fields, no direct Allegro snapshot ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Warehouse `ad8746a feat: add shipment snapshot adapter mapper`; Orders docs checkpoint in this commit.
+- Validation: Warehouse focused Jest `27` tests, `npm run build`, `npm run check:hosted-auth`, `git diff --check`, commit hook checks, and Orders `git diff --check`.
+
+Evidence:
+
+- `FulfillmentProviderStatusSnapshotAdapterService` accepts only sanitized `allegro.shipment_status_snapshot.v1` envelopes.
+- Adapter mapping is correlation-gated: it requires an already-resolved central `orderId` and Warehouse `fulfillmentOrderId` before ledger recording.
+- The mapper rejects raw-looking identifiers and raw tracking/provider/customer fields before a ledger write.
+- It maps in-progress Allegro classes to `in_delivery`, `DELIVERED` to `delivered`, `ISSUE` to `not_delivered`, `RETURNED` to `returned`, and `PENDING`/`UNKNOWN`/unavailable reads to no-op diagnostics.
+- It records only provider-status ledger observations; it does not call `FulfillmentOrdersService.updateStatus`, call Orders, run provider reads, or resolve correlation.
+
+Remaining gates:
+
+- `[LANDED: Warehouse sanitized Allegro shipment snapshot adapter mapper in warehouse-microservice commit ad8746a.]`
+- `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
+- `[MISSING: approved retention/retry/dead-letter policy.]`
+- `[MISSING: product-approved tracking visibility matrix before tracking number/URL display.]`
+- `[MISSING: owner approval before Warehouse deploy, migration run, runtime status mutation, or production fulfillment-row mutation.]`
+
+Next action:
+
+- Resolve and source-validate the correlation model between sanitized Allegro shipment identity and one Warehouse fulfillment order before any status-mutating runtime consumer or deploy.
+
 ## 2026-07-03 - Warehouse Provider-Status Ledger Source Integrated
 
 Intent chain:
@@ -24,7 +58,8 @@ Evidence:
 Remaining gates:
 
 - `[LANDED: Warehouse provider-status observation ledger source foundation in warehouse-microservice commit 5bdc473.]`
-- `[MISSING: approved provider adapter source and disabled-by-default runtime flag.]`
+- `[LANDED: Warehouse sanitized Allegro shipment snapshot adapter mapper in warehouse-microservice commit ad8746a.]`
+- `[LANDED: source-only sanitized Allegro shipment snapshot adapter mapper in warehouse-microservice commit ad8746a; runtime consumer flag remains deploy-gated.]`
 - `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
 - `[MISSING: approved retention/retry/dead-letter policy.]`
 - `[MISSING: product-approved tracking visibility matrix before tracking number/URL display.]`
@@ -58,6 +93,7 @@ Evidence:
 Remaining gates:
 
 - `[LANDED: Warehouse provider-status observation ledger source foundation in warehouse-microservice commit 5bdc473.]`
+- `[LANDED: Warehouse sanitized Allegro shipment snapshot adapter mapper in warehouse-microservice commit ad8746a.]`
 - `[LANDED: source-only Warehouse ledger migration/schema in warehouse-microservice commit 5bdc473; not deployed or run in production.]`
 - `[MISSING: approved future clock-skew window, stale-event age, and retention/retry/dead-letter policy.]`
 - `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
@@ -92,12 +128,13 @@ Remaining gates:
 - `[PROVEN: Orders source-reference preservation for synthetic Allegro Warehouse fulfillment handoff payloads.]`
 - `[MISSING: live Allegro-origin central order with fulfilled reservations for runtime Warehouse handoff join smoke.]`
 - `[LANDED: Warehouse provider-status observation ledger source foundation in warehouse-microservice commit 5bdc473.]`
+- `[LANDED: Warehouse sanitized Allegro shipment snapshot adapter mapper in warehouse-microservice commit ad8746a.]`
 - `[PARTIAL: provisional timestamp/replay semantics landed in Warehouse commit 72d73ec; runtime constants remain missing.]`
 - `[MISSING: owner approval before Warehouse runtime adapter, Allegro projection migration, deployment, or production fulfillment-row mutation.]`
 
 Next action:
 
-- Implement a disabled-by-default sanitized provider adapter only after source adapter scope, correlation, retry/DLQ, visibility, and deploy/smoke gates are approved.
+- Resolve the shipment-to-fulfillment correlation model before any status-mutating runtime consumer or deploy/smoke gate.
 
 ## 2026-07-03 - Warehouse Allegro Checkout Fulfillment Mapping Integrated
 
@@ -128,6 +165,7 @@ Remaining gates:
 - `[MISSING: sanitized checkout-form fulfillment.status fixture set and approved enum/class list.]`
 - `[MISSING: approved Orders source-reference preservation evidence proving Allegro-origin central orders preserve source evidence and fulfilled reservation ids for Warehouse joins.]`
 - `[LANDED: Warehouse provider-status observation ledger source foundation in warehouse-microservice commit 5bdc473.]`
+- `[LANDED: Warehouse sanitized Allegro shipment snapshot adapter mapper in warehouse-microservice commit ad8746a.]`
 - `[PARTIAL: provisional timestamp/replay semantics landed in Warehouse commit 72d73ec; runtime constants remain missing.]`
 - `[MISSING: owner approval before any Warehouse runtime adapter, src/** mutation, migration, deploy, or production fulfillment-row mutation.]`
 
