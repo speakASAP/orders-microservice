@@ -4,7 +4,7 @@
   "status": "protected_customer_admin_lifecycle_api_proven",
   "checkedAt": "2026-07-03T00:00:00.000Z",
   "runtime": {
-    "aukroImage": "localhost:5000/aukro-service:cb39bb4",
+    "aukroImage": "localhost:5000/aukro-service:22662ea",
     "customerDashboardHttpStatus": 200,
     "adminServicesHttpStatus": 200,
     "existingForwardedCandidatePresent": true,
@@ -43,7 +43,7 @@
     }
   },
   "codeEvidence": {
-    "aukroCommit": "cb39bb4",
+    "aukroCommit": "22662ea",
     "fix": "Customer DTO lifecycleStage falls back to central Orders status; admin byLifecycleStage uses the same status fallback."
   },
   "evidencePolicy": {

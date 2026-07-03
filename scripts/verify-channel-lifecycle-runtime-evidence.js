@@ -401,7 +401,7 @@ const CHANNELS = {
           ['schemaVersion', 'orders.channel_lifecycle_runtime_evidence.v1'],
           ['channel', 'aukro'],
           ['status', 'protected_customer_admin_lifecycle_api_proven'],
-          ['runtime.aukroImage', 'localhost:5000/aukro-service:cb39bb4'],
+          ['runtime.aukroImage', 'localhost:5000/aukro-service:22662ea'],
           ['runtime.customerDashboardHttpStatus', 200],
           ['runtime.adminServicesHttpStatus', 200],
           ['runtime.existingForwardedCandidatePresent', true],
