@@ -530,6 +530,26 @@ export class OrdersService {
       throw new BadRequestException(error.message);
     }
 
+    if (transition.approvalAudit?.idempotencyKey && this.hasMatchingStatusIdempotencyKey(order, transition.approvalAudit.idempotencyKey, transition.status)) {
+      this.logger.audit(
+        {
+          operation: 'order.status.update.idempotency_key_replay',
+          resourceType: 'order',
+          resourceId: id,
+          actorId: context.actor?.sub,
+          actorEmail: context.actor?.email,
+          channel: order.channel,
+          previousStatus,
+          requestedStatus: status,
+          resultingStatus: previousStatus,
+          outcome: 'success',
+          durationMs: Date.now() - startedAt,
+        },
+        OrdersService.CONTEXT,
+      );
+      return order;
+    }
+
     if (transition.status === previousStatus) {
       this.logger.audit(
         {
@@ -552,6 +572,9 @@ export class OrdersService {
 
     try {
       order.status = transition.status;
+      if (transition.approvalAudit) {
+        order.statusTransitionAudit = transition.approvalAudit;
+      }
       const updated = await this.orderRepository.save(order);
 
       if (transition.status === 'cancelled') {
@@ -610,6 +633,11 @@ export class OrdersService {
       );
       throw error;
     }
+  }
+
+  private hasMatchingStatusIdempotencyKey(order: Order, idempotencyKey: string, resultingStatus: string): boolean {
+    const audit = order.statusTransitionAudit as { idempotencyKey?: unknown; resultingStatus?: unknown } | undefined;
+    return audit?.idempotencyKey === idempotencyKey && audit?.resultingStatus === resultingStatus;
   }
 
   async applyWarehouseFulfillmentStatus(
