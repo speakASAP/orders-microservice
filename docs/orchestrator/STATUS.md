@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Shipment Correlation Dead-Letter Report Integrated
+
+Intent chain:
+
+- Vision: failed Allegro-to-Warehouse shipment correlation attempts must be reviewable and retryable without raw provider payloads or direct Orders ingestion.
+- Goal Impact: the retry/DLQ source-policy gate moved from missing to source-validated Allegro dead-letter report evidence, leaving operational retention location and live runtime smoke gates explicit.
+- System: Allegro owns handoff retry evidence; Warehouse owns correlation, provider-status ledger, and fulfillment transitions; Orders owns lifecycle read models from Warehouse callbacks.
+- Feature: bounded shipment correlation dead-letter report.
+- Task: integrate Allegro commit `a3762b7` into Orders orchestration state.
+- Execution Plan: accept source-only dead-letter report evidence; keep live provider reads, live Warehouse calls, deployment, migration run, Orders callbacks, and fulfillment status mutation blocked until approved.
+- Coding Prompt: no Orders runtime code, no raw Allegro id/waybill/tracking/customer fields in report output, no direct provider payload ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Allegro `a3762b7 feat: add shipment correlation dead-letter report`; Orders docs checkpoint in this commit.
+- Validation: Allegro `npm run verify:shipment-status-replay`, `npm run verify:shipment-status-snapshot-export`, `npm run verify:shipment-status-handoff`, `npm run verify:warehouse-shipment-correlation`, `npm run verify:shipment-status-snapshot`, `npm run build`, `git diff --check`, pre-commit checks, push to `main`, and Orders `git diff --check`.
+
+Evidence:
+
+- `replay-shipment-status-handoff.ts` now accepts `--dead-letter-file` in apply mode.
+- It can write `allegro.shipment_status_dead_letter.v1` reports for blocked, failed, and terminal skipped correlation attempts.
+- Report rows contain only idempotency key, bounded reason, retry class, optional central order id, and source reference hash.
+- The verifier proves retryable vs terminal classification and rejects raw marker leakage in the report.
+
+Remaining gates:
+
+- `[LANDED: source-only shipment correlation dead-letter report in allegro commit a3762b7.]`
+- `[MISSING: owner-approved operational retention location for generated dead-letter report artifacts.]`
+- `[MISSING: owner-approved live runtime smoke with a safe order selection file and real token source.]`
+- `[MISSING: deploy/migration approval for Warehouse correlation table and endpoint.]`
+- `[MISSING: owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or production fulfillment-row mutation.]`
+
+Next action:
+
+- Choose the operational retention location for generated dead-letter reports, then run an approved sanitized live smoke and Warehouse correlation deploy/migration sequence.
+
 ## 2026-07-03 - Allegro Live Shipment Read Bundle Producer Integrated
 
 Intent chain:
