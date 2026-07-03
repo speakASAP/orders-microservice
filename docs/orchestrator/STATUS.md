@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Render Proof Report Fixture Coverage Added
+
+Intent chain:
+
+- Vision: the browser proof report verifier should prove both its accept path and sensitive-data rejection path before a real report is supplied.
+- Goal Impact: the report contract is now backed by sanitized positive and negative fixtures in the standard verifier.
+- System: Orders owns the proof contract and fixture validation; no channel repo, browser session, provider call, DB read, token read, screenshot capture, or runtime mutation was used.
+- Feature: browser render proof report fixture coverage.
+- Task: add sanitized valid/invalid report fixtures and make `verify:browser-render-proof-report` validate both by default.
+- Execution Plan: add fixture JSON files, extend the verifier with `validateFixtures()`, and run targeted plus full validation.
+- Coding Prompt: keep fixtures synthetic and sanitized; do not treat fixtures as rendered lifecycle proof.
+- Code: `docs/orchestrator/browser-render-proof-report-fixtures/*` and `scripts/verify-browser-render-proof-report.js`.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, default `node scripts/verify-browser-render-proof-report.js`, checked-in fixture path validation, `node scripts/verify-browser-render-proof-readiness.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. Browser/session/provider proof remains gated and was not run.
+
+Remaining gate:
+
+- `[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]`
+- `[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]`
+
 ## 2026-07-03 - Browser Render Proof Report Contract Added
 
 Intent chain:

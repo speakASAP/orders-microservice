@@ -6,6 +6,8 @@ const path = require('path');
 const root = process.cwd();
 const contractPath = path.join(root, 'docs/orchestrator/2026-07-03-browser-render-proof-report-contract.md');
 const reportPath = String(process.env.BROWSER_RENDER_PROOF_REPORT_PATH || '').trim();
+const validFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/valid-flipflop-service-scoped.json');
+const invalidSensitiveFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-sensitive-key.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -82,6 +84,21 @@ function validateContract() {
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
+function validateFixtures() {
+  const validFixture = validateReport(read(validFixturePath));
+  assert.equal(validFixture.status, 'proven', 'valid browser proof fixture must be proven');
+  assert.equal(validFixture.channel, 'flipflop', 'valid browser proof fixture must cover first FlipFlop lane');
+  assert.throws(
+    () => validateReport(read(invalidSensitiveFixturePath)),
+    /sensitive key is not allowed/,
+    'invalid sensitive-key fixture must be rejected',
+  );
+  return {
+    validFixture: path.relative(root, validFixturePath),
+    invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
+  };
+}
+
 function validateReport(rawReport) {
   const report = JSON.parse(rawReport);
   assertNoSensitiveKeysOrValues(report);
@@ -123,6 +140,7 @@ function validateReport(rawReport) {
 }
 
 validateContract();
+const fixtureValidation = validateFixtures();
 let reportValidation = {
   status: 'report_not_supplied',
   mutation: false,
@@ -158,6 +176,7 @@ const result = {
     : 'browser_render_proof_report_gated',
   checkedAt: new Date().toISOString(),
   contractVerified: true,
+  fixtureValidation,
   reportValidation,
   remainingGates: [
     'approved safe buyer/admin session or explicit service-scoped browser proxy proof approval',

@@ -71,3 +71,12 @@ Required `evidencePolicy` booleans:
 `[MISSING: approved safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only lane.]`
 
 `[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]`
+
+## Fixture Coverage
+
+`verify:browser-render-proof-report` validates two checked-in sanitized fixtures by default:
+
+- `docs/orchestrator/browser-render-proof-report-fixtures/valid-flipflop-service-scoped.json` must pass the schema and proven criteria.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-sensitive-key.json` must be rejected because it contains a forbidden sensitive key name.
+
+These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.
