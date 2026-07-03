@@ -1,5 +1,36 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Channel Lifecycle UI Refresh Deployed
+
+Intent chain:
+
+- Vision: customer and admin cabinets across the selling channels should display central Orders lifecycle consistently and refresh visibly after lifecycle changes.
+- Goal Impact: FlipFlop, Heureka, Bazos, Aukro, and Allegro have source-verified full lifecycle label coverage plus deployed customer/admin order surfaces or dashboards.
+- System: Orders remains lifecycle/read-model owner; channel services own local customer/admin UI refresh and presentation.
+- Feature: channel lifecycle UI reliability refresh.
+- Task: add or verify all 13 central lifecycle labels and visible refresh affordances across the five commerce channels, then deploy and smoke route availability.
+- Execution Plan: use disjoint frontend workers for FlipFlop/Heureka and Allegro/Bazos/Aukro; validate source/builds; fast-forward only safe main integrations; deploy each channel; smoke public/protected routes without printing token values or order rows.
+- Coding Prompt: keep raw provider/customer/order-row data out of validation output and do not move lifecycle ownership into channel services.
+- Code: FlipFlop `3110c6a`, Heureka `358fba9`, Bazos `26af3ae`, Aukro main integration `08ad5ce`, Allegro main integration `4ff3987`.
+- Validation: per-repo lifecycle UI verifiers/builds, deploy rollouts, Kubernetes image/readiness checks, and HTTP route smokes.
+
+Runtime evidence:
+
+- FlipFlop: `npm run verify:orders-lifecycle-ui` passed with 13 stages across customer/admin list/detail surfaces; `services/frontend` build passed; deploy completed for `flipflop-frontend`, `flipflop-service`, `flipflop-order-service`, product/cart/user services; route smokes returned HTTP `200` for `/orders` and `/admin/orders`.
+- Heureka: public dashboard route self-test, `verify:heureka-orders-runtime-readiness`, and service build passed; deploy completed on images `localhost:5000/heureka-service:358fba9` and `localhost:5000/heureka-api-gateway:358fba9`; route smokes returned HTTP `200` for `/api/health` and `/dashboard/orders`.
+- Bazos: `scripts/verify-orders-lifecycle-ui.js` and service build passed; deploy completed on image `localhost:5000/bazos-service:26af3ae`; route smokes returned HTTP `200` for `/` and HTTP `401` for protected `/orders`.
+- Aukro: `scripts/verify-orders-lifecycle-ui.js`, focused UI controller spec with Node compiler options, and service build passed; main integration `08ad5ce` was pushed and deployed on image `localhost:5000/aukro-service:08ad5ce`; route smokes returned HTTP `200` for `/` and `/dashboard`.
+- Allegro: UI commit `529a71d` was cherry-picked safely onto current `origin/main` as `4ff3987` to avoid reverting shipment-correlation work; lifecycle verifier and frontend build passed; deploy completed for service/api-gateway/frontend/settings/imports on image tag `4ff3987`; route smokes returned HTTP `200` for `/api/health`, `/cabinet/orders`, and `/dashboard/orders`.
+- Final Kubernetes readiness check showed all listed channel deployments at ready/updated/available `1/1`; no token values, customer payloads, DB rows, order rows, tracking values, or provider payloads were printed.
+
+Remaining gates:
+
+- `[PROVEN: source and deployed route coverage for lifecycle labels/visible refresh across FlipFlop, Heureka, Bazos, Aukro, and Allegro.]`
+- `[MISSING: authenticated buyer/admin browser smoke with real safe users proving rendered order rows refresh after an actual lifecycle mutation.]`
+- `[MISSING: real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.]`
+- `[MISSING: Warehouse/Allegro shipment-status runtime enablement approvals before provider-driven late lifecycle stages can be proven end to end.]`
+- `[UNKNOWN: provider-backed Bazos marketplace webhook/order source.]`
+
 ## 2026-07-03 - Lifecycle List Runtime Query Stabilized
 
 Intent chain:
