@@ -90,9 +90,9 @@ Required `evidencePolicy` booleans:
 
 ## Template Generator
 
-`npm run generate:browser-render-proof-template` emits a sanitized `orders.browser_render_proof.v1` template bound to the current immutable Orders commit. The template defaults to the first FlipFlop validation lane and `status=incomplete`; it is a capture aid only and cannot close the rendered browser proof gate until all `[MISSING: ...]` placeholders are replaced with approved rendered evidence and the supplied report passes `verify:browser-render-proof-report`.
+`npm run generate:browser-render-proof-template` emits a sanitized `orders.browser_render_proof.v1` template bound to the current immutable Orders commit. The template defaults to the first FlipFlop validation lane, `status=incomplete`, and `--artifact-mode=path`; `--artifact-mode=sha256` is available for hash-only redacted proof evidence. It is a capture aid only and cannot close the rendered browser proof gate until all `[MISSING: ...]` placeholders are replaced with approved rendered evidence and the supplied report passes `verify:browser-render-proof-report`.
 
-`npm run verify:browser-render-proof-template` verifies the template generator remains incomplete by default, includes customer/admin route shells, uses redacted artifact paths, keeps schema-compatible route statuses, and does not claim browser proof.
+`npm run verify:browser-render-proof-template` verifies the template generator remains incomplete by default, includes customer/admin route shells, supports redacted artifact path and hash modes, keeps schema-compatible route statuses, and does not claim browser proof.
 
 ## Default Verifier Mode
 

@@ -4,6 +4,7 @@ const { execFileSync } = require('child_process');
 
 const allowedChannels = new Set(['flipflop', 'heureka', 'bazos', 'aukro', 'allegro']);
 const allowedProofModes = new Set(['safe_human_session', 'service_scoped_proxy']);
+const allowedArtifactModes = new Set(['path', 'sha256']);
 const channelHosts = {
   flipflop: 'flipflop.alfares.cz',
   heureka: 'heureka.alfares.cz',
@@ -25,14 +26,32 @@ function currentCommit() {
 const channel = readArg('channel', 'flipflop');
 const proofMode = readArg('proof-mode', 'service_scoped_proxy');
 const stage = readArg('stage', 'warehouse_collecting');
+const artifactMode = readArg('artifact-mode', 'path');
 const commit = readArg('orders-evidence-commit', currentCommit());
 
 assert.equal(allowedChannels.has(channel), true, `channel must be one of ${Array.from(allowedChannels).join(', ')}`);
 assert.equal(allowedProofModes.has(proofMode), true, `proof-mode must be one of ${Array.from(allowedProofModes).join(', ')}`);
 assert.equal(/^[0-9a-f]{40}$/.test(commit), true, 'orders-evidence-commit must be a 40-character lowercase git commit');
+assert.equal(allowedArtifactModes.has(artifactMode), true, 'artifact-mode must be path or sha256');
 assert.equal(Boolean(stage), true, 'stage must not be empty');
 
 const host = channelHosts[channel];
+const placeholderSha = '0'.repeat(64);
+function artifactFor(surface) {
+  if (artifactMode === 'sha256') {
+    return {
+      kind: 'redacted_screenshot_hash',
+      redacted: true,
+      sha256: placeholderSha,
+    };
+  }
+  return {
+    kind: 'redacted_screenshot_path',
+    redacted: true,
+    path: `reports/validation/orders-browser-render-proof/${channel}-${surface}-redacted.png`,
+  };
+}
+
 const report = {
   schemaVersion: 'orders.browser_render_proof.v1',
   status: 'incomplete',
@@ -54,11 +73,7 @@ const report = {
       surface: 'customer_cabinet',
       renderedLifecycleLabel: '[MISSING: visible customer lifecycle label]',
       renderedLifecycleStage: stage,
-      artifact: {
-        kind: 'redacted_screenshot_hash',
-        redacted: true,
-        path: `reports/validation/orders-browser-render-proof/${channel}-customer-redacted.png`,
-      },
+      artifact: artifactFor('customer'),
       authContext: proofMode,
       dataSourceStatus: 200,
     },
@@ -68,11 +83,7 @@ const report = {
       surface: 'admin_cabinet',
       renderedLifecycleLabel: '[MISSING: visible admin lifecycle label]',
       renderedLifecycleStage: stage,
-      artifact: {
-        kind: 'redacted_screenshot_hash',
-        redacted: true,
-        path: `reports/validation/orders-browser-render-proof/${channel}-admin-redacted.png`,
-      },
+      artifact: artifactFor('admin'),
       authContext: proofMode,
       dataSourceStatus: 200,
     },

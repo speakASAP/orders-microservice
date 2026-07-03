@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Template Artifact Modes Added
+
+Intent chain:
+
+- Vision: approved browser proof capture should support both redacted screenshot files and hash-only redacted evidence without requiring manual JSON surgery.
+- Goal Impact: generated incomplete `orders.browser_render_proof.v1` templates can now be started in `path` or `sha256` artifact mode while remaining non-proof until approved evidence is filled and validated.
+- System: Orders owns the proof report template generator/verifier and IPS status; channel repos remain untouched.
+- Feature: browser proof template artifact modes.
+- Task: add `--artifact-mode=path|sha256` to the generator and verify both modes stay schema-compatible and incomplete.
+- Execution Plan: update generator/verifier/status/contract/state docs, validate without browser sessions or runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof template generator/verifier, proof contract, status/state docs.
+- Validation: `node --check scripts/generate-browser-render-proof-report-template.js`, `node --check scripts/verify-browser-render-proof-report-template.js`, `npm run verify:browser-render-proof-template`, `npm run verify:browser-render-proof-report`, `npm run verify:completion-audit`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: generated template filled with approved real rendered browser evidence and validated as status=proven.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Template Status Compatibility Fixed
 
 Intent chain:
