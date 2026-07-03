@@ -84,3 +84,10 @@ For Goal 24 `catalog.bundle.v1` paid/provider checkout, Orders can only consume 
 - Once an order is `paid`, Orders rejects downgrades to `pending`, `failed`, or `cancelled`; a completed-payment rollback requires a separate owner-approved provider refund/cancel/reversal packet and Orders cancellation cleanup workflow.
 
 Manual payment-state bypass, direct DB correction, or synthetic payment downgrade is not an approved rollback mechanism.
+
+
+Fiobanka Goal 24 cleanup refinement:
+
+- Fiobanka completion/refund/correction evidence stays Payments-owned. Orders must not treat `PaymentStatus.REFUNDED`, a local Payments refund row, or a provider correction note as an `orders.payment-status.v1` input.
+- The only automatic Orders/Warehouse handoffs from payment status are `completed -> paid -> Warehouse fulfill` and pre-paid `failed|cancelled -> Warehouse release`.
+- Any completed-transfer cleanup requires a separate Orders status cancellation packet with a named human cancellation actor/approvedBy, safe reason code `GOAL24_PAID_PROVIDER_ROLLBACK`, an approved cleanup idempotency key, and side-effect acknowledgements for payment, warehouse, notification, CRM, and channel.

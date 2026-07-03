@@ -35,14 +35,57 @@ Orders can express a future paid/provider rollback only through these bounded pa
 
 This means paid/provider rollback can be expressed without manual payment-state bypass, but only after the owner-approved runtime packet proves the provider refund/cancel step and Warehouse cleanup semantics. Until then, Orders remains fail-closed.
 
+
+## Fiobanka Paid Provider Cleanup Approval Contract
+
+This Orders-owned contract consumes the Payments Fiobanka rollback packet dated 2026-07-03 and remains fail-closed after Fiobanka completion, refund, or correction evidence.
+
+### Preconditions
+
+- Payments must prove the selected Fiobanka QR payment reached the relevant state through a bounded provider callback/reconciliation path. Orders accepts provider success only as `orders.payment-status.v1` with `status=completed`.
+- Payments must prove any completed-transfer refund, reversal, or correction before Orders cancellation cleanup starts. Orders must not infer provider rollback from local `paymentStatus`, `refunded`, `refund`, `partially_refunded`, payment metadata, or a Payments local refund row.
+- Runtime evidence must be redacted to hashes, statuses, counts, endpoint/status, approved ids, and booleans only. No raw provider payloads, raw order/customer/payment identifiers, raw DB rows, bank data, or token values may be printed.
+
+### Cancellation Actor, Reason, And Idempotency
+
+- Cancellation actor: the runtime packet must name the human Orders cleanup approver or Auth subject that supplies `approval.approvalType=human`. Payments service identity is not an Orders cancellation actor. If the exact actor is not named, keep `[MISSING: named Orders cancellation actor/approvedBy for Goal 24 paid/provider cleanup]`.
+- Cancellation reason: use safe reason code `GOAL24_PAID_PROVIDER_ROLLBACK` for provider-refund/correction cleanup, or `GOAL24_PROVIDER_UNPAID_CANCEL` only for unpaid pre-completion cancellation. Free-text reasons, provider ids, customer data, bank references, and raw payment ids are forbidden.
+- Idempotency: the runtime packet must provide an Orders cleanup idempotency key derived from sanitized facts only: approval id, central Orders UUID hash, Payments payment id hash, provider rollback evidence hash, target status, and Warehouse operation matrix version. The current Orders status endpoint does not implement a dedicated idempotency-key header/body field, so live cleanup remains `[MISSING: approved Orders cleanup idempotency execution path]` until an owner-approved runner records and checks that key outside raw provider/customer data.
+
+### Side-Effect Acknowledgements
+
+Orders cancellation may call `PUT /api/orders/:id/status` with `status=cancelled` only when `approval.approved=true`, `approval.approvalType=human`, `approval.reasonCode` is one of the Goal 24 safe reason codes above, and all acknowledgement flags are true:
+
+- `payment=true`: Payments owner has provided provider refund/reversal/correction proof or explicitly approved unpaid no-provider-cancel policy.
+- `warehouse=true`: Warehouse owner has approved the line-by-line operation matrix for the observed component state.
+- `notification=true`: notification owner has approved whether customer/admin notifications are suppressed, sent, or manually handled for the cleanup.
+- `crm=true`: CRM/marketing owner has approved whether lead/order projections are retained, cancelled, or excluded.
+- `channel=true`: FlipFlop/channel owner has approved cart/session/local projection cleanup for the same central order.
+
+### Exact Orders-To-Warehouse Handoff
+
+Orders invokes Warehouse only through `WarehouseReservationClient` after its own state gate passes:
+
+| Observed state | Orders action | Warehouse endpoint | Reason code | Runtime decision |
+| --- | --- | --- | --- | --- |
+| Fiobanka QR created but unpaid, order still reserved/not fulfilled | Payments `failed` or `cancelled` status before paid | `POST /api/reservations/release` | `PAYMENT_FAILED_RELEASE` | allowed only before `paymentStatus=paid`; no provider refund call |
+| Fiobanka completion accepted as paid | Payments `completed` status | `POST /api/reservations/fulfill`, then fulfillment handoff when configured | `PAYMENT_CONFIRMED` | success path only; not cleanup evidence |
+| Completed Fiobanka transfer later refunded/reversed/corrected with provider proof, order is `pending|confirmed|processing` | Owner-approved Orders cancellation | `POST /api/reservations/cancel` | `ORDER_CANCELLED` | allowed only after all side-effect acknowledgements and Warehouse owner approval |
+| Approved return workflow after fulfillment/customer receipt | separate owner-approved return workflow | `POST /api/reservations/return` | `ORDER_RETURNED` | not implemented as normal cancellation; remains `[MISSING: owner-approved Orders return workflow for Goal 24 paid/provider cleanup]` |
+| Partial component-line failure or mixed Warehouse state | line-by-line owner-approved matrix | `release`, `cancel`, or `return` per component line | matching reason above | fail closed for any unknown line |
+| Unknown Warehouse component state | none | none | none | fail closed; do not infer stock effects from Payments refund state |
+
+Orders must not mutate Warehouse directly, edit stock truth, downgrade `paymentStatus=paid`, consume `refunded` as `orders.payment-status.v1`, or treat a Payments refund/correction as permission to choose `release`, `cancel`, or `return` without the Warehouse-owned state matrix.
+Orders must not infer stock effects from Payments refund state.
+
 ## Required Owner-Approved Runtime Packet
 
 A paid/provider `catalog.bundle.v1` bundle smoke is blocked until the packet names all of the following:
 
-- `[MISSING: selected payment provider, environment, method, maximum amount, and whether the smoke is auth/capture, sale, cancel, reversal, or refund based]`
-- `[MISSING: provider evidence source proving completed payment and provider refund/cancellation/reversal without raw provider payload leakage]`
-- `[MISSING: Payments-owned callback/status/refund path that will emit only bounded orders.payment-status.v1 data to Orders]`
-- `[MISSING: Orders target order selection, idempotency key, status before rollback, and approved cancellation actor/reason/side-effect acknowledgements]`
+- `[RESOLVED/NARROWED: selected method is Fiobanka QR, paymentMethod=fiobanka, applicationId=flipflop-service, maximum 300 CZK, but live execution remains gated]`
+- `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]`
+- `[RESOLVED/NARROWED: Payments emits bounded orders.payment-status.v1 for completed/failed/cancelled only; refunded is intentionally not bridged]`
+- `[MISSING: Orders cleanup packet naming target central Orders UUID hash, status before rollback, cleanup idempotency key, cancellation actor/approvedBy, reasonCode GOAL24_PAID_PROVIDER_ROLLBACK or GOAL24_PROVIDER_UNPAID_CANCEL, and payment/warehouse/notification/crm/channel side-effect acknowledgements]`
 - `[RESOLVED/NARROWED: Warehouse owner-approved cleanup operation for reserved-only, fulfilled/stock-decremented, return, partial, and unknown bundle component-line states in Warehouse 3043cad; live stock window/max quantity remains missing]`
 - `[MISSING: channel/FlipFlop checkout cleanup owner for customer-visible session/cart/local projection state]`
 - `[MISSING: redacted evidence plan proving no tokens, raw provider payloads, card/customer data, raw DB rows, or raw order ids are printed]`
