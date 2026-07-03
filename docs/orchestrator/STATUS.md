@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Warehouse Shipment Correlation Resolver Integrated
+
+Intent chain:
+
+- Vision: Allegro shipment progress must resolve to exactly one Warehouse fulfillment order before any delivery lifecycle status reaches Orders.
+- Goal Impact: the correlation decision moved from missing to source-validated Warehouse registry/resolver evidence, leaving runtime population and deploy gates explicit.
+- System: Allegro owns sanitized shipment snapshots; Warehouse owns correlation, ledger observation, and future fulfillment mutation; Orders consumes only bounded Warehouse callbacks.
+- Feature: source-only provider shipment correlation registry/resolver.
+- Task: integrate Warehouse commit `ec04ede` into Orders orchestration state.
+- Execution Plan: accept source-only correlation evidence, keep runtime population, status mutation, migration run, deploy, live provider calls, and Orders callback changes blocked.
+- Coding Prompt: no Orders runtime code, no raw provider/tracking/customer fields, no direct Allegro snapshot ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Warehouse `ec04ede feat: add shipment correlation resolver`; Orders docs checkpoint in this commit.
+- Validation: Warehouse focused Jest `35` tests, `npm run build`, `npm run check:hosted-auth`, `git diff --check`, commit hook checks, and Orders `git diff --check`.
+
+Evidence:
+
+- Warehouse source now stores only hashed provider/source shipment identity in `FulfillmentProviderShipmentCorrelation`.
+- `FulfillmentProviderShipmentCorrelationService` registers active mappings from sanitized Allegro shipment identity to one central Orders id and one Warehouse fulfillment order id.
+- Resolver fails closed for zero matches and ambiguous matches.
+- `FulfillmentProviderStatusSnapshotAdapterService.recordResolvedAllegroShipmentSnapshot` can resolve correlation before ledger recording.
+- No source path mutates `fulfillment_orders.status` or calls Orders from provider snapshots in this slice.
+
+Remaining gates:
+
+- `[LANDED: source-only Warehouse shipment correlation registry/resolver in warehouse-microservice commit ec04ede.]`
+- `[MISSING: approved runtime producer/population path for shipment correlations.]`
+- `[MISSING: approved retention/retry/dead-letter policy.]`
+- `[MISSING: product-approved tracking visibility matrix before tracking number/URL display.]`
+- `[MISSING: owner approval before Warehouse deploy, migration run, runtime status mutation, or production fulfillment-row mutation.]`
+
+Next action:
+
+- Approve and implement the runtime producer/population path for shipment correlations before any status-mutating provider consumer or deploy.
+
 ## 2026-07-03 - Warehouse Shipment Snapshot Adapter Mapper Integrated
 
 Intent chain:
@@ -25,14 +59,14 @@ Evidence:
 Remaining gates:
 
 - `[LANDED: Warehouse sanitized Allegro shipment snapshot adapter mapper in warehouse-microservice commit ad8746a.]`
-- `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
+- `[LANDED: source-only Warehouse shipment correlation registry/resolver in warehouse-microservice commit ec04ede; runtime producer/population path still missing.]`
 - `[MISSING: approved retention/retry/dead-letter policy.]`
 - `[MISSING: product-approved tracking visibility matrix before tracking number/URL display.]`
 - `[MISSING: owner approval before Warehouse deploy, migration run, runtime status mutation, or production fulfillment-row mutation.]`
 
 Next action:
 
-- Resolve and source-validate the correlation model between sanitized Allegro shipment identity and one Warehouse fulfillment order before any status-mutating runtime consumer or deploy.
+- Approve and implement the runtime producer/population path for shipment correlations before any status-mutating provider consumer or deploy.
 
 ## 2026-07-03 - Warehouse Provider-Status Ledger Source Integrated
 
@@ -60,7 +94,7 @@ Remaining gates:
 - `[LANDED: Warehouse provider-status observation ledger source foundation in warehouse-microservice commit 5bdc473.]`
 - `[LANDED: Warehouse sanitized Allegro shipment snapshot adapter mapper in warehouse-microservice commit ad8746a.]`
 - `[LANDED: source-only sanitized Allegro shipment snapshot adapter mapper in warehouse-microservice commit ad8746a; runtime consumer flag remains deploy-gated.]`
-- `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
+- `[LANDED: source-only Warehouse shipment correlation registry/resolver in warehouse-microservice commit ec04ede; runtime producer/population path still missing.]`
 - `[MISSING: approved retention/retry/dead-letter policy.]`
 - `[MISSING: product-approved tracking visibility matrix before tracking number/URL display.]`
 - `[MISSING: owner approval before Warehouse deploy, migration run, runtime adapter, or production fulfillment-row mutation.]`
@@ -96,7 +130,7 @@ Remaining gates:
 - `[LANDED: Warehouse sanitized Allegro shipment snapshot adapter mapper in warehouse-microservice commit ad8746a.]`
 - `[LANDED: source-only Warehouse ledger migration/schema in warehouse-microservice commit 5bdc473; not deployed or run in production.]`
 - `[MISSING: approved future clock-skew window, stale-event age, and retention/retry/dead-letter policy.]`
-- `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
+- `[LANDED: source-only Warehouse shipment correlation registry/resolver in warehouse-microservice commit ec04ede; runtime producer/population path still missing.]`
 - `[MISSING: owner approval before Warehouse runtime adapter, migration, deploy, or production fulfillment-row mutation.]`
 
 Next action:
@@ -134,7 +168,7 @@ Remaining gates:
 
 Next action:
 
-- Resolve the shipment-to-fulfillment correlation model before any status-mutating runtime consumer or deploy/smoke gate.
+- Approve and implement the runtime producer/population path for shipment correlations before any status-mutating provider consumer or deploy/smoke gate.
 
 ## 2026-07-03 - Warehouse Allegro Checkout Fulfillment Mapping Integrated
 
@@ -241,7 +275,7 @@ Remaining gates:
 - `[MISSING: owner approval for Allegro shipment projection Prisma migration/service implementation.]`
 - `[MISSING: Warehouse consumer/runtime adapter for read-only shipment snapshots.]`
 - `[MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store.]`
-- `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
+- `[LANDED: source-only Warehouse shipment correlation registry/resolver in warehouse-microservice commit ec04ede; runtime producer/population path still missing.]`
 - `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
 - `[MISSING: deploy approval and sanitized runtime smoke.]`
 
@@ -312,7 +346,7 @@ Remaining gates:
 - `[MISSING: owner approval for Allegro shipment projection Prisma migration/service implementation.]`
 - `[MISSING: Warehouse consumer/runtime adapter for read-only shipment snapshots.]`
 - `[MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store.]`
-- `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
+- `[LANDED: source-only Warehouse shipment correlation registry/resolver in warehouse-microservice commit ec04ede; runtime producer/population path still missing.]`
 - `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
 - `[MISSING: deploy approval and sanitized runtime smoke.]`
 

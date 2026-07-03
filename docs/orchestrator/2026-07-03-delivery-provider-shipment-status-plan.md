@@ -118,7 +118,7 @@ Merge order:
 1. Provider source approval docs.
 2. Allegro shipment source contract and sensitive-data policy. Completed for source contract in Allegro `2183fe8`; sensitive-data policy in Orders `6743613`.
 3. Warehouse bounded status intake and mapping contracts. Completed in Warehouse `f104202`, `d90bd93`, and `b44ea08`; implementation/tests remain gated by durable adapter ledger ownership, timestamp/replay policy, adapter source, and owner approval.
-4. Correlation model between sanitized Allegro shipment identity and exactly one Warehouse fulfillment order; source-only Warehouse adapter mapper landed in `ad8746a` but does not resolve correlation or mutate status.
+4. Runtime producer/population path for Warehouse shipment correlations; source-only resolver landed in `ec04ede` but no runtime job/consumer populates it or mutates status.
 5. Orders verifier/doc update only if the Warehouse status enum or event projection changes.
 6. Notifications copy/routing validation only after bounded Orders event evidence exists.
 
