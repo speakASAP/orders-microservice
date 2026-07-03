@@ -5341,3 +5341,25 @@ Follow-up / non-Orders handoff:
 
 - `[MISSING: FlipFlop owner-approved frontend fix for direct safe-human browser session]`: direct browser session currently hits `/api/users/profile` 401, and `/orders` redirects before AuthContext loading completes. This was not edited in the Orders lane because non-Orders source changes require merge-order review.
 - `[MISSING: next channel browser proof lane selection after orchestrator review]`.
+
+
+## 2026-07-03 - FlipFlop Proof Added To Runtime Evidence Gate
+
+Current focus: keep machine-readable lifecycle runtime evidence aligned with the proven FlipFlop browser artifacts.
+
+Intent Preservation Chain:
+
+- Vision: orchestration status reflects actual proved customer/admin lifecycle propagation instead of stale missing gates.
+- Goal Impact: FlipFlop is no longer reported as missing the browser lifecycle proof once the validated report and redacted artifacts exist.
+- System: Orders verifier consumes Orders-owned proof artifacts and still reads channel-owned runtime smoke evidence without editing channel repos.
+- Feature: `verify:channel-lifecycle-runtime-evidence` recognizes FlipFlop rendered lifecycle proof.
+- Task: add the proven report and redacted customer/admin artifacts to the FlipFlop channel checks, keep direct safe-human session as a separate follow-up, and narrow the global browser smoke gate to remaining non-FlipFlop channels.
+- Execution Plan: Orders-only verifier/docs update; no deploy, no runtime mutation, no provider call, no DB read.
+- Coding Prompt: require `status=proven`, `proofMode=service_scoped_proxy`, `warehouse_collecting`, customer/admin HTTP 200, data-source HTTP 200, redacted artifacts, and no token/raw-row evidence.
+- Code: `scripts/verify-channel-lifecycle-runtime-evidence.js` plus IPS docs.
+- Validation: `npm run verify:channel-lifecycle-runtime-evidence` and full `npm test` passed.
+
+Remaining gates:
+
+- `[MISSING: browser/API lifecycle proof for Heureka, Aukro, Bazos, and Allegro according to each channel blocker.]`
+- `[MISSING: Warehouse/Allegro shipment-status deploy/migration/env/smoke approvals.]`

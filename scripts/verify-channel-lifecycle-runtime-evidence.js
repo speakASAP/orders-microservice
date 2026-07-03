@@ -6,7 +6,7 @@ const CHANNELS = {
   flipflop: {
     env: 'FLIPFLOP_REPO_PATH',
     defaults: ['/home/ssf/Documents/Github/flipflop'],
-    status: 'live_create_reservation_smoke_proven',
+    status: 'live_create_reservation_and_browser_lifecycle_proven',
     artifactChecks: [
       {
         file: 'reports/validation/orders-readiness-smoke/report-latest.json',
@@ -33,9 +33,66 @@ const CHANNELS = {
           ['valuesRedacted', true],
         ],
       },
+      {
+        root: 'orders',
+        file: 'reports/validation/orders-browser-render-proof/proven-flipflop-dd3765a.json',
+        type: 'json',
+        assertions: [
+          ['schemaVersion', 'orders.browser_render_proof.v1'],
+          ['status', 'proven'],
+          ['channel', 'flipflop'],
+          ['proofMode', 'service_scoped_proxy'],
+          ['ordersEvidenceCommit', 'dd3765ab0c08284367ce6c3e21aca8c2e877c789'],
+          ['mutationEvidence.expectedLifecycleStage', 'warehouse_collecting'],
+          ['centralReadModelBacked', true],
+          ['evidencePolicy.noTokenValues', true],
+          ['evidencePolicy.noCustomerPii', true],
+          ['evidencePolicy.noRawOrderRows', true],
+          ['routes.0.surface', 'customer_cabinet'],
+          ['routes.0.httpStatus', 200],
+          ['routes.0.dataSourceStatus', 200],
+          ['routes.0.renderedLifecycleStage', 'warehouse_collecting'],
+          ['routes.1.surface', 'admin_cabinet'],
+          ['routes.1.httpStatus', 200],
+          ['routes.1.dataSourceStatus', 200],
+          ['routes.1.renderedLifecycleStage', 'warehouse_collecting'],
+        ],
+      },
+      {
+        root: 'orders',
+        file: 'reports/validation/orders-browser-render-proof/customer_cabinet-flipflop-dd3765a.json',
+        type: 'json',
+        assertions: [
+          ['schemaVersion', 'orders.browser_render_artifact.v1'],
+          ['channel', 'flipflop'],
+          ['surface', 'customer_cabinet'],
+          ['documentStatus', 200],
+          ['renderedLifecycleStage', 'warehouse_collecting'],
+          ['labelCount', 2],
+          ['redacted', true],
+          ['tokenValuesPrinted', false],
+          ['rawOrderRowsPrinted', false],
+        ],
+      },
+      {
+        root: 'orders',
+        file: 'reports/validation/orders-browser-render-proof/admin_cabinet-flipflop-dd3765a.json',
+        type: 'json',
+        assertions: [
+          ['schemaVersion', 'orders.browser_render_artifact.v1'],
+          ['channel', 'flipflop'],
+          ['surface', 'admin_cabinet'],
+          ['documentStatus', 200],
+          ['renderedLifecycleStage', 'warehouse_collecting'],
+          ['labelCount', 2],
+          ['redacted', true],
+          ['tokenValuesPrinted', false],
+          ['rawOrderRowsPrinted', false],
+        ],
+      },
     ],
     remainingGates: [
-      'approved authenticated customer/admin browser smoke proving refreshed lifecycle after later Warehouse/provider stage changes',
+      'direct safe-human FlipFlop browser session remains blocked by profile 401 and auth-loading redirect race; service-scoped proxy browser proof is proven',
     ],
   },
   bazos: {
@@ -185,7 +242,8 @@ function verifyChannel(name, spec) {
   const root = repoRoot(spec);
   const artifacts = [];
   for (const check of spec.artifactChecks) {
-    const file = path.join(root, check.file);
+    const checkRoot = check.root === 'orders' ? process.cwd() : root;
+    const file = path.join(checkRoot, check.file);
     assert.equal(fs.existsSync(file), true, `${name} missing artifact ${check.file}`);
     if (check.type === 'json') {
       verifyJson(file, check);
@@ -220,7 +278,7 @@ const result = {
     sourceAndValidationArtifactOnly: true,
   },
   remainingIntegrationGates: [
-    'approved authenticated customer/admin browser or API smoke per channel for real lifecycle refresh after status changes',
+    'approved authenticated customer/admin browser or API smoke for remaining non-FlipFlop channels',
     'real subject-bound Allegro order row and buyer bearer before Allegro cabinet lifecycle can be called live-complete',
     'Aukro rendered central lifecycle cabinet hydration proof remains merge-order/browser-or-API-smoke gated',
     'Warehouse/Allegro shipment-status deploy, migration, env enablement, and safe live smoke approvals',
