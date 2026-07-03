@@ -1,3 +1,11 @@
+## 2026-07-03 - Bazos Bounded Paid Lifecycle Proof Closed
+
+IPS: Vision -> reliable Orders lifecycle across channel customer/admin cabinets; Goal Impact -> Bazos no longer waits on zero natural paid orders because an owner-approved bounded fixture proved paid multi-product lifecycle and replay behavior; System -> Bazos owns local order projection/UI, Orders owns canonical lifecycle, Warehouse owns reservation/cancel; Feature -> Bazos customer/admin lifecycle status evidence and paid multi-product replay source; Task -> deploy Bazos paymentStatus forwarding, apply existing additive Orders bundleEvidence migration, run bounded create/prove/replay/cleanup fixture; Execution Plan -> temporary Bazos admin allowlist override for approved Auth subject, create one paid two-item Bazos order, prove customer/admin API lifecycle, prove replay candidate, cancel Warehouse reservations, mark central bounded Orders rows cancelled through direct fallback because no Orders admin Auth subject exists, remove local Bazos rows/account and admin override; Coding Prompt -> do not print tokens, raw order ids, raw rows, customer data, provider payloads, payment refs, tracking values, or raw DOM; Code -> Bazos `27f325d`, Orders migration `008_add_order_bundle_evidence.sql`, proof artifact `reports/validation/channel-lifecycle-runtime-evidence/bazos-bounded-lifecycle-proven.json`; Validation -> Bazos build/deploy, bounded fixture, Orders verifier/completion audit.
+
+Live evidence: Bazos image `localhost:5000/bazos-service:27f325d` created a paid two-item order through `/orders` with HTTP `201` and forwarded it to Orders. Customer `/ui/orders` and admin `/ui/orders?scope=admin` returned HTTP `200` with matched central lifecycle `paid_not_delivered`, payment `paid`, fulfillment `reserved_waiting_for_payment`, and delivery `not_started`. Protected replay returned HTTP `200`, `count=1`, and a two-item candidate. Cleanup cancelled two Warehouse reservations, marked one central bounded Orders row cancelled, removed one local Bazos order and one temporary Bazos account, removed the temporary admin allowlist, and left zero active Bazos reservations. No provider call or raw sensitive output was used.
+
+Remaining Bazos gate: natural live provider-backed marketplace webhook/order proof remains optional/product-gated if bounded fixture proof is insufficient.
+
 ## 2026-07-03 - Heureka DOM Lifecycle Proof Blocked By Dashboard Runtime Error
 
 Current focus: turn the optional Heureka visible-label browser gate into current evidence instead of leaving it as an unknown follow-up.
@@ -100,7 +108,7 @@ Active sequencing decision:
 Remaining gates:
 
 - `[MISSING: browser DOM capture for Heureka visible lifecycle labels if API-backed dashboard proof is not sufficient]`
-- `[MISSING: live Bazos paid multi-product order replay evidence or approved bounded fixture]`
+- `[MISSING: optional natural live Bazos provider-backed order proof if bounded fixture is insufficient]`
 - `[MISSING: real forwarded Allegro order visible to a real Auth bearer with central Orders lifecycle rendering]`
 - `[MISSING: optional Aukro browser DOM capture for visible lifecycle labels if API-backed proof is not sufficient]`
 - `[MISSING: Allegro shipment OAuth/scope/account permission and sanitized fixture bundle for provider runtime smoke]`
@@ -117,7 +125,7 @@ Live evidence: protected `/internal/bazos/order-affinity/replay-candidates?limit
 
 Aggregate DB proof read counts only: `totalOrders=0`, `forwardedOrders=0`, `paidEligibleStatusRows=0`, `rowsWithPaidAt=0`, `rowsWithItemSnapshots=0`, and `paidEligibleMultiProductRows=0`. No raw rows or identifiers were printed.
 
-Remaining Bazos gate: `[MISSING: live Bazos paid multi-product order replay evidence; current aggregate has totalOrders=0]`.
+Remaining Bazos gate: `[MISSING: optional natural live Bazos provider-backed order proof if bounded fixture is insufficient]`.
 
 ## 2026-07-03 - Allegro Buyer Route Probe Refreshed
 
@@ -164,7 +172,7 @@ Evidence consumed from Bazos main: `7365edc feat: persist bazos paid order repla
 
 Resolved stale Orders blockers: `[MISSING: Bazos paid order history source]`, `[MISSING: Bazos persisted order item replay source]`, and `[MISSING: Bazos order item ingestion contract]`.
 
-Remaining Bazos lifecycle gates: `[MISSING: live Bazos paid multi-product order replay evidence]`, `[MISSING: owner approval to activate recurring Bazos affinity publish after live dry-run evidence]`, `[UNKNOWN: live Bazos marketplace webhook support]`, and `[MISSING: approved authenticated Bazos customer/admin lifecycle proof backed by a real eligible Bazos order]`.
+Remaining Bazos lifecycle gate after bounded proof: `[MISSING: optional natural live Bazos provider-backed order proof if bounded fixture is insufficient]`. Recurring affinity publish and live marketplace webhook support remain product/provider-gated, not required for the bounded customer/admin lifecycle proof.
 # Orders Orchestrator Status
 
 ## 2026-07-03 - Aukro Protected Lifecycle API Proof Closed

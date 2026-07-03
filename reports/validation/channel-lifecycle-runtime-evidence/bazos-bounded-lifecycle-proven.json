@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "orders.channel_lifecycle_runtime_evidence.v1",
+  "channel": "bazos",
+  "status": "bounded_paid_multi_product_customer_admin_lifecycle_proven",
+  "checkedAt": "2026-07-03T15:20:00.000Z",
+  "runtime": {
+    "bazosImage": "localhost:5000/bazos-service:27f325d",
+    "ordersImage": "localhost:5000/orders-microservice:dd3765a",
+    "warehouseImage": "localhost:5000/warehouse-microservice:174f92e",
+    "ordersBundleEvidenceMigrationApplied": true,
+    "temporaryAdminAllowlistUsed": true,
+    "temporaryAdminAllowlistRemoved": true,
+    "mutationApprovedByOwner": true,
+    "providerCall": false
+  },
+  "createEvidence": {
+    "httpStatus": 201,
+    "forwarded": true,
+    "itemCount": 2,
+    "warehouseReservationStatus": "reserved",
+    "paymentStatusForwardedToOrders": true
+  },
+  "customerCabinetEvidence": {
+    "httpStatus": 200,
+    "matched": true,
+    "sample": {
+      "forwarded": true,
+      "hasCentralOrderId": true,
+      "localStatus": "paid",
+      "localPaymentStatus": "paid",
+      "centralState": "ok",
+      "centralStatus": "pending",
+      "lifecycleStage": "paid_not_delivered",
+      "paymentStatus": "paid",
+      "fulfillmentStatus": "reserved_waiting_for_payment",
+      "deliveryStatus": "not_started"
+    }
+  },
+  "adminDashboardEvidence": {
+    "httpStatus": 200,
+    "matched": true,
+    "sample": {
+      "forwarded": true,
+      "hasCentralOrderId": true,
+      "localStatus": "paid",
+      "localPaymentStatus": "paid",
+      "centralState": "ok",
+      "centralStatus": "pending",
+      "lifecycleStage": "paid_not_delivered",
+      "paymentStatus": "paid",
+      "fulfillmentStatus": "reserved_waiting_for_payment",
+      "deliveryStatus": "not_started"
+    }
+  },
+  "replayEvidence": {
+    "httpStatus": 200,
+    "count": 1,
+    "hasTwoItemCandidate": true
+  },
+  "cleanupEvidence": {
+    "warehouseCancelAttempted": true,
+    "warehouseCancelledCount": 2,
+    "warehouseFailedCount": 0,
+    "ordersDirectCleanup": true,
+    "ordersUpdatedRows": 1,
+    "bazosDeletedOrders": 1,
+    "bazosDeletedAccounts": 1,
+    "bazosRemainingOrders": 0,
+    "bazosRemainingAccounts": 0,
+    "adminOverridePresentAfterCleanup": false,
+    "activeBazosReservationsAfterCleanup": 0,
+    "boundedCentralRowsAfterCleanup": 2,
+    "boundedCentralRowsCancelled": 2
+  },
+  "evidencePolicy": {
+    "redacted": true,
+    "tokenPrinted": false,
+    "rawOrderIdsPrinted": false,
+    "rawRowsPrinted": false,
+    "customerPrinted": false,
+    "providerPayloadPrinted": false,
+    "rawDomCaptured": false
+  },
+  "result": {
+    "summary": "Owner-approved bounded Bazos fixture proved paid multi-product create, customer/admin lifecycle API visibility, replay candidate production, Warehouse cleanup, and local fixture cleanup.",
+    "nextAction": "Natural live provider-backed Bazos marketplace webhook/order evidence remains optional/product-gated."
+  }
+}
