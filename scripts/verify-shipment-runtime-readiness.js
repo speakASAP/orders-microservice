@@ -93,7 +93,7 @@ assert.equal(runtimeGateReport.sourceEvidence.allegroWarehouseServiceRoleHardeni
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.hasAllegroServiceRole, true, 'current runtime token must have the Allegro service role');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.hasWarehouseAdminRole, false, 'current runtime token must not carry the broad Warehouse-admin role');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.requiredRole, 'internal:allegro-service:service', 'runtime required role mismatch');
-assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.projectedRuntimeEnv, "WAREHOUSE_SERVICE_TOKEN", "projected runtime env mismatch");
+assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.projectedRuntimeEnv, 'WAREHOUSE_SERVICE_TOKEN', 'projected runtime env mismatch');
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.roleAcceptedByWarehouseShipmentEndpoint, true, "projected runtime token must pass Warehouse shipment endpoint auth");
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.adminRouteRejected, true, "projected runtime token must not access default Warehouse admin routes");
 assert.equal(runtimeGateReport.runtimeEvidence.allegro.tokenAuthEvidence.broadFallbackRejectedByWarehouseShipmentEndpoint, true, "broad fallback token must be rejected by hardened shipment endpoint");

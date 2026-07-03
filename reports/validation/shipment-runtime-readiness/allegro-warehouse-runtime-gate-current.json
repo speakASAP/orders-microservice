@@ -96,7 +96,17 @@
         "sourceHardeningComplete": true,
         "runtimeCutoverBlocked": false,
         "requiredRole": "internal:allegro-service:service",
-        "projectedRuntimeEnv": "WAREHOUSE_SERVICE_TOKEN"
+        "projectedRuntimeEnv": "WAREHOUSE_SERVICE_TOKEN",
+        "effectiveProjectedRuntimeEnv": "WAREHOUSE_SERVICE_TOKEN",
+        "secondaryProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
+        "signatureValidInAllegroRuntime": true,
+        "bothProjectedRuntimeTokensValid": true,
+        "roleCount": 1,
+        "typeIsService": true,
+        "printedIdentityValues": false,
+        "printedRows": false,
+        "printedIds": false,
+        "printedEmails": false
       },
       "runtimeTokenProjection": {
         "projectedRuntimeEnv": "WAREHOUSE_SERVICE_TOKEN",
@@ -110,7 +120,12 @@
         "secretsDisplayed": false,
         "additionalProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
         "additionalSecretSource": "secret/prod/allegro-service#WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-        "unmanagedKubernetesSecretCreated": true
+        "unmanagedKubernetesSecretCreated": true,
+        "effectiveProjectedRuntimeEnv": "WAREHOUSE_SERVICE_TOKEN",
+        "secondaryProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
+        "deploymentEnvPatched": true,
+        "bothProjectedRuntimeTokensValid": true,
+        "tokenProjectionManifestCommit": "d088104"
       },
       "authProvisioningEvidence": {
         "applicationExists": true,
@@ -178,7 +193,8 @@
       "runtimeTokenProjected": true,
       "projectedRuntimeEnv": "WAREHOUSE_SERVICE_TOKEN",
       "authIssuedMinimalServiceRole": true,
-      "additionalProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
+      "additionalProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
+      "secondaryProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
     }
   }
 }
