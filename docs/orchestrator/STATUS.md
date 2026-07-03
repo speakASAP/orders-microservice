@@ -1,5 +1,42 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Shipment Replay Caller Integrated
+
+Intent chain:
+
+- Vision: approved Allegro shipment observations should be replayable into Warehouse correlation without raw provider payloads or direct Orders ingestion.
+- Goal Impact: the durable replay caller gate moved from missing to source-validated Allegro CLI evidence, leaving live projection-file production, Warehouse deploy/migration, and status mutation gates explicit.
+- System: Allegro owns sanitized snapshot replay input and handoff invocation; Warehouse owns correlation, provider-status ledger, and fulfillment transitions; Orders owns lifecycle read models from Warehouse callbacks.
+- Feature: guarded Allegro shipment status replay caller.
+- Task: integrate Allegro commit `f145150` into Orders orchestration state.
+- Execution Plan: accept source-only replay caller evidence; keep live Allegro shipment reads, DB projection writes, live Warehouse calls without exact confirmation, deployment, migration run, Orders callbacks, and fulfillment status mutation blocked until approved.
+- Coding Prompt: no Orders runtime code, no raw Allegro id/waybill/tracking/customer fields, no direct provider payload ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Allegro `f145150 feat: add shipment status replay caller`; Orders docs checkpoint in this commit.
+- Validation: Allegro `npm run verify:shipment-status-replay`, `npm run verify:shipment-status-handoff`, `npm run verify:warehouse-shipment-correlation`, `npm run verify:shipment-status-snapshot`, `npm run build`, `git diff --check`, pre-commit checks, push to `main`, and Orders `git diff --check`.
+
+Evidence:
+
+- Allegro source now has `replay-shipment-status-handoff.ts`.
+- The replay caller accepts a JSON file containing sanitized `allegro.shipment_status_snapshot.v1` snapshots or order-input records that are first mapped through the redacting snapshot mapper.
+- Dry-run validates snapshot redaction and returns a bounded summary without network, provider, Orders, Warehouse, or DB access.
+- Apply mode requires `--confirm-warehouse-handoff ALLEGRO_SHIPMENT_STATUS_WAREHOUSE_CORRELATION` and still relies on `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true` plus Warehouse token config before any Warehouse post.
+- The verifier proves dry-run has no Warehouse mutation, built snapshots omit raw waybills, existing sanitized snapshots replay unchanged, and raw tracking markers are rejected.
+
+Remaining gates:
+
+- `[LANDED: source-only Allegro shipment status replay caller in allegro commit f145150.]`
+- `[LANDED: source-only Allegro shipment status handoff hook in allegro commit a234651.]`
+- `[LANDED: source-only Allegro Warehouse shipment correlation producer in allegro commit c434d1a.]`
+- `[MISSING: approved producer that creates sanitized replay snapshot files from live Allegro shipment projection reads.]`
+- `[MISSING: deploy/migration approval for Warehouse correlation table and endpoint.]`
+- `[MISSING: owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true.]`
+- `[MISSING: approved retention/retry/dead-letter policy for failed correlation posts.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or production fulfillment-row mutation.]`
+
+Next action:
+
+- Implement the approved sanitized snapshot-file producer from live Allegro shipment projection reads, then deploy Warehouse correlation migration/endpoint and run sanitized correlation smoke.
+
 ## 2026-07-03 - Allegro Shipment Handoff Hook Integrated
 
 Intent chain:
