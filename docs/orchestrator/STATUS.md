@@ -1,10 +1,18 @@
+## 2026-07-03 - Goal 24 Orders Cleanup Idempotency Runtime Evidence
+
+IPS: Vision -> paid/provider cleanup must be replay-safe before side-effectful smoke; Goal Impact -> Orders persisted cleanup idempotency key migration/deploy gate is resolved; System -> Orders owns lifecycle status audit and runtime deployment, Payments still owns provider refund/reversal/correction proof, Warehouse owns stock side effects; Feature -> persisted cleanup idempotency key runtime readiness; Task -> apply additive migration and deploy Orders image containing the idempotency key source contract; Execution Plan -> owner-approved migration/deploy only, no live order cancellation, no provider call, no Warehouse mutation, no raw order/customer/provider data, no secret output; Coding Prompt -> validate schema/health with bounded evidence only; Code -> `migrations/009_add_order_status_transition_audit.sql`, image `localhost:5000/orders-microservice:adddafb`; Validation -> migration `pre_column_count=0`, `ALTER TABLE`, `post_column_count=1`; deploy completed successfully; health returned `status=healthy`; deployment image `localhost:5000/orders-microservice:adddafb`, ready `1/1`.
+
+Decision: `[RESOLVED: migration/deploy approval executed for persisted Orders cleanup idempotency key]`. Runtime paid/provider smoke remains blocked by non-Orders gates.
+
+Remaining gates: `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]`, `[MISSING: named runtime validation owner/actor for side-effectful smoke]`, `[MISSING: owner-approved Orders return workflow for Goal 24 paid/provider cleanup if return is required]`.
+
 ## 2026-07-03 - Goal 24 Orders Cleanup Idempotency Key Source Contract
 
 IPS: Vision -> paid/provider cleanup must be replay-safe before side-effectful smoke; Goal Impact -> Orders narrows the cleanup idempotency blocker from missing source support to migration/deploy approval; System -> Orders owns lifecycle status audit, Payments owns provider proof, Warehouse owns stock side effects; Feature -> persisted cleanup idempotency key source contract; Task -> add optional sanitized `approval.idempotencyKey`, persist bounded status transition audit metadata, and verify cancellation stores the key without live mutation; Execution Plan -> source/docs/verifier/migration artifact only, no migration apply, deploy, live order mutation, DB write, provider call, Warehouse mutation, secret read, or raw data output; Coding Prompt -> sanitize idempotency keys and never store provider/customer/token/bank data; Code -> `src/orders/status-transitions.ts`, `src/orders/orders.service.ts`, `src/orders/order.entity.ts`, `migrations/009_add_order_status_transition_audit.sql`, `scripts/verify-status-update-idempotency.js`, Goal 24 docs/status; Validation -> passed `npm test`, `npm run verify:goal24-paid-provider-bundle-readiness`, and `git diff --check`.
 
-Decision: Orders source now accepts optional sanitized `approval.idempotencyKey` and persists it in `orders.statusTransitionAudit` when a cancellation transition is applied. Runtime remains blocked until migration/deploy approval and a named side-effectful runner/owner exist.
+Decision: Orders source now accepts optional sanitized `approval.idempotencyKey` and persists it in `orders.statusTransitionAudit` when a cancellation transition is applied. Runtime migration/deploy approval has been executed; live side-effectful smoke still requires a named runner/owner.
 
-Remaining gate: `[MISSING: migration/deploy approval for persisted Orders cleanup idempotency key]`.
+Remaining gate: `[MISSING: named runtime validation owner/actor for side-effectful smoke]`.
 
 ## 2026-07-03 - Goal 24 Orders Status Replay Idempotency
 
