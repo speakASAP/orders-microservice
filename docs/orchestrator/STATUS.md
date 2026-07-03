@@ -1,5 +1,41 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Shipment Handoff Hook Integrated
+
+Intent chain:
+
+- Vision: Allegro-origin shipment progress should reach customer/admin lifecycle only after sanitized Warehouse correlation and bounded Warehouse lifecycle callbacks.
+- Goal Impact: the missing producer caller gate narrowed from no source hook to a source-ready handoff service, leaving durable projection/replay runtime, deploy/migration, and status mutation gates explicit.
+- System: Allegro owns sanitized shipment snapshots and the handoff hook; Warehouse owns correlation, provider-status ledger, and fulfillment transitions; Orders owns lifecycle read models and receives only Warehouse-owned callbacks.
+- Feature: Allegro source-only shipment status handoff hook.
+- Task: integrate Allegro commit `a234651` into Orders orchestration state.
+- Execution Plan: accept source-only handoff evidence; keep live provider reads, DB projection writes, live Warehouse calls, deployment, migration run, Orders callbacks, and fulfillment status mutation blocked until approved.
+- Coding Prompt: no Orders runtime code, no raw Allegro id/waybill/tracking/customer fields, no direct provider payload ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Allegro `a234651 feat: add shipment status handoff hook`; Orders docs checkpoint in this commit.
+- Validation: Allegro `npm run verify:shipment-status-handoff`, `npm run verify:warehouse-shipment-correlation`, `npm run verify:shipment-status-snapshot`, `npm run build`, `git diff --check`, pre-commit checks, push to `main`, and Orders `git diff --check`.
+
+Evidence:
+
+- Allegro source now has `ShipmentStatusHandoffService.publishWarehouseCorrelations()`.
+- The handoff hook accepts only already-sanitized `AllegroShipmentStatusSnapshot[]`.
+- It calls the disabled-by-default Warehouse correlation producer per snapshot and returns bounded posted/disabled/skipped/blocked/failed counts.
+- It catches per-snapshot failures without exposing raw provider/customer/tracking fields.
+- It does not read Allegro, persist projection rows, call Orders, mutate Warehouse fulfillment status, or bypass the `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED` gate.
+
+Remaining gates:
+
+- `[LANDED: source-only Allegro shipment status handoff hook in allegro commit a234651.]`
+- `[LANDED: source-only Allegro Warehouse shipment correlation producer in allegro commit c434d1a.]`
+- `[LANDED: source-only Warehouse shipment correlation endpoint in warehouse-microservice commit 174f92e.]`
+- `[MISSING: approved durable Allegro shipment projection/replay runtime caller that feeds sanitized snapshots into ShipmentStatusHandoffService.]`
+- `[MISSING: deploy/migration approval for Warehouse correlation table and endpoint.]`
+- `[MISSING: approved retention/retry/dead-letter policy for failed correlation posts.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or production fulfillment-row mutation.]`
+
+Next action:
+
+- Implement the durable Allegro shipment projection/replay runtime caller behind explicit approval, then deploy Warehouse correlation migration/endpoint and run sanitized correlation smoke.
+
 ## 2026-07-03 - Allegro Warehouse Shipment Correlation Producer Integrated
 
 Intent chain:
