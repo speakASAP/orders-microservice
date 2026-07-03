@@ -146,7 +146,7 @@ const result = {
   remainingGates: [
     'optional future audited full-tracking reveal API if product/security approves it',
     'optional real provider live-read evidence if sanitized existing-correlation smoke is insufficient',
-    'Allegro/Warehouse source hardening is landed; runtime cutover still requires an Auth-issued internal:allegro-service:service token projected as WAREHOUSE_SERVICE_TOKEN or WAREHOUSE_INTERNAL_SERVICE_TOKEN before recurring provider ingestion',
+    'Allegro/Warehouse source hardening is landed and the Auth-issued internal:allegro-service:service token is projected as WAREHOUSE_INTERNAL_SERVICE_TOKEN; remaining gates are optional real provider live-read and future audited full-tracking reveal',
   ],
 };
 

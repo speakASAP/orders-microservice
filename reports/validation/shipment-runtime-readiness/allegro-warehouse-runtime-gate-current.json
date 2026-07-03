@@ -1,7 +1,7 @@
 {
   "schemaVersion": "orders.shipment_runtime_gate.v1",
-  "status": "runtime_proven_source_hardened_token_projection_blocked",
-  "checkedAt": "2026-07-03T17:09:13.457918Z",
+  "status": "runtime_proven_source_hardened_minimal_token_projected",
+  "checkedAt": "2026-07-03T17:35:46.885569Z",
   "runtimeEvidence": {
     "k3s": "recovered_verified",
     "deployments": {
@@ -22,7 +22,7 @@
       "allegro": {
         "name": "allegro-service",
         "namespace": "statex-apps",
-        "image": "localhost:5000/allegro-service:0cfe401",
+        "image": "localhost:5000/allegro-service:d088104",
         "readyReplicas": 1,
         "replicas": 1
       }
@@ -45,7 +45,7 @@
         "idempotent": true
       },
       "providerStatusReadback": {
-        "observations": 1,
+        "observations": 2,
         "latestDecision": "accepted",
         "latestNormalizedWarehouseStatus": "in_delivery"
       },
@@ -55,8 +55,10 @@
       },
       "supplementalAggregateCountsAfterNoCentralOrderSmoke": {
         "correlations": 1,
-        "observations": 1,
-        "printedRows": false
+        "observations": 2,
+        "printedRows": false,
+        "printedIds": false,
+        "warehouseCountsUnchanged": true
       }
     },
     "allegro": {
@@ -78,22 +80,55 @@
         "blocked": 0,
         "failed": 0,
         "reason": "MISSING_CENTRAL_ORDER_ID",
-        "warehouseCountsUnchanged": true
+        "warehouseCountsUnchanged": true,
+        "rawTrackingDisplayed": false,
+        "rawOrderIdsDisplayed": false,
+        "tokenPrinted": false
       },
       "tokenAuthEvidence": {
         "valid": true,
-        "hasAllegroServiceRole": false,
-        "hasWarehouseAdminRole": true,
+        "signatureValidInAllegroRuntime": true,
+        "hasAllegroServiceRole": true,
+        "hasWarehouseAdminRole": false,
         "roleCount": 1,
+        "typeIsService": true,
+        "hasTopLevelServiceName": true,
+        "hasTopLevelClientId": true,
         "printedToken": false,
         "printedIdentity": false,
+        "printedIdentityValues": false,
+        "printedRows": false,
+        "printedIds": false,
+        "printedEmails": false,
         "sourceHardeningComplete": true,
-        "runtimeCutoverBlocked": true,
+        "runtimeCutoverBlocked": false,
         "requiredRole": "internal:allegro-service:service",
-        "requiredRuntimeEnv": [
-          "WAREHOUSE_SERVICE_TOKEN",
-          "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
-        ]
+        "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
+      },
+      "runtimeTokenProjection": {
+        "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
+        "secretSource": "secret/prod/allegro-service#WAREHOUSE_INTERNAL_SERVICE_TOKEN",
+        "deploymentEnvPatched": true,
+        "externalSecretSynced": true,
+        "liveDeploymentImageAfterDeploy": "localhost:5000/allegro-service:d088104",
+        "manifestCommit": "d088104",
+        "tokenPrinted": false,
+        "identityValuesPrinted": false,
+        "secretsDisplayed": false
+      },
+      "authProvisioningEvidence": {
+        "applicationExists": true,
+        "roleExists": true,
+        "allegroServicePrincipalCount": 2,
+        "roleAssignmentCount": 2,
+        "tokenFileMode": "600",
+        "tokenPrinted": false,
+        "identityValuesPrinted": false,
+        "printedRows": false,
+        "printedIds": false,
+        "printedEmails": false,
+        "persistent": true,
+        "reversibleByAuthOwner": true
       }
     },
     "orders": {
@@ -115,7 +150,6 @@
   },
   "remainingGates": [
     "optional real provider live-read selection using raw Allegro account/order ids if product requires provider API evidence beyond sanitized existing-correlation smoke",
-    "project an Auth-issued internal:allegro-service:service token into Allegro runtime as WAREHOUSE_SERVICE_TOKEN or WAREHOUSE_INTERNAL_SERVICE_TOKEN before Warehouse/Allegro runtime cutover and recurring provider ingestion",
     "optional future audited full-tracking reveal API if product/security approves it"
   ],
   "sourceEvidence": {
@@ -128,8 +162,11 @@
         "WAREHOUSE_SERVICE_TOKEN",
         "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
       ],
-      "runtimeCutoverBlocked": true,
-      "blocker": "MISSING: Auth-issued Allegro service token projected to Allegro runtime as WAREHOUSE_SERVICE_TOKEN or WAREHOUSE_INTERNAL_SERVICE_TOKEN"
+      "runtimeCutoverBlocked": false,
+      "tokenProjectionManifestCommit": "d088104",
+      "runtimeTokenProjected": true,
+      "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
+      "authIssuedMinimalServiceRole": true
     }
   }
 }
