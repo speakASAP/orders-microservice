@@ -39,7 +39,8 @@
     "verify:browser-proof-mutation-evidence": "node scripts/verify-browser-proof-mutation-evidence.js",
     "generate:browser-render-proof-template": "node scripts/generate-browser-render-proof-report-template.js",
     "verify:browser-render-proof-template": "node scripts/verify-browser-render-proof-report-template.js",
-    "verify:tracking-visibility-policy": "node scripts/verify-tracking-visibility-policy.js"
+    "verify:tracking-visibility-policy": "node scripts/verify-tracking-visibility-policy.js",
+    "verify:goal24-paid-provider-bundle-readiness": "node scripts/verify-goal24-paid-provider-bundle-readiness.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
