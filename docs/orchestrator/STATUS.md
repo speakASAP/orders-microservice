@@ -12,7 +12,7 @@ Intent chain:
 - Execution Plan: accept committed source/docs evidence, keep deploy blocked until integration validation and approval, and keep raw tracking/customer/provider payloads out of Orders events.
 - Coding Prompt: no runtime deploy, no DB migration, no secret read, no raw provider payload, no tracking URL/number exposure.
 - Code: Warehouse `f104202 docs: define fulfillment provider status intake`; Allegro `735ad1f feat: add allegro buyer order cabinet route`.
-- Validation: Warehouse `git diff --check` and `npm test -- --runInBand test/fulfillment-orders.service.spec.ts` per contract doc; Allegro Worker G reported focused backend spec and service build before final route commit; orchestrator verified clean pushed remote heads.
+- Validation: Warehouse `npm test -- --runInBand test/fulfillment-orders.service.spec.ts` passed; Orders `git diff --check` passed; Allegro `services/allegro-service npm run build` passed; Allegro `services/frontend npm run build` passed; Allegro `git diff --check` passed. Allegro has no `npm test` script in `services/allegro-service/package.json`, so focused spec execution remains worker-reported rather than independently rerun here.
 
 Evidence:
 
@@ -26,12 +26,12 @@ Remaining gates:
 - `[MISSING: Allegro OAuth scope proof and runtime credential source for shipment reads.]`
 - `[MISSING: provider adapter durable idempotency store or Warehouse provider-status ledger decision.]`
 - `[MISSING: sanitized Allegro shipment fixture set and adapter tests.]`
-- `[MISSING: cross-service integration validation for Allegro buyer backend/frontend route before deployment.]`
+- `[LANDED: source build validation for Allegro buyer backend/frontend route; runtime authenticated smoke remains deploy-gated.]`
 - `[MISSING: deploy approval and runtime smoke for Allegro buyer cabinet and shipment-status path.]`
 
 Next action:
 
-- Run final source integration validation across Allegro backend/frontend and Warehouse docs, then decide whether to start source-only Allegro shipment adapter or request deploy approval.
+- Decide whether to start source-only Allegro shipment adapter/fixture implementation, then separately request deploy approval for Allegro buyer cabinet when migration/runtime gates are ready.
 
 ## 2026-07-03 - Allegro Buyer API Source Landed
 
