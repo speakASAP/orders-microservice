@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Channel Reservation Evidence Boundary Tightened
+
+Intent chain:
+
+- Vision: completion evidence should distinguish bounded live/synthetic channel reservation proof from still-missing real-provider proof.
+- Goal Impact: the completion audit now records exact channel reservation classifications instead of the vague `uneven` boundary.
+- System: Orders owns the completion audit and evidence verifier; channel repos remain read-only in this slice.
+- Feature: channel reservation evidence boundary.
+- Task: align the completion audit with `verify:channel-lifecycle-runtime-evidence` output for FlipFlop, Heureka, Aukro, Bazos, and Allegro.
+- Execution Plan: update audit wording, add marker coverage to `verify:completion-audit`, and validate without runtime mutation.
+- Coding Prompt: Orders-only docs/verifier change; do not claim real provider-backed Bazos or Allegro buyer completion.
+- Code: `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md` and `scripts/verify-completion-audit.js`.
+- Validation: `node --check scripts/verify-completion-audit.js`, `node scripts/verify-channel-lifecycle-runtime-evidence.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No runtime mutation, provider call, DB read, browser session, or token read was run.
+
+Remaining gate:
+
+- `[UNKNOWN: real provider-backed Bazos marketplace webhook/order source.]`
+- `[MISSING: real subject-bound Allegro buyer/order proof before provider-backed create/reservation completion.]`
+
 ## 2026-07-03 - Completion Audit Browser Report Contract Linked
 
 Intent chain:

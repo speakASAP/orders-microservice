@@ -16,7 +16,7 @@ This audit does not mark the goal complete. It records the current proof boundar
 
 | Requirement | Current status | Authoritative evidence | Completion evidence still needed |
 | --- | --- | --- | --- |
-| Every sellable order checks Warehouse stock and reserves on creation | Partially proven | `verify:order-reservation-gate`; live/synthetic channel create-reservation artifacts in `verify:channel-lifecycle-runtime-evidence`; Orders mutation smoke proved initial Warehouse reservation true for one FlipFlop synthetic order | Per-channel live or approved synthetic create/reservation proof remains uneven; provider-backed Bazos source remains unknown. |
+| Every sellable order checks Warehouse stock and reserves on creation | Bounded channel evidence proven, real-provider gates remain | `verify:order-reservation-gate`; `verify:channel-lifecycle-runtime-evidence`; FlipFlop live create/reservation artifacts; Heureka live create/replay/reservation cleanup artifacts; Aukro live synthetic create/reservation cleanup artifacts; Bazos owner-approved synthetic reservation artifact | Real provider-backed Bazos order source remains unknown; Allegro still needs real subject-bound buyer/order proof before provider-backed create/reservation can be called complete. |
 | Order creation fails closed if Warehouse reservation is unavailable | Source/contract proven | `verify:order-reservation-gate`; `verify:warehouse-handoff`; sellable-channel reservation gate in Orders service | Repeat live fail-closed negative smoke only if owner approves controlled stock/unavailable scenario. |
 | Orders store item list, per-item price, totals, shipping cost, and delivery address | Source/contract proven | `verify:create-order-contract`; DTO/entity contract; lifecycle read model serialization; product-sales statistics verifier | Browser/customer-facing rendered proof of those fields across every cabinet is not complete. |
 | Paid order triggers Warehouse fulfillment handoff | Runtime proven for bounded Orders path | `smoke:lifecycle-mutation` live run: payment update HTTP 200, Warehouse fulfillment update HTTP 200, lifecycle moved to `warehouse_collecting`; `verify:order-fulfillment-handoff` | Provider shipment/courier late-stage runtime remains gated; per-channel paid checkout browser proof is incomplete. |
@@ -50,6 +50,12 @@ This audit does not mark the goal complete. It records the current proof boundar
 - FlipFlop first browser lane readiness is recorded in `docs/orchestrator/2026-07-03-flipflop-browser-proof-readiness-evidence.md`: `/orders` and `/admin/orders` return HTML `200`, customer/admin source uses central lifecycle display data, and refresh is manual plus 30-second visible polling. This is readiness evidence only, not rendered lifecycle proof.
 - Browser-render proof must be submitted as sanitized `orders.browser_render_proof.v1` JSON and validated by `verify:browser-render-proof-report`; checked-in fixtures prove the contract accepts a sanitized FlipFlop service-scoped report and rejects a sensitive-key report. Fixtures are not rendered proof.
 - Orders service identity lifecycle list endpoints return HTTP `200` for FlipFlop, Allegro, Aukro, Bazos, and Heureka.
+- Channel create/reservation evidence boundary from `verify:channel-lifecycle-runtime-evidence`:
+  - FlipFlop: `live_create_reservation_smoke_proven`.
+  - Heureka: `live_create_replay_reservation_cleanup_smoke_proven`.
+  - Aukro: `live_synthetic_create_reservation_cleanup_proven_source_cabinet_stats_proven`.
+  - Bazos: `synthetic_create_reservation_smoke_proven_provider_webhook_unknown`.
+  - Allegro: `buyer_route_live_isolation_proven_real_order_smoke_missing`.
 
 ## Remaining Gates
 
