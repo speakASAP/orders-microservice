@@ -89,6 +89,36 @@ assert.equal(deriveOrderLifecycleState(makeOrder({ paymentStatus: 'paid', status
 assert.equal(deriveOrderLifecycleState(makeOrder({ status: 'delivered' })).lifecycleStage, 'received');
 assert.equal(deriveOrderLifecycleState(makeOrder({ warehouseHandoff: { status: 'returned' } })).lifecycleStage, 'returned');
 assert.equal(deriveOrderLifecycleState(makeOrder({ status: 'cancelled' })).lifecycleStage, 'cancelled');
+assert.equal(deriveOrderLifecycleState(makeOrder({
+  paymentStatus: 'paid',
+  warehouseHandoff: { status: 'fulfilled', fulfillmentOrderHandoff: { warehouseStatus: 'forming' } },
+})).lifecycleStage, 'warehouse_forming');
+assert.equal(deriveOrderLifecycleState(makeOrder({
+  paymentStatus: 'paid',
+  warehouseHandoff: { status: 'fulfilled', fulfillmentOrderHandoff: { warehouseStatus: 'formed' } },
+})).lifecycleStage, 'warehouse_formed');
+assert.equal(deriveOrderLifecycleState(makeOrder({
+  paymentStatus: 'paid',
+  warehouseHandoff: { status: 'fulfilled', fulfillmentOrderHandoff: { warehouseStatus: 'in_delivery' } },
+})).lifecycleStage, 'in_delivery');
+assert.equal(deriveOrderLifecycleState(makeOrder({
+  paymentStatus: 'paid',
+  warehouseHandoff: { status: 'fulfilled', fulfillmentOrderHandoff: { warehouseStatus: 'not_delivered' } },
+})).lifecycleStage, 'not_received');
+
+assert.equal(deriveOrderLifecycleState(makeOrder({
+  paymentStatus: 'paid',
+  warehouseHandoff: { status: 'fulfilled', fulfillmentOrderHandoff: { warehouseStatus: 'handed_to_delivery' } },
+})).deliveryStatus, 'handed_to_delivery');
+assert.equal(deriveOrderLifecycleState(makeOrder({
+  paymentStatus: 'paid',
+  warehouseHandoff: { status: 'fulfilled', fulfillmentOrderHandoff: { warehouseStatus: 'in_delivery' } },
+})).deliveryStatus, 'in_delivery');
+assert.equal(deriveOrderLifecycleState(makeOrder({
+  paymentStatus: 'paid',
+  warehouseHandoff: { status: 'fulfilled', fulfillmentOrderHandoff: { warehouseStatus: 'not_delivered' } },
+})).deliveryStatus, 'not_received');
+
 
 assert.equal(validateOrderLifecycleTransition(null, 'ordered_unpaid'), 'ordered_unpaid');
 assert.equal(validateOrderLifecycleTransition('ordered_unpaid', 'paid_not_delivered'), 'paid_not_delivered');
@@ -174,6 +204,26 @@ assert.equal(aggregates.byLifecycleStage.payment_failed, 1);
 assert.equal(aggregates.byLifecycleStage.cancelled, 1);
 assert.equal(aggregates.byChannel.flipflop, 2);
 assert.equal(aggregates.exceptionCounts.paymentFailed, 1);
+assert.equal(aggregates.byDeliveryStatus.not_started, 3);
+assert.equal(buildLifecycleAggregates([
+  serializeOrderLifecycleReadModel(makeOrder({
+    id: 'delivery-1',
+    paymentStatus: 'paid',
+    warehouseHandoff: { status: 'fulfilled', fulfillmentOrderHandoff: { warehouseStatus: 'in_delivery' } },
+  })),
+  serializeOrderLifecycleReadModel(makeOrder({
+    id: 'delivery-2',
+    paymentStatus: 'paid',
+    warehouseHandoff: { status: 'fulfilled', fulfillmentOrderHandoff: { warehouseStatus: 'not_delivered' } },
+  })),
+]).byDeliveryStatus.in_delivery, 1);
+assert.equal(buildLifecycleAggregates([
+  serializeOrderLifecycleReadModel(makeOrder({
+    id: 'delivery-3',
+    paymentStatus: 'paid',
+    warehouseHandoff: { status: 'fulfilled', fulfillmentOrderHandoff: { warehouseStatus: 'not_delivered' } },
+  })),
+]).exceptionCounts.notReceived, 1);
 assert.equal(aggregates.totalsByCurrency.CZK.orderCount, 3);
 
 assert.equal(ORDER_ADMIN_LIFECYCLE_READ_ROLES.includes('global:superadmin'), true);

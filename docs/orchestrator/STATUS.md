@@ -1,5 +1,25 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Orders Lifecycle Stage Coverage Verifier
+
+Intent chain:
+
+- Vision: customer and admin order surfaces must trust one central Orders lifecycle taxonomy for the full fulfillment and delivery path.
+- Goal Impact: source verification now explicitly proves the Warehouse-derived forming, formed, in-delivery, and not-received stages that were previously only indirectly covered by the stage list.
+- System: Orders owns lifecycle derivation, aggregate delivery statistics, and event/read-model shape; Warehouse remains the fulfillment-status source after handoff.
+- Feature: full lifecycle taxonomy verification for customer/admin propagation.
+- Task: strengthen `verify-order-lifecycle-read-model` coverage for late Warehouse and delivery stages.
+- Execution Plan: verifier/docs only; no runtime code, deploy, DB read/write, Warehouse call, provider call, or status mutation.
+- Coding Prompt: prove existing code maps Warehouse `fulfillmentOrderHandoff.warehouseStatus` values into bounded Orders lifecycle/delivery statuses without adding raw provider/customer/tracking data.
+- Code: `scripts/verify-order-lifecycle-read-model.js` assertions for `warehouse_forming`, `warehouse_formed`, `in_delivery`, `not_received`, and delivery aggregate counts.
+- Validation: `npm run build`, `npm run verify:order-lifecycle-read-model`, and `git diff --check`.
+
+Remaining gates:
+
+- `[LANDED: source verifier coverage for all requested late fulfillment/delivery lifecycle stages.]`
+- `[MISSING: Warehouse correlation deploy/migration approval before provider shipment events can populate runtime fulfillment transitions.]`
+- `[MISSING: approved end-to-end live smoke proving customer/admin frontends refresh from central Orders lifecycle after Warehouse/provider status changes.]`
+
 ## 2026-07-03 - Allegro Dead-Letter Runtime Path Manifest Integrated
 
 Intent chain:
