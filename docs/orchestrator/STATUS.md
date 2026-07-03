@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Template Status Compatibility Fixed
+
+Intent chain:
+
+- Vision: approved browser proof capture should start from a schema-compatible incomplete template, not a JSON shell that must be structurally repaired before evidence capture.
+- Goal Impact: generated `orders.browser_render_proof.v1` templates now use valid route/data-source status placeholders while still remaining explicitly incomplete and non-proof.
+- System: Orders owns the proof report template generator/verifier and IPS status; channel repos remain untouched.
+- Feature: schema-compatible incomplete browser proof template status fields.
+- Task: change generated route status placeholders to valid HTTP values and extend the template verifier to enforce schema-compatible statuses plus incomplete proof semantics.
+- Execution Plan: update generator/verifier/status/contract/state docs, validate without browser sessions or runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof template generator/verifier, proof contract, status/state docs.
+- Validation: `node --check scripts/generate-browser-render-proof-report-template.js`, `node --check scripts/verify-browser-render-proof-report-template.js`, `npm run verify:browser-render-proof-template`, `npm run verify:browser-render-proof-report`, `npm run verify:completion-audit`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: generated template filled with approved real rendered browser evidence and validated as status=proven.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Template Generator Added
 
 Intent chain:

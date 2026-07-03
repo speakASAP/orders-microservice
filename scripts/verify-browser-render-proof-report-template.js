@@ -18,8 +18,11 @@ assert.equal(report.routes.length, 2, 'template must include customer and admin 
 assert.equal(report.routes[0].surface, 'customer_cabinet', 'template must include customer cabinet route first');
 assert.equal(report.routes[1].surface, 'admin_cabinet', 'template must include admin cabinet route second');
 assert.equal(report.routes.every((route) => route.url.includes('flipflop.alfares.cz')), true, 'template routes must target FlipFlop by default');
+assert.equal(report.routes.every((route) => route.httpStatus >= 100 && route.httpStatus < 600), true, 'template route HTTP statuses must be schema-compatible');
+assert.equal(report.routes.every((route) => route.dataSourceStatus >= 100 && route.dataSourceStatus < 600), true, 'template route data-source statuses must be schema-compatible');
 assert.equal(report.routes.every((route) => route.artifact.redacted === true), true, 'template artifacts must be marked redacted');
 assert.equal(JSON.stringify(report).includes('[MISSING:'), true, 'template must keep missing evidence placeholders');
+assert.equal(report.result.summary.includes('[MISSING:'), true, 'template result must stay incomplete');
 
 process.stdout.write(`${JSON.stringify({
   schemaVersion: 'orders.browser_render_proof_template_verifier.v1',

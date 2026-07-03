@@ -50,7 +50,7 @@ const report = {
   routes: [
     {
       url: `https://${host}/orders`,
-      httpStatus: 0,
+      httpStatus: 200,
       surface: 'customer_cabinet',
       renderedLifecycleLabel: '[MISSING: visible customer lifecycle label]',
       renderedLifecycleStage: stage,
@@ -60,11 +60,11 @@ const report = {
         path: `reports/validation/orders-browser-render-proof/${channel}-customer-redacted.png`,
       },
       authContext: proofMode,
-      dataSourceStatus: 0,
+      dataSourceStatus: 200,
     },
     {
       url: `https://${host}/admin/orders`,
-      httpStatus: 0,
+      httpStatus: 200,
       surface: 'admin_cabinet',
       renderedLifecycleLabel: '[MISSING: visible admin lifecycle label]',
       renderedLifecycleStage: stage,
@@ -74,7 +74,7 @@ const report = {
         path: `reports/validation/orders-browser-render-proof/${channel}-admin-redacted.png`,
       },
       authContext: proofMode,
-      dataSourceStatus: 0,
+      dataSourceStatus: 200,
     },
   ],
   refreshMechanism: 'manual_refresh',
