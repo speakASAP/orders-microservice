@@ -1,6 +1,6 @@
 {
   "schemaVersion": "orders.channel_runtime_blocker.v1",
-  "checkedAt": "2026-07-03T12:19:10.411Z",
+  "checkedAt": "2026-07-03T12:56:00.000Z",
   "channel": "allegro",
   "status": "buyer_real_order_lifecycle_blocked",
   "runtimeProbe": {
@@ -25,11 +25,25 @@
     "adminStatsHttpStatus": 200,
     "adminStatsSuccess": true,
     "adminStatsTotals": {
-      "orders": 117,
+      "orders": 118,
       "centralForwarded": 0,
       "centralBlocked": 0,
       "centralFailed": 0
     }
+  },
+  "liveAggregateCandidateProbe": {
+    "schemaVersion": "allegro.buyer_real_candidate_aggregate.v1",
+    "podScopedProbe": true,
+    "databaseRead": "aggregate_counts_only",
+    "totalOrders": 118,
+    "buyerBoundOrders": 0,
+    "forwardingAttempts": 0,
+    "forwardedAttempts": 0,
+    "buyerBoundForwardedOrders": 0,
+    "centralOrderRefs": 0,
+    "distinctBuyerSubjects": 0,
+    "printedRawIds": false,
+    "printedPii": false
   },
   "sourceEvidence": {
     "buyerCabinetRouteImplemented": true,
@@ -40,11 +54,11 @@
     "centralLifecycleProjectionImplemented": true
   },
   "blockers": [
-    "[MISSING: live authenticated buyer smoke with a real buyer Auth bearer and an approved subject-bound order row.]",
+    "[MISSING: live authenticated buyer smoke with a real buyer Auth bearer and an approved subject-bound order row; current live aggregate has buyerBoundOrders=0.]",
     "[MISSING: central Orders lifecycle display smoke with a real forwarded Allegro order visible to the bound buyer.]",
     "[MISSING: approved historical binding/backfill source, if product wants old imported marketplace rows visible in buyer cabinet.]"
   ],
-  "nextAction": "Create or identify one approved subject-bound Allegro buyer order row with a forwarded central Orders read model, then run real-buyer list/detail lifecycle smoke.",
+  "nextAction": "Create a real Allegro order through an approved authenticated buyer path that writes buyerAuthSubject and forwards to Orders, or approve a separately bounded data-mutation packet; then run real-buyer list/detail lifecycle smoke.",
   "redacted": true,
   "tokenPrinted": false,
   "rawOrdersPrinted": false,

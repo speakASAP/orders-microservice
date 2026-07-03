@@ -69,10 +69,11 @@ Evidence:
 - Buyer DTO tests prove email/login/address/rawData/forwarding internals are excluded and cross-buyer or unbound detail reads return 404.
 - Seller/operator `/dashboard/orders` and `/api/allegro/orders` keep workspace scoping and do not use buyer subject binding.
 - Orders customer lifecycle APIs already support `customer.authUserId`/`customer.subject` subject matching, but Allegro live admin statistics still show no forwarded central Orders rows for buyer lifecycle proof.
+- Fresh pod-scoped aggregate probe on the live Allegro database found `totalOrders=118`, `buyerBoundOrders=0`, `forwardingAttempts=0`, `forwardedAttempts=0`, `buyerBoundForwardedOrders=0`, and `centralOrderRefs=0`; no raw ids, buyer fields, order rows, tokens, addresses, provider payloads, or database dumps were printed.
 
 Remaining gates:
 
-- `[MISSING: real forwarded Allegro order already subject-bound through buyerAuthSubject and visible to a real Auth bearer.]`
+- `[MISSING: real forwarded Allegro order already subject-bound through buyerAuthSubject and visible to a real Auth bearer; current live aggregate has buyerBoundOrders=0.]`
 - `[MISSING: real forwarded Allegro order whose central Orders lifecycle read model is visible in the bound buyer cabinet.]`
 - `[MISSING: approved historical binding/backfill source if product wants imported marketplace rows visible to buyers.]`
 - `[FORBIDDEN: email-only buyer ownership mapping without explicit product/Auth/security risk acceptance.]`
