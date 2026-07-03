@@ -101,6 +101,8 @@ A paid/provider `catalog.bundle.v1` bundle smoke is blocked until the packet nam
 - `[RESOLVED/NARROWED: selected method is Fiobanka QR, paymentMethod=fiobanka, applicationId=flipflop-service, maximum 300 CZK, but live execution remains gated]`
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]`
 - `[RESOLVED/NARROWED: Payments emits bounded orders.payment-status.v1 for completed/failed/cancelled only; refunded is intentionally not bridged]`
+- `[RESOLVED: runtime verification of Payments Orders service token/role for the current bridge mechanism]`
+- `[RESOLVED/NARROWED: Payments Fiobanka refund upload path is source-defined but remains runtime-hard-stopped until exact owner approval, target packet, token/feature-flag readiness, and bank authorization evidence exist]`
 - `[RESOLVED/NARROWED: Orders source verifies the target order state matrix for normal cancellation: pending|confirmed|processing may target cancelled only through the human approval gate; shipped, delivered/customer-received, and already-cancelled states fail closed through the normal endpoint. Runtime packet must still name target central Orders UUID hash, current state before rollback, cleanup idempotency key, named cancellation actor/approvedBy, approvalType=human, reasonCode GOAL24_PAID_PROVIDER_ROLLBACK or GOAL24_PROVIDER_UNPAID_CANCEL, and payment/warehouse/notification/crm/channel side-effect acknowledgements]`
 - `[RESOLVED/NARROWED: Warehouse owner-approved cleanup operation for reserved-only, fulfilled/stock-decremented cancellation, delivered/customer-received return, partial, and unknown bundle component-line states in Warehouse 3043cad; live stock window/max quantity remains missing]`
 - `[RESOLVED/NARROWED: Orders return workflow is not required for normal Fiobanka completed-transfer refund/reversal/correction cleanup unless delivered/customer-received or inventory-return evidence exists; absent that evidence, cleanup remains cancellation plus Warehouse cancel after provider proof and side-effect acknowledgements]`
@@ -157,3 +159,11 @@ Packet status for this lane:
 Decision: `block` for paid/provider runtime progression.
 
 Orders can describe the future rollback choreography without bypassing Payments, but cannot prove side-effect-safe rollback alone. The remaining blocker is `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`. The former broad return-workflow ambiguity is narrowed: `return` remains `[MISSING: owner-approved Orders return workflow for Goal 24 paid/provider cleanup when delivered/customer-received state exists]`, but it is not a prerequisite for a non-delivered Fiobanka refund/reversal/correction cleanup packet that selects cancellation plus Warehouse `cancel`.
+
+## 2026-07-04 Latest Dependency Head Consumption
+
+Orders consumed current pushed heads Catalog `ca6a3b2`, FlipFlop `1e5102b`, Payments `bf96f5d`, and Warehouse `46a66dc` as dependency evidence only. Payments now resolves the runtime Orders service-token bridge proof for the current mechanism, but this only proves Payments can authenticate to the Orders payment-status route for bounded `completed|failed|cancelled` events. It does not authorize a refund-derived Orders cancellation and does not add `refunded` to `orders.payment-status.v1`.
+
+Fiobanka refund-upload readiness remains a Payments-owned hard stop for live cleanup: upload/source readiness is not completed refund/reversal evidence, bank authorization evidence is still required, and Orders cleanup remains blocked until the runtime packet supplies provider rollback proof hash or unpaid no-provider-cancel acknowledgement, named human Orders actor, selected target order hash/state, side-effect acknowledgements, Warehouse line-state decision, and accepted redaction plan.
+
+Boundary: no live Orders route invocation, provider/refund/reversal call, Warehouse cleanup call, DB write, migration, deploy, secret read, raw order/payment/provider/customer evidence, or stock mutation occurred in this Orders consumption lane.
