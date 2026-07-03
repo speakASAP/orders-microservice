@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Per-Surface Success Guard Added
+
+Intent chain:
+
+- Vision: rendered lifecycle proof must prove both customer and administrator surfaces are actually reachable and backed by successful data reads.
+- Goal Impact: future `orders.browser_render_proof.v1` reports cannot close the browser gate with a successful customer route while the admin route or its backing data source fails, or vice versa.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: per-surface successful route/data-source criteria for browser proof reports.
+- Task: require at least one successful `customer_cabinet` route and one successful `admin_cabinet`/`admin_dashboard` route; add a negative surface HTTP fixture.
+- Execution Plan: extend verifier/contract/fixtures/status/state docs, validate without runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, surface HTTP-status fixture, proof contract, status/state docs.
+- Validation: pending targeted and full Orders test chain after this doc update.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report with successful customer and admin rendered lifecycle surfaces.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Artifact Evidence Guard Added
 
 Intent chain:

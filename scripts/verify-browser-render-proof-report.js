@@ -17,6 +17,7 @@ const invalidHeadCommitFixturePath = path.join(root, 'docs/orchestrator/browser-
 const invalidExpectedCommitMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-expected-commit-mismatch.json');
 const invalidRouteChannelMismatchFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-route-channel-mismatch.json');
 const invalidArtifactEvidenceFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-artifact-evidence.json');
+const invalidSurfaceHttpStatusFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-http-status.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -129,6 +130,22 @@ function assertArtifactEvidence(artifact, index) {
   }
 }
 
+function isSuccessfulStatus(status) {
+  return status >= 200 && status < 400;
+}
+
+function routeHasSuccessfulBacking(route) {
+  return isSuccessfulStatus(route.httpStatus) && (route.dataSourceStatus === undefined || isSuccessfulStatus(route.dataSourceStatus));
+}
+
+function assertSurfaceHasSuccessfulRoute(routes, surfacePredicate, label) {
+  assert.equal(
+    routes.some((route) => surfacePredicate(route.surface) && routeHasSuccessfulBacking(route)),
+    true,
+    `proven report needs successful ${label} route evidence`,
+  );
+}
+
 function validateContract() {
   const contract = read(contractPath);
   [
@@ -152,6 +169,8 @@ function validateContract() {
     'route url path must target an order lifecycle surface for proven browser reports',
     'artifact sha256 must be 64 lowercase hex characters for browser proof reports',
     'artifact path must be under reports/validation/orders-browser-render-proof for browser proof reports',
+    'proven report needs successful customer cabinet route evidence',
+    'proven report needs successful admin cabinet or dashboard route evidence',
   ].forEach((marker) => assertIncludes(contract, marker, 'browser render proof report contract'));
 }
 
@@ -227,6 +246,11 @@ function validateFixtures() {
     /artifact.sha256 must be 64 lowercase hex characters/,
     'invalid artifact evidence fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidSurfaceHttpStatusFixturePath)),
+    /proven report needs successful admin cabinet or dashboard route evidence/,
+    'invalid surface-http-status fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
@@ -238,6 +262,7 @@ function validateFixtures() {
     invalidExpectedCommitMismatchFixture: path.relative(root, invalidExpectedCommitMismatchFixturePath),
     invalidRouteChannelMismatchFixture: path.relative(root, invalidRouteChannelMismatchFixturePath),
     invalidArtifactEvidenceFixture: path.relative(root, invalidArtifactEvidenceFixturePath),
+    invalidSurfaceHttpStatusFixture: path.relative(root, invalidSurfaceHttpStatusFixturePath),
   };
 }
 
@@ -305,7 +330,22 @@ function validateReport(rawReport, options = {}) {
     }
     assert.equal(report.centralReadModelBacked, true, 'proven report must be centralReadModelBacked');
     report.routes.forEach((route, index) => assertRouteMatchesChannel(route, index, report.channel));
-    assert.equal(report.routes.some((route) => route.httpStatus >= 200 && route.httpStatus < 400), true, 'proven report needs a 2xx/3xx route');
+    assert.equal(
+      report.routes.some((route) => route.dataSourceStatus === 401 || route.dataSourceStatus === 403 || isPublicShellArtifact(route.artifact.kind) || route.authContext === 'anonymous'),
+      false,
+      'public shell or anonymous route evidence cannot prove rendered lifecycle',
+    );
+    assert.equal(
+      report.routes.some((route) => route.authContext && route.authContext !== report.proofMode),
+      false,
+      'route authContext must match report proofMode',
+    );
+    assertSurfaceHasSuccessfulRoute(report.routes, (surface) => surface === 'customer_cabinet', 'customer cabinet');
+    assertSurfaceHasSuccessfulRoute(
+      report.routes,
+      (surface) => surface === 'admin_cabinet' || surface === 'admin_dashboard',
+      'admin cabinet or dashboard',
+    );
     assert.equal(report.routes.some((route) => route.renderedLifecycleLabel.trim()), true, 'proven report needs rendered lifecycle label');
     assert.equal(report.routes.some((route) => route.renderedLifecycleStage.trim()), true, 'proven report needs rendered lifecycle stage');
     assert.equal(
@@ -332,16 +372,6 @@ function validateReport(rawReport, options = {}) {
       report.routes.some((route) => route.authContext === 'safe_human_session' || route.authContext === 'service_scoped_proxy'),
       true,
       'proven report needs safe human session or service-scoped proxy route evidence',
-    );
-    assert.equal(
-      report.routes.some((route) => route.dataSourceStatus === 401 || route.dataSourceStatus === 403 || isPublicShellArtifact(route.artifact.kind) || route.authContext === 'anonymous'),
-      false,
-      'public shell or anonymous route evidence cannot prove rendered lifecycle',
-    );
-    assert.equal(
-      report.routes.some((route) => route.authContext && route.authContext !== report.proofMode),
-      false,
-      'route authContext must match report proofMode',
     );
   }
   return report;

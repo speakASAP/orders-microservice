@@ -58,7 +58,8 @@ Required `evidencePolicy` booleans:
 
 `status=proven` requires all of the following:
 
-- At least one customer or admin route has HTTP `2xx` or `3xx`.
+- At least one `customer_cabinet` route has HTTP `2xx` or `3xx`; if `dataSourceStatus` is present it must also be `2xx` or `3xx`. proven report needs successful customer cabinet route evidence.
+- At least one `admin_cabinet` or `admin_dashboard` route has HTTP `2xx` or `3xx`; if `dataSourceStatus` is present it must also be `2xx` or `3xx`. proven report needs successful admin cabinet or dashboard route evidence.
 - At least one route has a non-empty `renderedLifecycleLabel`.
 - At least one route has a non-empty `renderedLifecycleStage`.
 - Every proven route must render the same canonical stage as `mutationEvidence.expectedLifecycleStage`.
@@ -100,5 +101,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-expected-commit-mismatch.json` must be rejected because `ordersEvidenceCommit` does not match `BROWSER_RENDER_PROOF_EXPECTED_COMMIT`.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-route-channel-mismatch.json` must be rejected because route URLs belong to a different marketplace host than the declared report `channel`.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-artifact-evidence.json` must be rejected because route artifact evidence has an invalid SHA-256/path shape.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-surface-http-status.json` must be rejected because one required surface lacks successful route/data-source evidence.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.
