@@ -2,7 +2,7 @@
 
 Date: 2026-07-03
 Owner: Orders reliability orchestrator
-Status: approval-gated
+Status: superseded-by-synthetic-smoke
 
 ## IPS Chain
 
@@ -29,11 +29,11 @@ Status: approval-gated
 
 ## Decision
 
-Real buyer smoke cannot be honestly completed from existing data because there is no Allegro order row bound to the approved Auth subject. Synthetic buyer smoke remains useful but does not satisfy the real-user requirement.
+At the time of this packet, real buyer smoke could not be honestly completed from existing data because there was no Allegro order row bound to the approved Auth subject. This packet was later superseded by the approved Option 2 synthetic fixture smoke recorded in current Orders/Allegro status: runtime deployed, synthetic buyer list/detail isolation passed, and cleanup was confirmed. It remains useful as approval history, not as an active blocker.
 
 ## Approval Options
 
-Choose exactly one before runtime mutation:
+Historical options recorded before runtime mutation. Option 2 was later approved and executed as a bounded synthetic fixture smoke:
 
 1. Existing-row binding smoke: product/marketplace owner identifies one existing Allegro order that is safe to bind to the approved Auth subject for smoke. Required approval must name the order-selection rule and cleanup/rollback expectation without exposing raw identifiers in public logs.
 2. Synthetic fixture row smoke: approve creating one clearly synthetic Allegro order row and line item, bound to the approved Auth subject, with synthetic marketplace identifiers, synthetic buyer fields, and cleanup after smoke unless product wants a persistent fixture.
@@ -56,4 +56,4 @@ Choose exactly one before runtime mutation:
 - `[MISSING: real forwarded Allegro order lifecycle display smoke, unless the approved row already has central Orders forwarding.]`
 - `[BLOCKED: provider/courier runtime remains contract-gated by missing owner/contract/credentials/mapping/tracking visibility policy.]`
 
-Next step: approve one of the three options above, then run the bounded real buyer list/detail/lifecycle smoke.
+Next step: use this packet only as historical approval context; the active remaining gate is a real forwarded Allegro order visible to a real Auth bearer with central Orders lifecycle rendering.

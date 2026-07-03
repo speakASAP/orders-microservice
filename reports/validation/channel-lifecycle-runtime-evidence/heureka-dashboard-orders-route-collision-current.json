@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "orders.heureka_dashboard_orders_route_collision.v1",
+  "status": "non_orders_edit_requires_merge_order_review",
+  "checkedAt": "2026-07-03T12:42:06.000Z",
+  "channel": "heureka",
+  "readOnlyEvidence": {
+    "sourceHead": "358fba9",
+    "runtimeImages": [
+      "localhost:5000/heureka-service:358fba9",
+      "localhost:5000/heureka-api-gateway:358fba9"
+    ],
+    "publicShell": {
+      "/dashboard/orders": 200
+    },
+    "protectedApiWithoutAuth": {
+      "/heureka/dashboard/me": 401,
+      "/heureka/dashboard/admin/stats": 401,
+      "/heureka/dashboard/orders": 404
+    },
+    "protectedApiWithShortLivedInPodAdminJwt": {
+      "/heureka/dashboard/me": 200,
+      "/heureka/dashboard/admin/stats": 200,
+      "/heureka/dashboard/orders?limit=5&status=all": 404
+    },
+    "compiledRuntimeMarkers": {
+      "dashboardControllerHasOrdersMethod": true,
+      "dashboardControllerHasOrderDetailRoute": true,
+      "routerLogMapsPublicDashboardOrders": true,
+      "routerLogMapsProtectedOrderDetail": true,
+      "routerLogDoesNotMapProtectedOrderList": true
+    },
+    "rootCause": "Nest global-prefix exclude for public shell path dashboard/orders strips the protected DashboardController list route raw path dashboard/orders; public shell and protected list API cannot share the same raw path with different prefix behavior."
+  },
+  "proposedHeurekaPatch": {
+    "allowedFiles": [
+      "services/heureka-service/src/heureka/dashboard/dashboard.controller.ts",
+      "services/heureka-service/src/public/public.controller.ts",
+      "services/heureka-service/src/public/public-dashboard-routes.self-test.ts",
+      "scripts/verify_heureka_orders_runtime_readiness.js",
+      "docs/orchestrator/2026-07-03-orders-lifecycle-ui-reliability-report.md",
+      "docs/orchestrator/TASK-010-channel-parity-checklist.md"
+    ],
+    "suggestedChange": "Add protected order-list alias outside the public shell exclusion, for example @Get(orders-list) beside @Get(orders), and update dashboard list polling to /heureka/dashboard/orders-list while retaining /dashboard/orders shell and /heureka/dashboard/orders/:id detail route.",
+    "forbiddenFiles": [
+      "Orders runtime code",
+      "Warehouse code",
+      "Auth code",
+      "Payments code",
+      "provider/courier code",
+      "DB migrations",
+      "Kubernetes secrets"
+    ],
+    "validation": [
+      "public-dashboard-routes.self-test passes and asserts orders-list API call",
+      "verify:heureka-orders-runtime-readiness passes and asserts protected list alias",
+      "services/heureka-service build passes",
+      "post-deploy read-only smoke: /dashboard/orders 200, unauth /heureka/dashboard/orders-list 401, authenticated in-pod /heureka/dashboard/orders-list 200 with aggregate-only output"
+    ]
+  },
+  "policy": {
+    "ordersOnlyHandoff": true,
+    "heurekaSourceEdited": false,
+    "deployRun": false,
+    "runtimeMutation": false,
+    "tokenValuesPrinted": false,
+    "rawOrderRowsPrinted": false,
+    "customerPiiPrinted": false,
+    "providerPayloadPrinted": false
+  },
+  "remainingGate": "[MISSING: orchestrator merge-order approval for Heureka route-collision fix lane]"
+}
