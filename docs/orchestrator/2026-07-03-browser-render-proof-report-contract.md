@@ -86,5 +86,6 @@ Required `evidencePolicy` booleans:
 - `docs/orchestrator/browser-render-proof-report-fixtures/valid-flipflop-service-scoped.json` must pass the schema and proven criteria, including customer and admin surfaces.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-sensitive-key.json` must be rejected because it contains a forbidden sensitive key name.
 - `docs/orchestrator/browser-render-proof-report-fixtures/invalid-public-shell-route.json` must be rejected because route-only anonymous shell evidence cannot prove lifecycle rendering.
+- `docs/orchestrator/browser-render-proof-report-fixtures/invalid-mismatched-stage.json` must be rejected because customer/admin rendered stages diverge from `mutationEvidence.expectedLifecycleStage`.
 
 These fixtures are contract tests only. They are not browser-render proof and must not be used to close the rendered UI gate.

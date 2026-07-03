@@ -1,5 +1,23 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Mismatched Stage Fixture Added
+
+Intent chain:
+
+- Vision: customer and admin views must converge on the same canonical Orders lifecycle stage after a lifecycle mutation.
+- Goal Impact: the browser proof verifier now has negative coverage for divergent customer/admin lifecycle rendering.
+- System: Orders owns the proof verifier and fixtures; channel repos remain untouched.
+- Feature: mismatched-stage proof rejection fixture.
+- Task: add `invalid-mismatched-stage.json` and assert it is rejected by `verify:browser-render-proof-report`.
+- Execution Plan: add fixture, extend verifier output, update contract/status/audit, and validate without runtime mutation.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: browser proof report verifier, fixture, contract, completion audit/status/state docs.
+- Validation: `node --check scripts/verify-browser-render-proof-report.js`, `node scripts/verify-browser-render-proof-report.js`, `node --check scripts/verify-completion-audit.js`, `node scripts/verify-completion-audit.js`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: real sanitized orders.browser_render_proof.v1 report whose customer/admin rendered stages match mutationEvidence.expectedLifecycleStage.]`
+
 ## 2026-07-03 - Browser Proof Expected Stage Consistency Required
 
 Intent chain:

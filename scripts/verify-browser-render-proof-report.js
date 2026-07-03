@@ -9,6 +9,7 @@ const reportPath = String(process.env.BROWSER_RENDER_PROOF_REPORT_PATH || '').tr
 const validFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/valid-flipflop-service-scoped.json');
 const invalidSensitiveFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-sensitive-key.json');
 const invalidPublicShellFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-public-shell-route.json');
+const invalidMismatchedStageFixturePath = path.join(root, 'docs/orchestrator/browser-render-proof-report-fixtures/invalid-mismatched-stage.json');
 const requiredPolicyFlags = [
   'noTokenValues',
   'noCookies',
@@ -122,10 +123,16 @@ function validateFixtures() {
     /public shell or anonymous route evidence cannot prove rendered lifecycle/,
     'invalid public-shell fixture must be rejected',
   );
+  assert.throws(
+    () => validateReport(read(invalidMismatchedStageFixturePath)),
+    /proven report routes must all render the expected lifecycle stage/,
+    'invalid mismatched-stage fixture must be rejected',
+  );
   return {
     validFixture: path.relative(root, validFixturePath),
     invalidSensitiveFixture: path.relative(root, invalidSensitiveFixturePath),
     invalidPublicShellFixture: path.relative(root, invalidPublicShellFixturePath),
+    invalidMismatchedStageFixture: path.relative(root, invalidMismatchedStageFixturePath),
   };
 }
 
