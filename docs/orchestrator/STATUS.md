@@ -1,5 +1,39 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Dead-Letter Runtime Path Manifest Integrated
+
+Intent chain:
+
+- Vision: failed Allegro-to-Warehouse shipment correlation attempts must have durable operational review storage without raw provider payloads.
+- Goal Impact: the runtime volume/permission source gate moved from missing to source-declared PVC-backed readiness, leaving deploy and live-smoke gates explicit.
+- System: Allegro owns dead-letter artifact storage; Warehouse owns correlation, provider-status ledger, and fulfillment transitions; Orders owns lifecycle read models from Warehouse callbacks.
+- Feature: dead-letter runtime path manifest readiness.
+- Task: integrate Allegro commit `79797f1` into Orders orchestration state.
+- Execution Plan: accept source-only manifest and Dockerfile evidence; keep deploy, `kubectl apply`, live provider reads, live Warehouse calls, Warehouse migration run, Orders callbacks, and fulfillment status mutation blocked until approved.
+- Coding Prompt: no Orders runtime code, no raw Allegro id/waybill/tracking/customer fields, no direct provider payload ingestion by Orders, no deploy, and no production fulfillment mutation.
+- Code: Allegro `79797f1 chore: declare shipment dead-letter runtime path`; Orders docs checkpoint in this commit.
+- Validation: Allegro JSON configmap parse, Kubernetes deployment YAML parse, `npm run verify:shipment-status-replay`, `npm run verify:shipment-status-snapshot`, `npm run build`, `git diff --check`, pre-commit checks, push to `main`, and Orders `git diff --check`.
+
+Evidence:
+
+- Allegro `k8s/deployment.yaml` now declares PVC `allegro-shipment-dead-letter-data` with `storageClassName: local-path` and mounts it at `/var/lib/allegro-service/shipment-correlation-dead-letter`.
+- Allegro `k8s/configmap.yaml`, `.env.example`, and service deployment now use writer-compatible `ALLEGRO_SHIPMENT_DEAD_LETTER_DIR`.
+- Allegro `services/allegro-service/Dockerfile` creates the directory for non-Kubernetes/local runs.
+- No deploy, `kubectl apply`, DB write, migration, provider call, Warehouse call, Orders call, secret read, production data read, raw provider payload, tracking value, customer field, or fulfillment status mutation was performed.
+
+Remaining gates:
+
+- `[LANDED: source-declared PVC-backed runtime path in Allegro commit 79797f1.]`
+- `[MISSING: deploy approval before the runtime Allegro pod receives the PVC mount/env.]`
+- `[MISSING: owner-approved live runtime smoke with a safe order selection file and real token source.]`
+- `[MISSING: Warehouse deploy/migration approval for fulfillment_provider_shipment_correlations.]`
+- `[MISSING: owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or production fulfillment-row mutation.]`
+
+Next action:
+
+- Approve and run the Warehouse correlation deploy/migration plus Allegro deploy/live smoke sequence before enabling the Warehouse correlation producer or fulfillment status mutation.
+
 ## 2026-07-03 - Allegro Shipment Dead-Letter Retention Location Integrated
 
 Intent chain:
@@ -24,7 +58,8 @@ Evidence:
 Remaining gates:
 
 - `[LANDED: source-only shipment dead-letter retention location in allegro commit 40872d5.]`
-- `[MISSING: runtime volume and permission confirmation for /var/lib/allegro-service/shipment-correlation-dead-letter before deployment.]`
+- `[LANDED: source-declared PVC-backed runtime path in Allegro commit 79797f1.]`
+- `[MISSING: deploy approval before the runtime Allegro pod receives the PVC mount/env.]`
 - `[MISSING: owner-approved live runtime smoke with a safe order selection file and real token source.]`
 - `[MISSING: Warehouse deploy/migration approval for fulfillment_provider_shipment_correlations.]`
 - `[MISSING: owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true.]`
