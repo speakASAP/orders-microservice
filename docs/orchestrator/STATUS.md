@@ -1,5 +1,28 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Shipment Runtime Readiness In Standard Test Chain
+
+Intent chain:
+
+- Vision: Orders lifecycle reliability must not regress when future code changes touch order, Warehouse, or channel shipment integration contracts.
+- Goal Impact: the cross-repo shipment runtime readiness preflight is now part of the standard Orders `npm test` chain instead of being an optional standalone check.
+- System: Orders owns the validation chain; Warehouse and Allegro source contracts remain verified read-only by the preflight.
+- Feature: standard validation chain enforcement for shipment runtime readiness.
+- Task: add `verify:shipment-runtime-readiness` to the main `test` script and record IPS evidence.
+- Execution Plan: package/docs only; no deploy, migration, DB read/write, provider call, Warehouse call, Orders callback, or runtime status mutation.
+- Coding Prompt: keep the gate read-only and preserve explicit runtime approval gates.
+- Code: `package.json` test chain and IPS docs.
+- Validation: `npm run verify:shipment-runtime-readiness`, `npm run verify:order-lifecycle-read-model`, and `git diff --check`.
+
+Remaining gates:
+
+- `[LANDED: shipment runtime readiness preflight is enforced by the standard Orders test chain.]`
+- `[MISSING: Warehouse deploy/migration approval for fulfillment_provider_shipment_correlations.]`
+- `[MISSING: Allegro deploy approval before runtime pod receives ALLEGRO_SHIPMENT_DEAD_LETTER_DIR/PVC.]`
+- `[MISSING: owner approval to enable ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true.]`
+- `[MISSING: owner-approved live runtime smoke with safe order selection and real token source.]`
+- `[MISSING: owner approval before runtime fulfillment status mutation or production fulfillment-row mutation.]`
+
 ## 2026-07-03 - Cross-Repo Shipment Runtime Readiness Verifier
 
 Intent chain:
