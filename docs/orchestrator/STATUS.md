@@ -20,6 +20,13 @@ Decision:
 - Still blocked for implementation: no Allegro shipment status contract, OAuth-scope confirmation, credential source, status mapping, or sensitive-data policy has been completed yet. Worker E `019f265e-7e9e-7a03-b621-f030cc2ffd4e` owns the Allegro source contract; Worker F `019f265e-a504-78b3-acd8-c8ff42c745c1` owns the Warehouse bounded intake contract.
 
 Remaining blockers split to worker threads:
+Additional per-blocker worker threads started by the orchestrator after source approval:
+
+- P1 Allegro shipment source contract: `019f265f-14b0-74c1-8817-3ee56a6c4fb7`.
+- P2 Warehouse Allegro status mapping: `019f265f-42ac-7591-b946-bee3b0184384`.
+- P3 Shipment sensitive-data policy: `019f265f-9341-7492-971d-6f89bbe2644c`.
+- P4 Allegro shipment credential source: `019f265f-ce89-77f2-a7d1-f584e88c5ed5`.
+- P5 Allegro shipment fixture policy: `019f2660-06ce-78a0-bc4f-5f4752ee1a48`.
 
 - `[MISSING: Allegro shipment status source contract: read/polling endpoint selection, OAuth scopes, authentication method, idempotency key, timestamp semantics, retry/error semantics, and sanitized sample payloads.]`
 - `[MISSING: mapping from Allegro shipment/package/fulfillment statuses to Warehouse fulfillment statuses and Orders lifecycle stages after handed_to_delivery.]`
