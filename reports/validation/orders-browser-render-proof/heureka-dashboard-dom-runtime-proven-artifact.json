@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "orders.browser_render_artifact.v1",
+  "channel": "heureka",
+  "surface": "admin_dashboard",
+  "proofMode": "service_scoped_proxy",
+  "checkedAt": "2026-07-03T15:22:27.573Z",
+  "url": "https://heureka.alfares.cz/dashboard/orders",
+  "documentStatus": 200,
+  "dataSourceStatuses": [
+    {
+      "path": "/heureka/dashboard/orders-list?limit=50&status=all",
+      "status": 200
+    },
+    {
+      "path": "/heureka/dashboard/summary",
+      "status": 200
+    },
+    {
+      "path": "/heureka/dashboard/orders/[redacted-d1d85f004fbc4a99]",
+      "status": 200
+    }
+  ],
+  "rowCount": 6,
+  "renderedLifecycleStages": [
+    "cancelled",
+    "stale",
+    "unknown"
+  ],
+  "renderedLifecycleStage": "cancelled",
+  "renderedLifecycleLabel": "Cancelled",
+  "detailLifecycleStage": null,
+  "centralMetricsPresent": true,
+  "orderDetailPanelLoaded": false,
+  "rowTextHashes": [
+    "bef9b28fdf450d90",
+    "bcbba0f4e2a16a7c",
+    "bef9b28fdf450d90",
+    "bef9b28fdf450d90",
+    "bef9b28fdf450d90",
+    "bcbba0f4e2a16a7c"
+  ],
+  "metricHashes": [
+    "5f9029bd6f818cd3",
+    "4cd348abda4237d5",
+    "8c26e47a2d32632b",
+    "4dfb87ec7ee2c2a9",
+    "cc38c6dfaf514d62"
+  ],
+  "bodyHash": "3fd2724ff579205c9ce770883126bfcb1f7c6e1c634b1ab4592c92d12224a1f6",
+  "errorHash": null,
+  "redacted": true,
+  "tokenValuesPrinted": false,
+  "rawOrderRowsPrinted": false,
+  "customerPiiPrinted": false,
+  "databaseRead": false,
+  "providerCall": false,
+  "rawDomCaptured": false,
+  "pathValuesRedacted": true
+}

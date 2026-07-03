@@ -6,33 +6,33 @@ Live evidence: Bazos image `localhost:5000/bazos-service:27f325d` created a paid
 
 Remaining Bazos gate: natural live provider-backed marketplace webhook/order proof remains optional/product-gated if bounded fixture proof is insufficient.
 
-## 2026-07-03 - Heureka DOM Lifecycle Proof Blocked By Dashboard Runtime Error
+## 2026-07-03 - Heureka DOM Lifecycle Proof Proven After Dashboard Runtime Fix
 
-Current focus: turn the optional Heureka visible-label browser gate into current evidence instead of leaving it as an unknown follow-up.
+Current focus: close the Heureka visible-label browser gate with current post-fix evidence while keeping the proof service-scoped and redacted.
 
 Intent Preservation Chain:
 
 - Vision: Heureka operators must see central Orders lifecycle labels in the rendered dashboard, not only in the protected API payload.
-- Goal Impact: the API-backed Heureka proof remains valid, but the browser DOM proof is now concretely blocked by a deployed frontend runtime error before order rows render.
+- Goal Impact: the previous deployed frontend runtime blocker is fixed, redeployed, and replaced by a passing browser DOM proof.
 - System: Orders owns the evidence ledger; Heureka owns the dashboard JavaScript/runtime surface; no Warehouse, provider, DB, or Orders mutation authority moved.
 - Feature: Heureka customer/admin lifecycle status rendering evidence.
-- Task: run service-scoped browser smoke against `https://heureka.alfares.cz/dashboard/orders` using the live Heureka pod JWT without printing it.
-- Execution Plan: load the dashboard route, inject service-scoped auth into localStorage, wait for orders rows, and store only redacted status/error hashes plus bounded error samples.
-- Coding Prompt: no token values, cookies, raw order rows, customer PII, DB rows, raw DOM, provider payloads, payment refs, tracking values, or runtime mutation.
-- Code: `reports/validation/orders-browser-render-proof/heureka-dashboard-dom-runtime-blocked-artifact.json` and `scripts/verify-channel-lifecycle-runtime-evidence.js`.
-- Validation: service-scoped browser diagnostic loaded `/dashboard/orders` HTTP `200`, but rendered `0` order rows; the orders section/table existed but stayed hidden, and the page threw `Invalid regular expression flags`. `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:completion-audit`, and `git diff --check` must pass before commit.
+- Task: deploy Heureka route-regex fix, run service-scoped browser smoke against `https://heureka.alfares.cz/dashboard/orders`, and store only sanitized DOM evidence.
+- Execution Plan: generate a short-lived in-pod JWT for `app:heureka-service:admin`, inject it into localStorage, wait for orders rows and dashboard data calls, then redact path values before committing the artifact.
+- Coding Prompt: no token values, cookies, raw order ids, raw order rows, customer PII, DB rows, raw DOM, provider payloads, payment refs, tracking values, or runtime mutation.
+- Code: Heureka `57cf799`, `reports/validation/orders-browser-render-proof/heureka-dashboard-dom-runtime-proven-artifact.json`, and `scripts/verify-channel-lifecycle-runtime-evidence.js`.
+- Validation: Heureka self-test, runtime-readiness verifier, service build, deploy rollout, service-scoped Playwright DOM smoke, `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:completion-audit`, and `git diff --check`.
 
 Evidence:
 
-- Heureka deployed runtime remains `localhost:5000/heureka-service:a0dbb24` and API gateway `localhost:5000/heureka-api-gateway:a0dbb24`.
-- Public dashboard shell returned HTTP `200`.
-- Service-scoped browser session used the live pod JWT in memory/temp file only; token value was not printed and the temp file was removed.
-- Sanitized artifact status is `blocked`, `rowCount=0`, `hasOrdersSection=true`, `hasOrdersTableBody=true`, `ordersSectionHidden=true`, and page error sample `Invalid regular expression flags`.
-- API-backed proof remains current separately: `/heureka/dashboard/orders-list` has non-stale central lifecycle data after synthetic create/replay/reservation/cleanup.
+- Heureka deployed runtime is `localhost:5000/heureka-service:57cf799` and API gateway `localhost:5000/heureka-api-gateway:57cf799`.
+- Public dashboard shell returned HTTP `200`; protected dashboard data calls returned HTTP `200` in the service-scoped browser session.
+- Sanitized artifact is `reports/validation/orders-browser-render-proof/heureka-dashboard-dom-runtime-proven-artifact.json`.
+- The artifact records `rowCount=6`, rendered lifecycle stage `cancelled`, central metrics present, protected dashboard data calls HTTP 200, redacted path values, and no raw DOM capture.
+- The temporary proof token was generated in-pod, used only from `/private/tmp`, removed after the smoke, and was not printed.
 
 Remaining gate:
 
-- `[MISSING: Heureka dashboard JavaScript runtime fix and redeploy, then rerun service-scoped DOM visible-label proof]`.
+- `[MISSING: optional direct human-session Heureka browser proof if product/security requires evidence beyond service-scoped dashboard DOM proof]`.
 
 ## 2026-07-03 - Goal 24 Orders Bundle Evidence Contract
 
