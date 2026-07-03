@@ -116,7 +116,7 @@ const report = {
   },
   result: {
     summary: '[MISSING: sanitized rendered proof result summary]',
-    nextAction: 'Replace all [MISSING: ...] placeholders and validate with BROWSER_RENDER_PROOF_REPORT_PATH plus BROWSER_RENDER_PROOF_EXPECTED_COMMIT.',
+    nextAction: 'Run npm run prepare:browser-proof-mutation-evidence, replace all [MISSING: ...] placeholders, and validate with BROWSER_RENDER_PROOF_REPORT_PATH plus BROWSER_RENDER_PROOF_EXPECTED_COMMIT.',
   },
 };
 

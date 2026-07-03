@@ -1,5 +1,24 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Proof Mutation Evidence Helper Added
+
+Intent chain:
+
+- Vision: rendered browser proof should consume mutation evidence generated from a concrete sanitized lifecycle smoke artifact, not manual hash calculations.
+- Goal Impact: the next real FlipFlop proof lane can run one non-mutating command to obtain `mutationEvidence.artifactPath`, `artifactHash`, and `expectedLifecycleStage` values required by the browser proof report verifier.
+- System: Orders owns the mutation evidence helper, verifier, proof contract, and IPS status; channel repos, browser sessions, providers, databases, runtime lifecycle state, and deployments remain untouched.
+- Feature: browser proof mutation evidence helper.
+- Task: add `prepare:browser-proof-mutation-evidence`, verify ready/gated/unsafe-path behavior, include the verifier in `npm test`, and document the proof bridge.
+- Execution Plan: update scripts/package/proof contract/status/state docs, validate without browser sessions or runtime mutation, then commit and push.
+- Coding Prompt: do not use credentials, browser sessions, provider calls, DB reads, lifecycle mutation, deploys, or channel repo edits.
+- Code: mutation evidence helper/verifier, proof template next action, package scripts, proof contract, status/state docs.
+- Validation: `node --check scripts/prepare-browser-proof-mutation-evidence.js`, `node --check scripts/verify-browser-proof-mutation-evidence.js`, `node --check scripts/generate-browser-render-proof-report-template.js`, `npm run verify:browser-proof-mutation-evidence`, `npm run verify:browser-render-proof-template`, `npm run verify:browser-render-proof-report`, `npm run verify:completion-audit`, `git diff --check`, and full `npm test` passed. No credentials, sessions, browser automation, DB reads, provider calls, lifecycle mutation, deploys, or channel repo edits were used.
+
+Remaining gate:
+
+- `[MISSING: approved real rendered customer/admin browser proof report using prepared mutation evidence.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Browser Proof Mutation Artifact Binding Added
 
 Intent chain:

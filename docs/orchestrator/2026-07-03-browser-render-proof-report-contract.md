@@ -89,6 +89,10 @@ Required `evidencePolicy` booleans:
 - Route URLs must be unique for proven browser reports. proven report route urls must be unique.
 
 
+## Mutation Evidence Helper
+
+`npm run prepare:browser-proof-mutation-evidence -- --artifact-path=reports/validation/lifecycle-mutation-smoke/report-latest.json` emits the sanitized `mutationEvidence` fields for a ready lifecycle mutation smoke artifact, including `artifactPath`, `artifactHash`, and `expectedLifecycleStage`. It is non-mutating and gates when the artifact is missing or does not prove create/pay/Warehouse/customer/admin lifecycle propagation.
+
 ## Template Generator
 
 `npm run generate:browser-render-proof-template` emits a sanitized `orders.browser_render_proof.v1` template bound to the current immutable Orders commit. The template defaults to the first FlipFlop validation lane, `status=incomplete`, and `--artifact-mode=path`; `--artifact-mode=sha256` is available for hash-only redacted proof evidence. `--output=reports/validation/orders-browser-render-proof/<file>.json` writes the incomplete template to the approved validation directory. It is a capture aid only and cannot close the rendered browser proof gate until all `[MISSING: ...]` placeholders are replaced with approved rendered evidence and the supplied report passes `verify:browser-render-proof-report`.
