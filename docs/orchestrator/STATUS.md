@@ -5281,3 +5281,30 @@ Remaining blockers:
 
 - `[MISSING: qualifying historical paid multi-product Orders rows for a non-empty historical backfill batch]`.
 - `[MISSING: owner-reviewed publish window if a future replay window returns non-zero candidates]`.
+
+
+## 2026-07-03 - Channel Lifecycle Detail Endpoint For Rendered UI Proof
+
+Current focus: unblock FlipFlop customer/admin rendered lifecycle proof after paid Orders warehouse fulfillment status changes.
+
+Intent Preservation Chain:
+
+- Vision: every marketplace cabinet reads the same canonical Orders lifecycle stage after payment and warehouse handoff.
+- Goal Impact: channel UIs no longer fallback to raw order `status=processing` when the canonical lifecycle is `warehouse_collecting`.
+- System: Orders remains lifecycle authority; channel clients may read a stable `/api/orders/:id/lifecycle` detail projection instead of raw order detail.
+- Feature: lifecycle detail endpoint for channel service clients.
+- Task: add `GET /api/orders/:id/lifecycle`, serialize the canonical read model, expose top-level `lifecycleStage` and lifecycle `status` for legacy channel clients, and keep raw order status as `rawStatus`.
+- Execution Plan: Orders-only API/read-model change; no non-Orders repo edits; no DB reads; no secret value output.
+- Coding Prompt: preserve raw detail endpoint behavior; do not expose new sensitive fields; make channel adapter normalization prefer canonical lifecycle stage.
+- Code: `src/orders/orders.controller.ts`, `src/orders/orders.service.ts`, `scripts/verify-order-lifecycle-read-model.js`.
+- Validation: `npm test` passed in `/tmp/orders-worktrees/orders-integrate-warehouse-checkout-mapping`.
+
+Evidence:
+
+- Sanitized FlipFlop diagnostic for test account `ssfskype@gmail.com` showed central order hash `f879ac07a288` already had `warehouseHandoff.status=fulfilled` and `fulfillmentWarehouseStatus=collecting`, while FlipFlop still displayed `processing` because `/api/orders/:id/lifecycle` was missing and the client fell back to raw `/api/orders/:id`.
+- New verifier coverage asserts the channel detail shape returns `lifecycleStage=warehouse_collecting`, `status=warehouse_collecting`, `rawStatus=processing`, and `statusProjection=processing`.
+
+Remaining gates:
+
+- `[MISSING: deploy Orders lifecycle detail endpoint]`
+- `[MISSING: rerun FlipFlop authenticated customer/admin rendered browser proof after deploy]`

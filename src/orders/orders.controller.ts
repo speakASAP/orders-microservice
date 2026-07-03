@@ -153,6 +153,13 @@ export class OrdersController {
     return { success: true, data: validation };
   }
 
+  @Get(':id/lifecycle')
+  @Roles(...ORDER_DETAIL_READ_ROLES)
+  async getLifecycleReadModel(@Param('id', ParseUUIDPipe) id: string) {
+    const order = await this.ordersService.getLifecycleReadModel(id);
+    return { success: true, data: order };
+  }
+
   @Get(':id')
   @Roles(...ORDER_DETAIL_READ_ROLES)
   async findOne(@Param('id', ParseUUIDPipe) id: string) {

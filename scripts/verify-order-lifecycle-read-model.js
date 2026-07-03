@@ -178,6 +178,35 @@ assert.equal(readModel.warehouseHandoff.status, 'fulfilled');
 assert.equal(readModel.timeline.some((entry) => entry.lifecycleStage === 'ordered_unpaid'), true);
 assert.equal(readModel.timeline.some((entry) => entry.lifecycleStage === 'warehouse_fulfillment_requested'), true);
 
+const channelLifecycleDetail = (() => {
+  const model = serializeOrderLifecycleReadModel(makeOrder({
+    paymentStatus: 'paid',
+    status: 'processing',
+    warehouseHandoff: {
+      status: 'fulfilled',
+      itemCount: 1,
+      reservedCount: 1,
+      failedCount: 0,
+      fulfillmentOrderHandoff: { status: 'updated', warehouseStatus: 'collecting' },
+    },
+  }), {
+    includeCustomer: true,
+    includeDeliveryAddress: true,
+    includeWarehouseHandoff: true,
+  });
+  return {
+    ...model,
+    lifecycleStage: model.lifecycle.lifecycleStage,
+    status: model.lifecycle.lifecycleStage,
+    rawStatus: model.status,
+    statusProjection: model.lifecycle.statusProjection,
+  };
+})();
+assert.equal(channelLifecycleDetail.lifecycleStage, 'warehouse_collecting');
+assert.equal(channelLifecycleDetail.status, 'warehouse_collecting');
+assert.equal(channelLifecycleDetail.rawStatus, 'processing');
+assert.equal(channelLifecycleDetail.statusProjection, 'processing');
+
 const eventPayload = buildOrderLifecycleChangedPayload(makeOrder({
   paymentStatus: 'paid',
   status: 'confirmed',

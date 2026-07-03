@@ -468,6 +468,33 @@ export class OrdersService {
     };
   }
 
+  async getLifecycleReadModel(id: string) {
+    const order = await this.findOne(id);
+    const model = serializeOrderLifecycleReadModel(order, {
+      includeCustomer: true,
+      includeDeliveryAddress: true,
+      includeWarehouseHandoff: true,
+    });
+
+    return {
+      ...model,
+      lifecycleStage: model.lifecycle.lifecycleStage,
+      status: model.lifecycle.lifecycleStage,
+      rawStatus: model.status,
+      statusProjection: model.lifecycle.statusProjection,
+      paymentStatus: model.lifecycle.paymentStatus,
+      fulfillmentStatus: model.lifecycle.fulfillmentStatus,
+      deliveryStatus: model.lifecycle.deliveryStatus,
+      exceptionStatus: model.lifecycle.exceptionState,
+      currency: model.totals.currency,
+      subtotal: model.totals.subtotal,
+      shippingCost: model.totals.shippingCost,
+      tax: model.totals.taxAmount,
+      total: model.totals.total,
+      deliveryAddress: model.shipping.deliveryAddress,
+    };
+  }
+
   async updateStatus(id: string, status: string, context: OrderStatusTransitionContext = {}): Promise<Order> {
     const startedAt = Date.now();
     const order = await this.findOne(id);
