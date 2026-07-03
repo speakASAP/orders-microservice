@@ -330,7 +330,7 @@ const CHANNELS = {
   aukro: {
     env: 'AUKRO_REPO_PATH',
     defaults: ['/home/ssf/Documents/Github/aukro'],
-    status: 'live_synthetic_create_reservation_cleanup_proven_cabinet_protected_data_auth_blocked',
+    status: 'protected_customer_admin_lifecycle_api_proven_dom_optional',
     artifactChecks: [
       {
         file: '12_validation/VAL-GOAL-7-2B-orders-create-auth-warehouse-readiness.md',
@@ -348,7 +348,6 @@ const CHANNELS = {
           'Customer cabinet renders central lifecycle status',
           'Admin dashboard exposes order/delivery statistics',
           'pass-with-blocked-smoke',
-          '[MISSING: Orders lifecycle read contract authorized for aukro-service role; client method is implemented fail-closed pending Orders endpoint/role approval.]',
         ],
       },
       {
@@ -393,6 +392,38 @@ const CHANNELS = {
           ['providerCall', false],
         ],
       },
+
+      {
+        root: 'orders',
+        file: 'reports/validation/orders-browser-render-proof/aukro-protected-lifecycle-live-proven.json',
+        type: 'json',
+        assertions: [
+          ['schemaVersion', 'orders.channel_lifecycle_runtime_evidence.v1'],
+          ['channel', 'aukro'],
+          ['status', 'protected_customer_admin_lifecycle_api_proven'],
+          ['runtime.aukroImage', 'localhost:5000/aukro-service:cb39bb4'],
+          ['runtime.customerDashboardHttpStatus', 200],
+          ['runtime.adminServicesHttpStatus', 200],
+          ['runtime.existingForwardedCandidatePresent', true],
+          ['runtime.mutationPerformed', false],
+          ['customerCabinetEvidence.centralAvailableCount', 1],
+          ['customerCabinetEvidence.nonStaleSample.status', 'cancelled'],
+          ['customerCabinetEvidence.nonStaleSample.lifecycleStage', 'cancelled'],
+          ['customerCabinetEvidence.nonStaleSample.ordersReadStatus', 'available'],
+          ['customerCabinetEvidence.nonStaleSample.statusSource', 'orders'],
+          ['customerCabinetEvidence.nonStaleSample.stale', false],
+          ['customerCabinetEvidence.nonStaleSample.forwarded', true],
+          ['customerCabinetEvidence.nonStaleSample.hasCentralOrderId', true],
+          ['adminDashboardEvidence.ordersWithCentralStatus', 1],
+          ['adminDashboardEvidence.byLifecycleStage.cancelled', 1],
+          ['evidencePolicy.redacted', true],
+          ['evidencePolicy.tokenPrinted', false],
+          ['evidencePolicy.rawOrdersPrinted', false],
+          ['evidencePolicy.customerPrinted', false],
+          ['evidencePolicy.providerPayloadPrinted', false],
+          ['evidencePolicy.rawDomCaptured', false],
+        ],
+      },
       {
         root: 'orders',
         file: 'reports/validation/orders-browser-render-proof/aukro-dashboard-auth-current-blocked.json',
@@ -420,7 +451,7 @@ const CHANNELS = {
       },
     ],
     remainingGates: [
-      'Aukro public dashboard shell is live, but protected customer/admin data proof is blocked until an approved human/admin bearer or bounded fixture is available',
+      'optional browser DOM capture for visible Aukro lifecycle labels if API-backed protected dashboard proof is not sufficient',
     ],
   },
 };
@@ -498,7 +529,7 @@ const result = {
     'approved authenticated customer/admin browser or API smoke for remaining channels after route/data blockers are resolved',
     'Allegro buyer list/detail central lifecycle is proven through an approved bounded fixture; natural real-buyer proof remains optional/product-gated if fixture proof is insufficient',
     'Optional Heureka browser DOM render capture remains if API-backed dashboard lifecycle proof is not sufficient',
-    'Aukro rendered customer/admin lifecycle proof is blocked by protected dashboard/admin 403 with the available pod JWT and no approved human/admin bearer',
+    'Aukro protected customer/admin lifecycle API proof is proven; optional browser DOM capture remains if visible-label proof is required',
     'Warehouse/Allegro shipment-status runtime is deployed with migrations applied; remaining gates are Allegro enablement, Warehouse URL/token config, safe live smoke, sanitized readback, and approved fulfillment/Orders callback mutation',
     'Bazos paid replay source is deployed, but current aggregate has totalOrders=0; live eligible paid multi-product evidence and approved customer/admin lifecycle proof remain missing',
   ],

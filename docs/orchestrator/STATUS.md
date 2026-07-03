@@ -33,7 +33,7 @@ Remaining gates:
 - `[MISSING: browser DOM capture for Heureka visible lifecycle labels if API-backed dashboard proof is not sufficient]`
 - `[MISSING: live Bazos paid multi-product order replay evidence or approved bounded fixture]`
 - `[MISSING: real forwarded Allegro order visible to a real Auth bearer with central Orders lifecycle rendering]`
-- `[MISSING: approved Aukro human/admin bearer or bounded fixture plus non-stale canonical lifecycle row]`
+- `[MISSING: optional Aukro browser DOM capture for visible lifecycle labels if API-backed proof is not sufficient]`
 - `[MISSING: Allegro shipment OAuth/scope/account permission and sanitized fixture bundle for provider runtime smoke]`
 - `[MISSING: Warehouse ledger/correlation runtime readback proving no raw provider/customer fields enter Orders events]`
 - `[MISSING: product-approved tracking visibility matrix before raw tracking number or URL appears in any UI/API response]`
@@ -64,7 +64,7 @@ IPS: Vision -> reliable Orders lifecycle across channel services; Goal Impact ->
 
 Live evidence: `aukro-service` is ready `1/1` on image `localhost:5000/aukro-service:68784d7`; public `/dashboard` returned HTTP `200`; `/health` returned HTTP `200`; protected `/aukro/ui/dashboard` and `/aukro/ui/admin/services` returned HTTP `403` with the available pod `JWT_TOKEN`. The token value was not printed.
 
-Remaining Aukro gate: `[MISSING: approved Aukro human/admin bearer or bounded fixture for protected customer/admin lifecycle proof]`.
+Remaining Aukro gate: `[MISSING: optional Aukro browser DOM capture for visible lifecycle labels if API-backed proof is not sufficient]`.
 
 ## 2026-07-03 - Heureka API Lifecycle Proof Reconciled
 
@@ -97,6 +97,12 @@ Resolved stale Orders blockers: `[MISSING: Bazos paid order history source]`, `[
 
 Remaining Bazos lifecycle gates: `[MISSING: live Bazos paid multi-product order replay evidence]`, `[MISSING: owner approval to activate recurring Bazos affinity publish after live dry-run evidence]`, `[UNKNOWN: live Bazos marketplace webhook support]`, and `[MISSING: approved authenticated Bazos customer/admin lifecycle proof backed by a real eligible Bazos order]`.
 # Orders Orchestrator Status
+
+## 2026-07-03 - Aukro Protected Lifecycle API Proof Closed
+
+IPS: Vision -> reliable Orders lifecycle in marketplace cabinets; Goal Impact -> Aukro customer/admin protected data now displays canonical Orders status/lifecycle for an existing forwarded order; System -> Aukro UI projection plus Orders lifecycle readback; Feature -> Aukro lifecycle status tracking; Task -> fix lifecycle fallback, deploy, prove protected customer/admin API data, update Orders evidence; Execution Plan -> branch `codex/aukro-lifecycle-status-fallback`, commit/deploy Aukro `cb39bb4`, redacted runtime proof, Orders verifier update; Coding Prompt -> preserve no-token/no-PII/no-raw-row/no-provider-payload policy; Code -> `services/aukro-service/src/ui/ui.controller.ts`, `reports/validation/orders-browser-render-proof/aukro-protected-lifecycle-live-proven.json`; Validation -> Aukro test/build/deploy passed; live proof returned customer/admin HTTP `200`, customer `lifecycleStage=cancelled`, admin `byLifecycleStage.cancelled=1`.
+
+Remaining gate: optional browser DOM capture for Aukro visible lifecycle labels if API proof is not sufficient.
 
 ## 2026-07-03 - Allegro Bounded Buyer Lifecycle Proof
 

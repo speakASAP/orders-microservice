@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "orders.channel_lifecycle_runtime_evidence.v1",
+  "channel": "aukro",
+  "status": "protected_customer_admin_lifecycle_api_proven",
+  "checkedAt": "2026-07-03T00:00:00.000Z",
+  "runtime": {
+    "aukroImage": "localhost:5000/aukro-service:cb39bb4",
+    "customerDashboardHttpStatus": 200,
+    "adminServicesHttpStatus": 200,
+    "existingForwardedCandidatePresent": true,
+    "mutationPerformed": false,
+    "providerCall": false
+  },
+  "customerCabinetEvidence": {
+    "dashboardOrderCount": 3,
+    "centralAvailableCount": 1,
+    "nonStaleSample": {
+      "status": "cancelled",
+      "lifecycleStage": "cancelled",
+      "ordersReadStatus": "available",
+      "statusSource": "orders",
+      "stale": false,
+      "forwarded": true,
+      "hasCentralOrderId": true
+    }
+  },
+  "adminDashboardEvidence": {
+    "totalOrders": 3,
+    "forwardedOrders": 1,
+    "ordersWithCentralStatus": 1,
+    "staleOrders": 2,
+    "byOrdersReadStatus": {
+      "available": 1,
+      "missing_order_id": 2
+    },
+    "byOrderStatus": {
+      "cancelled": 1,
+      "paid": 2
+    },
+    "byLifecycleStage": {
+      "cancelled": 1,
+      "missing_order_id": 2
+    }
+  },
+  "codeEvidence": {
+    "aukroCommit": "cb39bb4",
+    "fix": "Customer DTO lifecycleStage falls back to central Orders status; admin byLifecycleStage uses the same status fallback."
+  },
+  "evidencePolicy": {
+    "redacted": true,
+    "tokenPrinted": false,
+    "rawOrdersPrinted": false,
+    "customerPrinted": false,
+    "providerPayloadPrinted": false,
+    "rawDomCaptured": false
+  },
+  "result": {
+    "summary": "Aukro protected customer/admin API surfaces now show central Orders lifecycle/status for an existing forwarded order without printing tokens, raw rows, customer data, or provider payloads.",
+    "nextAction": "Optional browser DOM capture only if visible-label proof is required beyond API-backed protected dashboard data."
+  }
+}
