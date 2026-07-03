@@ -15,7 +15,7 @@
       "warehouse": {
         "name": "warehouse-microservice",
         "namespace": "statex-apps",
-        "image": "localhost:5000/warehouse-microservice:d9ebb47",
+        "image": "localhost:5000/warehouse-microservice:3868df3",
         "readyReplicas": 1,
         "replicas": 1
       },
@@ -45,13 +45,13 @@
         "idempotent": true
       },
       "providerStatusReadback": {
-        "observations": 3,
+        "observations": 4,
         "latestDecision": "accepted",
-        "latestNormalizedWarehouseStatus": "delivered"
+        "latestNormalizedWarehouseStatus": "returned"
       },
       "fulfillmentMutation": {
         "statusMutationApplied": true,
-        "fulfillmentStatus": "delivered"
+        "fulfillmentStatus": "returned"
       },
       "supplementalAggregateCountsAfterNoCentralOrderSmoke": {
         "correlations": 1,
@@ -66,6 +66,17 @@
         "observationDecision": "accepted",
         "normalizedWarehouseStatus": "delivered",
         "fulfillmentStatus": "delivered",
+        "tokenPrinted": false,
+        "rawPayloadPrinted": false,
+        "rawIdsPrinted": false
+      },
+      "syntheticReturnedProviderFixture": {
+        "httpStatus": 201,
+        "success": true,
+        "statusMutationApplied": true,
+        "observationDecision": "accepted",
+        "normalizedWarehouseStatus": "returned",
+        "fulfillmentStatus": "returned",
         "tokenPrinted": false,
         "rawPayloadPrinted": false,
         "rawIdsPrinted": false
@@ -235,13 +246,20 @@
     },
     "orders": {
       "warehouseCallbackReadback": {
-        "centralStatus": "received",
+        "centralStatus": "returned",
         "paymentStatus": "paid",
         "projectionReceived": true,
         "syntheticDeliveredProviderFixture": {
           "previousLifecycleStage": "in_delivery",
           "requestedWarehouseStatus": "delivered",
           "resultingLifecycleStage": "received",
+          "actor": "service:warehouse-microservice",
+          "printedRawOrderId": false
+        },
+        "syntheticReturnedProviderFixture": {
+          "previousLifecycleStage": "received",
+          "requestedWarehouseStatus": "returned",
+          "resultingLifecycleStage": "returned",
           "actor": "service:warehouse-microservice",
           "printedRawOrderId": false
         }
@@ -258,6 +276,7 @@
     "statusOnlyTrackingVisibilityApproved": true
   },
   "remainingGates": [
+    "synthetic ISSUE/not_delivered runtime proof requires a fresh in_delivery fixture because current fulfillment is returned",
     "future production evidence from real Allegro.cz customer/provider shipment when marketplace traffic exists",
     "optional future audited full-tracking reveal API if product/security approves it"
   ],

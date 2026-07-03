@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "orders.allegro_synthetic_returned_provider_fixture.v1",
+  "status": "synthetic_provider_returned_lifecycle_proven",
+  "checkedAt": "2026-07-03T20:07:56.048Z",
+  "scope": {
+    "channel": "allegro",
+    "mode": "approved_synthetic_provider_fixture",
+    "realAllegroCustomerRequired": false,
+    "providerWrite": false,
+    "warehouseMutation": true,
+    "ordersMutation": true,
+    "deploy": false,
+    "runtimeSecretChange": false
+  },
+  "fixture": {
+    "source": "existing_sanitized_warehouse_shipment_correlation_after_delivered_fixture",
+    "latestStatus": "RETURNED",
+    "identityFields": "hashed_provider_identity_only",
+    "rawTrackingDisplayed": false,
+    "rawWaybillDisplayed": false,
+    "rawProviderPayloadDisplayed": false,
+    "rawOrderIdsDisplayed": false,
+    "customerPiiDisplayed": false
+  },
+  "warehousePost": {
+    "httpStatus": 201,
+    "success": true,
+    "statusMutationApplied": true,
+    "observationDecision": "accepted",
+    "normalizedWarehouseStatus": "returned",
+    "fulfillmentStatus": "returned",
+    "tokenPrinted": false,
+    "rawPayloadPrinted": false,
+    "rawIdsPrinted": false
+  },
+  "warehouseReadback": {
+    "sourceStatusClasses": [
+      "UNKNOWN",
+      "IN_TRANSIT",
+      "DELIVERED",
+      "RETURNED"
+    ],
+    "latestSourceStatusClass": "RETURNED",
+    "latestNormalizedWarehouseStatus": "returned",
+    "latestDecision": "accepted",
+    "fulfillmentStatus": "returned",
+    "printedRawIds": false,
+    "printedRawRows": false
+  },
+  "ordersCallbackReadback": {
+    "previousLifecycleStage": "received",
+    "requestedWarehouseStatus": "returned",
+    "resultingLifecycleStage": "returned",
+    "actor": "service:warehouse-microservice",
+    "printedRawOrderId": false
+  },
+  "remainingGates": [
+    "synthetic ISSUE/not_delivered runtime proof requires a fresh in_delivery fixture because current fulfillment is returned",
+    "future production evidence from real Allegro.cz customer/provider shipment when marketplace traffic exists",
+    "optional future audited full-tracking reveal API if product/security approves it"
+  ]
+}
