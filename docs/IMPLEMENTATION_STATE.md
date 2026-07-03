@@ -43,8 +43,8 @@ downstream:
   - docs/orchestrator/EXECUTION_PLAN.md
 related_adrs: []
 current_goal: Goal 7 Production Order Integration Rollout
-current_chunk: Allegro buyer cabinet source landed; Allegro shipment contract, verifier, and projection design landed; provider shipment-status remains OAuth/migration/Warehouse-runtime gated
-next_recommended_goal: Integrate Warehouse shipment snapshot consumer contract, then run sanitized Allegro OAuth capability probe before projection migration/runtime work
+current_chunk: Allegro shipment contract, verifier, projection design, sensitive-data policy, and Warehouse consumer contract landed; runtime remains OAuth/migration/ledger/correlation gated
+next_recommended_goal: Resolve Warehouse ledger/correlation ownership and run sanitized Allegro OAuth capability proof before projection migration/runtime work
 last_completed_goal: FlipFlop admin RBAC hardening deployed and marketplace order read-scope hardening completed
 blockers:
   - DocsRAG session JWT unavailable for live RAG query
@@ -61,6 +61,9 @@ blockers:
   - [MISSING: owner approval for Allegro shipment projection Prisma migration/service implementation]
   - [MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses]
   - [LANDED: Warehouse bounded provider-status intake contract in commit f104202]
+  - [LANDED: Warehouse Allegro shipment snapshot consumer contract in commit d90bd93]
+  - [MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store]
+  - [MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order]
   - [LANDED: Allegro buyer backend/frontend source in commits 78e0f5f, 9f07efc, and 735ad1f]
   - [MISSING: owner-approved Allegro DB migration/deploy for buyerAuthSubject]
   - [MISSING: live authenticated buyer list/detail smoke after Allegro deploy]
@@ -69,6 +72,8 @@ blockers:
 ```
 
 ## Current Checkpoint
+
+2026-07-03: Warehouse Allegro shipment snapshot consumer contract landed in Warehouse commit `d90bd93`. Worker H updated Warehouse fulfillment provider-status intake and fulfillment handoff docs plus validation report `VAL-WH-ALLEGRO-SNAPSHOT-CONSUMER`, defining accepted redacted snapshot fields, post-`handed_to_delivery` status mapping boundaries, idempotency/ledger expectations, rejection rules, and the role of the existing Orders lifecycle callback. Validation passed with Warehouse `git diff --check`, `npm run check:hosted-auth`, and pre-commit. No runtime code, DB migration, secret, deploy, live call, Allegro edit, or Orders runtime code was performed.
 
 2026-07-03: Allegro shipment projection design landed in Allegro commit `9834f09`. The docs-only design proposes `AllegroShipmentProjection`, `AllegroShipmentPackageProjection`, `AllegroShipmentTrackingEventProjection`, and `AllegroShipmentSnapshotLedger`, reusing the existing sync/cursor/raw-payload/audit foundation and keeping raw shipment payload persistence blocked by default. Validation passed with Allegro `git diff --check` and pre-commit checks. No migration, runtime code, live Allegro read, OAuth token access, Warehouse handoff, or deploy was performed. Worker H `019f2671-8a90-7c93-8e79-cb5f27669c76` is running the Warehouse consumer contract lane in parallel.
 

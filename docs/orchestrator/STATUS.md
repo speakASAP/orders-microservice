@@ -1,5 +1,40 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Allegro Shipment Projection And Warehouse Consumer Contracts Integrated
+
+Intent chain:
+
+- Vision: Allegro-origin delivery progress should flow through sanitized Allegro snapshots, Warehouse transition validation, and bounded Orders lifecycle callbacks.
+- Goal Impact: source contract, sensitive-data policy, fixture verifier, projection design, and Warehouse consumer contract are now landed; runtime work remains gated by OAuth, migration, ledger/correlation, adapter, deploy, and smoke approvals.
+- System: Allegro owns provider reads and `allegro.shipment_status_snapshot.v1`; Warehouse owns post-`handed_to_delivery` fulfillment status intake and future ledger/correlation decisions; Orders owns lifecycle projection/events and must not consume raw Allegro snapshots directly.
+- Feature: cross-repo shipment-status contract integration for the Orders lifecycle goal.
+- Task: integrate Allegro projection design `9834f09` and Warehouse consumer contract `d90bd93` into Orders orchestration state.
+- Execution Plan: accept committed docs/source evidence, keep runtime code/deploy blocked, and keep raw tracking payloads/numbers/URLs out of Orders events and callbacks.
+- Coding Prompt: no runtime code, no DB migration, no secret read, no live provider call, no direct Orders ingestion of Allegro snapshots.
+- Code: Allegro `9834f09 docs: design allegro shipment projection`; Warehouse `d90bd93 docs: define Allegro shipment snapshot consumer`; Orders docs checkpoint in this commit.
+- Validation: Allegro `git diff --check` and pre-commit passed; Warehouse `git diff --check`, `npm run check:hosted-auth`, and pre-commit passed; Orders `git diff --check` passed.
+
+Evidence:
+
+- Allegro projection design doc proposes `AllegroShipmentProjection`, `AllegroShipmentPackageProjection`, `AllegroShipmentTrackingEventProjection`, and `AllegroShipmentSnapshotLedger`, reusing existing sync/cursor/audit foundation.
+- Warehouse consumer contract accepts only normalized, redacted `allegro.shipment_status_snapshot.v1` fields after `handed_to_delivery`.
+- Warehouse validation report: `docs/intent-preservation/validation-reports/VAL-WH-ALLEGRO-SNAPSHOT-CONSUMER.md`.
+- Sensitive-data policy from Orders `6743613` keeps tracking numbers, tracking URLs, raw provider payloads, credentials, customer contact/address data, and raw provider responses out of events/logs/handoffs by default.
+
+Remaining gates:
+
+- `[MISSING: sanitized live OAuth capability proof for shipment and tracking reads.]`
+- `[MISSING: owner approval for Allegro shipment projection Prisma migration/service implementation.]`
+- `[MISSING: Warehouse consumer/runtime adapter for read-only shipment snapshots.]`
+- `[MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store.]`
+- `[MISSING: approved correlation source between Allegro hashed order/shipment/waybill identity and exactly one Warehouse fulfillment order.]`
+- `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
+- `[MISSING: deploy approval and sanitized runtime smoke.]`
+
+Next action:
+
+- Resolve Warehouse ledger/correlation ownership and run sanitized Allegro OAuth capability proof before projection migration/runtime adapter work.
+
 ## 2026-07-03 - Allegro Shipment Snapshot Verifier Source Landed
 
 Intent chain:
@@ -24,9 +59,9 @@ Evidence:
 Remaining gates:
 
 - `[MISSING: sanitized live OAuth capability proof for /order/checkout-forms/{id}/shipments and /order/carriers/{carrierId}/tracking.]`
-- `[MISSING: durable Allegro shipment projection schema/client before runtime handoff.]`
+- `[LANDED: durable Allegro shipment projection schema/client design in allegro commit 9834f09; migration/service implementation still gated.]`
 - `[MISSING: Warehouse consumer/runtime adapter for read-only shipment snapshots.]`
-- `[MISSING: provider adapter durable idempotency store or Warehouse provider-status ledger decision.]`
+- `[MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store.]`
 - `[MISSING: deploy approval and runtime smoke for the eventual Allegro shipment-status path.]`
 
 Next action:
@@ -57,8 +92,8 @@ Evidence:
 Remaining gates:
 
 - `[MISSING: Allegro OAuth scope proof and runtime credential source for shipment reads.]`
-- `[MISSING: provider adapter durable idempotency store or Warehouse provider-status ledger decision.]`
-- `[MISSING: sanitized Allegro shipment fixture set and adapter tests.]`
+- `[MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store.]`
+- `[LANDED: sanitized Allegro shipment snapshot fixture/verifier set in allegro commit e626e5c; runtime adapter tests still gated.]`
 - `[LANDED: source build validation for Allegro buyer backend/frontend route; runtime authenticated smoke remains deploy-gated.]`
 - `[MISSING: deploy approval and runtime smoke for Allegro buyer cabinet and shipment-status path.]`
 
@@ -123,8 +158,8 @@ Remaining gates:
 
 - `[MISSING: proof that active Allegro OAuth token/scopes can read checkout-form shipments, carrier tracking, and optional shipment-management detail without write scopes.]`
 - `[LANDED: Warehouse bounded intake contract in warehouse-microservice commit f104202.]`
-- `[MISSING: provider adapter durable idempotency store or Warehouse provider-status ledger decision.]`
-- `[MISSING: sanitized fixture set for order-with-no-shipments, delivered, multi-package, mixed-carrier, tracking-null, oauth-403, redaction, and non-Allegro filter cases.]`
+- `[MISSING: approved Warehouse shipment snapshot ledger or adapter-owned durable idempotency store.]`
+- `[LANDED: sanitized Allegro shipment snapshot fixture/verifier set in allegro commit e626e5c; runtime adapter tests still gated.]`
 - `[MISSING: product-approved tracking visibility matrix before any tracking number/URL appears in UI/API responses.]`
 
 Next action:
