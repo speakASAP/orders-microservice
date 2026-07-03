@@ -1,5 +1,32 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Browser Render Proof Handoff Recorded
+
+Intent chain:
+
+- Vision: customer and admin cabinets visibly reflect canonical Orders lifecycle mutations.
+- Goal Impact: the next cross-repo/browser proof lane is now bounded by merge-order review instead of ad hoc channel edits.
+- System: Orders remains lifecycle/read-model owner; channel frontends own rendering and refresh behavior.
+- Feature: browser-render lifecycle proof handoff.
+- Task: produce a validation-only handoff for proving browser-rendered lifecycle refresh after Orders mutation.
+- Execution Plan: recommend FlipFlop first because the Orders runtime mutation proof already uses FlipFlop service scope and deployed FlipFlop customer/admin routes return HTTP `200`; do not edit non-Orders repos before review.
+- Coding Prompt: keep Auth/Cliplot/Marketing/provider lanes out of this thread and do not print tokens, cookies, PII, raw order rows, DB rows, tracking values, or provider payloads.
+- Code: `docs/orchestrator/2026-07-03-browser-render-proof-handoff.md`.
+- Validation: documentation-only handoff, `git diff --check` pending commit.
+
+Review request:
+
+- Approve or adjust the proposed FlipFlop validation-only browser lane.
+- Confirm allowed safe buyer/admin session source or approve service-scoped browser proxy proof if no human session is available.
+- Keep Heureka, Aukro, Bazos, and Allegro browser lanes dependency-gated until FlipFlop proof and merge-order review are complete.
+- Keep Allegro real-buyer and provider shipment-status runtime lanes separate unless explicitly combined by review.
+
+Remaining gates:
+
+- `[MISSING: merge-order review approval for FlipFlop browser validation lane.]`
+- `[MISSING: approved safe human buyer/admin browser session or explicitly approved service-scoped browser proxy proof.]`
+- `[MISSING: rendered UI evidence after lifecycle mutation.]`
+
 ## 2026-07-03 - Orders Lifecycle Mutation Propagation Smoke Passed
 
 Intent chain:
