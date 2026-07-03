@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "orders.allegro_central_forwarded_live_unknown_current.v1",
+  "checkedAt": "2026-07-03T20:43:09.026477Z",
+  "scope": {
+    "goal": "initiate and verify real Allegro shipment visibility through central Orders forwarding",
+    "mode": "bounded_redacted_runtime_readback",
+    "providerWrite": false,
+    "warehouseMutation": false,
+    "ordersMutationDuringThisCheck": false,
+    "credentialMutation": false,
+    "rawIdDisclosure": false
+  },
+  "runtime": {
+    "kubernetesPodsReady": {
+      "allegroService": true,
+      "ordersMicroservice": true,
+      "warehouseMicroservice": true
+    },
+    "allegroRedactedShipmentScan": {
+      "httpStatus": 200,
+      "success": true,
+      "contract": "allegro.shipment_status_redacted_scan.v1",
+      "mode": "read-only",
+      "candidatesChecked": 1,
+      "candidatesWithCentralOrderId": 1,
+      "scanned": 1,
+      "failed": 0,
+      "snapshotCount": 1,
+      "sourceReadStatusCounts": {
+        "AVAILABLE": 1
+      },
+      "packageCountTotal": 1,
+      "hasAnyWaybillHash": true,
+      "latestStatusCounts": {
+        "UNKNOWN": 1
+      },
+      "nonUnknownStatusCount": 0,
+      "blockers": [
+        "[MISSING: Allegro provider sample with carrier tracking status other than UNKNOWN]"
+      ]
+    },
+    "liveShipmentLocalMatchScan": {
+      "contract": "allegro.live_shipment_local_match_scan.v1",
+      "tokenReadyAccountCount": 1,
+      "checkoutFormsScanned": 41,
+      "formsWithShipments": 38,
+      "localProjectionWithShipmentAndForwardingFound": true,
+      "matchingForwardedRows": 1,
+      "matchedRow": {
+        "shipmentCount": 1,
+        "trackingAttempted": 1,
+        "trackingHttp200": 1,
+        "latestStatusCounts": {
+          "UNKNOWN": 1
+        },
+        "localProjectionPresent": true,
+        "paymentStatus": "PAID",
+        "fulfillmentStatus": "PICKED_UP",
+        "missingCatalogCount": 0,
+        "hasDeliveryMethod": true,
+        "hasDeliveryAddress": true,
+        "priorAttemptStatuses": [
+          "FORWARDED"
+        ]
+      },
+      "unmatchedShipmentForms": 37
+    }
+  },
+  "result": "real_allegro_shipment_is_now_central_orders_forwarded_but_provider_status_is_unknown",
+  "interpretation": "The previous central Orders link blocker is resolved for one real Allegro shipment-backed order. The remaining production blocker is not Orders/Warehouse wiring; the currently reachable Allegro carrier tracking sample returns UNKNOWN, so no provider-driven non-UNKNOWN lifecycle mutation should be inferred.",
+  "redaction": {
+    "tokenValuesPrinted": false,
+    "rawAccountIdsPrinted": false,
+    "rawOrderIdsPrinted": false,
+    "rawWaybillsPrinted": false,
+    "providerPayloadPrinted": false,
+    "rawRowsPrinted": false,
+    "customerPiiPrinted": false
+  },
+  "remainingGate": "[MISSING: Allegro provider sample with carrier tracking status other than UNKNOWN]"
+}
