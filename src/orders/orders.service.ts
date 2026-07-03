@@ -1061,8 +1061,8 @@ export class OrdersService {
     const query = this.orderRepository
       .createQueryBuilder('orders')
       .leftJoinAndSelect('orders.items', 'items')
-      .addSelect(orderDateExpression, 'orderSortAt')
-      .orderBy('orderSortAt', 'DESC')
+      .addSelect(orderDateExpression, 'order_sort_at')
+      .orderBy('order_sort_at', 'DESC')
       .take(filters.limit * (filters.lifecycleStage ? 3 : 1));
 
     if (filters.channel) {
