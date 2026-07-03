@@ -82,3 +82,64 @@ Live DocsRAG API retrieval was not executed because no session JWT was available
 ## Recommendation
 
 Accept Goal 1 as complete. Next owner-selected work should start with Goal 2, chunk 2.1: document allowed order and item fulfillment status transitions.
+
+## 2026-07-03 - Goal 24 Central Orders Affinity Evidence Refresh
+
+Scope: Orders-owned replay evidence and publish-window preparation for Catalog Goal 24 central Orders replay. No Orders runtime code, migrations, manifests, secrets, deploy scripts, Catalog source, Marketing source, or live Orders data were changed.
+
+Evidence:
+
+- Source contract verifier target confirmed: `GET /api/orders/internal/order-affinity/replay-candidates` is guarded for Marketing, paid-only, non-cancelled, item-snapshot based, and serializer checks exclude customer, address, billing, and payment-reference fields.
+- Runtime aggregate SQL returned `total_orders=44`, `paid_noncancelled_orders=14`, `paid_noncancelled_multi_product_orders=2`, `paid_noncancelled_single_product_orders=12`, `no_item_orders=0`, and `item_orders_without_catalog_product_ids=0`.
+- Candidate source/window: `orders-microservice`, `channel=flipflop`, `from=2026-07-03T04:26:06.127Z`, `to=2026-07-03T04:27:26.351Z`, `expected replay records=2`.
+- Pair aggregate SQL for the window returned `directed_pair_count=2` and `total_pair_evidence=4`.
+- Deployed Marketing dry-run command returned `inputRecords=2`, `acceptedCreatedEvents=2`, `rejectedRecords=0`, `aggregatePairs=2`, `totalPairEvidence=4`, and two directed Catalog product candidates. No publish command was run.
+
+Validation commands:
+
+```bash
+kubectl -n statex-apps exec deploy/db-server-postgres -- psql -U dbadmin -d orders -v ON_ERROR_STOP=1 -c "<aggregate-only Orders replay eligibility SQL>"
+kubectl -n statex-apps exec deploy/marketing-microservice -- node dist/order-affinity-backfill.js --orders-url http://orders-microservice.statex-apps.svc.cluster.local:3203 --channel=flipflop --from=2026-07-03T04:26:06.127Z --to=2026-07-03T04:27:26.351Z --limit=50 --dry-run --pretty
+npm run verify:order-affinity-replay
+git diff --check
+```
+
+Sensitive-data review: outputs were limited to aggregate counts, timestamps, channel, command shape, and Catalog product ids in dry-run candidates. No customer, address, payment provider, token, secret, raw order payload, provider payload, or order identifier was printed.
+
+Resolved blockers:
+
+- `[RESOLVED: qualifying historical paid multi-product Orders rows for non-empty replay evidence exist in central Orders.]`
+- `[RESOLVED: current live Orders history contains paid non-cancelled multi-product rows with at least two distinct Catalog product ids for the bounded FlipFlop window.]`
+
+Remaining blockers:
+
+- `[MISSING: owner-reviewed source/window approval for any future central Orders non-empty --publish run beyond already recorded external approvals.]`
+- `[MISSING: integration-owner confirmation that dependent Marketing and Catalog readiness evidence is current at publish time.]`
+- `[MISSING: owner-approved retention/decay/replacement policy before stale affinity pruning or replace-window use.]`
+
+Deviation: the deployed Marketing dry-run recorded a Marketing ledger row because runtime ledger recording is enabled. No Catalog publish or Orders data mutation was performed.
+
+## 2026-07-03 - Goal 24 Central Orders Affinity Publish Evidence
+
+Scope: owner-approved one-time publish for the central Orders FlipFlop window already documented in the evidence refresh. Runtime code, source files, manifests, migrations, deploy scripts, secrets, and live Orders data were not changed.
+
+Publish readiness:
+
+- Orders, Marketing, and Catalog deployments were ready 1/1.
+- Marketing runtime key/presence check showed `ORDERS_SERVICE_TOKEN=true`, `CATALOG_INTERNAL_SERVICE_TOKEN=true`, `ORDER_AFFINITY_RUN_LEDGER_ENABLED=true`, `ORDER_AFFINITY_CATALOG_PUBLISH_ENABLED=true`, and `CATALOG_SERVICE_URL=true` without printing values.
+- Catalog health through Marketing configured `CATALOG_SERVICE_URL` returned HTTP 200 and `status=healthy`.
+- Immediate dry-run returned `inputRecords=2`, `acceptedCreatedEvents=2`, `rejectedRecords=0`, `aggregatePairs=2`, and `totalPairEvidence=4`.
+
+Publish result:
+
+- Command run: `kubectl -n statex-apps exec deploy/marketing-microservice -- node dist/order-affinity-backfill.js --orders-url http://orders-microservice.statex-apps.svc.cluster.local:3203 --channel=flipflop --from=2026-07-03T04:26:06.127Z --to=2026-07-03T04:27:26.351Z --limit=50 --run-id central-orders-flipflop-20260703T042606Z-042726Z --publish --pretty`.
+- Result: `status=published`, `candidateCount=2`, `batchCount=1`, `runId=central-orders-flipflop-20260703T042606Z-042726Z`, `ledgerRecord.status=recorded`.
+- Catalog readback confirmed two directed `order_affinity` rows with `source=marketing_order_affinity`, `score=2.0000`, `confidence=0.6500`, `source_event_type=orders.order.created.v1`, and `source_system=marketing-microservice`.
+
+Sensitive-data review: output included aggregate counts, channel, timestamps, Catalog product ids, relation metadata, and command shapes only. No token values, customer/address/payment/provider data, raw order payloads, raw event payloads, or order identifiers were printed.
+
+Remaining blockers:
+
+- `[MISSING: owner-approved retention/decay/replacement policy before stale affinity pruning or replace-window use.]`
+- `[MISSING: owner-approved recurring schedule policy for future central Orders windows beyond this one-time run.]`
+- `[MISSING: integration-owner decision whether duplicate prior central Orders publish evidence should be reconciled by idempotency key history or left as upsert-only equivalent rows.]`
