@@ -1,5 +1,91 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Channel Browser Gate Reconciliation Recorded
+
+Intent chain:
+
+- Vision: channel browser proof should use live route/deploy evidence instead of stale worker summaries.
+- Goal Impact: current per-channel route status and deploy/source drift are now recorded before any new channel source-edit worker starts.
+- System: Orders owns orchestration evidence; channel repos remained read-only.
+- Feature: channel browser gate reconciliation.
+- Task: consume Browser-B read-only findings for FlipFlop, Heureka, Aukro, Bazos, and Allegro.
+- Execution Plan: record source/deployed commit evidence, route checks, and proof classification; preserve blockers.
+- Coding Prompt: do not treat route availability as rendered lifecycle proof; do not deploy or edit channel repos.
+- Code: `docs/orchestrator/2026-07-03-channel-browser-gate-reconciliation.md`, `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`, and `scripts/verify-completion-audit.js`.
+- Validation: Browser-B read-only checks completed; `npm run verify:channel-lifecycle-surfaces`, `npm run verify:channel-lifecycle-runtime-evidence`, and structural `npm run verify:browser-render-proof-readiness` passed.
+
+Key findings:
+
+- FlipFlop routes `/`, `/orders`, and `/admin/orders` returned HTTP `200`, but deployed source commit is `[UNKNOWN: mutable latest tag]`.
+- Heureka source/deployed `358fba9` with `/dashboard/orders`, `/api/health`, and `/health` returning HTTP `200`.
+- Aukro source/deployed `08ad5ce` with `/`, `/dashboard`, and `/health` returning HTTP `200`.
+- Bazos source `1ccb93d` is ahead of deployed `9059605`; protected order UI/API routes returned HTTP `401`.
+- Allegro source `ae9d381` is ahead of deployed `4ff3987`; buyer/order APIs returned HTTP `401`.
+
+Remaining gate:
+
+- `[MISSING: approved safe human buyer/admin session source or explicitly approved service-scoped browser proxy proof.]`
+- `[MISSING: real subject-bound Allegro order row and buyer bearer.]`
+- `[MISSING: provider-backed Bazos marketplace webhook/order source remains unknown.]`
+- `[UNKNOWN: FlipFlop deployed commit because production uses mutable latest tags.]`
+
++## 2026-07-03 - Anonymous FlipFlop Browser Preflight Blocked
++
++Intent chain:
++
++- Vision: browser-render proof must reflect an authorized lifecycle view, not a public shell route.
++- Goal Impact: the first FlipFlop lane now has concrete evidence that anonymous rendering cannot prove customer/admin lifecycle propagation.
++- System: Orders owns the proof evidence and completion gate; FlipFlop remained read-only.
++- Feature: anonymous browser preflight blocker.
++- Task: consume Browser-A validation-only preflight without treating route availability as rendered lifecycle proof.
++- Execution Plan: record sanitized artifact hash, API authorization boundary, and empty-profile Chromium result.
++- Coding Prompt: keep the gate open until a safe human session or explicit service-scoped proxy proof mode exists.
++- Code: `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`, and `scripts/verify-completion-audit.js`.
++- Validation: Browser-A produced sanitized artifact `/tmp/flipflop-browser-render-preflight-2026-07-03T09-34-31-524Z.json` with SHA-256 `450f71e08497c99f545176d97ce047ace28496f66e0b263b182570c781fc22eb`; anonymous `/api/orders` and `/api/admin/orders` returned HTTP `401`; empty-profile headless Chromium found no rendered lifecycle labels/stages. No repo edits, credentials, cookies, token output, screenshots, DB reads, provider calls, or lifecycle mutation were used by that preflight.
++
++Remaining gate:
++
++- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
++- `[MISSING: rendered customer/admin lifecycle proof submitted as sanitized orders.browser_render_proof.v1.]`
++
++## 2026-07-03 - FlipFlop Route Smoke Refreshed For Browser Gate
++
++Intent chain:
++
++- Vision: the first browser-render proof lane should start from fresh live route readiness, not stale route metadata.
++- Goal Impact: FlipFlop remains the first validation-only browser lane, with current `/orders` and `/admin/orders` availability confirmed.
++- System: Orders owns the evidence verifier and IPS state; FlipFlop remains read-only in this slice.
++- Feature: browser proof route readiness refresh.
++- Task: rerun the gated non-mutating route-smoke mode in `verify:browser-render-proof-readiness`.
++- Execution Plan: use explicit route-smoke environment gates, avoid sessions/mutations/provider/DB access, and record the current boundary.
++- Coding Prompt: do not claim rendered lifecycle proof from route availability; do not edit channel repos.
++- Code: `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`, and `scripts/verify-completion-audit.js`.
++- Validation: `RUN_BROWSER_RENDER_PROOF_ROUTE_SMOKE=1 BROWSER_RENDER_PROOF_ROUTE_SMOKE_APPROVED=1 BROWSER_RENDER_PROOF_ROUTE_SMOKE_CONFIRM=ROUTE_STATUS_ONLY_NO_SESSION_NO_MUTATION node scripts/verify-browser-render-proof-readiness.js` returned HTTP `200` for `https://flipflop.alfares.cz/orders` and `https://flipflop.alfares.cz/admin/orders`; no browser session, lifecycle mutation, provider call, DB read, or token output was used.
++
++Remaining gate:
++
++- `[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]`
++- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
++
+## 2026-07-03 - FlipFlop Route Smoke Refreshed For Browser Gate
+
+Intent chain:
+
+- Vision: the first browser-render proof lane should start from fresh live route readiness, not stale route metadata.
+- Goal Impact: FlipFlop remains the first validation-only browser lane, with current `/orders` and `/admin/orders` availability confirmed.
+- System: Orders owns the evidence verifier and IPS state; FlipFlop remains read-only in this slice.
+- Feature: browser proof route readiness refresh.
+- Task: rerun the gated non-mutating route-smoke mode in `verify:browser-render-proof-readiness`.
+- Execution Plan: use explicit route-smoke environment gates, avoid sessions/mutations/provider/DB access, and record the current boundary.
+- Coding Prompt: do not claim rendered lifecycle proof from route availability; do not edit channel repos.
+- Code: `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`, and `scripts/verify-completion-audit.js`.
+- Validation: `RUN_BROWSER_RENDER_PROOF_ROUTE_SMOKE=1 BROWSER_RENDER_PROOF_ROUTE_SMOKE_APPROVED=1 BROWSER_RENDER_PROOF_ROUTE_SMOKE_CONFIRM=ROUTE_STATUS_ONLY_NO_SESSION_NO_MUTATION node scripts/verify-browser-render-proof-readiness.js` returned HTTP `200` for `https://flipflop.alfares.cz/orders` and `https://flipflop.alfares.cz/admin/orders`; no browser session, lifecycle mutation, provider call, DB read, or token output was used.
+
+Remaining gate:
+
+- `[MISSING: rendered customer/admin UI lifecycle stage after approved mutation or approved existing mutation artifact.]`
+- `[MISSING: approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.]`
+
 ## 2026-07-03 - Channel Reservation Evidence Boundary Tightened
 
 Intent chain:
