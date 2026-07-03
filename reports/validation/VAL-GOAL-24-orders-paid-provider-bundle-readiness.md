@@ -21,7 +21,7 @@ Orders can safely support the already proven non-mutating and pending-order `cat
 - `bundleEvidence[]` is not copied into `order_items`, Warehouse reservation payloads, payment payloads, or `orders.order.created.v1` event payloads.
 - Orders payment status remains bounded to `orders.payment-status.v1`; raw provider webhooks, provider transaction IDs, payment metadata, refunds, amounts, currency, customer payment payloads, cards, tokens, and secrets remain Payments-owned.
 
-Orders cannot safely advance the Catalog bundle gate to paid/provider checkout from Orders alone. Paid/provider runtime progression remains blocked because the owner-approved provider source, stock decrement/fulfillment rollback criteria, and refund/cancel rollback workflow are not present in Orders-owned contracts.
+Orders cannot safely advance the Catalog bundle gate to paid/provider checkout from Orders alone. Paid/provider runtime progression remains blocked because the owner-approved provider source, stock decrement/fulfillment rollback criteria, and refund/cancel rollback workflow are not present in Orders-owned contracts. Orders can express the future rollback without manual payment-state bypass only if Payments first proves provider refund/cancellation/reversal and emits bounded `orders.payment-status.v1` evidence, then Orders uses the owner-approved cancellation workflow with side-effect acknowledgements and Warehouse cleanup through the handoff contract.
 
 ## Evidence Reviewed
 
@@ -42,10 +42,15 @@ Orders sources reviewed:
 - `scripts/verify-payment-boundary.js`
 - `docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md`
 - `docs/orchestrator/PAYMENT_STATUS_BOUNDARY.md`
+- `docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md`
+- `docs/orchestrator/ORDER_STATUS_TRANSITIONS.md`
+- `docs/orchestrator/2026-07-03-goal24-orders-cancel-cleanup-rollback-readiness.md`
 
 ## Blockers
 
 - `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]`
+- `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`
+- `[MISSING: provider-specific side-effect-safe rollback contract for the selected payment method]`
 - `[MISSING: owner-approved paid/provider payment provider source and callback contract]`
 - `[MISSING: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke]`
 - `[MISSING: owner-approved Payments refund/cancel rollback workflow for paid bundle smoke]`
@@ -79,4 +84,4 @@ Runtime paid/provider smoke is intentionally not run in this lane.
 
 Decision: `block` for paid/provider runtime progression beyond existing pending-order evidence.
 
-Orders-owned support is narrowed to source-verified non-mutating validation, pending order create/reservation evidence, and bounded payment-status metadata. The next transition requires owner-approved cross-service paid/provider checkout, Warehouse stock/fulfillment rollback, and Payments refund/cancel rollback contracts before any live paid/provider runtime smoke.
+Orders-owned support is narrowed to source-verified non-mutating validation, pending order create/reservation evidence, bounded payment-status metadata, and a documented fail-closed rollback choreography. The next transition requires owner-approved cross-service paid/provider checkout, provider refund/cancel proof, Warehouse stock/fulfillment cleanup semantics, and Payments refund/cancel rollback contracts before any live paid/provider runtime smoke. Manual Orders payment-state edits remain forbidden.

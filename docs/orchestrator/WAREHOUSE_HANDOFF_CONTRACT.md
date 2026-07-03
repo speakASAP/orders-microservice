@@ -77,3 +77,12 @@ The metadata must not include stock quantities beyond the order item quantity, W
 - Sellable channel order create requires Warehouse handoff status `reserved`; `disabled`, `skipped`, or `failed` handoff results reject the create before publishing `orders.order.created.v1`.
 - Warehouse reservation failures, including insufficient-stock rejections, do not make Orders the stock authority; Orders records bounded failure metadata only for flows that already own a persisted order lifecycle and must not expose Warehouse response bodies, available quantities, requested quantities, or raw error text.
 - Idempotent order replay does not call Warehouse again because the create path returns the existing order before handoff.
+
+## Paid Provider Bundle Cleanup Gate
+
+For Goal 24 `catalog.bundle.v1` paid/provider smoke planning, Warehouse cleanup remains state-specific and owner-approved:
+
+- Before paid/fulfillment, Payments `failed` or `cancelled` status causes Orders to call Warehouse `release` with reason `PAYMENT_FAILED_RELEASE`.
+- After provider success, Payments `completed` status causes Orders to call Warehouse `fulfill` with reason `PAYMENT_CONFIRMED`; this may represent stock decrement/fulfillment ownership in Warehouse.
+- Orders cancellation cleanup calls Warehouse `cancel` with reason `ORDER_CANCELLED` only after the owner-approved Orders cancellation gate passes.
+- If a paid provider smoke reaches a fulfilled or stock-decremented state, the runtime packet must state whether Warehouse owner expects `cancel`, `return`, or another approved operation for each bundle component line. Orders must not edit stock truth or infer rollback quantities locally.
