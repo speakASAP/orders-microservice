@@ -1,5 +1,27 @@
 # Orders Orchestrator Status
 
+## 2026-07-03 - Channel Deploy Browser Smoke Decision Reconciled
+
+Intent chain:
+
+- Vision: channel lifecycle proof should advance from current runtime facts and patch-equivalent commits instead of stale worker commit labels.
+- Goal Impact: the next work is now narrowed to proof/data/route blockers: no new channel source-edit worker should start, and Allegro/Aukro stale expected commits must not be merged directly.
+- System: Orders owns the evidence artifact, verifier/audit markers, and IPS status; channel repos, deployments, provider systems, secrets, databases, and browser sessions were not changed.
+- Feature: channel deployment and browser-smoke sequencing.
+- Task: consume Runtime-Smoke-A and Merge-Gate-B read-only handoffs, update current deploy/browser-smoke order, and remove stale deploy/migration/browser gate wording from Orders audit state.
+- Execution Plan: record machine-readable channel decision evidence, refresh browser gate docs, update completion audit markers, then validate.
+- Coding Prompt: do not print tokens, cookies, customer PII, raw order rows, raw DOM, provider payloads, tracking values, DB rows, or secret values.
+- Code: `reports/validation/channel-lifecycle-runtime-evidence/channel-deploy-browser-smoke-decision-current.json`, `docs/orchestrator/2026-07-03-channel-browser-gate-reconciliation.md`, `docs/orchestrator/2026-07-03-channel-browser-smoke-order.md`, `docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md`, `scripts/verify-completion-audit.js`, and IPS state docs.
+- Validation: read-only subagent handoffs confirmed FlipFlop service-scoped proof remains proven, Heureka is route/API-blocked, Bazos is provider-source-blocked, Allegro `529a71d` is patch-equivalent to integrated `4ff3987`, and Aukro `f6502bb` is patch-equivalent to integrated `08ad5ce`.
+
+Remaining gates:
+
+- `[MISSING: Heureka dashboard orders route/API fix or approved alternative proof path.]`
+- `[MISSING: Aukro approved live row linked to non-stale canonical Orders lifecycle stage.]`
+- `[MISSING: Bazos provider-backed paid order source and persisted item snapshot contract.]`
+- `[MISSING: Allegro real buyer Auth bearer plus approved subject-bound order row.]`
+- `[MISSING: shipment-status enablement/config/safe-smoke/readback/mutation approvals.]`
+
 ## 2026-07-03 - Shipment Runtime Gate Reconciled After k3s Recovery
 
 Intent chain:

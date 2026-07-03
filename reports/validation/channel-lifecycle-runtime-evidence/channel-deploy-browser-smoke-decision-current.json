@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "orders.channel_deploy_browser_smoke_decision.v1",
+  "status": "partial_smoke_ready_with_merge_equivalents_and_data_gates",
+  "checkedAt": "2026-07-03T12:29:19.232Z",
+  "policy": {
+    "readOnlyProbe": true,
+    "channelSourceEdits": false,
+    "deploys": false,
+    "runtimeMutations": false,
+    "databaseReads": false,
+    "providerCalls": false,
+    "secretsPrinted": false,
+    "rawDomDumped": false,
+    "rawOrderRowsPrinted": false,
+    "customerPiiPrinted": false
+  },
+  "channels": {
+    "flipflop": {
+      "expectedWorkerCommit": "3110c6a",
+      "currentHead": "327169a",
+      "runtimeImageCommit": "unknown_latest_tag",
+      "sourceContainsExpectedCommit": true,
+      "runtimeCommitProvableFromImageTag": false,
+      "routeStatus": {
+        "/orders": 200,
+        "/admin/orders": 200
+      },
+      "proofStatus": "service_scoped_proxy_browser_proof_proven_direct_human_blocked",
+      "remainingGate": "direct safe-human browser session remains blocked by authenticated profile/session gate and mutable latest image provenance"
+    },
+    "heureka": {
+      "expectedWorkerCommit": "358fba9",
+      "currentHead": "358fba9",
+      "runtimeImages": [
+        "localhost:5000/heureka-service:358fba9",
+        "localhost:5000/heureka-api-gateway:358fba9"
+      ],
+      "sourceContainsExpectedCommit": true,
+      "runtimeContainsExpectedCommit": true,
+      "routeStatus": {
+        "/heureka/dashboard/orders": 404,
+        "/api/heureka/dashboard/orders": "401_external_or_404_service_scoped_artifact"
+      },
+      "proofStatus": "browser_proof_blocked_orders_route_or_api_unavailable",
+      "remainingGate": "fix or approve dashboard orders route/API proof path before rendered lifecycle smoke can pass"
+    },
+    "bazos": {
+      "expectedWorkerCommit": "26af3ae",
+      "currentHead": "1ccb93d",
+      "runtimeImage": "localhost:5000/bazos-service:9059605",
+      "sourceContainsExpectedCommit": true,
+      "runtimeContainsExpectedCommit": true,
+      "routeStatus": {
+        "/orders": 401,
+        "/orders/webhook": 401
+      },
+      "proofStatus": "source_ui_verified_provider_backed_order_source_blocked",
+      "remainingGate": "real paid order ingestion and persisted item snapshot source are missing"
+    },
+    "allegro": {
+      "expectedWorkerCommit": "529a71d",
+      "integratedEquivalentCommit": "4ff3987",
+      "equivalentPatchId": "b7d9c16da34556d2efb30cff450259faaca6640b",
+      "currentHead": "4b08a7c",
+      "runtimeImage": "localhost:5000/allegro-service:ae9d381",
+      "mergeNeededForExpectedCommit": false,
+      "proofStatus": "buyer_route_live_isolation_proven_real_order_and_central_lifecycle_blocked",
+      "remainingGate": "real buyer Auth bearer plus approved subject-bound Allegro order row"
+    },
+    "aukro": {
+      "expectedWorkerCommit": "f6502bb",
+      "integratedEquivalentCommit": "08ad5ce",
+      "equivalentPatchId": "2907522d96786ebc8abcab86845cc78296702847",
+      "currentHead": "e440fa1",
+      "runtimeImage": "localhost:5000/aukro-service:68784d7",
+      "mergeNeededForExpectedCommit": false,
+      "proofStatus": "cabinet_apis_live_lifecycle_data_blocked",
+      "remainingGate": "approved live Aukro row linked to a current non-stale canonical Orders lifecycle stage"
+    }
+  },
+  "safeOrder": [
+    "keep FlipFlop service-scoped proof as the only proven browser lifecycle evidence until safe-human session is available",
+    "fix or approve Heureka dashboard orders route/API proof path before rerunning rendered smoke",
+    "unblock Bazos provider-backed paid order source before provider-backed browser smoke",
+    "skip direct merge of Allegro 529a71d and accept patch-equivalent 4ff3987 already on main/runtime lineage",
+    "skip direct merge of Aukro f6502bb and accept patch-equivalent 08ad5ce already on main/runtime lineage",
+    "run Allegro buyer smoke only after real bearer and subject-bound row exist",
+    "run Aukro rendered proof only after approved non-stale canonical lifecycle row exists",
+    "run shipment-status runtime proof only after Allegro enablement, Warehouse URL/token config, safe order selection, sanitized readback, and mutation approval"
+  ]
+}

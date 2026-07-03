@@ -5,111 +5,74 @@ Repository of record: `orders-microservice`
 
 ## Decision
 
-Run channel browser-render proof in this order:
+Run remaining channel browser/API proof work in this order:
 
-1. FlipFlop validation-only browser proof.
-2. Heureka rendered dashboard proof.
-3. Aukro rendered dashboard/cabinet proof.
-4. Bazos only after product decides whether synthetic/internal proof is sufficient or provider-backed marketplace webhook proof is required.
+1. Keep FlipFlop service-scoped browser proof as the current proven browser lifecycle evidence; pursue direct safe-human proof only if an approved safe buyer/admin session is provided.
+2. Heureka next only after `/heureka/dashboard/orders` and `/api/heureka/dashboard/orders` are fixed or an approved alternative proof path is defined.
+3. Aukro next only after an approved live row links to a current non-stale canonical Orders lifecycle stage.
+4. Bazos only after a provider-backed paid order ingestion and persisted item snapshot source exists, unless product explicitly accepts synthetic/internal scope.
 5. Allegro only after a real subject-bound buyer order row and buyer bearer are approved.
-6. Provider shipment-status runtime proof only after Warehouse/Allegro deploy, migration, enablement, and safe smoke approvals.
+6. Provider shipment-status runtime proof only after Allegro enablement, Warehouse URL/token config, safe order selection, sanitized readback, and fulfillment/Orders mutation approval.
 
-No new source-edit worker should start for the five channel UI repos until the already integrated/deployed UI commits are browser-smoked or explicitly deferred.
+No new source-edit worker should start for the five channel UI repos until these proof/data/route blockers are resolved or explicitly deferred.
 
-## Why FlipFlop First
+## Integrated Commit Decisions
 
-- Orders runtime mutation proof already uses `channel=flipflop` and `serviceName=flipflop-service`.
-- FlipFlop customer `/orders` and admin `/admin/orders` routes are deployed and return HTTP `200`.
-- FlipFlop avoids the Allegro real-buyer blocker and Bazos provider-source uncertainty.
-- A failed FlipFlop browser proof gives the shortest path to a focused implementation prompt without touching other channel repos.
+- FlipFlop `main` contains `3110c6a`; deployed images use mutable `latest`, so exact runtime commit provenance remains unknown from Kubernetes tags.
+- Heureka source/runtime is `358fba9`; browser proof remains route/API-blocked, not deploy-blocked.
+- Bazos runtime `9059605` contains `26af3ae`; browser proof remains provider-source-blocked, not deploy-blocked.
+- Allegro worker commit `529a71d` must not be merged directly; patch-equivalent commit `4ff3987` is already on main lineage and runtime `ae9d381` is later.
+- Aukro worker commit `f6502bb` must not be merged directly; patch-equivalent commit `08ad5ce` is already on main lineage and runtime `68784d7` includes it.
 
-## Allowed First Lane
+## Allowed Next Lanes
 
-Lane: FlipFlop validation-only browser proof.
+FlipFlop direct proof lane, only if a safe session is supplied:
 
-Allowed:
+- Allowed: inspect rendered customer/admin lifecycle labels through approved safe buyer/admin session.
+- Forbidden: channel source edits, raw token/cookie output, DB dumps, production customer screenshots, provider/courier calls, raw tracking display.
+- Pass evidence: sanitized `orders.browser_render_proof.v1` with customer/admin surfaces showing canonical lifecycle stage after approved mutation artifact.
 
-- Read Orders and FlipFlop docs/source.
-- Run Orders `npm run smoke:lifecycle-mutation` only with explicit live gates if a fresh synthetic lifecycle mutation is required.
-- Use deployed routes:
-  - `https://flipflop.alfares.cz/orders`
-  - `https://flipflop.alfares.cz/admin/orders`
-- Use an approved safe buyer/admin session, or an explicitly approved service-scoped browser proxy proof if no human session is available.
-- Record sanitized validation evidence in Orders docs first.
+Heureka route/API unblock lane:
 
-Forbidden:
+- Allowed: owner-reviewed Heureka route/API fix in a separate merge-order lane if approved.
+- Current blocker: dashboard orders route/API unavailable for rendered proof.
 
-- No channel repo edits during validation-only lane.
-- No Auth, Cliplot, Marketing, provider/courier, Warehouse, Payments, or shared-contract work from this lane.
-- No raw token/cookie output.
-- No DB dumps.
-- No production customer-data screenshots.
-- No provider/courier API calls.
-- No raw tracking display or tracking-value screenshots.
+Aukro data proof lane:
 
-## Pass Evidence
+- Allowed: approved non-stale canonical Orders lifecycle row selection or replay path.
+- Current blocker: live rows do not prove a current canonical lifecycle stage.
 
-The lane is `proven` only if evidence shows:
+Bazos provider source lane:
 
-- Orders lifecycle mutation ran or an existing approved mutation artifact was selected.
-- Browser route loaded successfully.
-- Rendered customer and/or admin UI shows the mutated lifecycle stage or localized equivalent.
-- Refresh mechanism is stated: automatic poll, manual refresh button, or full reload.
-- Evidence is sanitized and does not expose tokens, raw order rows, addresses, email, phone, payment reference, tracking value, or provider payload.
-- The rendered status is backed by central Orders lifecycle read model or a channel API using that read model.
+- Allowed: Bazos-owned paid order ingestion and persisted item snapshot contract.
+- Current blocker: provider-backed source remains fail-closed.
 
-## Stop Conditions
+Allegro buyer proof lane:
 
-Stop and produce a channel-specific implementation prompt if:
+- Allowed: approved real buyer bearer plus subject-bound order row.
+- Current blocker: live admin stats show no central-forwarded real buyer order proof.
 
-- UI route is reachable but lifecycle label is stale or local-only.
-- Customer session cannot be safely scoped to the synthetic order.
-- Admin route renders only route chrome and not lifecycle/order state.
-- Evidence would require exposing customer PII, tokens, raw order rows, or tracking values.
-- Any required fix would edit FlipFlop or shared contracts.
+Shipment-status lane:
 
-## Deferred Lanes
-
-Heureka:
-
-- Dependency: FlipFlop lane decision complete.
-- Proof target: dashboard/order rendered lifecycle label after mutation or approved central lifecycle API-backed UI proof.
-
-Aukro:
-
-- Dependency: FlipFlop lane decision complete.
-- Proof target: rendered central lifecycle cabinet/dashboard hydration.
-
-Bazos:
-
-- Dependency: product decision for provider-backed marketplace webhook/order source.
-- If synthetic/internal scope is approved, browser proof can proceed against that scope only.
-
-Allegro:
-
-- Dependency: approved real subject-bound buyer order row and buyer bearer.
-- Keep provider shipment-status proof separate unless review explicitly combines it.
-
-Provider shipment status:
-
-- Dependency: Allegro OAuth/scope/account permission, sanitized fixtures, Warehouse ledger/correlation, deploy/runtime smoke approval, and product-approved visibility matrix.
+- Allowed only after explicit runtime enablement/config/smoke/mutation approvals.
+- Current blocker: correlation runtime is deployed and migrations are applied, but producer enablement and safe readback/mutation proof remain gated.
 
 ## Output Contract
 
-Validation report must include:
+Any future proof report must include:
 
 - channel
-- route(s)
-- proof mode: `safe_human_session` or `service_scoped_proxy`
+- route(s) or API proof path
+- proof mode: `safe_human_session`, `service_scoped_proxy`, or `approved_api_smoke`
 - order/lifecycle mutation evidence hash or sanitized summary
-- rendered lifecycle label/stage
+- rendered lifecycle label/stage or API-backed lifecycle field
 - refresh mechanism
-- screenshot/artifact path or hash after redaction review
+- redacted artifact path or hash
 - result: `proven`, `incomplete`, or `blocked`
 - next action
 
 ## Current Status
 
-Status: waiting for proof-mode approval.
+Status: partial proof complete, remaining lanes data/route/approval-gated.
 
-Next action: approve either a safe buyer/admin session source or explicit service-scoped browser proxy proof for FlipFlop validation-only browser smoke.
+Next action: fix/approve the Heureka route/API proof path or provide safe-human FlipFlop session if direct proof is required; do not start more channel source-edit workers.

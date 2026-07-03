@@ -113,16 +113,16 @@ async function main() {
   statusMarkers.forEach((marker) => assertIncludes(status, marker, 'STATUS'));
 
   const smokeOrderMarkers = [
-    'Run channel browser-render proof in this order:',
-    '1. FlipFlop validation-only browser proof.',
-    '2. Heureka rendered dashboard proof.',
-    '3. Aukro rendered dashboard/cabinet proof.',
-    '4. Bazos only after product decides whether synthetic/internal proof is sufficient or provider-backed marketplace webhook proof is required.',
+    'Run remaining channel browser/API proof work in this order:',
+    '1. Keep FlipFlop service-scoped browser proof as the current proven browser lifecycle evidence; pursue direct safe-human proof only if an approved safe buyer/admin session is provided.',
+    '2. Heureka next only after `/heureka/dashboard/orders` and `/api/heureka/dashboard/orders` are fixed or an approved alternative proof path is defined.',
+    '3. Aukro next only after an approved live row links to a current non-stale canonical Orders lifecycle stage.',
+    '4. Bazos only after a provider-backed paid order ingestion and persisted item snapshot source exists, unless product explicitly accepts synthetic/internal scope.',
     '5. Allegro only after a real subject-bound buyer order row and buyer bearer are approved.',
-    '6. Provider shipment-status runtime proof only after Warehouse/Allegro deploy, migration, enablement, and safe smoke approvals.',
+    '6. Provider shipment-status runtime proof only after Allegro enablement, Warehouse URL/token config, safe order selection, sanitized readback, and fulfillment/Orders mutation approval.',
     'No new source-edit worker should start for the five channel UI repos',
-    'No channel repo edits during validation-only lane.',
-    'Status: waiting for proof-mode approval.',
+    'FlipFlop direct proof lane, only if a safe session is supplied:',
+    'Status: partial proof complete, remaining lanes data/route/approval-gated.',
   ];
   smokeOrderMarkers.forEach((marker) => assertIncludes(smokeOrder, marker, 'channel browser smoke order'));
 
@@ -174,15 +174,17 @@ async function main() {
       handoffMarkersVerified: handoffMarkers.length,
       statusMarkersVerified: statusMarkers.length,
       lifecycleMutationSmokeScriptPresent: true,
-      recommendedFirstLane: 'flipflop',
+      recommendedFirstLane: 'heureka_route_api_or_flipflop_direct_session',
       smokeOrderMarkersVerified: smokeOrderMarkers.length,
       flipflopReadinessMarkersVerified: flipflopReadinessMarkers.length,
     },
     routeSmoke,
     remainingGates: [
-      'merge-order review approval for FlipFlop browser validation lane',
-      'approved safe human buyer/admin session or explicit service-scoped browser proxy proof approval',
-      'rendered UI evidence after lifecycle mutation',
+      'direct safe-human FlipFlop proof if required beyond proven service-scoped evidence',
+      'Heureka route/API proof path fix or approved alternative',
+      'Aukro non-stale canonical lifecycle row',
+      'Bazos provider-backed paid order source',
+      'Allegro real buyer bearer and subject-bound order row',
       'separate review before touching non-Orders repositories',
     ],
   };

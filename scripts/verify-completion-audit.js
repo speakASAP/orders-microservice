@@ -7,6 +7,7 @@ const root = process.cwd();
 const auditPath = path.join(root, 'docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md');
 const statusPath = path.join(root, 'docs/orchestrator/STATUS.md');
 const statePath = path.join(root, 'docs/IMPLEMENTATION_STATE.md');
+const channelDecisionPath = path.join(root, 'reports/validation/channel-lifecycle-runtime-evidence/channel-deploy-browser-smoke-decision-current.json');
 
 function read(file) {
   assert.equal(fs.existsSync(file), true, `${path.relative(root, file)} is missing`);
@@ -20,6 +21,7 @@ function assertIncludes(source, marker, label) {
 const audit = read(auditPath);
 const status = read(statusPath);
 const state = read(statePath);
+const channelDecision = JSON.parse(read(channelDecisionPath));
 
 const requirementMarkers = [
   'Every sellable order checks Warehouse stock and reserves on creation',
@@ -45,18 +47,18 @@ const proofMarkers = [
   'admin lifecycle read HTTP `200`',
   'both customer/admin read-models saw `warehouse_collecting`',
   'Orders service identity lifecycle list endpoints return HTTP `200` for FlipFlop, Allegro, Aukro, Bazos, and Heureka.',
-  'Browser-B channel gate reconciliation refined route/deploy evidence: FlipFlop routes returned HTTP `200` but deployed commit is `[UNKNOWN: mutable latest tag]`; Heureka source/deployed `358fba9` and Aukro source/deployed `08ad5ce` remain aligned; Bazos source `1ccb93d` is ahead of deployed `9059605`; Allegro source `ae9d381` is ahead of deployed `4ff3987`; protected order APIs returned HTTP `401` where authentication is required.',
+  'Channel deploy/browser-smoke reconciliation refined current evidence: FlipFlop `main` contains `3110c6a` and routes return HTTP `200`, but runtime uses mutable `latest`; Heureka source/runtime is `358fba9` but `/heureka/dashboard/orders` remains HTTP `404`; Bazos runtime `9059605` contains `26af3ae` and protected routes return HTTP `401`; Allegro `529a71d` is superseded by patch-equivalent `4ff3987` and runtime `ae9d381` is later; Aukro `f6502bb` is superseded by patch-equivalent `08ad5ce` and runtime `68784d7` includes it.',
   'Anonymous FlipFlop browser-render preflight is blocked, not proven: artifact `/tmp/flipflop-browser-render-preflight-2026-07-03T09-34-31-524Z.json` SHA-256 `450f71e08497c99f545176d97ce047ace28496f66e0b263b182570c781fc22eb`; public `/orders` and `/admin/orders` HTML returned HTTP `200`, anonymous backing APIs `/api/orders` and `/api/admin/orders` returned HTTP `401`, and empty-profile Chromium found no rendered lifecycle labels/stages.',
   'Fresh gated FlipFlop route smoke returned HTTP `200` for `https://flipflop.alfares.cz/orders` and `https://flipflop.alfares.cz/admin/orders` with no browser session, lifecycle mutation, provider call, DB read, or token output. This is route readiness only, not rendered lifecycle proof.',
   'FlipFlop first browser lane readiness is recorded in `docs/orchestrator/2026-07-03-flipflop-browser-proof-readiness-evidence.md`',
   'This is readiness evidence only, not rendered lifecycle proof.',
   'Browser-render proof must be submitted as sanitized `orders.browser_render_proof.v1` JSON and validated by `verify:browser-render-proof-report`',
   'Channel create/reservation evidence boundary from `verify:channel-lifecycle-runtime-evidence`:',
-  'FlipFlop: `live_create_reservation_smoke_proven`.',
-  'Heureka: `live_create_replay_reservation_cleanup_smoke_proven`.',
-  'Aukro: `live_synthetic_create_reservation_cleanup_proven_source_cabinet_stats_proven`.',
-  'Bazos: `synthetic_create_reservation_smoke_proven_provider_webhook_unknown`.',
-  'Allegro: `buyer_route_live_isolation_proven_real_order_smoke_missing`.',
+  'FlipFlop: `live_create_reservation_and_browser_lifecycle_proven`.',
+  'Heureka: `live_create_replay_reservation_cleanup_proven_browser_blocked_orders_api_404`.',
+  'Aukro: `live_synthetic_create_reservation_cleanup_proven_cabinet_apis_live_lifecycle_data_blocked`.',
+  'Bazos: `synthetic_create_reservation_smoke_proven_provider_source_live_fail_closed`.',
+  'Allegro: `buyer_route_live_isolation_proven_real_order_and_central_lifecycle_blocked`.',
   'checked-in fixtures prove the contract accepts a sanitized FlipFlop service-scoped report and rejects a sensitive-key report',
   'Browser proof report guard now rejects anonymous/public-shell evidence: `invalid-public-shell-route.json` must fail because route-only HTML, anonymous DOM snapshots, and backing API `401`/`403` responses cannot prove rendered lifecycle propagation.',
   'Browser proof report guard now requires both customer and admin rendered surfaces for `status=proven`: at least one `customer_cabinet` route plus at least one `admin_cabinet` or `admin_dashboard` route.',
@@ -72,14 +74,29 @@ const baselineMarkers = [
   'Current Orders evidence baseline: this document is enforced by `verify:completion-audit` in `npm test`; repository `HEAD` is the authoritative current commit.',
 ];
 
+
+assert.equal(channelDecision.schemaVersion, 'orders.channel_deploy_browser_smoke_decision.v1', 'channel deploy/browser smoke decision schema mismatch');
+assert.equal(channelDecision.status, 'partial_smoke_ready_with_merge_equivalents_and_data_gates', 'channel deploy/browser smoke decision status mismatch');
+assert.equal(channelDecision.policy.readOnlyProbe, true, 'channel decision must be read-only evidence');
+assert.equal(channelDecision.policy.channelSourceEdits, false, 'channel decision must not include channel source edits');
+assert.equal(channelDecision.policy.deploys, false, 'channel decision must not include deploys');
+assert.equal(channelDecision.policy.runtimeMutations, false, 'channel decision must not include runtime mutations');
+assert.equal(channelDecision.channels.allegro.mergeNeededForExpectedCommit, false, 'Allegro stale worker commit must not require direct merge');
+assert.equal(channelDecision.channels.allegro.integratedEquivalentCommit, '4ff3987', 'Allegro integrated equivalent commit mismatch');
+assert.equal(channelDecision.channels.aukro.mergeNeededForExpectedCommit, false, 'Aukro stale worker commit must not require direct merge');
+assert.equal(channelDecision.channels.aukro.integratedEquivalentCommit, '08ad5ce', 'Aukro integrated equivalent commit mismatch');
+assert.equal(channelDecision.channels.flipflop.proofStatus, 'service_scoped_proxy_browser_proof_proven_direct_human_blocked', 'FlipFlop proof status mismatch');
+assert.equal(channelDecision.channels.heureka.proofStatus, 'browser_proof_blocked_orders_route_or_api_unavailable', 'Heureka proof status mismatch');
+assert.equal(channelDecision.channels.bazos.proofStatus, 'source_ui_verified_provider_backed_order_source_blocked', 'Bazos proof status mismatch');
+
 const missingGateMarkers = [
-  'Merge-order review approval for the FlipFlop validation-only browser lane.',
-  'Approved safe human buyer/admin session or explicitly approved service-scoped browser proxy proof.',
-  'Rendered customer/admin UI evidence after an Orders lifecycle mutation, submitted as sanitized `orders.browser_render_proof.v1` and validated with `BROWSER_RENDER_PROOF_REPORT_PATH`.',
+  'Direct safe-human FlipFlop browser proof if product requires it beyond the already proven service-scoped proxy proof.',
+  'Heureka dashboard orders route/API fix or approved alternative proof path.',
+  'Aukro approved live order row linked to a current non-stale canonical Orders lifecycle stage.',
   'Real subject-bound Allegro buyer order row and buyer bearer before Allegro buyer cabinet lifecycle can be called live-complete.',
-  'Provider-backed Bazos marketplace webhook/order source decision.',
-  'Warehouse/Allegro shipment-status runtime enablement approvals:',
-  'Browser-render proof and provider-backed late shipment lifecycle proof are still missing.',
+  'Provider-backed Bazos marketplace webhook/order source decision and persisted item snapshot contract.',
+  'Warehouse/Allegro shipment-status runtime enablement gates:',
+  'FlipFlop service-scoped browser-render proof is proven, but remaining channel browser/data/auth proofs and provider-backed late shipment lifecycle proof are still missing.',
   'Status: incomplete.',
   'Therefore the active goal must remain open.',
 ];
@@ -99,10 +116,10 @@ assert.equal(
   'completion audit must not mark the active lifecycle goal complete while browser/provider gates are missing',
 );
 assert.equal(
-  audit.includes('Rendered customer/admin UI evidence after an Orders lifecycle mutation, submitted as sanitized `orders.browser_render_proof.v1` and validated with `BROWSER_RENDER_PROOF_REPORT_PATH`.') &&
-    audit.includes('Warehouse/Allegro shipment-status runtime enablement approvals:'),
+  audit.includes('Heureka dashboard orders route/API fix or approved alternative proof path.') &&
+    audit.includes('Warehouse/Allegro shipment-status runtime enablement gates:'),
   true,
-  'completion audit must preserve both browser-render and shipment-status remaining gates',
+  'completion audit must preserve both channel browser/data/auth and shipment-status remaining gates',
 );
 
 const result = {
@@ -113,6 +130,7 @@ const result = {
   requirementMarkersVerified: requirementMarkers.length,
   proofMarkersVerified: proofMarkers.length,
   missingGateMarkersVerified: missingGateMarkers.length,
+  channelDecisionVerified: true,
   goalCompleteClaimPresent: false,
   mutation: false,
   browserSessionUsed: false,
