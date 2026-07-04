@@ -14,7 +14,7 @@ deployment: false
 secret_output: false
 raw_customer_or_payment_evidence: false
 
-[RESOLVED/NARROWED: Orders consumed current Goal 24 source-governance heads Catalog `b0ed9f5 merge goal24 current integration head sync`, FlipFlop `b2a4b4d merge goal24 current source head sync`, Payments `52f9b7e merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and Orders `3901ec1 merge goal24 latest cleanup head sync`; runtime Orders route invocation and cleanup side effects remain blocked]
+[RESOLVED/NARROWED: Orders consumed current Goal 24 source-governance heads Catalog `b0ed9f5 merge goal24 current integration head sync`, FlipFlop `ad409fc merge goal24 current source head sync`, Payments `52f9b7e merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and Orders `ccc9f92 merge goal24 current source head sync`; runtime Orders route invocation and cleanup side effects remain blocked]
 
 Older Orders docs that name Catalog `906a31f`, FlipFlop `5202c15`, Payments `7822f2a`, Warehouse `46a66dc`, Catalog `ca6a3b2`, FlipFlop `1e5102b`, or Payments `bf96f5d` remain historical source-context only. New runtime planning must use this current-head marker and still fail closed on every `[MISSING: ...]` runtime fact.
 
@@ -35,10 +35,10 @@ Older Orders docs that name Catalog `906a31f`, FlipFlop `5202c15`, Payments `782
 | Service | Current head consumed | Runtime authority |
 | --- | --- | --- |
 | Catalog | `b0ed9f5 merge goal24 current integration head sync` | integration docs/status only |
-| FlipFlop | `b2a4b4d merge goal24 current source head sync` | channel cleanup source marker only |
+| FlipFlop | `ad409fc merge goal24 current source head sync` | channel cleanup source marker only |
 | Payments | `52f9b7e merge goal24 current source head sync` | provider/refund docs only |
 | Warehouse | `11df002 merge goal24 warehouse target facts reconcile` | candidate target facts narrowed; live window/final approval missing |
-| Orders | `3901ec1 merge goal24 latest cleanup head sync` | lifecycle/cancellation/idempotency source packet only |
+| Orders | `ccc9f92 merge goal24 current source head sync` | lifecycle/cancellation/idempotency source packet only |
 
 ## Preserved Runtime Hard Stops
 
