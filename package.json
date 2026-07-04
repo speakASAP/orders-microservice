@@ -47,6 +47,7 @@
     "verify:goal24-paid-provider-bundle-readiness": "node scripts/verify-goal24-paid-provider-bundle-readiness.js",
     "verify:channel-deploy-browser-smoke-decision": "node scripts/verify-channel-deploy-browser-smoke-decision.js",
     "verify:status-update-idempotency": "node scripts/verify-status-update-idempotency.js",
+    "verify:goal24-orders-consume-notifications-ack": "node scripts/verify-goal24-orders-consume-notifications-ack.js",
     "verify:goal24-structured-approval-no-mutation-closeout": "node scripts/verify-goal24-structured-approval-no-mutation-closeout.js"
   },
   "dependencies": {
