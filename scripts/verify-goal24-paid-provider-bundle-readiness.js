@@ -35,6 +35,9 @@ const ordersTokenBindingConsumption = read('reports/validation/VAL-GOAL-24-order
 const ordersIdempotencyNamespaceConsumption = read('reports/validation/VAL-GOAL-24-orders-idempotency-namespace-consumption-2026-07-04.md');
 const ordersCleanupPacketRuntimeValuesConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-cleanup-packet-runtime-values-59be11e-d39bc0c-2026-07-04.md');
 const ordersCurrentHeadsNoGoConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-goal24-source-only-current-heads-2026-07-04.md');
+const ordersCatalogFlipFlopCurrentNoGoConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-catalog-flipflop-current-no-go-2026-07-04.md');
+const catalogOrdersWarehouseNoGoConsumption = readSibling('catalog-microservice', 'reports/validation/VAL-GOAL-24-catalog-consume-orders-warehouse-no-go-9287e3f-eee2f20-2026-07-04.md');
+const flipflopCurrentNoGoHeadsConsumption = readSibling('flipflop', 'reports/validation/VAL-GOAL-24-flipflop-consume-current-no-go-heads-2026-07-04.md');
 const paymentsLiveNoGoPreflight = readSibling('payments-microservice', 'reports/validation/VAL-GOAL-24-live-paid-provider-no-go-preflight-2026-07-04.md');
 const catalogLiveNoGoPreflightConsumption = readSibling('catalog-microservice', 'reports/validation/VAL-GOAL-24-catalog-consume-live-no-go-preflight-cc49c08-686d49c-2026-07-04.md');
 const warehouse686d49cStatus = readSibling('warehouse-microservice', 'docs/orchestrator/STATUS.md');
@@ -99,6 +102,38 @@ for (const marker of [
   '[RESOLVED/NARROWED: FlipFlop source rollout maps durable catalog.bundle.v1 bundleId into central Orders bundleEvidence without changing totals, stock identity, or provider state]',
 ]) {
   requireIncludes(flipflopDurableMigrationReadiness, marker, `FlipFlop durable migration readiness ${marker}`);
+}
+
+const ordersCatalogFlipFlopCurrentNoGoMarker = '[RESOLVED/NARROWED: Orders consumed Catalog 7c85732 consolidated no-go marker and FlipFlop 99dfe76 current no-go heads as source-governance inputs only; runtime Orders route invocation, provider progression, Warehouse cleanup, and channel cleanup side effects remain hard-stopped]';
+for (const [label, source] of [
+  ['Orders Catalog/FlipFlop current no-go consumption report', ordersCatalogFlipFlopCurrentNoGoConsumption],
+  ['readiness report', report],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+  ['rollback readiness', rollbackReadiness],
+]) {
+  requireIncludes(source, ordersCatalogFlipFlopCurrentNoGoMarker, `${label} Orders Catalog/FlipFlop current no-go marker`);
+  requireIncludes(source, '[MISSING: exact Orders target order hash/state, cancellation actor, approval id, safe reason code, idempotency key, and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for the future smoke]', `${label} exact Orders runtime packet blocker`);
+  requireIncludes(source, '[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]', `${label} selected Orders runtime-values blocker`);
+  requireIncludes(source, '[MISSING: exact selected Warehouse reservation lookup state for cleanup]', `${label} selected Warehouse reservation lookup blocker`);
+  requireIncludes(source, '[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]', `${label} channel acknowledgement blocker`);
+  requireIncludes(source, 'Orders must not infer Warehouse stock effects from Payments refund state, Orders no-go state, Catalog bundle identity, or FlipFlop checkout/channel readiness', `${label} no inferred Warehouse stock boundary`);
+  requireIncludes(source, 'exact Orders-to-Warehouse handoff remains selected central order hash/state, approved cancellation actor/approvedBy, safe reason, cleanup idempotency key, sideEffectsHandled acknowledgements, Warehouse-owned reservation lookup state, and Warehouse operation decision', `${label} exact Orders-to-Warehouse handoff`);
+  for (const boundary of ['mutation: false', 'orders_route_invocation: false', 'provider_call: false', 'warehouse_mutation: false', 'channel_cleanup_mutation: false', 'secret_output: false']) {
+    requireIncludes(source, boundary, `${label} boundary ${boundary}`);
+  }
+}
+for (const marker of [
+  '[RESOLVED/NARROWED: Catalog consumed Orders 9287e3f live no-go consumer sync and Warehouse eee2f20 Orders no-go consumer sync as source-governance inputs only; Catalog approval planning remains hard-stopped until bank/refund authority, exact future smoke identities, Orders sideEffectsHandled acknowledgements, exact Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]',
+  'Catalog must not infer Warehouse stock effects from Payments refund state or Orders no-go state',
+]) {
+  requireIncludes(catalogOrdersWarehouseNoGoConsumption, marker, `Catalog Orders/Warehouse no-go consumption ${marker}`);
+}
+for (const marker of [
+  '[RESOLVED/NARROWED: FlipFlop consumed Catalog 7c85732 consolidated no-go marker plus Orders 9287e3f, Warehouse eee2f20, Payments cc49c08, and FlipFlop 9a7c664 as source-governance inputs only; runtime checkout, provider progression, channel cleanup, Orders mutation, and Warehouse mutation remain hard-stopped]',
+  '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
+]) {
+  requireIncludes(flipflopCurrentNoGoHeadsConsumption, marker, `FlipFlop current no-go heads consumption ${marker}`);
 }
 
 
