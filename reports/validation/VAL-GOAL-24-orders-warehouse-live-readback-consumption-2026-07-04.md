@@ -46,8 +46,8 @@ Orders consumes Warehouse `89222f8 docs: consume goal24 warehouse live readback`
 - `[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]`
 - `[MISSING: future owner-approved sanitized idempotency keys for payment, Orders, Warehouse, and channel cleanup]`
 - `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement]`
-- `[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]`
-- `[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
+- `[RESOLVED/NARROWED: Warehouse hold/release duration is owner-approved for the bounded Goal 24 smoke as 15 minutes source-default TTL or shorter caller-supplied expiresAt]`
+- `[RESOLVED/NARROWED: final owner approval before live Warehouse reservation mutation is bounded to one Goal 24 component-line smoke attempt with max quantity 1 per component after live readback]`
 - `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`
 
 ## No Side Effects

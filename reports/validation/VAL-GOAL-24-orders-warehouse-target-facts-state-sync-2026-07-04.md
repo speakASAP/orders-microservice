@@ -32,14 +32,16 @@ Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding P
 - Coding Prompt: do not treat source-documented Catalog/Warehouse target facts as live current row readback or mutation approval.
 - Code: `docs/IMPLEMENTATION_STATE.md`, `docs/orchestrator/STATUS.md`, and `scripts/verify-goal24-paid-provider-bundle-readiness.js`.
 - Validation: `npm run verify:goal24-paid-provider-bundle-readiness`, `node --check scripts/verify-goal24-paid-provider-bundle-readiness.js`, and `git diff --check`.
-- State Update: `[RESOLVED/NARROWED: Orders state consumes Warehouse/Catalog candidate target facts and Warehouse 89222f8 live readback evidence while preserving renewed window and final mutation approval blockers]`.
+- State Update: `[RESOLVED/NARROWED: Orders state consumes Warehouse/Catalog candidate target facts, Warehouse 89222f8 live readback evidence, and Payments 3300343 Warehouse hold/final bounded approval while preserving deterministic cleanup-state blocker]`.
 
 ## Still Blocked
 
 - `[RESOLVED/NARROWED: live current target row readback at execution time captured through protected Warehouse API without mutation]`
-- `[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]`
-- `[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`
+- `[RESOLVED/NARROWED: Warehouse hold/release duration is owner-approved for the bounded Goal 24 smoke as 15 minutes source-default TTL or shorter caller-supplied expiresAt]`
+- `[RESOLVED/NARROWED: final owner approval before live Warehouse reservation mutation is bounded to one Goal 24 component-line smoke attempt with max quantity 1 per component after live readback]`
 - `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`
 - `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`
 
 No live Orders route invocation, payment creation, provider call, refund/reversal, Warehouse mutation, Warehouse direct mutation, DB write, deploy, migration, secret/token output, or raw customer/order/payment/provider evidence occurred.
+
+- [MISSING: deterministic Warehouse component reservation state for cleanup]
