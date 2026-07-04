@@ -49,8 +49,8 @@ Allowed token proof markers remain source-only: `tokenSourceType=on-host-token-f
 
 ## Orders Runtime Blockers Preserved
 
-- `[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]`.
-- `[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]`.
+- `[MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]`.
+- `[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token]`.
 - `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`.
 - `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]`.
 - `[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]`.

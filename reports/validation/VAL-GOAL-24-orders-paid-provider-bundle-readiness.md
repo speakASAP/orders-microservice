@@ -1,5 +1,15 @@
 # VAL - GOAL 24 Orders Paid/Provider Bundle Readiness
 
+## 2026-07-04 Auth Token Blocker Cleanup
+
+[RESOLVED/NARROWED: Goal 24 auth token blocker cleanup consumes Auth c389c1e docs: record goal24 actor token provisioning proof and FlipFlop 1113b9e docs: consume goal24 auth token proof in verifier as source-governance inputs; runtime guarded discount-code generation remains blocked until a fresh actor-bound token and sanitized auth/admin evidence path exist; Orders route invocation and cleanup side effects remain blocked]
+
+Orders consumes Auth `c389c1e docs: record goal24 actor token provisioning proof` and FlipFlop `1113b9e docs: consume goal24 auth token proof in verifier` as source-governance inputs only. Historical broad Auth blocker wording in Wave A-E records remains lineage evidence, not renewed runtime authority.
+
+Runtime remains blocked by [MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step], [MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token], `[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]`, `[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]`, `[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]`, `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]`, `[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]`, `[MISSING: live current target row readback at execution time]`, `[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]`, `[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]`, `[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]`, and `[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]`.
+
+Boundary: no live checkout, discount-code generation, payment creation, provider call, refund/reversal, Orders route invocation, Warehouse mutation, channel cleanup, deploy, migration, DB write, secret/token output, decoded JWT output, token persistence, or raw customer/order/payment/provider evidence occurred.
+
 Date: 2026-07-03
 
 Intent Preservation Chain: Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding Prompt -> Code -> Validation -> State Update.

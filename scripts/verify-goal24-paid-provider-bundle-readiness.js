@@ -46,10 +46,47 @@ const warehouseStatus = readSibling('warehouse-microservice', 'docs/orchestrator
 const catalogStatus = readSibling('catalog-microservice', 'docs/orchestrator/STATUS.md');
 const catalogTokenBindingConsumption = readSibling('catalog-microservice', 'reports/validation/VAL-GOAL-24-flipflop-token-binding-proof-contract-consumption-2026-07-04.md');
 const flipflopTokenBindingContract = readSibling('flipflop', 'reports/validation/VAL-GOAL-24-auth-admin-token-binding-proof-contract-2026-07-04.md');
+const ordersAuthTokenBlockerCleanup = read('reports/validation/VAL-GOAL-24-orders-auth-token-blocker-cleanup-2026-07-04.md');
 
 function requireIncludes(source, needle, label) {
   assert.ok(source.includes(needle), `${label} missing: ${needle}`);
 }
+
+const goal24AuthTokenBlockerCleanupMarker = '[RESOLVED/NARROWED: Goal 24 auth token blocker cleanup consumes Auth c389c1e docs: record goal24 actor token provisioning proof and FlipFlop 1113b9e docs: consume goal24 auth token proof in verifier as source-governance inputs; runtime guarded discount-code generation remains blocked until a fresh actor-bound token and sanitized auth/admin evidence path exist; Orders route invocation and cleanup side effects remain blocked]';
+for (const [label, source] of [
+  ['auth token blocker cleanup report', ordersAuthTokenBlockerCleanup],
+  ['readiness report', report],
+  ['orchestrator status', orchestratorStatus],
+]) {
+  requireIncludes(source, goal24AuthTokenBlockerCleanupMarker, label + ' auth token blocker cleanup marker');
+  requireIncludes(source, '[MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]', label + ' narrowed actor-bound token blocker');
+  requireIncludes(source, '[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token]', label + ' narrowed sanitized auth/admin evidence blocker');
+  requireIncludes(source, '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]', label + ' preserved Orders cleanup packet blocker');
+  requireIncludes(source, '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]', label + ' preserved Orders actor target blocker');
+  requireIncludes(source, '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]', label + ' preserved sideEffectsHandled blocker');
+  requireIncludes(source, '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]', label + ' preserved final evidence blocker');
+}
+for (const boundary of [
+  'live_checkout: false',
+  'discount_code_generation: false',
+  'payment_creation: false',
+  'provider_call: false',
+  'refund_or_reversal: false',
+  'orders_route_invocation: false',
+  'warehouse_mutation: false',
+  'channel_cleanup_mutation: false',
+  'deployment: false',
+  'migration: false',
+  'db_write: false',
+  'secret_output: false',
+  'token_output: false',
+  'decoded_jwt_output: false',
+  'token_persistence: false',
+  'raw_customer_or_payment_evidence: false',
+]) {
+  requireIncludes(ordersAuthTokenBlockerCleanup, boundary, `auth token blocker cleanup boundary ${boundary}`);
+}
+
 
 function requireMatch(source, pattern, label) {
   assert.match(source, pattern, `${label} missing pattern ${pattern}`);
@@ -362,8 +399,8 @@ for (const marker of [
   '[RESOLVED/NARROWED: Goal 24 token-binding proof may record only token-present, Auth validation status class, actor-hash match, required-role boolean, approval id, runner id, timestamps, and no-output booleans]',
   '[RESOLVED/NARROWED: Goal 24 approved token source shape is owner-approved on-host token file or in-memory handoff read only by the approved runner, never printed, never decoded into reports, never persisted, never committed, and removed or invalidated after the run]',
   '[RESOLVED/NARROWED: Goal 24 Auth token binding does not authorize Orders, Warehouse, Payments/provider, or channel side effects and does not prove stock effects]',
-  '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
-  '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
+  '[MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]',
+  '[MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
   '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
   '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',

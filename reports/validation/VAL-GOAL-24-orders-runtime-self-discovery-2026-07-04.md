@@ -21,8 +21,8 @@ Discovered hard stops:
 
 Preserved blockers:
 
-- [MISSING: approved Auth user token source path for guarded FlipFlop admin action, with no-print/no-decode/no-persist handling]
-- [MISSING: confirmation that the runtime token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]
+- [MISSING: fresh Auth actor-bound token generated through the Auth c389c1e no-print/no-decode/no-persist pattern for the exact guarded discount-fixture step]
+- [MISSING: sanitized auth/admin evidence path for guarded discount-code generation using the fresh selected actor-bound token]
 - [RESOLVED/NARROWED: FIO_BANKA_PAYMENT_ORDER_TOKEN_CZK and FIO_BANKA_PAYMENT_ORDER_TOKEN_EUR are present in the current ready Payments pod without value output]
 - [MISSING: FIO_BANKA_REFUND_UPLOAD_ENABLED=true for an owner-approved exact future refund upload window]
 - [MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]
