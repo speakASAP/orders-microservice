@@ -22,6 +22,9 @@ const createContract = read('docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md'
 const createVerifier = read('scripts/verify-create-order-contract.js');
 const paymentVerifier = read('scripts/verify-payment-boundary.js');
 const report = read(reportPath);
+const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md');
+const implementationState = read('docs/IMPLEMENTATION_STATE.md');
+const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const staleIdempotencyClaim = 'current status endpoint has no dedicated idempotency-key field';
 assert.equal(report.includes(staleIdempotencyClaim), false, 'readiness report must not preserve stale idempotency endpoint wording');
 requireIncludes(report, 'approval.idempotencyKey, which the current status endpoint accepts and persists in statusTransitionAudit', 'readiness report idempotency endpoint wording');
@@ -210,10 +213,56 @@ requireIncludes(paymentsCreateValidation, "centralOrderId: '86487d81-967b-42e5-9
 requireIncludes(paymentsProviderContract, '[RESOLVED: runtime verification of Payments Orders service token/role for the current bridge mechanism]', 'Payments provider contract current service-token proof');
 requireIncludes(paymentsRollbackPacket, '[MISSING: Fiobanka provider-side refund/reversal or unpaid cancel/void execution path with redacted evidence]', 'Payments rollback packet preserves Fiobanka execution blocker');
 requireIncludes(paymentsProviderContract, 'FIO_BANKA_REFUND_UPLOAD_ENABLED', 'Payments provider contract refund upload gate');
-requireIncludes(warehouseStatus, '[MISSING: owner-approved Warehouse stock hold/release window and max quantity]', 'Warehouse current max quantity/window blocker');
+requireIncludes(warehouseStatus, '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]', 'Warehouse current hold/release duration blocker');
+
+const currentHeadSyncMarker = '[RESOLVED/NARROWED: Orders consumed current Goal 24 source-governance heads Catalog `b0ed9f5 merge goal24 current integration head sync`, FlipFlop `b2a4b4d merge goal24 current source head sync`, Payments `52f9b7e merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and Orders `3901ec1 merge goal24 latest cleanup head sync`; runtime Orders route invocation and cleanup side effects remain blocked]';
+for (const [label, source] of [
+  ['current head sync report', currentHeadSync],
+  ['readiness report', report],
+  ['rollback readiness', rollbackReadiness],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+]) {
+  requireIncludes(source, currentHeadSyncMarker, `${label} current head sync marker`);
+  for (const marker of [
+    'Catalog `b0ed9f5 merge goal24 current integration head sync`',
+    'FlipFlop `b2a4b4d merge goal24 current source head sync`',
+    'Payments `52f9b7e merge goal24 current source head sync`',
+    'Warehouse `11df002 merge goal24 warehouse target facts reconcile`',
+    'Orders `3901ec1 merge goal24 latest cleanup head sync`',
+    '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
+    '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
+    '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+    '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+    '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
+    '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
+    '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
+    '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
+    '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]',
+    '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
+    '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
+    '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+  ]) {
+    requireIncludes(source, marker, `${label} missing current head sync marker ${marker}`);
+  }
+}
+for (const boundary of [
+  'mutation: false',
+  'orders_route_invocation: false',
+  'payment_creation: false',
+  'provider_call: false',
+  'refund_or_reversal: false',
+  'warehouse_mutation: false',
+  'channel_cleanup_mutation: false',
+  'deployment: false',
+  'secret_output: false',
+  'raw_customer_or_payment_evidence: false',
+]) {
+  requireIncludes(currentHeadSync, boundary, `current head sync boundary ${boundary}`);
+}
 requireIncludes(catalogStatus, '[RESOLVED/NARROWED: deployed FlipFlop bundle-preserving fixture gate and renewed runtime quote evidence passed before checkout]', 'Catalog current quote preflight evidence');
-requireIncludes(report, 'Current dependency heads consumed: Catalog `906a31f merge goal24 flipflop channel supersession consumption`, FlipFlop `5202c15 merge goal24 channel cleanup owner supersession`, Payments `7822f2a merge goal24 cross-service head sync`, Warehouse `46a66dc docs: define goal24 warehouse cleanup packet`; Orders pre-change `6d5dced merge goal24 latest cleanup heads`.', 'readiness report current dependency heads');
-requireIncludes(rollbackReadiness, 'Orders consumed current pushed heads Catalog `906a31f merge goal24 flipflop channel supersession consumption`, FlipFlop `5202c15 merge goal24 channel cleanup owner supersession`, Payments `7822f2a merge goal24 cross-service head sync`, and Warehouse `46a66dc docs: define goal24 warehouse cleanup packet` as dependency evidence only.', 'rollback readiness current dependency heads');
+requireIncludes(report, 'Current dependency heads consumed: Catalog `906a31f merge goal24 flipflop channel supersession consumption`, FlipFlop `5202c15 merge goal24 channel cleanup owner supersession`, Payments `7822f2a merge goal24 cross-service head sync`, Warehouse `46a66dc docs: define goal24 warehouse cleanup packet`; Orders pre-change `6d5dced merge goal24 latest cleanup heads`.', 'readiness report historical dependency heads');
+requireIncludes(rollbackReadiness, 'Orders consumed current pushed heads Catalog `906a31f merge goal24 flipflop channel supersession consumption`, FlipFlop `5202c15 merge goal24 channel cleanup owner supersession`, Payments `7822f2a merge goal24 cross-service head sync`, and Warehouse `46a66dc docs: define goal24 warehouse cleanup packet` as dependency evidence only.', 'rollback readiness historical dependency heads');
 requireIncludes(report, '[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]', 'readiness report channel supersession marker');
 requireIncludes(rollbackReadiness, '[RESOLVED/NARROWED: Codex Goal 24 integration thread supersedes earlier FlipFlop channel executor/runtime owner blockers; channel cleanup runtime remains blocked until bank/refund authority, exact provider proof, Orders side-effect acknowledgements, Warehouse target facts, Auth token source, and final redacted evidence path exist]', 'rollback readiness channel supersession marker');
 
