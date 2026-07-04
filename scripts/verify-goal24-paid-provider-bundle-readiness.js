@@ -215,21 +215,21 @@ requireIncludes(paymentsRollbackPacket, '[MISSING: Fiobanka provider-side refund
 requireIncludes(paymentsProviderContract, 'FIO_BANKA_REFUND_UPLOAD_ENABLED', 'Payments provider contract refund upload gate');
 requireIncludes(warehouseStatus, '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]', 'Warehouse current hold/release duration blocker');
 
-const currentHeadSyncMarker = '[RESOLVED/NARROWED: Orders consumed current Goal 24 source-governance heads Catalog `e379b54 merge goal24 current source head sync`, FlipFlop `e1f3e3a merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Warehouse `11df002 merge goal24 warehouse target facts reconcile`, and Orders `d5d2114 merge goal24 current source head sync`; runtime Orders route invocation and cleanup side effects remain blocked]';
+const sourceWaveFreezeMarker = '[RESOLVED/NARROWED: Goal 24 frozen source-governance wave GOAL24-SOURCE-WAVE-2026-07-04A records Catalog `e379b54 merge goal24 current source head sync`, FlipFlop `e1f3e3a merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Orders `d53de9f merge goal24 current source head sync`, and Warehouse `11df002 merge goal24 warehouse target facts reconcile` as input heads for runtime planning; post-merge self heads are validation evidence only; runtime Orders route invocation and cleanup side effects remain blocked]';
 for (const [label, source] of [
-  ['current head sync report', currentHeadSync],
+  ['source-wave freeze report', currentHeadSync],
   ['readiness report', report],
   ['rollback readiness', rollbackReadiness],
   ['implementation state', implementationState],
   ['orchestrator status', orchestratorStatus],
 ]) {
-  requireIncludes(source, currentHeadSyncMarker, `${label} current head sync marker`);
+  requireIncludes(source, sourceWaveFreezeMarker, `${label} source-wave freeze marker`);
   for (const marker of [
     'Catalog `e379b54 merge goal24 current source head sync`',
     'FlipFlop `e1f3e3a merge goal24 current source head sync`',
     'Payments `eab6351 merge goal24 current source head sync`',
     'Warehouse `11df002 merge goal24 warehouse target facts reconcile`',
-    'Orders `d5d2114 merge goal24 current source head sync`',
+    'Orders `d53de9f merge goal24 current source head sync`',
     '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
     '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
     '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
@@ -243,7 +243,7 @@ for (const [label, source] of [
     '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
     '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
   ]) {
-    requireIncludes(source, marker, `${label} missing current head sync marker ${marker}`);
+    requireIncludes(source, marker, `${label} missing source-wave freeze marker ${marker}`);
   }
 }
 for (const boundary of [
