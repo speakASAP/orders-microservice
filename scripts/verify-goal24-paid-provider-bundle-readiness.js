@@ -361,7 +361,7 @@ for (const marker of [
     requireIncludes(paymentsIdempotencyNamespaceSync, marker, `Payments idempotency namespace source ${marker}`);
   }
 }
-const sourceWaveBMarker = '[RESOLVED/NARROWED: Goal 24 current source-governance wave GOAL24-SOURCE-WAVE-2026-07-04B records Catalog `dde0f43 merge goal24 owner executor wording sync`, FlipFlop `e8abb44 merge goal24 implementation target facts wording sync`, Payments `4904de3 merge goal24 current hardstop wording sync`, Orders `4e651f4 merge goal24 warehouse target state sync`, and Warehouse `3fdeabd merge goal24 live target readback wording sync` as current input heads for renewed runtime planning; runtime Orders route invocation and cleanup side effects remain blocked]';
+const sourceWaveBMarker = '[RESOLVED/NARROWED: Goal 24 source-governance wave GOAL24-SOURCE-WAVE-2026-07-04B input set records Catalog `dde0f43 merge goal24 owner executor wording sync`, FlipFlop `e8abb44 merge goal24 implementation target facts wording sync`, Payments `4904de3 merge goal24 current hardstop wording sync`, Orders `4e651f4 merge goal24 warehouse target state sync`, and Warehouse `3fdeabd merge goal24 live target readback wording sync` as Wave B input heads for renewed runtime planning; post-merge source-sync commits are validation evidence only; runtime Orders route invocation and cleanup side effects remain blocked]';
 for (const [label, source] of [
   ['source-wave freeze report', currentHeadSync],
   ['readiness report', report],
