@@ -9,6 +9,7 @@ const paymentsUnpaidAck = read('../payments-microservice/reports/validation/VAL-
 const warehouseAck = read('../warehouse-microservice/reports/validation/VAL-GOAL-24-warehouse-no-mutation-ack-2026-07-04.md');
 const channelAck = read('../flipflop/reports/validation/VAL-GOAL-24-channel-no-cleanup-ack-2026-07-04.md');
 const notificationsAck = read('../notifications-microservice/reports/validation/GOAL-24-selected-unpaid-orders-cancellation-notifications-ack.md');
+const unusedKeyPreflight = read('reports/validation/VAL-GOAL-24-orders-runtime-unused-key-preflight-2026-07-04.md');
 const marker = '[RESOLVED/NARROWED: structured owner approval from Sergey Stasok / Сергей Сташок on 2026-07-04 Europe/Prague is consumed as no-mutation Goal 24 closeout planning evidence for centralOrderHash 04d7d08c82a07853; sideEffectsHandled.payment=true by unpaid no-provider-cancel acknowledgement, sideEffectsHandled.warehouse=true by Warehouse 032ed96 no-mutation acknowledgement, sideEffectsHandled.channel=true by FlipFlop 86394e7 no-cleanup acknowledgement, sideEffectsHandled.notification=true only as no-notification-mutation acknowledgement, and sideEffectsHandled.crm=true only as no-crm-mutation acknowledgement; no Orders route invocation, Warehouse mutation, channel cleanup, notification, CRM, refund, reversal, bank transfer, provider polling mutation, deploy, migration, DB write, or raw evidence output occurred; any future Orders route call remains blocked until unused-key preflight and same-request replay proof are recorded without raw IDs or secrets]';
 for (const [label, source] of [['report', report], ['state', state], ['status', status]]) {
   requireIncludes(source, marker, `${label} marker`);
@@ -20,5 +21,7 @@ requireIncludes(warehouseAck, 'owner-approved Warehouse no-mutation acknowledgem
 requireIncludes(channelAck, 'owner-approved FlipFlop channel no-cleanup acknowledgement', 'FlipFlop no-cleanup acknowledgement');
 requireIncludes(notificationsAck, 'sideEffectsHandled.notification=true', 'Notifications selected unpaid cancellation acknowledgement');
 requireIncludes(notificationsAck, 'Notifications requires no pre-route notification send', 'Notifications no pre-route send acknowledgement');
+requireIncludes(unusedKeyPreflight, 'unused-key-preflight-passed-read-only', 'Orders runtime unused-key preflight decision');
+requireIncludes(unusedKeyPreflight, 'idempotencyKeyUsedAnywhere": false', 'Orders runtime idempotency key unused');
 requireIncludes(report, 'goal24-selected-unpaid-no-mutation-closeout-source-evidence-complete-route-mutation-blocked', 'Orders closeout decision');
 console.log('Goal 24 structured approval no-mutation closeout verified');
