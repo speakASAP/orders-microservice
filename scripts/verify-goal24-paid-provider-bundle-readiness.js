@@ -36,6 +36,9 @@ const ordersIdempotencyNamespaceConsumption = read('reports/validation/VAL-GOAL-
 const ordersCleanupPacketRuntimeValuesConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-cleanup-packet-runtime-values-59be11e-d39bc0c-2026-07-04.md');
 const ordersCurrentHeadsNoGoConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-goal24-source-only-current-heads-2026-07-04.md');
 const ordersCatalogFlipFlopCurrentNoGoConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-catalog-flipflop-current-no-go-2026-07-04.md');
+const ordersFinalOwnerHandoffPacket = read('docs/orchestrator/2026-07-04-goal24-final-source-only-owner-handoff-packet.md');
+const ordersFinalOwnerHandoffReport = read('reports/validation/VAL-GOAL-24-orders-final-owner-handoff-packet-2026-07-04.md');
+const paymentsFinalOwnerApprovalPacket = readSibling('payments-microservice', 'docs/orchestrator/2026-07-04-goal24-final-owner-approval-runtime-packet.md');
 const catalogOrdersWarehouseNoGoConsumption = readSibling('catalog-microservice', 'reports/validation/VAL-GOAL-24-catalog-consume-orders-warehouse-no-go-9287e3f-eee2f20-2026-07-04.md');
 const flipflopCurrentNoGoHeadsConsumption = readSibling('flipflop', 'reports/validation/VAL-GOAL-24-flipflop-consume-current-no-go-heads-2026-07-04.md');
 const paymentsLiveNoGoPreflight = readSibling('payments-microservice', 'reports/validation/VAL-GOAL-24-live-paid-provider-no-go-preflight-2026-07-04.md');
@@ -134,6 +137,50 @@ for (const marker of [
   '[MISSING: Orders cancellation actor, reason, idempotency key, and side-effect acknowledgements before channel side-effect acknowledgement]',
 ]) {
   requireIncludes(flipflopCurrentNoGoHeadsConsumption, marker, `FlipFlop current no-go heads consumption ${marker}`);
+}
+
+
+const ordersFinalOwnerHandoffMarker = '[RESOLVED/NARROWED: Orders final owner handoff packet is source-defined for Goal 24 paid/provider cleanup after Catalog 7c85732 and FlipFlop 99dfe76; runtime route invocation remains hard-stopped until named Payments/bank authority, exact future payment/order/provider hashes, Orders actor/reason/idempotency/sideEffectsHandled, exact Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]';
+for (const [label, source] of [
+  ['Orders final owner handoff packet', ordersFinalOwnerHandoffPacket],
+  ['Orders final owner handoff report', ordersFinalOwnerHandoffReport],
+  ['readiness report', report],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+  ['rollback readiness', rollbackReadiness],
+]) {
+  requireIncludes(source, ordersFinalOwnerHandoffMarker, `${label} final owner handoff marker`);
+  for (const blocker of [
+    '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+    '[MISSING: named bank/refund executor, exact destination/source account proof, amount, reference, deadline, and redacted completion evidence for the future linked payment]',
+    '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+    '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement]',
+    '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys derived from the future approval id and sanitized payment hash]',
+    '[MISSING: exact Orders target order hash/state, cancellation actor, approval id, safe reason code, idempotency key, and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for the future smoke]',
+    '[MISSING: exact selected Orders cleanup packet runtime values and sideEffectsHandled acknowledgements]',
+    '[MISSING: exact selected Warehouse reservation lookup state for cleanup]',
+    '[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]',
+    '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+  ]) {
+    requireIncludes(source, blocker, `${label} preserved blocker ${blocker}`);
+  }
+  requireIncludes(source, 'PUT /api/orders/:id/status', `${label} route shape`);
+  requireIncludes(source, 'GOAL24_PAID_PROVIDER_ROLLBACK', `${label} paid rollback reason`);
+  requireIncludes(source, 'GOAL24_PROVIDER_UNPAID_CANCEL', `${label} unpaid cancel reason`);
+  requireIncludes(source, 'orders:goal24:post-paid-correction:<approvalId>:<paymentHash>', `${label} Orders idempotency namespace`);
+  requireIncludes(source, 'sideEffectsHandled.payment|warehouse|notification|crm|channel=true', `${label} sideEffectsHandled gate`);
+  requireIncludes(source, 'Orders must not infer Warehouse stock effects from Payments refund state, Orders no-go state, Catalog bundle identity, FlipFlop checkout/channel readiness', `${label} no stock inference boundary`);
+  for (const boundary of ['mutation: false', 'orders_route_invocation: false', 'provider_call: false', 'warehouse_mutation: false', 'channel_cleanup_mutation: false', 'secret_output: false']) {
+    requireIncludes(source, boundary, `${label} boundary ${boundary}`);
+  }
+}
+for (const marker of [
+  'id: PAYMENTS-GOAL24-FINAL-OWNER-APPROVAL-RUNTIME-PACKET',
+  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[MISSING: exact Orders target order hash/state, cancellation actor, approval id, safe reason code, idempotency key, and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for the future smoke]',
+  '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+]) {
+  requireIncludes(paymentsFinalOwnerApprovalPacket, marker, `Payments final owner approval packet ${marker}`);
 }
 
 

@@ -40,6 +40,7 @@
     "generate:browser-render-proof-template": "node scripts/generate-browser-render-proof-report-template.js",
     "verify:browser-render-proof-template": "node scripts/verify-browser-render-proof-report-template.js",
     "verify:tracking-visibility-policy": "node scripts/verify-tracking-visibility-policy.js",
+    "verify:goal24-final-source-only-owner-handoff-packet": "node scripts/verify-goal24-final-source-only-owner-handoff-packet.js",
     "verify:goal24-paid-provider-bundle-readiness": "node scripts/verify-goal24-paid-provider-bundle-readiness.js",
     "verify:channel-deploy-browser-smoke-decision": "node scripts/verify-channel-deploy-browser-smoke-decision.js",
     "verify:status-update-idempotency": "node scripts/verify-status-update-idempotency.js"
