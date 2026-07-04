@@ -24,6 +24,8 @@ const paymentVerifier = read('scripts/verify-payment-boundary.js');
 const report = read(reportPath);
 const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md');
 const ordersTokenBindingConsumption = read('reports/validation/VAL-GOAL-24-orders-token-binding-proof-contract-consumption-2026-07-04.md');
+const ordersIdempotencyNamespaceConsumption = read('reports/validation/VAL-GOAL-24-orders-idempotency-namespace-consumption-2026-07-04.md');
+const paymentsIdempotencyNamespaceSync = readSibling('payments-microservice', 'reports/validation/VAL-GOAL-24-idempotency-namespace-sync-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const staleIdempotencyClaim = 'current status endpoint has no dedicated idempotency-key field';
@@ -263,6 +265,47 @@ for (const boundary of [
 ]) {
   requireIncludes(ordersTokenBindingConsumption, boundary, `Orders token-binding consumption boundary ${boundary}`);
 }
+
+for (const marker of [
+  '[RESOLVED/NARROWED: Orders consumed Payments 349c052 idempotency namespace sync as source governance only; runtime Orders route invocation and cleanup side effects remain blocked]',
+  '[RESOLVED/NARROWED: Goal 24 side-effect idempotency namespace contract is source-defined across Payments, Orders, Warehouse, and channel cleanup]',
+  '[RESOLVED/NARROWED: Goal 24 idempotency uniqueness policy requires unused keys before side effects and exact request-hash replay only]',
+  'payments:goal24:fiobanka-refund:<approvalId>:<paymentHash>',
+  'orders:goal24:post-paid-correction:<approvalId>:<paymentHash>',
+  'warehouse:goal24:component-cleanup:<approvalId>:<paymentHash>:<componentHash>',
+  'channel:goal24:checkout-cleanup:<approvalId>:<paymentHash>',
+  '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
+  '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
+  '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys derived from the future approval id and sanitized payment hash]',
+  '[MISSING: future approval id and sanitized payment hash for idempotency derivation]',
+  '[MISSING: component hashes for Warehouse component-line cleanup idempotency keys]',
+  '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
+]) {
+  requireIncludes(ordersIdempotencyNamespaceConsumption, marker, `Orders idempotency namespace consumption ${marker}`);
+  assert.ok(
+    report.includes(marker) || rollbackReadiness.includes(marker) || implementationState.includes(marker) || orchestratorStatus.includes(marker),
+    `Orders docs missing idempotency namespace marker ${marker}`,
+  );
+  if (marker.includes('Goal 24 side-effect idempotency') || marker.includes('Goal 24 idempotency uniqueness') || marker.includes(':goal24:')) {
+    requireIncludes(paymentsIdempotencyNamespaceSync, marker, `Payments idempotency namespace source ${marker}`);
+  }
+}
+for (const boundary of [
+  'mutation: false',
+  'orders_route_invocation: false',
+  'payment_creation: false',
+  'provider_call: false',
+  'refund_or_reversal: false',
+  'warehouse_mutation: false',
+  'channel_cleanup_mutation: false',
+  'deployment: false',
+  'secret_output: false',
+  'raw_customer_or_payment_evidence: false',
+]) {
+  requireIncludes(ordersIdempotencyNamespaceConsumption, boundary, `Orders idempotency namespace boundary ${boundary}`);
+}
+requireIncludes(ordersIdempotencyNamespaceConsumption, 'goal24:sha256:abcdef1234567890` is test-only', 'Orders fixture key remains test-only');
+assert.equal(ordersIdempotencyNamespaceConsumption.includes('goal24:sha256:abcdef1234567890` is test-only. It proves the Orders status endpoint persists and replays a sanitized idempotency key, but it is not the future Goal 24 paid/provider runtime key'), true, 'fixture key must not be future runtime key');
 
 const sourceWaveFreezeMarker = '[RESOLVED/NARROWED: Goal 24 frozen source-governance wave GOAL24-SOURCE-WAVE-2026-07-04A records Catalog `e379b54 merge goal24 current source head sync`, FlipFlop `e1f3e3a merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Orders `d53de9f merge goal24 current source head sync`, and Warehouse `11df002 merge goal24 warehouse target facts reconcile` as input heads for runtime planning; post-merge self heads are validation evidence only; runtime Orders route invocation and cleanup side effects remain blocked]';
 for (const [label, source] of [
