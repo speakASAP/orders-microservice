@@ -113,7 +113,7 @@ A paid/provider `catalog.bundle.v1` bundle smoke is blocked until the packet nam
 
 ## Owner-Approved Future Runtime Packet Shape
 
-The future Fiobanka paid/provider smoke must provide this packet before any Orders cancellation route is used. Until the packet is complete, Orders keeps `[MISSING: owner-approved Orders cancellation/refund correction actor, reason, sideEffectsHandled acknowledgement, and route]` and `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state]` open.
+The future Fiobanka paid/provider smoke must provide this packet before any Orders cancellation route is used. Until the packet is complete, Orders keeps `[MISSING: named runtime Orders cancellation actor/approvedBy, exact target order hash/state, sideEffectsHandled acknowledgements, sanitized idempotency key, provider proof hash or unpaid acknowledgement, and approved runtime route invocation evidence]` and `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state]` open.
 
 Required sanitized fields:
 
