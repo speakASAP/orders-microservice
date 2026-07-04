@@ -109,6 +109,8 @@ requireIncludes(rollbackReadiness, '`delivered` / customer-received', 'rollback 
 requireIncludes(rollbackReadiness, "CANCELLATION_SOURCES = ['pending', 'confirmed', 'processing']", 'rollback readiness source cancellation state matrix');
 requireIncludes(rollbackReadiness, 'sideEffectsHandled.payment|warehouse|notification|crm|channel=true', 'rollback readiness source side-effect ack list');
 assert.equal(rollbackReadiness.includes('until that migration/deploy is approved'), false, 'rollback readiness must not preserve stale idempotency migration approval wording');
+assert.equal(rollbackReadiness.includes('[MISSING: owner-approved Orders cancellation/refund correction actor, reason, sideEffectsHandled acknowledgement, and route]'), false, 'rollback readiness must not preserve stale route-missing Orders cleanup wording');
+requireIncludes(rollbackReadiness, '[MISSING: named runtime Orders cancellation actor/approvedBy, exact target order hash/state, sideEffectsHandled acknowledgements, sanitized idempotency key, provider proof hash or unpaid acknowledgement, and approved runtime route invocation evidence]', 'rollback readiness narrowed Orders runtime packet blocker');
 requireIncludes(transitionBoundary, '`pending|confirmed|processing -> cancelled` requires `approval.approved=true`, `approval.approvalType=human`', 'status transition cancellation gate docs');
 requireIncludes(transitionBoundary, 'side-effect acknowledgements for payment, warehouse, notification, CRM, and channel handling', 'status transition side-effect docs');
 requireIncludes(transitionBoundary, 'terminal-state destructive corrections remain rejected', 'status transition terminal fail closed docs');
