@@ -57,7 +57,7 @@ function requireMatch(source, pattern, label) {
 
 
 
-const ordersRuntimeSelfDiscoveryMarker = '[RESOLVED/NARROWED: Orders self-discovery used owner-approved autonomous search to inspect only redacted/runtime-safe Goal 24 inputs; Payments Orders bridge token evidence is resolved for service-to-service payment status only, while Fio payment-order write tokens remain absent, refund upload remains disabled, exact future payment/order/provider hashes remain missing, and live Orders/Warehouse/channel side effects remain blocked]';
+const ordersRuntimeSelfDiscoveryMarker = '[RESOLVED/NARROWED: Orders self-discovery refreshed after Payments rollout convergence; current ready Payments pod d403706 has Fio payment-order write-token envs present without value output, but refund upload remains disabled, exact future payment/order/provider hashes remain missing, and live Orders/Warehouse/channel side effects remain blocked]';
 for (const [source, label] of [
   [ordersRuntimeSelfDiscovery, 'orders runtime self-discovery report'],
   [implementationState, 'implementation state'],
@@ -65,7 +65,7 @@ for (const [source, label] of [
 ]) {
   requireIncludes(source, ordersRuntimeSelfDiscoveryMarker, label + ' runtime self-discovery marker');
   for (const blocker of [
-    '[MISSING: Vault properties FIO_BANKA_PAYMENT_ORDER_TOKEN_CZK and FIO_BANKA_PAYMENT_ORDER_TOKEN_EUR for owner-approved payment-order upload]',
+    '[RESOLVED/NARROWED: FIO_BANKA_PAYMENT_ORDER_TOKEN_CZK and FIO_BANKA_PAYMENT_ORDER_TOKEN_EUR are present in the current ready Payments pod without value output]',
     '[MISSING: FIO_BANKA_REFUND_UPLOAD_ENABLED=true for an owner-approved exact future refund upload window]',
     '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
     '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
@@ -76,8 +76,8 @@ for (const [source, label] of [
     requireIncludes(source, blocker, label + ' preserved self-discovery blocker ' + blocker);
   }
 }
-requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_PAYMENT_ORDER_TOKEN_CZK_PRESENT=false', 'self-discovery CZK write token absence');
-requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_PAYMENT_ORDER_TOKEN_EUR_PRESENT=false', 'self-discovery EUR write token absence');
+requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_PAYMENT_ORDER_TOKEN_CZK_PRESENT=true LEN=64', 'self-discovery CZK write token presence');
+requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_PAYMENT_ORDER_TOKEN_EUR_PRESENT=true LEN=64', 'self-discovery EUR write token presence');
 requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_REFUND_UPLOAD_ENABLED_TRUE=false', 'self-discovery refund upload disabled');
 requireIncludes(ordersRuntimeSelfDiscovery, 'runtimeTokensMatch=true', 'self-discovery bridge token evidence');
 
