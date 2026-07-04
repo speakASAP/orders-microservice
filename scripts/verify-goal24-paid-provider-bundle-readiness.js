@@ -24,6 +24,7 @@ const paymentVerifier = read('scripts/verify-payment-boundary.js');
 const report = read(reportPath);
 const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md');
 const ordersOwnerApprovalIntake = read('reports/validation/VAL-GOAL-24-orders-owner-approval-intake-2026-07-04.md');
+const ordersRuntimeSelfDiscovery = read('reports/validation/VAL-GOAL-24-orders-runtime-self-discovery-2026-07-04.md');
 const ordersChannelOwnerConsumption = read('reports/validation/VAL-GOAL-24-orders-channel-owner-consumption-2026-07-04.md');
 const ordersPaymentReleaseBoundarySync = read('reports/validation/VAL-GOAL-24-orders-payment-release-boundary-sync-2026-07-04.md');
 const ordersWarehouseTargetFactsStateSync = read('reports/validation/VAL-GOAL-24-orders-warehouse-target-facts-state-sync-2026-07-04.md');
@@ -54,6 +55,31 @@ function requireMatch(source, pattern, label) {
   assert.match(source, pattern, `${label} missing pattern ${pattern}`);
 }
 
+
+
+const ordersRuntimeSelfDiscoveryMarker = '[RESOLVED/NARROWED: Orders self-discovery used owner-approved autonomous search to inspect only redacted/runtime-safe Goal 24 inputs; Payments Orders bridge token evidence is resolved for service-to-service payment status only, while Fio payment-order write tokens remain absent, refund upload remains disabled, exact future payment/order/provider hashes remain missing, and live Orders/Warehouse/channel side effects remain blocked]';
+for (const [source, label] of [
+  [ordersRuntimeSelfDiscovery, 'orders runtime self-discovery report'],
+  [implementationState, 'implementation state'],
+  [orchestratorStatus, 'orchestrator status'],
+]) {
+  requireIncludes(source, ordersRuntimeSelfDiscoveryMarker, label + ' runtime self-discovery marker');
+  for (const blocker of [
+    '[MISSING: Vault properties FIO_BANKA_PAYMENT_ORDER_TOKEN_CZK and FIO_BANKA_PAYMENT_ORDER_TOKEN_EUR for owner-approved payment-order upload]',
+    '[MISSING: FIO_BANKA_REFUND_UPLOAD_ENABLED=true for an owner-approved exact future refund upload window]',
+    '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+    '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
+    '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
+    '[MISSING: live current target row readback at execution time]',
+    '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+  ]) {
+    requireIncludes(source, blocker, label + ' preserved self-discovery blocker ' + blocker);
+  }
+}
+requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_PAYMENT_ORDER_TOKEN_CZK_PRESENT=false', 'self-discovery CZK write token absence');
+requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_PAYMENT_ORDER_TOKEN_EUR_PRESENT=false', 'self-discovery EUR write token absence');
+requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_REFUND_UPLOAD_ENABLED_TRUE=false', 'self-discovery refund upload disabled');
+requireIncludes(ordersRuntimeSelfDiscovery, 'runtimeTokensMatch=true', 'self-discovery bridge token evidence');
 
 const ordersOwnerApprovalIntakeMarker = '[RESOLVED/NARROWED: owner broad approval was received in the Codex thread for autonomous Goal 24 continuation, but Orders treats it as source-controlled approval-intake evidence only; live Orders route invocation remains blocked until exact actor, target order hash/state, sideEffectsHandled acknowledgements, provider proof, idempotency key, Warehouse live readback/window/final approval, and final redacted evidence path exist]';
 for (const [source, label] of [
