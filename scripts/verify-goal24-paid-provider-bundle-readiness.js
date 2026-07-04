@@ -23,6 +23,7 @@ const createVerifier = read('scripts/verify-create-order-contract.js');
 const paymentVerifier = read('scripts/verify-payment-boundary.js');
 const report = read(reportPath);
 const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md');
+const ordersChannelOwnerConsumption = read('reports/validation/VAL-GOAL-24-orders-channel-owner-consumption-2026-07-04.md');
 const ordersTokenBindingConsumption = read('reports/validation/VAL-GOAL-24-orders-token-binding-proof-contract-consumption-2026-07-04.md');
 const ordersIdempotencyNamespaceConsumption = read('reports/validation/VAL-GOAL-24-orders-idempotency-namespace-consumption-2026-07-04.md');
 const paymentsIdempotencyNamespaceSync = readSibling('payments-microservice', 'reports/validation/VAL-GOAL-24-idempotency-namespace-sync-2026-07-04.md');
@@ -386,6 +387,34 @@ for (const required of [
   '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
 ]) {
   requireIncludes(report, required, 'readiness report blocker/evidence');
+}
+
+
+
+const staleCurrentChannelOwnerBlocker = '- `[MISSING: channel/FlipFlop checkout cleanup owner for customer-visible session/cart/local projection state]`';
+requireIncludes(rollbackReadiness, '[RESOLVED/NARROWED: Orders consumes current FlipFlop channel cleanup executor as source-governance coordination only; runtime channel sideEffectsHandled acknowledgement for the selected central order remains blocked]', 'rollback readiness Orders channel owner consumption marker');
+requireIncludes(rollbackReadiness, '[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]', 'rollback readiness current coordination owner marker');
+requireIncludes(rollbackReadiness, '[RESOLVED/NARROWED: FlipFlop channel cleanup executor is the Codex Goal 24 integration thread for future source-controlled coordination]', 'rollback readiness current FlipFlop executor marker');
+if (rollbackReadiness.includes(staleCurrentChannelOwnerBlocker)) {
+  throw new Error('rollback readiness still lists stale current channel owner blocker');
+}
+for (const source of [report, orchestratorStatus, implementationState, ordersChannelOwnerConsumption]) {
+  requireIncludes(source, '[RESOLVED/NARROWED: Orders consumes current FlipFlop channel cleanup executor as source-governance coordination only; runtime channel sideEffectsHandled acknowledgement for the selected central order remains blocked]', 'Orders channel owner consumption marker');
+  requireIncludes(source, '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]', 'selected-order channel side-effect acknowledgement remains blocked');
+}
+for (const boundary of [
+  'mutation: false',
+  'orders_route_invocation: false',
+  'payment_creation: false',
+  'provider_call: false',
+  'warehouse_mutation: false',
+  'channel_cleanup_mutation: false',
+  'deployment: false',
+  'secret_output: false',
+  'token_output: false',
+  'raw_customer_or_payment_evidence: false',
+]) {
+  requireIncludes(ordersChannelOwnerConsumption, boundary, `Orders channel owner consumption boundary ${boundary}`);
 }
 
 console.log('goal24 paid/provider bundle readiness verification ok');
