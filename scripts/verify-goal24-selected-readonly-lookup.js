@@ -13,6 +13,8 @@ const report = read('reports/validation/VAL-GOAL-24-selected-readonly-lookup-202
 const state = read('docs/IMPLEMENTATION_STATE.md');
 const status = read('docs/orchestrator/STATUS.md');
 const packet = read('docs/orchestrator/2026-07-04-goal24-final-source-only-owner-handoff-packet.md');
+const consumedHeads = read('reports/validation/VAL-GOAL-24-orders-consume-selected-lookup-heads-2026-07-04.md');
+const selectedLookupHeadsMarker = '[RESOLVED/NARROWED: Orders consumed Warehouse 058f5eb selected reservation lookup and FlipFlop 41953d7 selected channel lookup as source-owned read-only evidence for centralOrderHash 04d7d08c82a07853; Warehouse reports two expired component reservations and FlipFlop reports one pending fiobanka channel correlation, but Orders sideEffectsHandled warehouse|channel acknowledgements remain missing until owner-approved acknowledgement packets exist]';
 
 for (const [label, source] of [['report', report], ['state', state], ['status', status], ['packet', packet]]) {
   requireIncludes(source, marker, `${label} selected lookup marker`);
@@ -47,5 +49,9 @@ for (const required of [
   'channel_cleanup_mutation: false',
   'raw_ids_printed: false',
 ]) requireIncludes(report, required, `report evidence ${required}`);
+
+for (const [label, source] of [['consumed heads report', consumedHeads], ['state', state], ['status', status], ['lookup report', report]]) {
+  requireIncludes(source, selectedLookupHeadsMarker, `${label} selected lookup heads marker`);
+}
 
 console.log('Goal 24 selected read-only lookup verified');

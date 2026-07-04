@@ -66,3 +66,7 @@ IPS: Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Cod
 Boundary evidence: mutation: false; db_write: false; orders_route_invocation: false; orders_mutation: false; warehouse_mutation: false; warehouse_cleanup: false; channel_cleanup_mutation: false; provider_call: false; polling_mutation: false; refund_or_reversal: false; bank_transfer: false; deployment: false; migration: false; secret_output: false; token_output: false; raw_ids_printed: false; raw_db_rows_printed: false; raw_customer_or_payment_evidence: false.
 
 Decision: `selected-readonly-lookup-resolved-cleanup-blocked`.
+
+## Consumed Source-Owned Lookup Heads
+
+[RESOLVED/NARROWED: Orders consumed Warehouse 058f5eb selected reservation lookup and FlipFlop 41953d7 selected channel lookup as source-owned read-only evidence for centralOrderHash 04d7d08c82a07853; Warehouse reports two expired component reservations and FlipFlop reports one pending fiobanka channel correlation, but Orders sideEffectsHandled warehouse|channel acknowledgements remain missing until owner-approved acknowledgement packets exist]
