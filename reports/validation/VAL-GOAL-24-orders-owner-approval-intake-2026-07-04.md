@@ -12,7 +12,7 @@ Preserved blockers:
 - [MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]
 - [MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]
 - [MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]
-- [MISSING: live current target row readback at execution time]
+- [RESOLVED/NARROWED: live current target row readback at execution time captured through protected Warehouse API without mutation]
 - [MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]
 - [MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]
 

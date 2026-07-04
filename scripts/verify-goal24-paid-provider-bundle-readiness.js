@@ -29,12 +29,15 @@ const ordersChannelOwnerConsumption = read('reports/validation/VAL-GOAL-24-order
 const ordersPaymentReleaseBoundarySync = read('reports/validation/VAL-GOAL-24-orders-payment-release-boundary-sync-2026-07-04.md');
 const ordersWarehouseTargetFactsStateSync = read('reports/validation/VAL-GOAL-24-orders-warehouse-target-facts-state-sync-2026-07-04.md');
 const ordersWarehouseBlockerWordingSync = read('reports/validation/VAL-GOAL-24-orders-warehouse-blocker-wording-sync-2026-07-04.md');
+const ordersWarehouseLiveReadbackConsumption = read('reports/validation/VAL-GOAL-24-orders-warehouse-live-readback-consumption-2026-07-04.md');
 const ordersTokenBindingConsumption = read('reports/validation/VAL-GOAL-24-orders-token-binding-proof-contract-consumption-2026-07-04.md');
 const ordersIdempotencyNamespaceConsumption = read('reports/validation/VAL-GOAL-24-orders-idempotency-namespace-consumption-2026-07-04.md');
 const paymentsIdempotencyNamespaceSync = readSibling('payments-microservice', 'reports/validation/VAL-GOAL-24-idempotency-namespace-sync-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const staleIdempotencyClaim = 'current status endpoint has no dedicated idempotency-key field';
+const warehouseLiveReadbackResolvedMarker = '[RESOLVED/NARROWED: live current target row readback at execution time captured through protected Warehouse API without mutation]';
+const warehouseLiveReadbackReportPath = 'reports/validation/VAL-GOAL-24-orders-warehouse-live-readback-consumption-2026-07-04.md';
 assert.equal(report.includes(staleIdempotencyClaim), false, 'readiness report must not preserve stale idempotency endpoint wording');
 requireIncludes(report, 'approval.idempotencyKey, which the current status endpoint accepts and persists in statusTransitionAudit', 'readiness report idempotency endpoint wording');
 const flipflopOrdersService = readSibling('flipflop', 'services/order-service/src/orders/orders.service.ts');
@@ -107,7 +110,7 @@ for (const [source, label] of [
     '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
     '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
     '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
-    '[MISSING: live current target row readback at execution time]',
+    warehouseLiveReadbackResolvedMarker,
     '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
   ]) {
     requireIncludes(source, blocker, label + ' preserved self-discovery blocker ' + blocker);
@@ -117,6 +120,23 @@ requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_PAYMENT_ORDER_TOKEN_CZK_P
 requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_PAYMENT_ORDER_TOKEN_EUR_PRESENT=true LEN=64', 'self-discovery EUR write token presence');
 requireIncludes(ordersRuntimeSelfDiscovery, 'FIO_BANKA_REFUND_UPLOAD_ENABLED_TRUE=false', 'self-discovery refund upload disabled');
 requireIncludes(ordersRuntimeSelfDiscovery, 'runtimeTokensMatch=true', 'self-discovery bridge token evidence');
+
+for (const [source, label] of [
+  [ordersWarehouseLiveReadbackConsumption, 'Warehouse live readback consumption report'],
+  [implementationState, 'implementation state'],
+  [orchestratorStatus, 'orchestrator status'],
+  [report, 'readiness report'],
+  [rollbackReadiness, 'rollback readiness'],
+]) {
+  requireIncludes(source, warehouseLiveReadbackResolvedMarker, label + ' Warehouse 89222f8 live readback marker');
+  requireIncludes(source, '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]', label + ' preserved Orders actor/target blocker');
+  requireIncludes(source, '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]', label + ' preserved sideEffectsHandled blocker');
+  requireIncludes(source, '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]', label + ' preserved route invocation blocker');
+  requireIncludes(source, '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]', label + ' preserved final evidence blocker');
+}
+requireIncludes(ordersWarehouseLiveReadbackConsumption, 'Warehouse `89222f8 docs: consume goal24 warehouse live readback`', 'Warehouse live readback input commit');
+requireIncludes(ordersWarehouseLiveReadbackConsumption, 'warehouse_mutation: false', 'Warehouse live readback no mutation boundary');
+requireIncludes(ordersWarehouseLiveReadbackConsumption, 'provider_call: false', 'Warehouse live readback no provider boundary');
 
 const ordersOwnerApprovalIntakeMarker = '[RESOLVED/NARROWED: owner broad approval was received in the Codex thread for autonomous Goal 24 continuation, but Orders treats it as source-controlled approval-intake evidence only; live Orders route invocation remains blocked until exact actor, target order hash/state, sideEffectsHandled acknowledgements, provider proof, idempotency key, Warehouse live readback/window/final approval, and final redacted evidence path exist]';
 for (const [source, label] of [
@@ -130,7 +150,7 @@ for (const [source, label] of [
     '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
     '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
     '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
-    '[MISSING: live current target row readback at execution time]',
+    warehouseLiveReadbackResolvedMarker,
     '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
     '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
   ]) {
@@ -319,7 +339,7 @@ for (const [label, source] of [
 ]) {
   assert.equal(source.includes(staleWarehouseTargetFactsStateMarker), false, `${label} still contains stale Warehouse target facts blocker`);
   requireIncludes(source, '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]', `${label} source-documented Warehouse target facts marker`);
-  requireIncludes(source, '[MISSING: live current target row readback at execution time]', `${label} live Warehouse readback blocker`);
+  requireIncludes(source, warehouseLiveReadbackResolvedMarker, `${label} live Warehouse readback blocker`);
   requireIncludes(source, '[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]', `${label} renewed Warehouse window blocker`);
   requireIncludes(source, '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]', `${label} final Warehouse mutation approval blocker`);
 }
@@ -333,13 +353,13 @@ for (const marker of [
   requireIncludes(ordersWarehouseBlockerWordingSync, marker, `Orders Warehouse blocker wording sync ${marker}`);
 }
 for (const required of [
-  '[RESOLVED/NARROWED: Orders state consumes Warehouse/Catalog candidate target facts while preserving live Warehouse readback, renewed window, and final mutation approval blockers]',
-  '[MISSING: live current target row readback at execution time]',
+  '[RESOLVED/NARROWED: Orders state consumes Warehouse/Catalog candidate target facts and Warehouse 89222f8 live readback evidence while preserving renewed window and final mutation approval blockers]',
+  warehouseLiveReadbackResolvedMarker,
   '[RESOLVED/NARROWED: approval intake 003 supplies the bounded smoke execution window]; [MISSING: Warehouse hold/release duration]',
   '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]',
   '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
 ]) {
-  requireIncludes(ordersWarehouseTargetFactsStateSync, required, 'orders Warehouse target facts state sync report');
+  requireIncludes(ordersWarehouseTargetFactsStateSync, required, 'orders Warehouse target facts/readback state sync report');
 }
 for (const boundary of [
   'mutation: false',
@@ -556,7 +576,6 @@ for (const [label, source] of [
     'Payments `4904de3 merge goal24 current hardstop wording sync`',
     'Orders `4e651f4 merge goal24 warehouse target state sync`',
     'Warehouse `3fdeabd merge goal24 live target readback wording sync`',
-    '[MISSING: live current target row readback at execution time]',
     '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
   ]) {
     requireIncludes(source, marker, `${label} missing source-wave B marker ${marker}`);
@@ -637,7 +656,7 @@ for (const required of [
   '[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]',
   '[RESOLVED/NARROWED: Fiobanka QR side-effect-safe rollback is pre-completion only; completed-transfer refund/reversal/correction remains missing]',
   '[MISSING: owner-approved paid/provider payment provider source and callback contract]',
-  '[RESOLVED/NARROWED: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke at source-policy level in Warehouse 3043cad; live row readback, renewed window/hold duration, and final mutation approval remain missing]',
+  '[RESOLVED/NARROWED: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke at source-policy level in Warehouse 3043cad; live row readback is resolved/narrowed by Warehouse 89222f8 protected API evidence; renewed window/hold duration and final mutation approval remain missing]',
   '[RESOLVED/NARROWED: Warehouse cleanup operation selection for reserved-only, fulfilled/stock-decremented, return, partial, and unknown component-line states in Warehouse 3043cad]',
   '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]',
   '[RESOLVED: FlipFlop active checkout payment creation passes central Orders UUIDs to Payments from source]',
