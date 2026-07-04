@@ -36,6 +36,7 @@ const ordersIdempotencyNamespaceConsumption = read('reports/validation/VAL-GOAL-
 const ordersCleanupPacketRuntimeValuesConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-cleanup-packet-runtime-values-59be11e-d39bc0c-2026-07-04.md');
 const ordersCurrentHeadsNoGoConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-goal24-source-only-current-heads-2026-07-04.md');
 const ordersCatalogFlipFlopCurrentNoGoConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-catalog-flipflop-current-no-go-2026-07-04.md');
+const ordersPaymentsOwnerAuthorityConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-payments-owner-authority-4f21094-2026-07-04.md');
 const ordersFinalOwnerHandoffPacket = read('docs/orchestrator/2026-07-04-goal24-final-source-only-owner-handoff-packet.md');
 const ordersFinalOwnerHandoffReport = read('reports/validation/VAL-GOAL-24-orders-final-owner-handoff-packet-2026-07-04.md');
 const paymentsFinalOwnerApprovalPacket = readSibling('payments-microservice', 'docs/orchestrator/2026-07-04-goal24-final-owner-approval-runtime-packet.md');
@@ -75,7 +76,7 @@ for (const marker of [
   'status: runtime-ready-but-side-effect-hard-stopped',
   'Decision: `block` before checkout/payment/provider side effects.',
   '[RESOLVED/NARROWED: selected Fiobanka provider authenticity path is authenticated transaction polling]',
-  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]',
   '[MISSING: exact Orders target order hash/state, cancellation actor, approval id, safe reason code, idempotency key, and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for the future smoke]',
   '[MISSING: deterministic Warehouse component reservation state for cleanup]',
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
@@ -140,7 +141,22 @@ for (const marker of [
 }
 
 
-const ordersFinalOwnerHandoffMarker = '[RESOLVED/NARROWED: Orders final owner handoff packet is source-defined for Goal 24 paid/provider cleanup after Catalog 7c85732 and FlipFlop 99dfe76; runtime route invocation remains hard-stopped until named Payments/bank authority, exact future payment/order/provider hashes, Orders actor/reason/idempotency/sideEffectsHandled, exact Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]';
+const ordersPaymentsOwnerAuthorityMarker = '[RESOLVED/NARROWED: Orders consumed Payments 4f21094 owner authority intake naming Sergey Stasok / Сергей Сташок as Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; Orders route invocation remains blocked until exact target order hash/state, Orders actor/reason/idempotency/sideEffectsHandled, provider proof, exact Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]';
+for (const [label, source] of [
+  ['Orders Payments owner authority consumption report', ordersPaymentsOwnerAuthorityConsumption],
+  ['readiness report', report],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+  ['rollback readiness', rollbackReadiness],
+]) {
+  requireIncludes(source, ordersPaymentsOwnerAuthorityMarker, `${label} Payments owner authority marker`);
+  requireIncludes(source, 'Sergey Stasok', `${label} Latin owner name`);
+  requireIncludes(source, 'Сергей Сташок', `${label} Cyrillic owner name`);
+  requireIncludes(source, '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]', `${label} exact future identity still missing`);
+  requireIncludes(source, '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]', `${label} final evidence still missing`);
+}
+
+const ordersFinalOwnerHandoffMarker = '[RESOLVED/NARROWED: Orders final owner handoff packet is source-defined for Goal 24 paid/provider cleanup after Catalog 7c85732 and FlipFlop 99dfe76 plus Payments 4f21094 owner authority; runtime route invocation remains hard-stopped until exact future payment/order/provider hashes, Orders actor/reason/idempotency/sideEffectsHandled, exact Warehouse reservation lookup state, channel acknowledgement, provider proof, and final redacted evidence exist]';
 for (const [label, source] of [
   ['Orders final owner handoff packet', ordersFinalOwnerHandoffPacket],
   ['Orders final owner handoff report', ordersFinalOwnerHandoffReport],
@@ -151,8 +167,8 @@ for (const [label, source] of [
 ]) {
   requireIncludes(source, ordersFinalOwnerHandoffMarker, `${label} final owner handoff marker`);
   for (const blocker of [
-    '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
-    '[MISSING: named bank/refund executor, exact destination/source account proof, amount, reference, deadline, and redacted completion evidence for the future linked payment]',
+    '[RESOLVED/NARROWED: Orders consumed Payments 4f21094 owner authority intake naming Sergey Stasok / Сергей Сташок as Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; Orders route invocation remains blocked until exact target order hash/state, Orders actor/reason/idempotency/sideEffectsHandled, provider proof, exact Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]',
+    '[MISSING: exact destination/source account proof, amount, reference, deadline, and redacted completion evidence for the future linked payment]',
     '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
     '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement]',
     '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys derived from the future approval id and sanitized payment hash]',
@@ -176,7 +192,7 @@ for (const [label, source] of [
 }
 for (const marker of [
   'id: PAYMENTS-GOAL24-FINAL-OWNER-APPROVAL-RUNTIME-PACKET',
-  '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
+  '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]',
   '[MISSING: exact Orders target order hash/state, cancellation actor, approval id, safe reason code, idempotency key, and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for the future smoke]',
   '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
 ]) {
@@ -324,7 +340,6 @@ for (const [source, label] of [
     '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
     '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
     '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
-    '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
     warehouseLiveReadbackResolvedMarker,
     '[RESOLVED/NARROWED: final owner approval before live Warehouse reservation mutation is bounded to one Goal 24 component-line smoke attempt with max quantity 1 per component after live readback]',
     '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
@@ -791,7 +806,6 @@ for (const [label, source] of [
     'Orders `d53de9f merge goal24 current source head sync`',
     '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
     '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
-    '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
     '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
     '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys]',
     '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',

@@ -16,10 +16,12 @@ const status = read('docs/orchestrator/STATUS.md');
 const state = read('docs/IMPLEMENTATION_STATE.md');
 const rollbackReadiness = read('docs/orchestrator/2026-07-03-goal24-orders-cancel-cleanup-rollback-readiness.md');
 const paymentsPacket = read('../payments-microservice/docs/orchestrator/2026-07-04-goal24-final-owner-approval-runtime-packet.md');
+const ordersPaymentsOwnerAuthorityConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-payments-owner-authority-4f21094-2026-07-04.md');
+const paymentsOwnerAuthorityIntake = read('../payments-microservice/reports/validation/VAL-GOAL-24-payments-owner-authority-intake-2026-07-04.md');
 const catalogNoGo = read('../catalog-microservice/reports/validation/VAL-GOAL-24-catalog-consume-orders-warehouse-no-go-9287e3f-eee2f20-2026-07-04.md');
 const flipflopNoGo = read('../flipflop/reports/validation/VAL-GOAL-24-flipflop-consume-current-no-go-heads-2026-07-04.md');
 
-const marker = '[RESOLVED/NARROWED: Orders final owner handoff packet is source-defined for Goal 24 paid/provider cleanup after Catalog 7c85732 and FlipFlop 99dfe76; runtime route invocation remains hard-stopped until named Payments/bank authority, exact future payment/order/provider hashes, Orders actor/reason/idempotency/sideEffectsHandled, exact Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]';
+const marker = '[RESOLVED/NARROWED: Orders final owner handoff packet is source-defined for Goal 24 paid/provider cleanup after Catalog 7c85732 and FlipFlop 99dfe76 plus Payments 4f21094 owner authority; runtime route invocation remains hard-stopped until exact future payment/order/provider hashes, Orders actor/reason/idempotency/sideEffectsHandled, exact Warehouse reservation lookup state, channel acknowledgement, provider proof, and final redacted evidence exist]';
 
 for (const [label, source] of [
   ['packet', packet],
@@ -38,8 +40,7 @@ for (const [label, source] of [
 ]) {
   requireIncludes(source, marker, `${label} marker`);
   for (const blocker of [
-    '[MISSING: named human Payments/provider rollback execution owner with bank/refund authority for runtime]',
-    '[MISSING: named bank/refund executor, exact destination/source account proof, amount, reference, deadline, and redacted completion evidence for the future linked payment]',
+    '[MISSING: exact destination/source account proof, amount, reference, deadline, and redacted completion evidence for the future linked payment]',
     '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
     '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement]',
     '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys derived from the future approval id and sanitized payment hash]',
@@ -67,6 +68,36 @@ for (const [label, source] of [
   ]) {
     requireIncludes(source, boundary, `${label} boundary ${boundary}`);
   }
+}
+
+
+for (const [label, source] of [
+  ['Orders Payments owner authority consumption report', ordersPaymentsOwnerAuthorityConsumption],
+  ['packet', packet],
+  ['validation report', report],
+  ['readiness report', readiness],
+  ['status', status],
+  ['implementation state', state],
+  ['rollback readiness', rollbackReadiness],
+]) {
+  requireIncludes(source, '[RESOLVED/NARROWED: Orders consumed Payments 4f21094 owner authority intake naming Sergey Stasok / Сергей Сташок as Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; Orders route invocation remains blocked until exact target order hash/state, Orders actor/reason/idempotency/sideEffectsHandled, provider proof, exact Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]', `${label} Payments owner authority consumption marker`);
+  requireIncludes(source, 'Sergey Stasok', `${label} Latin owner name`);
+  requireIncludes(source, 'Сергей Сташок', `${label} Cyrillic owner name`);
+  requireIncludes(source, '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]', `${label} exact future identity still missing`);
+  requireIncludes(source, '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]', `${label} final evidence still missing`);
+  requireIncludes(source, 'orders_route_invocation: false', `${label} Orders route boundary`);
+  requireIncludes(source, 'warehouse_mutation: false', `${label} Warehouse boundary`);
+}
+
+for (const [label, source] of [
+  ['Payments owner authority intake report', paymentsOwnerAuthorityIntake],
+  ['Payments final packet', paymentsPacket],
+]) {
+  requireIncludes(source, '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]', `${label} Payments owner intake marker`);
+  requireIncludes(source, 'Sergey Stasok', `${label} Latin owner name`);
+  requireIncludes(source, 'Сергей Сташок', `${label} Cyrillic owner name`);
+  requireIncludes(source, '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]', `${label} exact future identity still missing`);
+  requireIncludes(source, '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]', `${label} final evidence still missing`);
 }
 
 for (const markerText of [
@@ -104,7 +135,7 @@ for (const [label, source, head] of [
 
 for (const currentHead of [
   'Orders `434b1de docs: consume goal24 catalog flipflop no-go heads`',
-  'Payments `cc49c08 docs: record goal24 live no-go preflight`',
+  'Payments `4f21094 docs: record goal24 payments owner authority intake`',
   'Warehouse `eee2f20 docs: consume goal24 orders no-go preflight`',
   'Catalog `7c85732 docs: consume goal24 orders warehouse no-go heads`',
   'FlipFlop `99dfe76 docs: consume goal24 current no-go heads`',
