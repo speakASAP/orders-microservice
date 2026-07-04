@@ -24,6 +24,7 @@ const paymentVerifier = read('scripts/verify-payment-boundary.js');
 const report = read(reportPath);
 const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md');
 const ordersChannelOwnerConsumption = read('reports/validation/VAL-GOAL-24-orders-channel-owner-consumption-2026-07-04.md');
+const ordersPaymentReleaseBoundarySync = read('reports/validation/VAL-GOAL-24-orders-payment-release-boundary-sync-2026-07-04.md');
 const ordersTokenBindingConsumption = read('reports/validation/VAL-GOAL-24-orders-token-binding-proof-contract-consumption-2026-07-04.md');
 const ordersIdempotencyNamespaceConsumption = read('reports/validation/VAL-GOAL-24-orders-idempotency-namespace-consumption-2026-07-04.md');
 const paymentsIdempotencyNamespaceSync = readSibling('payments-microservice', 'reports/validation/VAL-GOAL-24-idempotency-namespace-sync-2026-07-04.md');
@@ -167,6 +168,36 @@ for (const required of [
 requireIncludes(paymentVerifier, 'cannot mark a cancelled order as paid', 'payment verifier cancelled paid rejection');
 requireIncludes(paymentVerifier, 'refund or correction workflow', 'payment verifier paid downgrade rejection');
 requireIncludes(paymentVerifier, 'provider-owned', 'payment verifier provider data rejection');
+requireIncludes(paymentVerifier, "status: 'cancelled'", 'payment verifier provider-cancelled release case');
+requireIncludes(paymentVerifier, "providerCancelled.warehouseCalls", 'payment verifier provider-cancelled Warehouse release assertion');
+requireIncludes(paymentBoundary, 'first pre-paid `failed|cancelled -> Warehouse release`', 'payment boundary pre-paid release wording');
+requireIncludes(paymentBoundary, 'neither handoff is evidence of provider refund, order cancellation, or post-fulfillment stock correction', 'payment boundary no stock inference wording');
+for (const required of [
+  '[RESOLVED/NARROWED: Orders payment-status boundary explicitly documents first pre-paid failed/cancelled Warehouse release without order cancellation, refund behavior, or post-fulfillment stock inference]',
+  '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
+  '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
+  '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement]',
+  '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
+]) {
+  requireIncludes(ordersPaymentReleaseBoundarySync, required, 'orders payment release boundary sync report');
+}
+for (const boundary of [
+  'mutation: false',
+  'live_order_mutation: false',
+  'payment_creation: false',
+  'provider_call: false',
+  'refund_or_reversal: false',
+  'warehouse_mutation: false',
+  'db_write: false',
+  'deployment: false',
+  'migration: false',
+  'secret_output: false',
+  'token_output: false',
+  'raw_customer_or_payment_evidence: false',
+]) {
+  requireIncludes(ordersPaymentReleaseBoundarySync, boundary, `orders payment release boundary sync boundary ${boundary}`);
+}
+
 requireIncludes(ordersController, "internal:payments-microservice:service", 'payment-status route Payments service role');
 requireIncludes(ordersController, "@Put(':id/payment-status')", 'payment-status route');
 requireIncludes(ordersService, 'fulfillOrderItems(updated)', 'payment success Warehouse fulfill call');

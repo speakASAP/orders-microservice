@@ -140,6 +140,18 @@ function makeService(order = makeOrder()) {
   assert.equal(failedOrder.warehouseHandoff.status, 'released');
   assert.deepEqual(failed.events, [{ type: 'lifecycle', orderId: 'order-1', lifecycleStage: 'payment_failed' }]);
 
+  const providerCancelled = makeService(makeOrder({ status: 'confirmed' }));
+  const providerCancelledOrder = await providerCancelled.service.applyPaymentStatus('order-1', {
+    contractVersion: PAYMENT_STATUS_CONTRACT_VERSION,
+    paymentId: 'payment-3',
+    status: 'cancelled',
+  }, { sub: 'payments-service' });
+  assert.equal(providerCancelledOrder.paymentStatus, 'cancelled');
+  assert.equal(providerCancelledOrder.status, 'confirmed');
+  assert.deepEqual(providerCancelled.warehouseCalls, [{ action: 'release', orderId: 'order-1' }]);
+  assert.equal(providerCancelledOrder.warehouseHandoff.status, 'released');
+  assert.deepEqual(providerCancelled.events, [{ type: 'lifecycle', orderId: 'order-1', lifecycleStage: 'payment_failed' }]);
+
   const paidReplay = makeService(makeOrder({
     status: 'confirmed',
     paymentStatus: 'paid',
