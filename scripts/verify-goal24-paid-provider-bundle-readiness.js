@@ -26,6 +26,7 @@ const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2
 const ordersChannelOwnerConsumption = read('reports/validation/VAL-GOAL-24-orders-channel-owner-consumption-2026-07-04.md');
 const ordersPaymentReleaseBoundarySync = read('reports/validation/VAL-GOAL-24-orders-payment-release-boundary-sync-2026-07-04.md');
 const ordersWarehouseTargetFactsStateSync = read('reports/validation/VAL-GOAL-24-orders-warehouse-target-facts-state-sync-2026-07-04.md');
+const ordersWarehouseBlockerWordingSync = read('reports/validation/VAL-GOAL-24-orders-warehouse-blocker-wording-sync-2026-07-04.md');
 const ordersTokenBindingConsumption = read('reports/validation/VAL-GOAL-24-orders-token-binding-proof-contract-consumption-2026-07-04.md');
 const ordersIdempotencyNamespaceConsumption = read('reports/validation/VAL-GOAL-24-orders-idempotency-namespace-consumption-2026-07-04.md');
 const paymentsIdempotencyNamespaceSync = readSibling('payments-microservice', 'reports/validation/VAL-GOAL-24-idempotency-namespace-sync-2026-07-04.md');
@@ -223,12 +224,24 @@ const staleWarehouseTargetFactsStateMarker = '[MISSING: owner-approved Warehouse
 for (const [label, source] of [
   ['implementation state', implementationState],
   ['orchestrator status', orchestratorStatus],
+  ['readiness report', report],
+  ['rollback readiness', rollbackReadiness],
+  ['Warehouse blocker wording sync report', ordersWarehouseBlockerWordingSync],
 ]) {
   assert.equal(source.includes(staleWarehouseTargetFactsStateMarker), false, `${label} still contains stale Warehouse target facts blocker`);
   requireIncludes(source, '[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]', `${label} source-documented Warehouse target facts marker`);
   requireIncludes(source, '[MISSING: live current target row readback at execution time]', `${label} live Warehouse readback blocker`);
   requireIncludes(source, '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]', `${label} renewed Warehouse window blocker`);
   requireIncludes(source, '[MISSING: final owner approval before any live Warehouse reservation/cleanup mutation]', `${label} final Warehouse mutation approval blocker`);
+}
+for (const marker of [
+  'Orders may describe the future Warehouse handoff only from Orders lifecycle state plus Warehouse-owned observed component state',
+  'Payments refund state, provider correction notes, local payment metadata, Auth token state, and channel cleanup state are not Warehouse operation selectors',
+  '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
+  '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
+  '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
+]) {
+  requireIncludes(ordersWarehouseBlockerWordingSync, marker, `Orders Warehouse blocker wording sync ${marker}`);
 }
 for (const required of [
   '[RESOLVED/NARROWED: Orders state consumes Warehouse/Catalog candidate target facts while preserving live Warehouse readback, renewed window, and final mutation approval blockers]',
@@ -457,7 +470,7 @@ for (const required of [
   '[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]',
   '[RESOLVED/NARROWED: Fiobanka QR side-effect-safe rollback is pre-completion only; completed-transfer refund/reversal/correction remains missing]',
   '[MISSING: owner-approved paid/provider payment provider source and callback contract]',
-  '[RESOLVED/NARROWED: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke at source-policy level in Warehouse 3043cad; live stock window and max quantity remain missing]',
+  '[RESOLVED/NARROWED: owner-approved Warehouse stock decrement/fulfillment rollback criteria for paid bundle smoke at source-policy level in Warehouse 3043cad; live row readback, renewed window/hold duration, and final mutation approval remain missing]',
   '[RESOLVED/NARROWED: Warehouse cleanup operation selection for reserved-only, fulfilled/stock-decremented, return, partial, and unknown component-line states in Warehouse 3043cad]',
   '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof with redacted evidence]',
   '[RESOLVED: FlipFlop active checkout payment creation passes central Orders UUIDs to Payments from source]',
