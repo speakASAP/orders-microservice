@@ -23,6 +23,7 @@ const createVerifier = read('scripts/verify-create-order-contract.js');
 const paymentVerifier = read('scripts/verify-payment-boundary.js');
 const report = read(reportPath);
 const currentHeadSync = read('reports/validation/VAL-GOAL-24-current-head-sync-2026-07-04.md');
+const ordersTokenBindingConsumption = read('reports/validation/VAL-GOAL-24-orders-token-binding-proof-contract-consumption-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
 const staleIdempotencyClaim = 'current status endpoint has no dedicated idempotency-key field';
@@ -35,6 +36,8 @@ const paymentsProviderContract = readSibling('payments-microservice', 'docs/orch
 const paymentsRollbackPacket = readSibling('payments-microservice', 'docs/orchestrator/2026-07-03-goal24-owner-approved-rollback-packet.md');
 const warehouseStatus = readSibling('warehouse-microservice', 'docs/orchestrator/STATUS.md');
 const catalogStatus = readSibling('catalog-microservice', 'docs/orchestrator/STATUS.md');
+const catalogTokenBindingConsumption = readSibling('catalog-microservice', 'reports/validation/VAL-GOAL-24-flipflop-token-binding-proof-contract-consumption-2026-07-04.md');
+const flipflopTokenBindingContract = readSibling('flipflop', 'reports/validation/VAL-GOAL-24-auth-admin-token-binding-proof-contract-2026-07-04.md');
 
 function requireIncludes(source, needle, label) {
   assert.ok(source.includes(needle), `${label} missing: ${needle}`);
@@ -214,6 +217,52 @@ requireIncludes(paymentsProviderContract, '[RESOLVED: runtime verification of Pa
 requireIncludes(paymentsRollbackPacket, '[MISSING: Fiobanka provider-side refund/reversal or unpaid cancel/void execution path with redacted evidence]', 'Payments rollback packet preserves Fiobanka execution blocker');
 requireIncludes(paymentsProviderContract, 'FIO_BANKA_REFUND_UPLOAD_ENABLED', 'Payments provider contract refund upload gate');
 requireIncludes(warehouseStatus, '[MISSING: renewed owner-approved execution window and Warehouse hold/release duration]', 'Warehouse current hold/release duration blocker');
+
+
+for (const marker of [
+  '[RESOLVED/NARROWED: Orders consumed Catalog 47b652c and FlipFlop f004fe5 token-binding proof contract as source governance only; runtime Orders route invocation remains blocked]',
+  '[RESOLVED/NARROWED: Goal 24 token-binding proof may record only token-present, Auth validation status class, actor-hash match, required-role boolean, approval id, runner id, timestamps, and no-output booleans]',
+  '[RESOLVED/NARROWED: Goal 24 approved token source shape is owner-approved on-host token file or in-memory handoff read only by the approved runner, never printed, never decoded into reports, never persisted, never committed, and removed or invalidated after the run]',
+  '[RESOLVED/NARROWED: Goal 24 Auth token binding does not authorize Orders, Warehouse, Payments/provider, or channel side effects and does not prove stock effects]',
+  '[MISSING: approved token source path, such as an on-host token file path or in-memory handoff, with explicit no-print/no-decode/no-persist handling]',
+  '[MISSING: confirmation that the token belongs to actor hash 4215870ba488de17 and carries app:flipflop-service:admin or global:superadmin]',
+  '[MISSING: exact Orders cleanup packet and sideEffectsHandled acknowledgements]',
+  '[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]',
+  '[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]',
+  '[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]',
+  'tokenSourceType=on-host-token-file',
+  'tokenSourceType=in-memory-handoff',
+  'actorHashMatches=true',
+  'requiredAdminRolePresent=true',
+  'tokenOutput=false',
+  'decodedJwtOutput=false',
+  'rawUserOutput=false',
+  'secretOutput=false',
+  'tokenSourceDestroyedOrInvalidated=true',
+  'Auth token-binding proof is not Warehouse stock evidence and is not Orders cleanup authorization',
+]) {
+  requireIncludes(ordersTokenBindingConsumption, marker, `Orders token-binding consumption report ${marker}`);
+  assert.ok(report.includes(marker) || rollbackReadiness.includes(marker) || implementationState.includes(marker) || orchestratorStatus.includes(marker), `Orders docs missing token-binding marker ${marker}`);
+}
+requireIncludes(catalogTokenBindingConsumption, '[RESOLVED/NARROWED: Catalog consumed FlipFlop f004fe5 token-binding proof contract as source governance only; runtime Auth token source and token-to-actor proof remain blocked]', 'Catalog token-binding consumption source marker');
+requireIncludes(flipflopTokenBindingContract, '[RESOLVED/NARROWED: Goal 24 token-binding proof may record only token-present, Auth validation status class, actor-hash match, required-role boolean, approval id, runner id, timestamps, and no-output booleans]', 'FlipFlop token-binding source marker');
+for (const boundary of [
+  'mutation: false',
+  'orders_route_invocation: false',
+  'live_auth_login: false',
+  'token_issuance: false',
+  'token_output: false',
+  'decoded_jwt_output: false',
+  'secret_output: false',
+  'raw_user_output: false',
+  'payment_creation: false',
+  'provider_call: false',
+  'refund_or_reversal: false',
+  'warehouse_mutation: false',
+  'channel_cleanup_mutation: false',
+]) {
+  requireIncludes(ordersTokenBindingConsumption, boundary, `Orders token-binding consumption boundary ${boundary}`);
+}
 
 const sourceWaveFreezeMarker = '[RESOLVED/NARROWED: Goal 24 frozen source-governance wave GOAL24-SOURCE-WAVE-2026-07-04A records Catalog `e379b54 merge goal24 current source head sync`, FlipFlop `e1f3e3a merge goal24 current source head sync`, Payments `eab6351 merge goal24 current source head sync`, Orders `d53de9f merge goal24 current source head sync`, and Warehouse `11df002 merge goal24 warehouse target facts reconcile` as input heads for runtime planning; post-merge self heads are validation evidence only; runtime Orders route invocation and cleanup side effects remain blocked]';
 for (const [label, source] of [
