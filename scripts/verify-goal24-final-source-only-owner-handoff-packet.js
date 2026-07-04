@@ -16,6 +16,8 @@ const status = read('docs/orchestrator/STATUS.md');
 const state = read('docs/IMPLEMENTATION_STATE.md');
 const rollbackReadiness = read('docs/orchestrator/2026-07-03-goal24-orders-cancel-cleanup-rollback-readiness.md');
 const paymentsPacket = read('../payments-microservice/docs/orchestrator/2026-07-04-goal24-final-owner-approval-runtime-packet.md');
+const paymentsPreSideEffectPacket = read('../payments-microservice/docs/orchestrator/2026-07-04-goal24-pre-side-effect-runtime-execution-packet.md');
+const ordersPaymentsPreSideEffectConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-payments-pre-side-effect-packet-445c4e7-2026-07-04.md');
 const ordersPaymentsOwnerAuthorityConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-payments-owner-authority-4f21094-2026-07-04.md');
 const paymentsOwnerAuthorityIntake = read('../payments-microservice/reports/validation/VAL-GOAL-24-payments-owner-authority-intake-2026-07-04.md');
 const catalogNoGo = read('../catalog-microservice/reports/validation/VAL-GOAL-24-catalog-consume-orders-warehouse-no-go-9287e3f-eee2f20-2026-07-04.md');
@@ -141,6 +143,40 @@ for (const currentHead of [
   'FlipFlop `99dfe76 docs: consume goal24 current no-go heads`',
 ]) {
   requireIncludes(packet, currentHead, `packet current head ${currentHead}`);
+}
+
+const paymentsPreSideEffectMarker = '[RESOLVED/NARROWED: Orders consumed Payments 445c4e7 pre-side-effect runtime execution packet as source-only provider-authenticity handoff evidence; Orders route invocation remains blocked until a separate current side-effect execution window, exact future payment/order/provider hashes, provider proof or unpaid acknowledgement, Orders actor/reason/idempotency/sideEffectsHandled, deterministic Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]';
+for (const [label, source] of [
+  ['Orders Payments pre-side-effect consumption report', ordersPaymentsPreSideEffectConsumption],
+  ['packet', packet],
+  ['validation report', report],
+  ['readiness report', readiness],
+  ['status', status],
+  ['implementation state', state],
+  ['rollback readiness', rollbackReadiness],
+]) {
+  requireIncludes(source, paymentsPreSideEffectMarker, `${label} Payments 445c4e7 pre-side-effect marker`);
+  for (const blocker of [
+    '[MISSING: current side-effect execution window owned by a separate newer integration owner thread]',
+    '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]',
+    '[MISSING: concrete side-effectful rollback run id and cleanup idempotency keys derived from the future approval id and sanitized payment hash]',
+    '[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement]',
+    '[MISSING: exact Orders target order hash/state, cancellation actor, approval id, safe reason code, idempotency key, and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for the future smoke]',
+    '[MISSING: exact selected Warehouse reservation lookup state for cleanup]',
+    '[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]',
+    '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
+  ]) {
+    requireIncludes(source, blocker, `${label} preserved blocker ${blocker}`);
+  }
+  requireIncludes(source, 'orders_route_invocation: false', `${label} Orders route boundary`);
+  requireIncludes(source, 'warehouse_mutation: false', `${label} Warehouse boundary`);
+}
+for (const markerText of [
+  'id: PAYMENTS-GOAL24-PRE-SIDE-EFFECT-RUNTIME-EXECUTION-PACKET',
+  '[MISSING: current side-effect execution window owned by a separate newer integration owner thread]',
+  '[MISSING: official/native Fio Banka callback signature contract if provider-authentic bank-originated signatures are required]',
+]) {
+  requireIncludes(paymentsPreSideEffectPacket, markerText, `Payments pre-side-effect packet ${markerText}`);
 }
 
 console.log('Goal 24 Orders final source-only owner handoff packet verified');

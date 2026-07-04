@@ -40,6 +40,8 @@ const ordersPaymentsOwnerAuthorityConsumption = read('reports/validation/VAL-GOA
 const ordersFinalOwnerHandoffPacket = read('docs/orchestrator/2026-07-04-goal24-final-source-only-owner-handoff-packet.md');
 const ordersFinalOwnerHandoffReport = read('reports/validation/VAL-GOAL-24-orders-final-owner-handoff-packet-2026-07-04.md');
 const paymentsFinalOwnerApprovalPacket = readSibling('payments-microservice', 'docs/orchestrator/2026-07-04-goal24-final-owner-approval-runtime-packet.md');
+const paymentsPreSideEffectPacket = readSibling('payments-microservice', 'docs/orchestrator/2026-07-04-goal24-pre-side-effect-runtime-execution-packet.md');
+const ordersPaymentsPreSideEffectConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-payments-pre-side-effect-packet-445c4e7-2026-07-04.md');
 const catalogOrdersWarehouseNoGoConsumption = readSibling('catalog-microservice', 'reports/validation/VAL-GOAL-24-catalog-consume-orders-warehouse-no-go-9287e3f-eee2f20-2026-07-04.md');
 const flipflopCurrentNoGoHeadsConsumption = readSibling('flipflop', 'reports/validation/VAL-GOAL-24-flipflop-consume-current-no-go-heads-2026-07-04.md');
 const paymentsLiveNoGoPreflight = readSibling('payments-microservice', 'reports/validation/VAL-GOAL-24-live-paid-provider-no-go-preflight-2026-07-04.md');
@@ -215,6 +217,29 @@ for (const [label, source] of [
   }
 }
 requireIncludes(paymentsCleanupPacketRuntimeValuesConsumption, '[RESOLVED/NARROWED: Payments consumed FlipFlop d39bc0c cleanup packet runtime-values sync; Orders cleanup packet shape and Warehouse component-line cleanup packet shape are source-defined, while exact selected runtime values remain missing]', 'Payments cleanup packet runtime-values marker');
+
+const ordersPaymentsPreSideEffectMarker = '[RESOLVED/NARROWED: Orders consumed Payments 445c4e7 pre-side-effect runtime execution packet as source-only provider-authenticity handoff evidence; Orders route invocation remains blocked until a separate current side-effect execution window, exact future payment/order/provider hashes, provider proof or unpaid acknowledgement, Orders actor/reason/idempotency/sideEffectsHandled, deterministic Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]';
+for (const [label, source] of [
+  ['Orders Payments pre-side-effect consumption report', ordersPaymentsPreSideEffectConsumption],
+  ['readiness report', report],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+  ['rollback readiness', rollbackReadiness],
+  ['Orders final owner handoff packet', ordersFinalOwnerHandoffPacket],
+  ['Orders final owner handoff report', ordersFinalOwnerHandoffReport],
+]) {
+  requireIncludes(source, ordersPaymentsPreSideEffectMarker, `${label} Payments 445c4e7 pre-side-effect marker`);
+  requireIncludes(source, '[MISSING: current side-effect execution window owned by a separate newer integration owner thread]', `${label} current side-effect window blocker`);
+  requireIncludes(source, '[MISSING: exact selected Warehouse reservation lookup state for cleanup]', `${label} selected Warehouse reservation blocker`);
+  requireIncludes(source, 'orders_route_invocation: false', `${label} Orders route boundary`);
+}
+for (const markerText of [
+  'id: PAYMENTS-GOAL24-PRE-SIDE-EFFECT-RUNTIME-EXECUTION-PACKET',
+  '[MISSING: current side-effect execution window owned by a separate newer integration owner thread]',
+  '[MISSING: official/native Fio Banka callback signature contract if provider-authentic bank-originated signatures are required]',
+]) {
+  requireIncludes(paymentsPreSideEffectPacket, markerText, `Payments pre-side-effect packet ${markerText}`);
+}
 
 const staleIdempotencyClaim = 'current status endpoint has no dedicated idempotency-key field';
 const warehouseLiveReadbackResolvedMarker = '[RESOLVED/NARROWED: live current target row readback at execution time captured through protected Warehouse API without mutation]';
