@@ -57,7 +57,7 @@ function requireMatch(source, pattern, label) {
 
 
 
-const ordersRuntimeSelfDiscoveryMarker = '[RESOLVED/NARROWED: Orders self-discovery refreshed after Payments rollout convergence; current ready Payments pod d403706 has Fio payment-order write-token envs present without value output, but refund upload remains disabled, exact future payment/order/provider hashes remain missing, and live Orders/Warehouse/channel side effects remain blocked]';
+const ordersRuntimeSelfDiscoveryMarker = '[RESOLVED/NARROWED: Orders self-discovery refreshed after Payments rollout convergence; current ready Payments pod fd58097 has Fio payment-order write-token envs present without value output, but refund upload remains disabled, exact future payment/order/provider hashes remain missing, and live Orders/Warehouse/channel side effects remain blocked]';
 for (const [source, label] of [
   [ordersRuntimeSelfDiscovery, 'orders runtime self-discovery report'],
   [implementationState, 'implementation state'],
@@ -427,7 +427,7 @@ for (const marker of [
   }
 }
 const goal24CurrentHeadVerifierSync = read('reports/validation/VAL-GOAL-24-current-head-verifier-sync-2026-07-04.md');
-const goal24CurrentHeadMarker = '[RESOLVED/NARROWED: Goal 24 current-head verifier sync GOAL24-CURRENT-HEADS-2026-07-04F requires Auth 2faf719 docs: complete goal10 customer data wallet rollout, Payments 6bd7b04 docs: sync goal24 payments source wave e, Catalog 12f3386 docs: sync goal24 catalog source wave e, FlipFlop e4ec887 docs: sync goal24 flipflop source wave e, Orders df17b25 docs: sync goal24 orders source wave e, and Warehouse ea7b9e9 merge goal24 warehouse cleanup packet readback sync as the current post-merge validation heads; historical Wave A-E markers are evidence only; runtime side effects remain blocked]';
+const goal24CurrentHeadMarker = '[RESOLVED/NARROWED: Goal 24 current-head verifier sync GOAL24-CURRENT-HEADS-2026-07-04G requires Auth 2faf719 docs: complete goal10 customer data wallet rollout, Payments ec3cd7d docs: sync goal24 owner approval intake markers, Catalog 4b201f2 docs: reconcile goal24 payment-order token blocker, FlipFlop 490913a docs: clean goal24 owner wording, Orders 5cccdbb docs: supersede goal24 old pod token blocker, and Warehouse 0289dc2 docs: require goal24 current heads in verifier as the current post-merge validation heads; historical Wave A-F markers are evidence only; runtime side effects remain blocked]';
 for (const [label, source] of [
   ['current-head verifier sync report', goal24CurrentHeadVerifierSync],
   ['orchestrator status', orchestratorStatus],
