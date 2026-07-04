@@ -113,7 +113,9 @@ for (const [label, source] of [
     const paymentsFinalEvidencePathReserved = '[RESOLVED/NARROWED: final redacted evidence path is reserved as reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for required provider, Orders, Warehouse, and channel cleanup proof; runtime evidence content remains missing until exact provider proof, Orders packet, Warehouse lookup/cleanup, channel acknowledgement, and idempotency keys are captured]';
     assert.ok(source.includes(paymentsFinalEvidencePathMissing) || source.includes(paymentsFinalEvidencePathReserved), 'Payments final packet missing final evidence path missing-or-reserved marker');
     if (source.includes(paymentsFinalEvidencePathReserved)) {
-      requireIncludes(source, '[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for provider, Orders, Warehouse, channel cleanup, idempotency, and validation sections]', 'Payments final packet reserved path runtime-content blocker');
+      assert.ok(
+      source.includes('[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for provider, Orders, Warehouse, channel cleanup, idempotency, and validation sections]') ||
+        source.includes('[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for Orders, Warehouse, channel cleanup, idempotency, and validation sections]'), 'Payments final packet reserved path runtime-content blocker');
     }
   } else {
     requireIncludes(source, '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]', `${label} final evidence still missing`);

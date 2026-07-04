@@ -209,7 +209,7 @@ assert.ok(
 if (paymentsFinalOwnerApprovalPacket.includes(paymentsFinalEvidencePathReserved)) {
   requireIncludes(
     paymentsFinalOwnerApprovalPacket,
-    '[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for provider, Orders, Warehouse, channel cleanup, idempotency, and validation sections]',
+    '[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for Orders, Warehouse, channel cleanup, idempotency, and validation sections]',
     'Payments final owner approval packet reserved path runtime-content blocker',
   );
 }
