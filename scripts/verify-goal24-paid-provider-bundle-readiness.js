@@ -378,6 +378,18 @@ for (const marker of [
     requireIncludes(paymentsIdempotencyNamespaceSync, marker, `Payments idempotency namespace source ${marker}`);
   }
 }
+const goal24CurrentHeadVerifierSync = read('reports/validation/VAL-GOAL-24-current-head-verifier-sync-2026-07-04.md');
+const goal24CurrentHeadMarker = '[RESOLVED/NARROWED: Goal 24 current-head verifier sync GOAL24-CURRENT-HEADS-2026-07-04F requires Auth 2faf719 docs: complete goal10 customer data wallet rollout, Payments 6bd7b04 docs: sync goal24 payments source wave e, Catalog 12f3386 docs: sync goal24 catalog source wave e, FlipFlop e4ec887 docs: sync goal24 flipflop source wave e, Orders df17b25 docs: sync goal24 orders source wave e, and Warehouse ea7b9e9 merge goal24 warehouse cleanup packet readback sync as the current post-merge validation heads; historical Wave A-E markers are evidence only; runtime side effects remain blocked]';
+for (const [label, source] of [
+  ['current-head verifier sync report', goal24CurrentHeadVerifierSync],
+  ['orchestrator status', orchestratorStatus],
+  ['implementation state', implementationState],
+]) {
+  if (!source.includes(goal24CurrentHeadMarker)) {
+    throw new Error(label + ' missing Goal 24 current-head verifier sync marker');
+  }
+}
+
 const sourceWaveDMarker = '[RESOLVED/NARROWED: Goal 24 source-governance wave GOAL24-SOURCE-WAVE-2026-07-04D input set records Auth `2faf719 docs: complete goal10 customer data wallet rollout`, Catalog `6cdd4f5 docs: clarify goal24 catalog current surface`, FlipFlop `8389ca3 docs: sync goal24 auth admin owner blocker`, Payments `31d96d3 docs: clarify goal24 payments current surface`, Orders `d32abd2 merge goal24 orders source wave c`, and Warehouse `ea7b9e9 merge goal24 warehouse cleanup packet readback sync` as Wave D input heads for renewed runtime planning; post-merge source-sync commits are validation evidence only; runtime Orders route invocation and cleanup side effects remain blocked]';
 const sourceWaveEMarker = '[RESOLVED/NARROWED: Goal 24 source-governance wave GOAL24-SOURCE-WAVE-2026-07-04E input set records Auth `2faf719 docs: complete goal10 customer data wallet rollout`, Catalog `6cdd4f5 docs: clarify goal24 catalog current surface`, FlipFlop `7f2fcb9 docs: sync goal24 url readback owner wording`, Payments `da1e9a6 docs: sync goal24 payments readiness owner wording`, Orders `4dca5e6 docs: sync goal24 orders source wave d`, and Warehouse `ea7b9e9 merge goal24 warehouse cleanup packet readback sync` as Wave E input heads for renewed runtime planning; post-merge source-sync commits are validation evidence only; runtime provider/payment/Orders/Warehouse/channel side effects remain blocked]';
 const sourceWaveCMarker = '[RESOLVED/NARROWED: Goal 24 source-governance wave GOAL24-SOURCE-WAVE-2026-07-04C input set records Auth `2faf719 docs: complete goal10 customer data wallet rollout`, Catalog `6723b58 merge goal24 catalog cross-service rollup sync`, FlipFlop `2310c90 merge goal24 flipflop stale blocker wording sync`, Payments `080f293 merge goal24 payments source wave c`, Orders `3a9b3ce merge goal24 orders route blocker wording sync`, and Warehouse `ea7b9e9 merge goal24 warehouse cleanup packet readback sync` as Wave C input heads for renewed runtime planning; post-merge source-sync commits are validation evidence only; runtime Orders route invocation and cleanup side effects remain blocked]';
