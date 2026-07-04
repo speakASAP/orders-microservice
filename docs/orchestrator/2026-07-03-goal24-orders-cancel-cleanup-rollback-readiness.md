@@ -226,3 +226,9 @@ Wave B input heads (post-merge source-sync commits are validation evidence only)
 | Payments | `4904de3 merge goal24 current hardstop wording sync` | provider/refund hard-stop source governance only |
 | Orders | `4e651f4 merge goal24 warehouse target state sync` | lifecycle/cancellation/idempotency source governance only |
 | Warehouse | `3fdeabd merge goal24 live target readback wording sync` | component-line cleanup source governance only |
+
+## 2026-07-04 Source-Governance Wave C
+
+[RESOLVED/NARROWED: Goal 24 source-governance wave GOAL24-SOURCE-WAVE-2026-07-04C input set records Auth `2faf719 docs: complete goal10 customer data wallet rollout`, Catalog `6723b58 merge goal24 catalog cross-service rollup sync`, FlipFlop `2310c90 merge goal24 flipflop stale blocker wording sync`, Payments `080f293 merge goal24 payments source wave c`, Orders `3a9b3ce merge goal24 orders route blocker wording sync`, and Warehouse `ea7b9e9 merge goal24 warehouse cleanup packet readback sync` as Wave C input heads for renewed runtime planning; post-merge source-sync commits are validation evidence only; runtime Orders route invocation and cleanup side effects remain blocked]
+
+This is source-governance only. It does not authorize Orders route invocation or cleanup side effects. Runtime still requires the named actor/approvedBy, exact target order hash/state, sideEffectsHandled acknowledgements, sanitized idempotency key, provider proof hash or unpaid acknowledgement, and approved route invocation evidence.
