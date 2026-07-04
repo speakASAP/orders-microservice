@@ -56,8 +56,8 @@ Forbidden body fields include provider transaction IDs, variable symbols, provid
 | `pending` | `pending` | No order status change. |
 | `processing` | `processing` | No order status change. |
 | `completed` | `paid` | If order is `pending`, move to `confirmed` and emit `orders.order.updated.v1`; emit `orders.order.paid.v1`. |
-| `failed` | `failed` | No order status change. No automatic order cancellation or refund behavior. Warehouse release remains a follow-up trigger after owner rollout approval. |
-| `cancelled` | `cancelled` | No order status change. |
+| `failed` | `failed` | No order lifecycle status change and no refund behavior. On first pre-paid transition to `failed`, Orders requests Warehouse `release` for existing holds; this is not order cancellation and does not infer stock effects from Payments refund state. |
+| `cancelled` | `cancelled` | No order lifecycle status change and no refund behavior. On first pre-paid transition to `cancelled`, Orders requests Warehouse `release` for existing holds; completed-payment cancellation still requires the separate owner-approved status cancellation packet. |
 | `refunded` | rejected | Refunds remain Payments-owned and require separate owner-approved workflow. |
 
 Orders rejects `completed` for already cancelled orders. Once an order is marked `paid`, replaying the same `paymentId` is idempotent and does not emit a second paid event. Replacing a paid `paymentReferenceId` or downgrading a paid order to failed/cancelled/pending is rejected because refunds and corrections require a separate owner-approved workflow.
@@ -89,5 +89,5 @@ Manual payment-state bypass, direct DB correction, or synthetic payment downgrad
 Fiobanka Goal 24 cleanup refinement:
 
 - Fiobanka completion/refund/correction evidence stays Payments-owned. Orders must not treat `PaymentStatus.REFUNDED`, a local Payments refund row, or a provider correction note as an `orders.payment-status.v1` input.
-- The only automatic Orders/Warehouse handoffs from payment status are `completed -> paid -> Warehouse fulfill` and pre-paid `failed|cancelled -> Warehouse release`.
+- The only automatic Orders/Warehouse handoffs from payment status are `completed -> paid -> Warehouse fulfill` and first pre-paid `failed|cancelled -> Warehouse release`; neither handoff is evidence of provider refund, order cancellation, or post-fulfillment stock correction.
 - Any completed-transfer cleanup requires a separate Orders status cancellation packet with a named human cancellation actor/approvedBy, safe reason code `GOAL24_PAID_PROVIDER_ROLLBACK`, an approved cleanup idempotency key, and side-effect acknowledgements for payment, warehouse, notification, CRM, and channel.
