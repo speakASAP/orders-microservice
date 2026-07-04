@@ -98,8 +98,26 @@ for (const [label, source] of [
   requireIncludes(source, '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]', `${label} Payments owner intake marker`);
   requireIncludes(source, 'Sergey Stasok', `${label} Latin owner name`);
   requireIncludes(source, 'Сергей Сташок', `${label} Cyrillic owner name`);
-  requireIncludes(source, '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]', `${label} exact future identity still missing`);
-  requireIncludes(source, '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]', `${label} final evidence still missing`);
+  if (label === 'Payments final packet') {
+    const paymentsFutureIdentityMissing = '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]';
+    const paymentsFutureIdentityRecorded = '[RESOLVED/NARROWED: exact selected runtime initiation window and payment/order/provider identity are recorded in reports/validation/VAL-GOAL-24-live-paid-provider-runtime-evidence-2026-07-04.md';
+    assert.ok(source.includes(paymentsFutureIdentityMissing) || source.includes(paymentsFutureIdentityRecorded), 'Payments final packet missing future identity missing-or-recorded marker');
+    if (source.includes(paymentsFutureIdentityRecorded)) {
+      requireIncludes(source, 'provider completion, refund/reversal, Orders cleanup, Warehouse cleanup, and channel cleanup remain blocked', 'Payments final packet recorded identity still blocks cleanup');
+    }
+  } else {
+    requireIncludes(source, '[MISSING: future paymentId/orderId/variableSymbolHash/providerTransactionHash for exact smoke]', `${label} exact future identity still missing`);
+  }
+  if (label === 'Payments final packet') {
+    const paymentsFinalEvidencePathMissing = '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]';
+    const paymentsFinalEvidencePathReserved = '[RESOLVED/NARROWED: final redacted evidence path is reserved as reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for required provider, Orders, Warehouse, and channel cleanup proof; runtime evidence content remains missing until exact provider proof, Orders packet, Warehouse lookup/cleanup, channel acknowledgement, and idempotency keys are captured]';
+    assert.ok(source.includes(paymentsFinalEvidencePathMissing) || source.includes(paymentsFinalEvidencePathReserved), 'Payments final packet missing final evidence path missing-or-reserved marker');
+    if (source.includes(paymentsFinalEvidencePathReserved)) {
+      requireIncludes(source, '[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for provider, Orders, Warehouse, channel cleanup, idempotency, and validation sections]', 'Payments final packet reserved path runtime-content blocker');
+    }
+  } else {
+    requireIncludes(source, '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]', `${label} final evidence still missing`);
+  }
 }
 
 for (const markerText of [

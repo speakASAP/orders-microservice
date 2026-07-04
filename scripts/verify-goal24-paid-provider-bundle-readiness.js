@@ -196,9 +196,22 @@ for (const marker of [
   'id: PAYMENTS-GOAL24-FINAL-OWNER-APPROVAL-RUNTIME-PACKET',
   '[RESOLVED/NARROWED: owner statement names Sergey Stasok / Сергей Сташок as the human Payments/provider rollback owner, bank/refund authority, and bank/refund executor for Goal 24 runtime planning; runtime side effects remain blocked until exact future payment/order/provider hashes, provider proof, Orders/Warehouse/channel packets, idempotency keys, and final redacted evidence exist]',
   '[MISSING: exact Orders target order hash/state, cancellation actor, approval id, safe reason code, idempotency key, and sideEffectsHandled payment|warehouse|notification|crm|channel acknowledgements for the future smoke]',
-  '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]',
 ]) {
   requireIncludes(paymentsFinalOwnerApprovalPacket, marker, `Payments final owner approval packet ${marker}`);
+}
+
+const paymentsFinalEvidencePathMissing = '[MISSING: final redacted evidence path for required provider, Orders, Warehouse, and channel cleanup proof]';
+const paymentsFinalEvidencePathReserved = '[RESOLVED/NARROWED: final redacted evidence path is reserved as reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for required provider, Orders, Warehouse, and channel cleanup proof; runtime evidence content remains missing until exact provider proof, Orders packet, Warehouse lookup/cleanup, channel acknowledgement, and idempotency keys are captured]';
+assert.ok(
+  paymentsFinalOwnerApprovalPacket.includes(paymentsFinalEvidencePathMissing) || paymentsFinalOwnerApprovalPacket.includes(paymentsFinalEvidencePathReserved),
+  'Payments final owner approval packet missing final evidence path missing-or-reserved marker',
+);
+if (paymentsFinalOwnerApprovalPacket.includes(paymentsFinalEvidencePathReserved)) {
+  requireIncludes(
+    paymentsFinalOwnerApprovalPacket,
+    '[MISSING: complete runtime evidence content at reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md for provider, Orders, Warehouse, channel cleanup, idempotency, and validation sections]',
+    'Payments final owner approval packet reserved path runtime-content blocker',
+  );
 }
 
 
