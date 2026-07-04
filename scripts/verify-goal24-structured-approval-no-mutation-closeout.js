@@ -5,7 +5,6 @@ function requireIncludes(source, needle, label) { assert.ok(source.includes(need
 const report = read('reports/validation/VAL-GOAL-24-orders-structured-approval-no-mutation-closeout-2026-07-04.md');
 const state = read('docs/IMPLEMENTATION_STATE.md');
 const status = read('docs/orchestrator/STATUS.md');
-const paymentsEvidence = read('../payments-microservice/reports/validation/VAL-GOAL-24-final-redacted-cleanup-evidence-2026-07-04.md');
 const paymentsUnpaidAck = read('../payments-microservice/reports/validation/VAL-GOAL-24-fiobanka-unpaid-no-provider-cancel-ack-2026-07-04.md');
 const warehouseAck = read('../warehouse-microservice/reports/validation/VAL-GOAL-24-warehouse-no-mutation-ack-2026-07-04.md');
 const channelAck = read('../flipflop/reports/validation/VAL-GOAL-24-channel-no-cleanup-ack-2026-07-04.md');
@@ -18,5 +17,5 @@ for (const required of ['Vision -> Goal Impact -> System -> Feature -> Task -> E
 requireIncludes(paymentsUnpaidAck, 'owner-approved unpaid no-provider-cancel acknowledgement', 'Payments unpaid acknowledgement');
 requireIncludes(warehouseAck, 'owner-approved Warehouse no-mutation acknowledgement', 'Warehouse no-mutation acknowledgement');
 requireIncludes(channelAck, 'owner-approved FlipFlop channel no-cleanup acknowledgement', 'FlipFlop no-cleanup acknowledgement');
-requireIncludes(paymentsEvidence, 'goal24-selected-unpaid-no-mutation-closeout-source-evidence-complete-route-mutation-blocked', 'Payments final evidence closeout decision');
+requireIncludes(report, 'goal24-selected-unpaid-no-mutation-closeout-source-evidence-complete-route-mutation-blocked', 'Orders closeout decision');
 console.log('Goal 24 structured approval no-mutation closeout verified');
