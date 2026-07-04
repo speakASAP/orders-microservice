@@ -108,6 +108,7 @@ requireIncludes(rollbackReadiness, '`shipped`', 'rollback readiness shipped fail
 requireIncludes(rollbackReadiness, '`delivered` / customer-received', 'rollback readiness delivered fail closed');
 requireIncludes(rollbackReadiness, "CANCELLATION_SOURCES = ['pending', 'confirmed', 'processing']", 'rollback readiness source cancellation state matrix');
 requireIncludes(rollbackReadiness, 'sideEffectsHandled.payment|warehouse|notification|crm|channel=true', 'rollback readiness source side-effect ack list');
+assert.equal(rollbackReadiness.includes('until that migration/deploy is approved'), false, 'rollback readiness must not preserve stale idempotency migration approval wording');
 requireIncludes(transitionBoundary, '`pending|confirmed|processing -> cancelled` requires `approval.approved=true`, `approval.approvalType=human`', 'status transition cancellation gate docs');
 requireIncludes(transitionBoundary, 'side-effect acknowledgements for payment, warehouse, notification, CRM, and channel handling', 'status transition side-effect docs');
 requireIncludes(transitionBoundary, 'terminal-state destructive corrections remain rejected', 'status transition terminal fail closed docs');
@@ -128,6 +129,7 @@ for (const required of [
   'GOAL24_PROVIDER_UNPAID_CANCEL',
   '[MISSING: named Orders cancellation actor/approvedBy for Goal 24 paid/provider cleanup]',
   '[RESOLVED: migration/deploy approval executed for persisted Orders cleanup idempotency key; migration pre_column_count=0 post_column_count=1, deployed image localhost:5000/orders-microservice:adddafb, health healthy]',
+  'live cleanup still requires the future owner-approved sanitized runtime key and all selected-order packet facts',
   'payment=true',
   'warehouse=true',
   'notification=true',
