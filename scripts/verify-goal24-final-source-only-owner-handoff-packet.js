@@ -8,6 +8,9 @@ function read(path) {
 function requireIncludes(source, needle, label) {
   assert.ok(source.includes(needle), `${label} missing: ${needle}`);
 }
+function requireIncludesAny(source, needles, label) {
+  assert.ok(needles.some((needle) => source.includes(needle)), `${label} missing one of: ${needles.join(' OR ')}`);
+}
 
 const packet = read('docs/orchestrator/2026-07-04-goal24-final-source-only-owner-handoff-packet.md');
 const report = read('reports/validation/VAL-GOAL-24-orders-final-owner-handoff-packet-2026-07-04.md');
@@ -19,6 +22,7 @@ const paymentsPacket = read('../payments-microservice/docs/orchestrator/2026-07-
 const paymentsPreSideEffectPacket = read('../payments-microservice/docs/orchestrator/2026-07-04-goal24-pre-side-effect-runtime-execution-packet.md');
 const ordersPaymentsPreSideEffectConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-payments-pre-side-effect-packet-445c4e7-2026-07-04.md');
 const ordersPaymentsOwnerAuthorityConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-payments-owner-authority-4f21094-2026-07-04.md');
+const ordersPaymentsUnpaidIdempotencyConsumption = read('reports/validation/VAL-GOAL-24-orders-consume-payments-unpaid-idempotency-7853822-2026-07-04.md');
 const paymentsOwnerAuthorityIntake = read('../payments-microservice/reports/validation/VAL-GOAL-24-payments-owner-authority-intake-2026-07-04.md');
 const catalogNoGo = read('../catalog-microservice/reports/validation/VAL-GOAL-24-catalog-consume-orders-warehouse-no-go-9287e3f-eee2f20-2026-07-04.md');
 const flipflopNoGo = read('../flipflop/reports/validation/VAL-GOAL-24-flipflop-consume-current-no-go-heads-2026-07-04.md');
@@ -197,6 +201,28 @@ for (const markerText of [
   '[MISSING: official/native Fio Banka callback signature contract if provider-authentic bank-originated signatures are required]',
 ]) {
   requireIncludes(paymentsPreSideEffectPacket, markerText, `Payments pre-side-effect packet ${markerText}`);
+}
+
+
+for (const [label, source] of [
+  ['Orders Payments unpaid/idempotency consumption report', ordersPaymentsUnpaidIdempotencyConsumption],
+  ['packet', packet],
+  ['status', status],
+  ['implementation state', state],
+]) {
+  requireIncludes(source, '[RESOLVED/NARROWED: Orders consumed Payments 7853822 unpaid no-provider-cancel and runtime idempotency packet as source-only selected cleanup planning evidence; selected centralOrderHash 04d7d08c82a07853, paymentHash 49853ba96700cdd1, approval GOAL24-PAID-PROVIDER-SMOKE-20260704-CODEX-OWNER-APPROVED-003, reason GOAL24_PROVIDER_UNPAID_CANCEL, and Orders idempotency label orders:goal24:post-paid-correction:GOAL24-PAID-PROVIDER-SMOKE-20260704-CODEX-OWNER-APPROVED-003:49853ba96700cdd1 are recorded for planning only; Orders route invocation remains blocked until exact Orders current state, cancellation actor/approvedBy, unused-key preflight, sideEffectsHandled warehouse|notification|crm|channel acknowledgements, exact Warehouse reservation lookup state, channel acknowledgement, and final redacted evidence exist]', `${label} Payments unpaid/idempotency marker`);
+  requireIncludes(source, '[RESOLVED/NARROWED: owner-approved unpaid no-provider-cancel acknowledgement for selected Goal 24 Fiobanka QR payment hash 49853ba96700cdd1 / latestPaymentIdHash 49853ba96700cdd18431dcecee869d5838aa98f582503f269d414eabc0dc06a2, centralOrderHash 04d7d08c82a07853, providerTransactionIdHash/variableSymbolHash 7f5ec0c1ad061a41b23155fb645680fabfcb663867cc2e33a1a32c0537bdae41, amount 300.00 CZK, status processing; no provider-side cancel/refund is required unless later bank completion evidence appears]', `${label} unpaid no-provider acknowledgement`);
+  requireIncludes(source, 'orders:goal24:post-paid-correction:GOAL24-PAID-PROVIDER-SMOKE-20260704-CODEX-OWNER-APPROVED-003:49853ba96700cdd1', `${label} Orders idempotency label`);
+  requireIncludesAny(source, [
+    '[MISSING: exact selected Warehouse reservation lookup state for this central order/component set]',
+    '[MISSING: exact selected Warehouse reservation lookup state for cleanup]',
+  ], `${label} Warehouse blocker`);
+  requireIncludesAny(source, [
+    '[MISSING: owner-approved channel side-effect acknowledgement for centralOrderHash 04d7d08c82a07853]',
+    '[MISSING: owner-approved channel side-effect acknowledgement for the selected central order hash]',
+  ], `${label} channel blocker`);
+  requireIncludes(source, 'orders_route_invocation: false', `${label} Orders route boundary`);
+  requireIncludes(source, 'warehouse_mutation: false', `${label} Warehouse boundary`);
 }
 
 console.log('Goal 24 Orders final source-only owner handoff packet verified');
