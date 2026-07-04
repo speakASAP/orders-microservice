@@ -49,6 +49,7 @@
     "verify:status-update-idempotency": "node scripts/verify-status-update-idempotency.js",
     "verify:goal24-orders-runtime-unused-key-preflight": "node scripts/verify-goal24-orders-runtime-unused-key-preflight.js",
     "verify:goal24-orders-consume-notifications-ack": "node scripts/verify-goal24-orders-consume-notifications-ack.js",
+    "verify:goal24-orders-final-no-mutation-cross-repo-audit": "node scripts/verify-goal24-orders-final-no-mutation-cross-repo-audit.js",
     "verify:goal24-structured-approval-no-mutation-closeout": "node scripts/verify-goal24-structured-approval-no-mutation-closeout.js"
   },
   "dependencies": {
