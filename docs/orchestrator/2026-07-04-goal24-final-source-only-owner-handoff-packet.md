@@ -164,3 +164,9 @@ Next step: Supply the missing owner-approved runtime fields before any live paid
 [MISSING: exact selected Warehouse reservation lookup state for this central order/component set]
 
 This resolves/narrows only the selected unpaid provider-proof and source-defined idempotency-label blockers. It does not authorize Orders route invocation, does not prove the Orders idempotency key is unused at runtime, and does not supply exact Orders current state, cancellation actor/approvedBy, Warehouse lookup state, channel acknowledgement, sideEffectsHandled warehouse|notification|crm|channel acknowledgements, or complete final redacted evidence.
+
+## 2026-07-04 Selected Read-Only Lookup
+
+[RESOLVED/NARROWED: Goal 24 selected read-only lookup resolved sanitized Orders state, Warehouse reservation state, and FlipFlop channel correlation for centralOrderHash 04d7d08c82a07853; Orders row count is 1 with status pending/paymentStatus pending/channel flipflop/total 300.00 CZK, Warehouse reservation lookup count is 2 with both component rows expired and zero active/fulfilled/cancelled/released/returned rows, and FlipFlop channel correlation count is 1 with pending/pending fiobanka 300.00 and central forwarding accepted; no cleanup mutation occurred]
+
+This resolves/narrows selected read-only state only. Orders route invocation remains blocked until named actor/approvedBy, unused-key preflight, sideEffectsHandled warehouse|notification|crm|channel acknowledgements, Warehouse owner acknowledgement/operation matrix, channel acknowledgement, and final evidence content exist.
