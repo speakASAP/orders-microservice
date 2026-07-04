@@ -52,7 +52,40 @@ const paymentsIdempotencyNamespaceSync = readSibling('payments-microservice', 'r
 const paymentsCleanupPacketRuntimeValuesConsumption = readSibling('payments-microservice', 'reports/validation/VAL-GOAL-24-payments-consume-cleanup-packet-runtime-values-d39bc0c-cf340f5-2026-07-04.md');
 const implementationState = read('docs/IMPLEMENTATION_STATE.md');
 const orchestratorStatus = read('docs/orchestrator/STATUS.md');
+const ordersFinalNoMutationCrossRepoAudit = read('reports/validation/VAL-GOAL-24-orders-final-no-mutation-cross-repo-audit-2026-07-05.md');
 
+
+
+const ordersFinalNoMutationAuditMarker = '[RESOLVED/NARROWED: Goal 24 Orders final no-mutation cross-repo audit consumed current clean owner heads Orders 2719fde, Payments 3f5d8b2, Warehouse 032ed96, FlipFlop 86394e7, and Notifications c68d995 for centralOrderHash 04d7d08c82a07853; selected unpaid Fiobanka QR cleanup is source-complete as no-route/no-cleanup/no-mutation closeout only, with sideEffectsHandled.payment=true, warehouse=true, channel=true, notification=true, and crm=true as owner acknowledgements; no live Orders route invocation, DB write, provider call, bank transfer, refund/reversal, Warehouse mutation, channel cleanup, notification send, CRM mutation, deploy, secret output, token output, raw ID output, raw DB row output, or customer/payment evidence output occurred; same-request replay proof and final Orders route evidence remain MISSING only for a future approved route-invocation lane]';
+for (const [label, source] of [
+  ['Orders final no-mutation cross-repo audit report', ordersFinalNoMutationCrossRepoAudit],
+  ['readiness report', report],
+  ['implementation state', implementationState],
+  ['orchestrator status', orchestratorStatus],
+]) {
+  requireIncludes(source, ordersFinalNoMutationAuditMarker, `${label} final no-mutation audit marker`);
+  requireIncludes(source, 'goal24-orders-final-no-mutation-cross-repo-audit-complete-route-invocation-not-run', `${label} final no-mutation decision`);
+  requireIncludes(source, 'no-route/no-cleanup/no-mutation closeout', `${label} no-mutation closeout scope`);
+  requireIncludes(source, 'same-request replay proof', `${label} future route replay blocker retained`);
+  for (const boundary of ['orders_route_invocation: false', 'db_write: false', 'provider_call: false', 'refund_or_reversal: false', 'warehouse_mutation: false', 'channel_cleanup_mutation: false', 'notification_send: false', 'crm_mutation: false', 'raw_customer_or_payment_evidence: false']) {
+    requireIncludes(source, boundary, `${label} final audit boundary ${boundary}`);
+  }
+}
+for (const required of [
+  'Orders | `2719fde docs: record goal24 runtime unused-key preflight`',
+  'Payments | `3f5d8b2 docs: record goal24 final no-mutation closeout`',
+  'Warehouse | `032ed96 docs: record goal24 warehouse no-mutation ack`',
+  'FlipFlop | `86394e7 docs: record goal24 channel no-cleanup ack`',
+  'Notifications | `c68d995 docs: finalize Goal 24 notifications ack validation`',
+  '`sideEffectsHandled.payment=true`',
+  '`sideEffectsHandled.warehouse=true`',
+  '`sideEffectsHandled.channel=true`',
+  '`sideEffectsHandled.notification=true`',
+  '`sideEffectsHandled.crm=true`',
+  '[MISSING: same-request replay proof requires a future approved route invocation/replay and was not executed in this no-mutation closeout]',
+]) {
+  requireIncludes(ordersFinalNoMutationCrossRepoAudit, required, `final audit evidence ${required}`);
+}
 
 const ordersCurrentHeadsNoGoMarker = '[RESOLVED/NARROWED: Orders consumed Payments cc49c08 live no-go preflight, Catalog d1eef3d live no-go preflight consumption, Warehouse 686d49c blocker wording, and FlipFlop 9a7c664 durable migration provider marker as source-governance inputs only; runtime Orders route invocation and cleanup side effects remain blocked]';
 for (const [label, source] of [
