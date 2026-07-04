@@ -167,6 +167,19 @@ Allowed token proof markers remain runtime-gated: `tokenSourceType=on-host-token
 
 Auth token-binding proof is not Warehouse stock evidence and is not Orders cleanup authorization. Orders must not infer Warehouse stock effects from Payments refund state, provider state, Auth token state, or FlipFlop channel state. Runtime remains blocked by the exact Orders cleanup packet, sideEffectsHandled acknowledgements, Orders-to-Warehouse handoff, owner-approved Warehouse target facts, token source/token-binding proof, provider authority, and final redacted evidence path.
 
+## 2026-07-04 Orders Channel Owner Consumption
+
+[RESOLVED/NARROWED: Orders consumes current FlipFlop channel cleanup executor as source-governance coordination only; runtime channel sideEffectsHandled acknowledgement for the selected central order remains blocked]
+
+Orders consumes current FlipFlop/Catalog/Payments source-governance evidence that the Codex Goal 24 integration thread is the source-controlled coordination owner and FlipFlop channel cleanup executor for future smoke planning. This does not supply runtime channel acknowledgement for any selected central order, does not authorize Orders route invocation, and does not replace `sideEffectsHandled.channel=true`.
+
+Current coordination evidence:
+
+- `[RESOLVED/NARROWED: Codex Goal 24 integration thread is the runtime validation owner and FlipFlop channel cleanup executor for future source-controlled smoke coordination; runtime side effects remain blocked until bank/refund authority, exact provider proof, Orders/Warehouse packets, and redacted evidence path exist]`
+- `[RESOLVED/NARROWED: FlipFlop channel cleanup executor is the Codex Goal 24 integration thread for future source-controlled coordination]`
+
+Runtime remains blocked by `[MISSING: owner-approved payment/warehouse/notification/crm/channel sideEffectsHandled acknowledgements for the selected central order hash]`, `[MISSING: named runtime Orders cancellation actor/approvedBy and exact target order hash/state for the paid/provider packet]`, `[MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement]`, and `[MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present]`.
+
 ## 2026-07-04 Orders Idempotency Namespace Consumption
 
 [RESOLVED/NARROWED: Orders consumed Payments 349c052 idempotency namespace sync as source governance only; runtime Orders route invocation and cleanup side effects remain blocked]
