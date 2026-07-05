@@ -17,8 +17,11 @@ The remaining FlipFlop admin drift path is closed for central Orders-owned order
 
 - Source authority: `orders-microservice`
 - Consumer platform: `flipflop`
-- FlipFlop commit: `b91096a fix: block local admin status drift for central orders`
-- FlipFlop evidence report: `reports/validation/2026-07-05-w6b-admin-status-central-authority.md`
+- FlipFlop implementation commit: `b91096a fix: block local admin status drift for central orders`
+- FlipFlop evidence HEAD: `1d89927 docs: record W6B admin authority contract`
+- FlipFlop evidence reports:
+  - `reports/validation/2026-07-05-w6b-admin-status-central-authority.md`
+  - `reports/validation/2026-07-05-w6b-flipflop-admin-status-authority-contract.md`
 
 ## Feature
 
@@ -48,7 +51,7 @@ Do not invent a central Orders correction command. Block local lifecycle drift f
 
 ## Code
 
-FlipFlop commit `b91096a` contains:
+FlipFlop implementation commit `b91096a` contains:
 
 - `services/order-service/src/orders/orders.service.ts`
 - `services/frontend/app/admin/orders/[id]/page.tsx`
@@ -67,6 +70,7 @@ Validated in FlipFlop before commit:
 - `npm --prefix services/frontend run lint -- app/admin/orders/[id]/page.tsx lib/api/orders.ts` - PASS, baseline-browser-mapping staleness notice only
 - `npm --prefix services/order-service run build` - PASS
 - `git diff --check` - PASS
+- `npm run verify:w6b-admin-status-authority-contract` - PASS, additional agent handoff verifier on FlipFlop evidence HEAD `1d89927`.
 
 ## Remaining Blockers
 
