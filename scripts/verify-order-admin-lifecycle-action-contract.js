@@ -75,7 +75,7 @@ function assertIncludes(source, needle, label) {
   assertIncludes(contract, 'PUT /api/orders/:id/status', 'contract low-level route');
   assertIncludes(contract, 'FlipFlop correctly fails closed', 'contract FlipFlop rule');
   assertIncludes(contract, '[MISSING: FlipFlop route-to-Orders admin action implementation]', 'remaining route implementation gate');
-  assertIncludes(w7b, 'FlipFlop evidence HEAD: `1d89927', 'W7B evidence head marker');
+  assertIncludes(w7b, 'FlipFlop evidence HEAD: `6cb7c63', 'W7B evidence head marker');
 
   console.log(JSON.stringify({
     ok: true,
