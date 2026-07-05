@@ -53,6 +53,8 @@ No-go for autonomous live smoke:
 
 ## Minimum Packets To Close Remaining Gates
 
+Authoritative packet contract: docs/orchestrator/2026-07-05-runtime-gate-packet-contracts.md; validated by npm run verify:runtime-gate-packets.
+
 - Allegro natural buyer proof: approved buyer bearer/session, exact subject-bound real or synthetic-forwarded row policy, central Orders lifecycle readback boundary, cleanup/no-cleanup rule, and no raw token/order/customer output policy.
 - Bazos provider proof: explicit decision that Bazos has or does not have provider-backed marketplace webhook support; provider order item/status ingestion contract; status transition sample; item identity mapping; Warehouse-owned `warehouseId`; approved non-secret fixture or live provider smoke packet.
 - Aukro/Heureka row-level proof: approved customer/admin bearer/session, target channel row criteria, non-stale central Orders row evidence policy, and admin stats readback boundary.

@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+const assert = require('assert/strict');
+const fs = require('fs');
+const path = require('path');
+
+const root = process.cwd();
+const contractPath = path.join(root, 'docs/orchestrator/2026-07-05-runtime-gate-packet-contracts.md');
+const finalReportPath = path.join(root, 'reports/validation/VAL-W7-error-free-orders-lifecycle-final-integration-2026-07-05.md');
+const masterPlanPath = path.join(root, 'docs/orchestrator/2026-07-05-error-free-orders-lifecycle-master-plan.md');
+
+function read(file) {
+  assert.equal(fs.existsSync(file), true, path.relative(root, file) + ' is missing');
+  return fs.readFileSync(file, 'utf8');
+}
+function assertIncludes(source, marker, label) {
+  assert.equal(source.includes(marker), true, label + ' missing marker: ' + marker);
+}
+const contract = read(contractPath);
+const finalReport = read(finalReportPath);
+const masterPlan = read(masterPlanPath);
+const ipsMarkers = ['Vision ->','Goal Impact ->','System ->','Feature ->','Task ->','Execution Plan ->','Coding Prompt ->','Code ->','Validation ->'];
+for (const marker of ipsMarkers) assertIncludes(contract, marker, 'IPS chain');
+const packetSections = ['## W1/W2 Live Synthetic Create Pay Warehouse Read Packet','## W3-W5 Marketplace Row-Level Cabinet Packet','## W6B FlipFlop Route-To-Orders Admin Action Packet','## W8 Bazos Provider-Backed Proof Packet','## Warehouse Callback Runtime Packet'];
+for (const marker of packetSections) assertIncludes(contract, marker, 'packet section');
+const requiredGateMarkers = ['[MISSING: approved W1/W2 live synthetic lifecycle packet]','[MISSING: approved buyer/admin bearer/session packets]','[MISSING: approved live action-admin session packet]','[MISSING: approved provider-backed non-secret fixture or live provider smoke packet]','[UNKNOWN: live Bazos marketplace webhook support]','[MISSING: approved Warehouse fulfillment runtime packet]'];
+for (const marker of requiredGateMarkers) assertIncludes(contract, marker, 'missing gate marker');
+const requiredFields = ['packetId','ownerApproval','scope','actor','target','idempotency','sideEffects','readback','redaction','abortConditions','Auth actor/role mapping','Orders idempotency key and replay policy','sideEffectsHandled.payment|warehouse|notification|crm|channel=true','Provider order item/status ingestion contract','Warehouse-owned warehouseId','Subject-bound ownership policy; email fallback is forbidden'];
+for (const marker of requiredFields) assertIncludes(contract, marker, 'required packet field');
+const forbiddenSafetyMarkers = ['Do not run live mutation from this document.','raw tokens','raw customer/order/payment/provider/tracking payloads','raw DB rows','screenshots','do not authorize any live mutation','provider call','deploy','DB write'];
+for (const marker of forbiddenSafetyMarkers) assertIncludes(contract, marker, 'safety marker');
+assertIncludes(finalReport, '## Minimum Packets To Close Remaining Gates', 'final W7 report packet section');
+assertIncludes(finalReport, 'FlipFlop action smoke: approved action-admin session', 'final W7 report FlipFlop packet');
+assertIncludes(finalReport, 'Warehouse callback runtime smoke: approved fulfillment target', 'final W7 report Warehouse packet');
+assertIncludes(finalReport, 'Bazos provider proof: explicit decision', 'final W7 report Bazos packet');
+assertIncludes(masterPlan, 'Remaining gates require owner-approved live bearer/session/provider packets or product decisions', 'master plan packet gate');
+console.log(JSON.stringify({ok:true,verifier:'orders-runtime-gate-packets.v1',packetSections:packetSections.length,missingGateMarkers:requiredGateMarkers.length,mutation:false,providerCall:false,browserSessionUsed:false,tokenValuesReadOrPrinted:false,sensitiveOutput:'redacted-source-only'}, null, 2));
