@@ -32,7 +32,7 @@ Validation -> Run central Orders lifecycle evidence verifiers and diff hygiene a
 - Allegro is source-proven and approved synthetic buyer/admin runtime-proven: buyer list/detail, unauth 401, non-owned detail 404, admin orders/stats, and cleanup all passed without printing raw tokens or payloads. Remaining natural proof is a real-traffic subject-bound buyer row with forwarded central Orders lifecycle if product requires it.
 - Bazos is source/UI verified and bounded paid lifecycle proof is accepted, but provider-backed proof is blocked until a provider contract/sample or explicit product decision exists.
 - Aukro and Heureka are source/runtime-presence verified. Row-level live proof is blocked by missing approved customer/admin sessions and missing/unknown non-stale central Orders rows.
-- FlipFlop W6 is source-guarded: central-owned local lifecycle/payment status mutation fails closed, shared central lifecycle labels/read models are verified, and route-to-Orders admin action plus direct live action-admin/customer session smoke remain gated.
+- FlipFlop W6 is source-guarded: central-owned local lifecycle/payment status mutation fails closed, shared central lifecycle labels/read models are verified, dashboard recent-order verifier hardening is committed in FlipFlop a87212d, Orders W6B contract handoff is committed in Orders d930696, and route-to-Orders admin action plus direct live action-admin/customer session smoke remain gated by approved action-admin session, Auth actor mapping, idempotency/replay policy, cancellation side-effect packet, and response/readback contract.
 
 ## Go/No-Go
 
