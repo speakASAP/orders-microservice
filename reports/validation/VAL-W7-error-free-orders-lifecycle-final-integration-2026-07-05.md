@@ -55,6 +55,8 @@ No-go for autonomous live smoke:
 
 Authoritative packet contract: docs/orchestrator/2026-07-05-runtime-gate-packet-contracts.md; validated by npm run verify:runtime-gate-packets.
 
+Repo-local packet handoffs are pushed and aggregated in reports/validation/VAL-W7-runtime-gate-packet-handoff-aggregation-2026-07-05.md: Warehouse 394451e, Bazos c6b1263, FlipFlop 6869b31, Allegro 6653a16, Aukro ac3514a, Heureka 3191ac2.
+
 - Allegro natural buyer proof: approved buyer bearer/session, exact subject-bound real or synthetic-forwarded row policy, central Orders lifecycle readback boundary, cleanup/no-cleanup rule, and no raw token/order/customer output policy.
 - Bazos provider proof: explicit decision that Bazos has or does not have provider-backed marketplace webhook support; provider order item/status ingestion contract; status transition sample; item identity mapping; Warehouse-owned `warehouseId`; approved non-secret fixture or live provider smoke packet.
 - Aukro/Heureka row-level proof: approved customer/admin bearer/session, target channel row criteria, non-stale central Orders row evidence policy, and admin stats readback boundary.
