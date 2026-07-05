@@ -1,6 +1,6 @@
 # W1 Orders Runtime Proof
 
-status: source-verified-approved-core-runtime-proven-customer-session-gated
+status: source-verified-approved-buyer-bound-runtime-proven
 created_at: 2026-07-05
 workstream: W1 Orders runtime proof
 repository: /home/ssf/Documents/Github/orders-microservice
@@ -200,3 +200,40 @@ Boundary:
 No provider call, real payment movement, browser session capture, token output, raw customer/order/payment/provider/tracking output, raw DB row output, screenshot, deploy, migration, or source-code change occurred in this addendum. One synthetic Orders/Warehouse lifecycle row was created and advanced as the approved runtime evidence. No cleanup/no-cleanup packet was supplied, so no additional cleanup mutation was attempted.
 
 Updated verdict: W1/W2 are `core_runtime_proven_customer_session_gated`. The next missing fact is `[MISSING: approved buyer Auth bearer/session packet bound to the synthetic order subject, or an approved product decision that admin/service-scoped core proof is sufficient for W1/W2 and buyer proof remains W3-W5-owned]`.
+
+## Approved Buyer-Bound Live Smoke Addendum - 2026-07-05T22:01:55Z
+
+Owner approval remained in-thread: `do it yourself. I approve`.
+
+The approved buyer-bound synthetic smoke generated an Auth-backed synthetic buyer through the Auth internal magic-link token path, created a subject-bound FlipFlop-channel Orders record, reserved Warehouse stock, accepted payment completion, accepted Warehouse fulfillment-status callback, and proved both buyer cabinet and admin dashboard lifecycle readback at `warehouse_collecting`.
+
+Sanitized result summary from `reports/validation/lifecycle-mutation-smoke/VAL-W1W2-buyer-bound-runtime-proof-2026-07-05.json`:
+
+```text
+ok=true
+mode=live_buyer_bound_synthetic_lifecycle_mutation
+mutation=true
+approvalIdPresent=true
+confirmation=CREATE_PAY_WAREHOUSE_CUSTOMER_ADMIN_READ
+channel=flipflop
+serviceName=flipflop-service
+createHttpStatus=201
+orderIdPresent=true
+initialWarehouseReserved=true
+paymentHttpStatus=200
+warehouseHttpStatus=200
+customerLifecycleHttpStatus=200
+adminLifecycleHttpStatus=200
+customerSawWarehouseCollecting=true
+adminSawWarehouseCollecting=true
+customerScopedCountPositive=true
+adminAggregateStageCountPositive=true
+tokenValuesPrinted=false
+rawOrderRowsPrinted=false
+```
+
+Boundary:
+
+No provider call, real payment movement, browser session capture, token output, raw customer/order/payment/provider/tracking output, raw DB row output, screenshot, deploy, migration, or source-code change occurred in this addendum. One synthetic Auth user and one synthetic Orders/Warehouse lifecycle row were created and advanced as approved runtime evidence. The buyer bearer token was used only inside the runtime command and was not printed or persisted in the report.
+
+Updated verdict: W1/W2 are `buyer_bound_runtime_proven` for the approved synthetic lane: stock reservation, item and delivery cost recording, paid-order Warehouse fulfillment trigger, Warehouse fulfillment callback, buyer lifecycle readback, and admin lifecycle readback are all proven against the live runtime.
