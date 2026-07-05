@@ -6013,6 +6013,8 @@ Follow-up evidence: post-deploy smoke of `d8ac74d` showed FlipFlop still normali
 
 ## 2026-07-03 - FlipFlop Browser Render Proof Proven
 
+2026-07-05: Customer lifecycle subject-bound hardening. IPS: Vision -> buyer personal cabinets show only canonical Orders lifecycle rows owned by the authenticated buyer; Goal Impact -> removes the weak legacy email fallback from `GET /api/orders/customer/lifecycle` so marketplace buyer cabinets stay subject-bound; System -> Orders owns central lifecycle reads and Auth `sub` is the customer ownership key; Feature -> subject-bound customer lifecycle read model; Task -> require valid actor `sub`, filter only by persisted `customer.authUserId`/`customer.subject`, update verifier/docs; Execution Plan -> Orders-only source/docs change, no DB query, no runtime mutation, no provider call, no secret output; Coding Prompt -> do not authorize by `customer.email`; Code -> `src/orders/orders.service.ts`, `scripts/verify-order-lifecycle-read-model.js`, `docs/orchestrator/ORDER_LIFECYCLE_READ_MODEL.md`; Validation -> passed: `npm run build`, `npm run verify:order-lifecycle-read-model`, `npm run verify:channel-lifecycle-runtime-evidence`, `git diff --check`, and full `npm test`.
+
 Current focus: close the first channel customer/admin rendered lifecycle proof gate after Orders lifecycle detail deployment.
 
 Intent Preservation Chain:

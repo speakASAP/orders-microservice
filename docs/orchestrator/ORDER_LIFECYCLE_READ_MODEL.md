@@ -65,7 +65,8 @@ Customer cabinet API:
 
 - `GET /api/orders/customer/lifecycle`
 - Auth: any Auth-valid human bearer token through `authenticated:user`, plus Orders admin/read/operator roles.
-- Scope: returns orders whose persisted `customer.authUserId` or `customer.subject` matches the authenticated actor `sub`; legacy rows may still match by `customer.email`.
+- Scope: returns only orders whose persisted `customer.authUserId` or `customer.subject` matches the authenticated actor `sub`.
+- Customer lifecycle reads do not fall back to `customer.email`; legacy rows without a subject remain hidden from the customer cabinet until an approved subject-binding or backfill path exists.
 - Output: lifecycle stage, compatibility status, totals, item list, shipping method, delivery address, timeline, and audit-safe Warehouse handoff summary.
 
 Admin cabinet API:
@@ -93,7 +94,7 @@ Blocker: `[MISSING: Delivery provider or shipment-status source contract for aft
 
 - Lifecycle events never include full customer, shipping address, billing address, customer note, payment provider, tracking, token, secret, or raw Warehouse response data.
 - Authenticated read APIs may expose delivery address and order items because customer/admin UIs require them, but they do not log those payloads or include them in event fixtures.
-- Customer read filtering prefers persisted `customer.authUserId`/`customer.subject` when Auth supplies a stable `sub`, and falls back to `customer.email` for legacy order rows.
+- Customer read filtering requires persisted `customer.authUserId`/`customer.subject` to match the authenticated Auth `sub`; email snapshots are not ownership proof.
 
 Runtime evidence: deployed Orders image `localhost:5000/orders-microservice:537a103`
 contains `c4f1332`; `npm run verify:invoices-read-boundary` and

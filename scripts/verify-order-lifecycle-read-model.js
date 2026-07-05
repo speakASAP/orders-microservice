@@ -292,7 +292,8 @@ const serviceSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/orders/orders
 assert.match(serviceSource, /getCustomerLifecycleOrders/);
 assert.match(serviceSource, /LOWER\(orders\.customer ->> 'authUserId'\)/);
 assert.match(serviceSource, /LOWER\(orders\.customer ->> 'subject'\)/);
-assert.match(serviceSource, /LOWER\(orders\.customer ->> 'email'\)/);
+assert.match(serviceSource, /Authenticated customer Auth subject is required/);
+assert.doesNotMatch(serviceSource, /orders\.customer ->> 'email'/);
 assert.match(serviceSource, /getAdminLifecycleOrders/);
 assert.match(serviceSource, /publishLifecycleChangedIfNeeded/);
 assert.match(serviceSource, /mode: 'coarse_projection'/);
@@ -310,6 +311,7 @@ assert.match(contractDoc, /GET \/api\/orders\/admin\/lifecycle/);
 assert.match(contractDoc, /POST \/api\/fulfillment-orders/);
 assert.doesNotMatch(contractDoc, /\[MISSING: Warehouse-owned fulfillment order or pick-ticket contract/);
 assert.match(contractDoc, /customer\.authUserId/);
+assert.match(contractDoc, /Customer lifecycle reads do not fall back to `customer\.email`/);
 assert.match(contractDoc, /FlipFlop runtime smoke proving authenticated central order snapshots carry customer\.authSubject/);
 assert.match(contractDoc, /Cliplot hosted Auth callback\/session contract before authenticated checkout can pass Auth subject/);
 
