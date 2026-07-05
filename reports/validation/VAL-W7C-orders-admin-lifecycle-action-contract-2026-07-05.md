@@ -59,5 +59,5 @@ Keep marketplace lifecycle authority centralized in Orders. Do not add payment/r
 ## Remaining Blockers
 
 - `[MISSING: approved live action-admin session packet]` No live mutation/browser smoke was run.
-- `[MISSING: FlipFlop route-to-Orders admin action implementation]` FlipFlop currently fails closed for central-owned local status/payment edits and does not call this Orders action route.
+- `[MISSING: FlipFlop route-to-Orders admin action implementation]` FlipFlop `6cb7c63` consumes this contract as evidence but still fails closed for central-owned local status/payment edits and does not call this Orders action route.
 - `[MISSING: payment/refund/provider correction workflow]` Paid downgrades, refunds, provider corrections, and payment reference replacement remain Payments-owned and outside this status contract.
