@@ -50,7 +50,8 @@
     "verify:goal24-orders-runtime-unused-key-preflight": "node scripts/verify-goal24-orders-runtime-unused-key-preflight.js",
     "verify:goal24-orders-consume-notifications-ack": "node scripts/verify-goal24-orders-consume-notifications-ack.js",
     "verify:goal24-orders-final-no-mutation-cross-repo-audit": "node scripts/verify-goal24-orders-final-no-mutation-cross-repo-audit.js",
-    "verify:goal24-structured-approval-no-mutation-closeout": "node scripts/verify-goal24-structured-approval-no-mutation-closeout.js"
+    "verify:goal24-structured-approval-no-mutation-closeout": "node scripts/verify-goal24-structured-approval-no-mutation-closeout.js",
+    "verify:order-admin-lifecycle-action-contract": "node scripts/verify-order-admin-lifecycle-action-contract.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

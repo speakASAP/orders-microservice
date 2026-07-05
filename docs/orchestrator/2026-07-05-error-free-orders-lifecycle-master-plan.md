@@ -46,6 +46,7 @@ Validation -> Existing source verifiers passed on 2026-07-05: `verify:create-ord
 - Marketplace lifecycle UI source markers exist and pass focused verifiers for Allegro, Bazos, Aukro, Heureka, and FlipFlop.
 - This is not yet fully proven as production-complete because the central verifier reports `source_ready_runtime_smoke_gated`: live customer/admin smoke remains required per channel.
 - `[MISSING: approved live customer/admin bearer/session packets per channel for end-to-end cabinet smoke]`.
+- `[RESOLVED/NARROWED: Orders admin lifecycle action contract source-validated on 2026-07-05]`; remaining implementation gate is FlipFlop route-to-Orders admin action wiring plus approved live action-admin session.
 - `[MISSING: provider-backed Bazos marketplace webhook/status proof]`.
 - `[MISSING: optional real provider shipment movement beyond bounded sanitized fixtures where product requires live carrier proof]`.
 

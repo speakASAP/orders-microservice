@@ -74,6 +74,11 @@ export const ORDER_WAREHOUSE_FULFILLMENT_UPDATE_ROLES = [
   'internal:warehouse-microservice:service',
 ] as const;
 
+export const ORDER_STATUS_UPDATE_ROLES = [
+  'global:superadmin',
+  'internal:orders-microservice:action-admin',
+] as const;
+
 export const ORDER_AFFINITY_REPLAY_READ_ROLES = [
   'global:superadmin',
   'internal:orders-microservice:admin',
@@ -197,6 +202,7 @@ export class OrdersController {
   }
 
   @Put(':id/status')
+  @Roles(...ORDER_STATUS_UPDATE_ROLES)
   async updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: OrderStatusUpdateBody,

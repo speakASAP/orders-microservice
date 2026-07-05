@@ -71,10 +71,11 @@ Validated in FlipFlop before commit:
 - `npm --prefix services/order-service run build` - PASS
 - `git diff --check` - PASS
 - `npm run verify:w6b-admin-status-authority-contract` - PASS, additional agent handoff verifier on FlipFlop evidence HEAD `1d89927`.
+- Orders W7C admin lifecycle action contract validation - PASS; see `reports/validation/VAL-W7C-orders-admin-lifecycle-action-contract-2026-07-05.md`.
 
 ## Remaining Blockers
 
-- `[MISSING: central Orders admin lifecycle mutation/correction contract]` FlipFlop now fails closed for local lifecycle changes instead of routing corrections to Orders because no approved Orders command contract exists.
+- `[RESOLVED/NARROWED: Orders admin lifecycle action contract source-validated]` Orders now documents and verifies `POST /api/admin/operations/actions/order-status` plus action-role-gated `PUT /api/orders/:id/status`; FlipFlop route-to-Orders implementation remains dependency-gated.
 - `[MISSING: live admin session]` W6-B is source-validated; no authenticated browser smoke was available.
 - `[MISSING: approved live lifecycle mutation smoke]` W1/W2 synthetic create/pay/warehouse-read live smoke remains gated by explicit approval variables.
 - `[MISSING: Bazos provider webhook/status contract sample]` Bazos provider-backed lifecycle proof remains source-validated but not provider-backed.
