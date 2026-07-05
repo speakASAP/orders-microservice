@@ -1,6 +1,6 @@
 # W1 Orders Runtime Proof
 
-status: source-verified-runtime-mutation-gated
+status: source-verified-approved-core-runtime-proven-customer-session-gated
 created_at: 2026-07-05
 workstream: W1 Orders runtime proof
 repository: /home/ssf/Documents/Github/orders-microservice
@@ -77,3 +77,126 @@ Orders is source-verified for the required create/reserve/pay/fulfillment/lifecy
 ## Handoff
 
 W7 may consume this as W1 source-verified runtime-preflight evidence. Do not mark live mutation proof complete unless an owner-approved synthetic run supplies the three required smoke gates above and produces a redacted report.
+
+## Approved Live Smoke Addendum - 2026-07-05T20:10:58Z
+
+Owner approval received in-thread: `I approve. Go ahead`.
+
+Executed command:
+
+```text
+ssh alfares 'cd /home/ssf/Documents/Github/orders-microservice && RUN_LIVE_LIFECYCLE_MUTATION_SMOKE=1 LIFECYCLE_MUTATION_SMOKE_APPROVAL_ID=W1-ORDERS-LIFECYCLE-SMOKE-20260705-CODEX-OWNER-APPROVED-001 LIFECYCLE_MUTATION_SMOKE_CONFIRM=CREATE_PAY_WAREHOUSE_READ npm run smoke:lifecycle-mutation'
+```
+
+Result: approved live synthetic smoke executed and wrote `reports/validation/lifecycle-mutation-smoke/report-latest.json`; it failed before order creation completed.
+
+Sanitized result summary:
+
+```text
+ok=false
+mode=live_synthetic_lifecycle_mutation
+mutation=true
+approvalIdPresent=true
+confirmation=CREATE_PAY_WAREHOUSE_READ
+preflight.deploymentReady=1/1
+preflight.deploymentAvailable=1/1
+preflight.image=localhost:5000/orders-microservice:ce8c544
+preflight.envPresence.WAREHOUSE_RESERVATION_ENABLED=true
+preflight.envPresence.FLIPFLOP_INTERNAL_SERVICE_TOKEN=true
+preflight.envPresence.PAYMENTS_INTERNAL_SERVICE_TOKEN=true
+preflight.envPresence.WAREHOUSE_INTERNAL_SERVICE_TOKEN=true
+createHttpStatus=400
+orderIdPresent=false
+initialWarehouseReserved=false
+paymentHttpStatus=null
+warehouseHttpStatus=null
+customerLifecycleHttpStatus=null
+adminLifecycleHttpStatus=null
+tokenValuesPrinted=false
+rawOrderRowsPrinted=false
+blocker=[MISSING: lifecycle mutation propagation smoke did not satisfy all assertions]
+```
+
+Follow-up read-only diagnostic:
+
+```text
+POST /api/orders/validate-create with the same synthetic payload inside the Orders pod
+```
+
+Result: `status=201`, `success=true`, validation data keys returned, `mutation=false`, `orderCreated=false`, `warehouseMutation=false`. This narrows the runtime failure away from DTO/create-contract validation.
+
+Sanitized log evidence:
+
+```text
+2026-07-05T20:10:58.431Z [WarehouseReservationClient] WARN: Warehouse reservation handoff failed
+```
+
+Post-failure source verifier rerun:
+
+```text
+npm run verify:create-order-contract
+npm run verify:order-reservation-gate
+npm run verify:warehouse-handoff
+npm run verify:order-fulfillment-handoff
+npm run verify:order-lifecycle-read-model
+```
+
+Result: all passed.
+
+Updated verdict: W1 is source-proven and approved-smoke-attempted, but not runtime-complete. The live blocker is now `[MISSING: Warehouse reservation handoff succeeds for the approved synthetic create payload in current runtime image localhost:5000/orders-microservice:ce8c544]`.
+
+Next step: Assign Warehouse/runtime owner to debug why `POST /api/reservations/reserve` rejects or fails for the synthetic product/warehouse fixture, then rerun the same approved Orders smoke after the Warehouse reservation path is proven healthy.
+
+## Approved Live Smoke Addendum - 2026-07-05T20:16:36Z
+
+Owner approval remained in-thread: `I approve. Go ahead`.
+
+Follow-up diagnostic found the first failed run used the smoke script default stock target, which was not reservable in the current runtime. A bounded read-only Warehouse lookup selected one UUID product/warehouse stock row with positive availability. Raw product, warehouse, order, and token values were not printed; the command emitted only `selected_synthetic_stock_available=190` and the smoke report hashes.
+
+Executed command shape:
+
+```text
+RUN_LIVE_LIFECYCLE_MUTATION_SMOKE=1
+LIFECYCLE_MUTATION_SMOKE_APPROVAL_ID=user-approved-2026-07-05-w1w2
+LIFECYCLE_MUTATION_SMOKE_CONFIRM=CREATE_PAY_WAREHOUSE_READ
+LIFECYCLE_MUTATION_SMOKE_CATALOG_PRODUCT_ID=<selected UUID product id, not printed>
+LIFECYCLE_MUTATION_SMOKE_WAREHOUSE_ID=<selected UUID warehouse id, not printed>
+npm run smoke:lifecycle-mutation
+```
+
+Sanitized result summary from `reports/validation/lifecycle-mutation-smoke/report-latest.json`:
+
+```text
+ok=false
+mode=live_synthetic_lifecycle_mutation
+mutation=true
+approvalIdPresent=true
+confirmation=CREATE_PAY_WAREHOUSE_READ
+channel=flipflop
+serviceName=flipflop-service
+createHttpStatus=201
+orderIdPresent=true
+initialWarehouseReserved=true
+paymentHttpStatus=200
+warehouseHttpStatus=200
+adminLifecycleHttpStatus=200
+adminSawWarehouseCollecting=true
+adminAggregateStageCountPositive=true
+customerLifecycleHttpStatus=403
+customerSawWarehouseCollecting=false
+customerScopedCountPositive=false
+tokenValuesPrinted=false
+rawOrderRowsPrinted=false
+```
+
+Interpretation:
+
+- W1/W2 core runtime path is now proven for the approved synthetic lane: central create succeeded, Warehouse reservation was created, payment completion was accepted, Warehouse fulfillment status callback was accepted, and admin lifecycle readback saw `warehouse_collecting`.
+- The remaining failed assertion is not a Warehouse/create/payment regression. It is the expected post-hardening customer cabinet gate: customer lifecycle reads now require an Auth user subject and the smoke has no approved buyer bearer/session packet.
+- This report does not claim buyer personal-cabinet runtime proof. That remains covered by the W3-W5 bearer/session packet gates and the subject-bound ownership rule.
+
+Boundary:
+
+No provider call, real payment movement, browser session capture, token output, raw customer/order/payment/provider/tracking output, raw DB row output, screenshot, deploy, migration, or source-code change occurred in this addendum. One synthetic Orders/Warehouse lifecycle row was created and advanced as the approved runtime evidence. No cleanup/no-cleanup packet was supplied, so no additional cleanup mutation was attempted.
+
+Updated verdict: W1/W2 are `core_runtime_proven_customer_session_gated`. The next missing fact is `[MISSING: approved buyer Auth bearer/session packet bound to the synthetic order subject, or an approved product decision that admin/service-scoped core proof is sufficient for W1/W2 and buyer proof remains W3-W5-owned]`.

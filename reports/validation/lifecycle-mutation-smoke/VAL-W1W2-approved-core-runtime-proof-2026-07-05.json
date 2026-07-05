@@ -39,7 +39,11 @@
     "tokenValuesPrinted": false,
     "rawOrderRowsPrinted": false
   },
+  "coreRuntimeProof": {
+    "createReservedPaidWarehouseCallbackAdminReadback": true,
+    "customerReadbackGatedBySubjectBearer": true
+  },
   "blockers": [
-    "[MISSING: lifecycle mutation propagation smoke did not satisfy all assertions]"
+    "[MISSING: approved buyer Auth bearer/session packet bound to the synthetic order subject, or product decision that W1/W2 core proof is sufficient while buyer proof remains W3-W5-owned]"
   ]
 }
