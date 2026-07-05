@@ -78,4 +78,4 @@ Validated in FlipFlop before commit:
 - `[RESOLVED/NARROWED: Orders admin lifecycle action contract source-validated]` Orders now documents and verifies `POST /api/admin/operations/actions/order-status` plus action-role-gated `PUT /api/orders/:id/status`; FlipFlop route-to-Orders implementation remains dependency-gated.
 - `[MISSING: live admin session]` W6-B is source-validated; no authenticated browser smoke was available.
 - `[MISSING: approved live lifecycle mutation smoke]` W1/W2 synthetic create/pay/warehouse-read live smoke remains gated by explicit approval variables.
-- `[MISSING: Bazos provider webhook/status contract sample]` Bazos provider-backed lifecycle proof remains source-validated but not provider-backed.
+- `[RESOLVED/NARROWED: Bazos provider-proof gate committed in bazos 2970794]` Provider-backed proof remains blocked by exact non-secret packet fields; see `reports/validation/VAL-W8-bazos-provider-proof-gate-2026-07-05.md`.
