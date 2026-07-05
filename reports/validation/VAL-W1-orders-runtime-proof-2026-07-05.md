@@ -237,3 +237,93 @@ Boundary:
 No provider call, real payment movement, browser session capture, token output, raw customer/order/payment/provider/tracking output, raw DB row output, screenshot, deploy, migration, or source-code change occurred in this addendum. One synthetic Auth user and one synthetic Orders/Warehouse lifecycle row were created and advanced as approved runtime evidence. The buyer bearer token was used only inside the runtime command and was not printed or persisted in the report.
 
 Updated verdict: W1/W2 are `buyer_bound_runtime_proven` for the approved synthetic lane: stock reservation, item and delivery cost recording, paid-order Warehouse fulfillment trigger, Warehouse fulfillment callback, buyer lifecycle readback, and admin lifecycle readback are all proven against the live runtime.
+
+## Approved Live Buyer-Bound Smoke Addendum - 2026-07-05T22:01:55Z
+
+status: live_buyer_bound_w1w2_proven
+
+Owner approval remained in-thread: `do it yourself. I approve`.
+
+The latest approved synthetic run used a buyer-bound Auth subject path and the already selected positive Warehouse stock row. Raw product id, warehouse id, order id, buyer subject, token values, customer payloads, and DB rows were not printed; the checked-in smoke report records only short hashes and booleans.
+
+Sanitized result summary from `reports/validation/lifecycle-mutation-smoke/report-latest.json`:
+
+```text
+ok=true
+mode=live_buyer_bound_synthetic_lifecycle_mutation
+confirmation=CREATE_PAY_WAREHOUSE_CUSTOMER_ADMIN_READ
+channel=flipflop
+serviceName=flipflop-service
+createHttpStatus=201
+orderIdPresent=true
+initialWarehouseReserved=true
+paymentHttpStatus=200
+warehouseHttpStatus=200
+customerLifecycleHttpStatus=200
+adminLifecycleHttpStatus=200
+customerSawWarehouseCollecting=true
+adminSawWarehouseCollecting=true
+customerScopedCountPositive=true
+adminAggregateStageCountPositive=true
+tokenValuesPrinted=false
+rawOrderRowsPrinted=false
+blockers=[]
+subjectBound.authValidationHttpStatus=201
+subjectBound.authSubjectValidUuid=true
+subjectBound.decodedJwtOutput=false
+subjectBound.rawCustomerOutput=false
+subjectBound.tokenSourceDestroyedOrInvalidated=true
+```
+
+Updated verdict: `live_buyer_bound_w1w2_proven`. W1/W2 is proven for the approved synthetic lane: order creation, Warehouse reservation, paid transition, Warehouse fulfillment transition, customer lifecycle readback, and admin lifecycle readback all passed. Auth scope was not relaxed; customer lifecycle remains subject-bound.
+
+## Final Subject-Bound Runtime Proof - 2026-07-05T22:04:08Z
+
+Owner approval received in-thread: `do it yourself. I approve`.
+
+Additional bounded setup performed:
+
+- Warehouse synthetic fixture stock was set through the protected Warehouse API with reason `W1_ORDERS_SUBJECT_BOUND_SMOKE_FIXTURE_STOCK` and reference `W1-ORDERS-LIFECYCLE-SMOKE-20260705-CODEX-OWNER-APPROVED-001`.
+- Sanitized stock result after seeding: `quantity=2`, `reserved=0`, `available=2`, `tokenPrinted=false`, `rawRowsPrinted=false`.
+- Auth actor-bound bearer was generated with the existing Auth no-print helper for actor hash `4215870ba488de17`, required role `app:flipflop-service:admin`, runner `w1-orders-runtime-proof`, approval id `W1-ORDERS-LIFECYCLE-SMOKE-20260705-CODEX-OWNER-APPROVED-001`, and `tokenFileMode=0600`.
+- The bearer was copied only as a temporary file between Auth and Orders pods, used in memory for the smoke, then removed from Auth pod, Orders pod, and host `/tmp`.
+- No token value, decoded JWT, raw user id, raw email, raw customer data, raw order rows, or secrets were printed.
+
+Subject-bound runtime result saved at `reports/validation/lifecycle-mutation-smoke/report-subject-bound-latest.json`:
+
+```text
+ok=true
+mode=live_subject_bound_lifecycle_mutation
+mutation=true
+approvalIdPresent=true
+confirmation=CREATE_PAY_WAREHOUSE_READ
+actorHash=be08443034ef
+authValidationHttpStatus=201
+authSubjectValidUuid=true
+createHttpStatus=201
+orderIdPresent=true
+initialWarehouseReserved=true
+paymentHttpStatus=200
+warehouseHttpStatus=200
+customerLifecycleHttpStatus=200
+adminLifecycleHttpStatus=200
+customerSawWarehouseCollecting=true
+adminSawWarehouseCollecting=true
+customerScopedCountPositive=true
+adminAggregateStageCountPositive=true
+tokenValuesPrinted=false
+decodedJwtOutput=false
+rawOrderRowsPrinted=false
+rawCustomerOutput=false
+tokenSourceDestroyedOrInvalidated=true
+blockers=[]
+subjectBound.authValidationHttpStatus=201
+subjectBound.authSubjectValidUuid=true
+subjectBound.decodedJwtOutput=false
+subjectBound.rawCustomerOutput=false
+subjectBound.tokenSourceDestroyedOrInvalidated=true
+```
+
+Final W1 verdict: `runtime-complete-redacted-subject-bound-smoke`. The checked-in `report-latest.json` records the buyer-bound successful smoke, and `report-subject-bound-latest.json` records the additional subject-bound successful runtime proof.
+
+Next step: W7 may consume W1 as complete; no further W1 action is needed unless the orchestrator requires this one-off subject-bound path to be folded into `scripts/smoke-lifecycle-mutation-propagation.js` for repeatability.
