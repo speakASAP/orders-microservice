@@ -44,6 +44,11 @@ spec:
                 secretKeyRef:
                   name: database-credentials
                   key: DB_PASSWORD
+            - name: LOGGING_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: logging-ingest-credentials
+                  key: LOGGING_SERVICE_TOKEN
           envFrom:
             - configMapRef:
                 name: orders-microservice-config

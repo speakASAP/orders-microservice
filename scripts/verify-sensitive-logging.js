@@ -152,6 +152,7 @@ async function verifyCentralTransport() {
     LOGGING_SERVICE_URL: process.env.LOGGING_SERVICE_URL,
     LOGGING_SERVICE_API_PATH: process.env.LOGGING_SERVICE_API_PATH,
     SERVICE_NAME: process.env.SERVICE_NAME,
+    LOGGING_SERVICE_TOKEN: process.env.LOGGING_SERVICE_TOKEN,
   };
   const requests = [];
 
@@ -203,6 +204,41 @@ async function verifyCentralTransport() {
   assert.match(payload.timestamp, /^\d{4}-\d{2}-\d{2}T/);
 }
 
+
+async function verifyCentralTransportOmitsAuthWithoutToken() {
+  const logger = new LoggerService();
+  const originalFetch = global.fetch;
+  const originalEnv = {
+    LOGGING_SERVICE_URL: process.env.LOGGING_SERVICE_URL,
+    LOGGING_SERVICE_API_PATH: process.env.LOGGING_SERVICE_API_PATH,
+    LOGGING_SERVICE_TOKEN: process.env.LOGGING_SERVICE_TOKEN,
+  };
+  const requests = [];
+
+  process.env.LOGGING_SERVICE_URL = https://logging.internal;
+  delete process.env.LOGGING_SERVICE_API_PATH;
+  delete process.env.LOGGING_SERVICE_TOKEN;
+  global.fetch = (url, options) => {
+    requests.push({ url, options });
+    return Promise.resolve({ ok: true });
+  };
+
+  try {
+    captureConsole(() => logger.log(no auth header, OrdersService));
+    await Promise.resolve();
+  } finally {
+    global.fetch = originalFetch;
+    for (const [key, value] of Object.entries(originalEnv)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+
+  assert.equal(requests.length, 1, Central transport should still post when token is unset);
+  assert.equal(requests[0].url, https://logging.internal/api/logs);
+  assert.equal(Object.prototype.hasOwnProperty.call(requests[0].options.headers, Authorization), false);
+}
+
 async function verifyCentralTransportDisabledWithoutUrl() {
   const logger = new LoggerService();
   const originalFetch = global.fetch;
@@ -231,6 +267,7 @@ async function verifyCentralTransportDisabledWithoutUrl() {
   verifyNoSecretLiterals();
   verifyLoggerRuntimeRedaction();
   await verifyCentralTransport();
+  await verifyCentralTransportOmitsAuthWithoutToken();
   await verifyCentralTransportDisabledWithoutUrl();
   console.log('sensitive logging verification ok');
 })().catch((error) => {
