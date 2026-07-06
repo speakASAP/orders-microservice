@@ -107,4 +107,4 @@ No Bazos source edit, provider call, deploy, DB read/write, live order mutation,
 
 ## Bazos Local Intake Evidence
 
-[RESOLVED/NARROWED: Bazos local W8 product decision intake is pushed in bazos 3abd0ab and verified by Orders; provider-backed proof still requires exactly one owner-selected decision option]. Bazos local verifier: `npm run verify:bazos-product-decision-intake`; pushed commit: `3abd0ab docs: add W8 Bazos product decision intake`. Remaining blocker: `[MISSING: Bazos owner must select exactly one allowed product decision option]`.
+[RESOLVED/NARROWED: Bazos local W8 product decision intake is pushed in bazos 1a41e73 and verified by Orders; provider-backed proof still requires exactly one owner-selected decision option]. Bazos local verifier: `npm run verify:bazos-product-decision-intake`; pushed commit: `1a41e73 docs: align W8 intake with orders gate`. Remaining blocker: `[MISSING: Bazos owner must select exactly one allowed product decision option]`.

@@ -107,19 +107,27 @@ Abort any future action if the actor lacks action-admin authority, if payment/re
 
 ## W8 Bazos Provider-Backed Proof Packet
 
-Status: [MISSING: Bazos owner must select exactly one allowed product decision option]; [MISSING: approved provider-backed non-secret fixture or live provider smoke packet] and [UNKNOWN: live Bazos marketplace webhook support].
+Status: [MISSING: Bazos owner must select exactly one allowed product decision option]; [UNKNOWN: live Bazos marketplace webhook support]. Provider-backed fixture/live smoke evidence is required only if the selected owner option is `provider_backed_supported`.
 
-Required non-secret fields:
+Allowed owner decision options:
 
-- Product decision: Bazos provider-backed marketplace webhook/status support exists, does not exist, or is intentionally out of scope.
-- Provider order item/status ingestion contract or explicit product decision that no such provider exists.
+- `provider_backed_supported`
+- `provider_backed_not_supported`
+- `provider_backed_out_of_scope`
+- `bounded_synthetic_accepted_for_now`
+
+Required non-secret fields if `provider_backed_supported` is selected:
+
+- Provider order item/status ingestion contract.
 - Provider status transition sample with raw provider payload redacted.
 - Item identity mapping from provider item to Catalog/Orders/Warehouse product identifiers.
 - Warehouse-owned warehouseId for every provider-backed item.
-- Approved non-secret fixture or live provider smoke packet.
+- Approved provider-backed non-secret fixture or live provider smoke packet.
 - Orders lifecycle and buyer/admin readback boundary.
 
-Abort if live provider support is unknown and no product decision exists, if item identity or Warehouse ownership is missing, or if the proof requires raw provider payload output. Product decision intake packet: `docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md`. [RESOLVED/NARROWED: W8 Bazos product decision intake packet is source-defined; real provider-backed Bazos lifecycle remains blocked until an owner selects one allowed decision option and supplies the required non-secret evidence]
+Scope-only decision outcomes `provider_backed_not_supported`, `provider_backed_out_of_scope`, or `bounded_synthetic_accepted_for_now` do not prove provider-backed lifecycle support and must keep provider-backed proof unclaimed.
+
+Abort if no owner decision option is selected, if `provider_backed_supported` is selected without provider/item/Warehouse evidence, if scope-only options are relabeled as provider-backed proof, or if the proof requires raw provider payload output. Product decision intake packet: `docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md`. [RESOLVED/NARROWED: W8 Bazos product decision intake packet is source-defined; real provider-backed Bazos lifecycle remains blocked until an owner selects one allowed decision option and supplies the required non-secret evidence]
 
 ## Warehouse Callback Runtime Packet
 

@@ -38,7 +38,7 @@ const boundaryVerifier = read(boundaryVerifierPath);
 const w4Report = read(w4ReportPath);
 const w8Report = read(w8ReportPath);
 
-const decision = '[RESOLVED/NARROWED: W8 Bazos provider-backed proof is not an autonomous source implementation gap; current Bazos source supports bounded synthetic/internal order ingestion and central Orders UI proof, while true provider-backed webhook/status proof remains product/provider-packet gated]';
+const decision = '[RESOLVED/NARROWED: W8 Bazos provider-backed proof is not an autonomous source implementation gap; current Bazos source supports bounded synthetic/internal order ingestion and central Orders UI proof, while true provider-backed webhook/status proof remains owner-decision-option gated]';
 const ipsMarkers = ['Vision ->','Goal Impact ->','System ->','Feature ->','Task ->','Execution Plan ->','Coding Prompt ->','Code ->','Validation ->'];
 for (const marker of ipsMarkers) assertIncludes(report, marker, 'W8 report IPS chain');
 for (const doc of [report, finalReport, masterPlan, state]) assertIncludes(doc, decision, 'W8 decision propagation');

@@ -64,7 +64,7 @@ for (const doc of [unifiedCurrent, finalIntegration, masterPlan]) {
   assertIncludes(doc, '[UNKNOWN: live Bazos marketplace webhook support]', 'Orders W8 current-state unknown provider propagation');
 }
 assertIncludes(unifiedCurrent, 'The intake packet itself is no longer missing.', 'Unified current state W8 intake no longer missing');
-assertIncludes(finalIntegration, 'Consumed Bazos commit: `3abd0ab docs: add W8 Bazos product decision intake`', 'Final integration Bazos intake commit');
+assertIncludes(finalIntegration, 'Consumed Bazos commit: `1a41e73 docs: align W8 intake with orders gate`', 'Final integration Bazos intake commit');
 assertIncludes(masterPlan, 'local intake packet exists; blocked until Bazos owner selects exactly one allowed product decision option', 'Master plan Bazos intake merge-order');
 
 const options = ['provider_backed_supported', 'provider_backed_not_supported', 'provider_backed_out_of_scope', 'bounded_synthetic_accepted_for_now'];
@@ -147,7 +147,7 @@ const result = {
   intakePacketDefined: true,
   bazosLocalIntakeVerified: true,
   bazosLocalIntakeEvidence: 'bazos_docs_report_verifier_state_checked',
-  providerBackedProof: 'still_product_provider_decision_gated',
+  providerBackedProof: 'owner_decision_option_gated',
   allowedOptions: options,
   mutation: false,
   providerCall: false,

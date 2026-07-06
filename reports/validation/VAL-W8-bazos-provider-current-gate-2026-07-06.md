@@ -31,7 +31,7 @@ Validation -> `npm run verify:w8-bazos-provider-current-gate`; `npm run verify:r
 
 ## Verdict
 
-`[RESOLVED/NARROWED: W8 Bazos provider-backed proof is not an autonomous source implementation gap; current Bazos source supports bounded synthetic/internal order ingestion and central Orders UI proof, while true provider-backed webhook/status proof remains product/provider-packet gated]`.
+`[RESOLVED/NARROWED: W8 Bazos provider-backed proof is not an autonomous source implementation gap; current Bazos source supports bounded synthetic/internal order ingestion and central Orders UI proof, while true provider-backed webhook/status proof remains owner-decision-option gated]`.
 
 This does not prove real provider-backed Bazos order lifecycle support. Bounded synthetic/internal evidence is not provider-backed proof. It proves the current boundary: Bazos is source/UI and bounded synthetic/internal runtime-proven for central Orders lifecycle, while real provider-backed webhook/status evidence remains unavailable.
 
