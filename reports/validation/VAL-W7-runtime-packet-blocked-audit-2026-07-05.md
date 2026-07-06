@@ -57,12 +57,12 @@ The same external blocking condition has repeated across the latest orchestratio
 
 - [RESOLVED: W1/W2 live buyer-bound synthetic lifecycle packet executed and verified]
 - [MISSING: approved Warehouse fulfillment runtime packet]
-- [MISSING: approved buyer/admin bearer/session packets]
+- [MISSING: approved buyer/admin bearer/session packets for optional natural human-session/customer-bound proof when product requires proof beyond accepted bounded/service-scoped evidence]
 - [MISSING: approved live action-admin session packet]
 - [UNKNOWN: live Bazos marketplace webhook support]
 - [MISSING: approved provider-backed non-secret fixture or live provider smoke packet]
 
-These are not source-code tasks. They require owner-provided approvals, bearer/session packets, provider facts/fixtures, target row criteria, actor/idempotency/side-effect decisions, or product decisions.
+These are not source-code tasks. They require owner-provided approvals, optional natural-proof bearer/session packets where product requires them, provider facts/fixtures, target row criteria, actor/idempotency/side-effect decisions, or product decisions. Accepted bounded/service-scoped proofs are not downgraded by this blocked audit.
 
 ## Why Autonomous Work Stops Here
 
@@ -82,3 +82,8 @@ Resume with one concrete approved packet from the central runtime gate contract.
 - W8 Bazos provider decision/fixture packet.
 - Warehouse callback runtime packet.
 - W3-W5 marketplace row-level buyer/admin session packet.
+
+
+## 2026-07-06 c922a57 Supersession Addendum
+
+This historical blocked audit is superseded for W3-W5 by `docs/orchestrator/2026-07-05-runtime-gate-packet-contracts.md` at Orders `c922a57`: W3-W5 session packets are required only for optional natural human-session/customer-bound proof when product requires proof beyond accepted bounded/service-scoped evidence. W8 remains owner-decision gated by `[MISSING: Bazos owner must select exactly one allowed product decision option]` and `[UNKNOWN: live Bazos marketplace webhook support]`. No runtime mutation, deploy, provider call, DB read/write, browser/session capture, token output, raw ID output, or raw customer/payment/provider/tracking output occurred.

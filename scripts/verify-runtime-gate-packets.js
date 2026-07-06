@@ -47,5 +47,7 @@ assertIncludes(masterPlan, 'FlipFlop W6 central action proof is runtime-complete
 assertIncludes(masterPlan, 'Aukro and Heureka are current-proven for service-scoped API/DOM central Orders lifecycle rendering', 'master plan W5 current proof');
 assertIncludes(contract, 'Current accepted bounded/service-scoped evidence remains in force for implementation readiness', 'W3-W5 optional natural proof boundary');
 assertIncludes(contract, 'Do not use this optional packet to downgrade already accepted bounded/service-scoped W3-W5 evidence', 'W3-W5 downgrade guard');
+assertIncludes(finalReport, 'No natural/customer-bound or row-level marketplace buyer/admin cabinet smoke may run without approved bearer/browser-session packets', 'final W7 report optional natural proof wording');
+assertIncludes(masterPlan, 'Natural human-session/customer-bound row proof is not claimed and remains optional/product-gated', 'master plan W5 optional natural proof boundary');
 assertIncludes(masterPlan, paymentProviderDecision, 'master plan W9 payment/provider gate');
 console.log(JSON.stringify({ok:true,verifier:'orders-runtime-gate-packets.v1',packetSections:packetSections.length,runtimeGateMarkers:requiredGateMarkers.length,warehouseCallbackExtraSmoke:'product_approved_packet_gated',paymentProviderCorrection:'exact_runtime_packet_gated',mutation:false,providerCall:false,browserSessionUsed:false,tokenValuesReadOrPrinted:false,sensitiveOutput:'redacted-source-only'}, null, 2));

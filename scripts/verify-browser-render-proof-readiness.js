@@ -125,6 +125,7 @@ async function main() {
     'No new source-edit worker should start for the five channel UI repos',
     'FlipFlop direct proof lane, only if a safe session is supplied:',
     'Status: required service-scoped/bounded proof complete for current W7 aggregation; remaining natural/provider lanes are product/approval-gated.',
+    '4. Bazos remains the next product/provider decision lane: provider-backed paid order ingestion and persisted item snapshot source, or an explicit product decision accepting bounded synthetic/internal scope.',
   ];
   smokeOrderMarkers.forEach((marker) => assertIncludes(smokeOrder, marker, 'channel browser smoke order'));
 

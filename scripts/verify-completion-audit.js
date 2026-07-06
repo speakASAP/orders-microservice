@@ -116,9 +116,11 @@ for (const marker of requirementMarkers) assertIncludes(audit, marker, 'completi
 for (const marker of proofMarkers) assertIncludes(audit, marker, 'completion audit proof boundary');
 for (const marker of missingGateMarkers) assertIncludes(audit, marker, 'completion audit missing gates');
 
-assertIncludes(status, 'Completion Audit Recorded', 'STATUS');
-assertIncludes(status, 'Decision: active goal remains incomplete.', 'STATUS');
-assertIncludes(state, 'Requirement-by-requirement completion audit is recorded', 'IMPLEMENTATION_STATE');
+assertIncludes(status, 'W7 Optional Natural Proof Gate Reconciled', 'STATUS current optional-proof gate');
+assertIncludes(status, 'Accepted bounded/service-scoped channel proofs remain valid for current implementation readiness', 'STATUS current bounded proof boundary');
+assertIncludes(status, '[MISSING: Bazos owner must select exactly one allowed product decision option]', 'STATUS current W8 owner blocker');
+assertIncludes(state, 'W7 optional natural proof gate reconciled', 'IMPLEMENTATION_STATE current optional-proof gate');
+assertIncludes(state, 'Accepted bounded/service-scoped proofs remain valid', 'IMPLEMENTATION_STATE current bounded proof boundary');
 
 assert.equal(
   audit.includes('Status: required implementation complete.'),
@@ -142,7 +144,7 @@ const result = {
   proofMarkersVerified: proofMarkers.length,
   missingGateMarkersVerified: missingGateMarkers.length,
   channelDecisionVerified: true,
-  goalCompleteClaimPresent: true,
+  requiredImplementationCompleteClaimPresent: true,
   mutation: false,
   browserSessionUsed: false,
   providerCall: false,
