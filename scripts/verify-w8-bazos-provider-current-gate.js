@@ -61,12 +61,14 @@ const gateMarkers = [
   '[MISSING: provider-backed Bazos order item identity mapping sample]',
   '[MISSING: Warehouse-owned warehouseId for provider-backed Bazos order items]',
   '[MISSING: approved provider-backed non-secret fixture or live provider smoke packet]',
-  'Bounded synthetic/internal evidence is not provider-backed proof',
 ];
 for (const marker of gateMarkers) {
   assertIncludes(report, marker, 'Orders W8 report gate marker');
   assertIncludes(w8Report, marker, 'Bazos W8 report gate marker');
 }
+assertIncludes(report, 'Bounded synthetic/internal evidence is not provider-backed proof', 'Orders W8 bounded proof distinction');
+assertIncludes(w8Report, 'Rejected as provider-backed proof:', 'Bazos W8 rejected evidence heading');
+assertIncludes(w8Report, 'Synthetic/internal webhook envelopes.', 'Bazos W8 rejects synthetic webhook evidence');
 assertIncludes(w4Report, 'Status: source-verified, runtime buyer/admin smoke gated, provider-backed webhook proof missing', 'Bazos W4 boundary');
 assertIncludes(gateVerifier, "providerBackedProof: 'blocked'", 'Bazos gate verifier blocked status');
 assertIncludes(boundaryVerifier, 'providerBackedProof: "blocked"', 'Bazos boundary verifier blocked status');
