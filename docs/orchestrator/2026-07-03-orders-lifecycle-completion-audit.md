@@ -85,7 +85,7 @@ Optional product-gated evidence preserved after required implementation completi
 ## Optional Next Execution Order
 
 1. Keep FlipFlop service-scoped proof as current proven browser evidence; collect direct safe-human proof only if a safe session is provided.
-2. Run Heureka browser DOM capture only if product requires visible-label proof beyond accepted service-scoped/API dashboard lifecycle proof.
+2. Keep Heureka service-scoped DOM lifecycle proof as current proven visible-label evidence; collect direct human-session proof only if product requires it beyond accepted service-scoped/API/DOM proof.
 3. Run natural Aukro proof only if product requires real customer-bound evidence beyond accepted bounded customer/admin proof.
 4. Run natural Bazos provider-backed proof only if product requires marketplace-webhook evidence beyond accepted bounded paid multi-product proof.
 5. Run natural Allegro buyer proof only if product requires real-buyer evidence beyond accepted bounded buyer proof.

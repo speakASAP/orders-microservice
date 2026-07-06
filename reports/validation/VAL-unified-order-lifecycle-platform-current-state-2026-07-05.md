@@ -29,24 +29,24 @@ Validation -> Report presence, git diff hygiene, and current remote repo status.
 
 | Required outcome | Current authoritative evidence | Status |
 |---|---|---|
-| Stock check and reservation on every order creation | W1 report `VAL-W1-orders-runtime-proof-2026-07-05.md`; Orders verifiers `verify:create-order-contract`, `verify:order-reservation-gate`; W2 Warehouse callback proof | source-verified; live synthetic mutation remains approval-gated |
+| Stock check and reservation on every order creation | W1/W2 live buyer-bound proof plus Orders verifiers | source-verified and live buyer-bound synthetic proven; cleanup/retention packet-gated |
 | Order schema/contract includes items, prices, totals, delivery cost, and delivery address | W1 create-order contract verifier and lifecycle read-model verifier | source-verified |
-| Paid orders trigger Warehouse fulfillment/delivery handoff | W1 fulfillment handoff verifier; W2 Warehouse fulfillment callback proof | source-verified; live fulfillment mutation smoke remains approval-gated |
+| Paid orders trigger Warehouse fulfillment/delivery handoff | W1 fulfillment handoff verifier; W2 Warehouse callback current gate | source-verified and W1/W2/W2 synthetic callback/readback proven; extra live target/status smoke packet-gated |
 | Order lifecycle status model standardized across services | W1 lifecycle/event/status verifiers; W3-W6/W6-A frontend/source reports covering 13 lifecycle stages | source-verified |
-| Buyer and admin frontends render live status changes | W3 Allegro, W4 Bazos, W5 Aukro/Heureka, W6/W6-A FlipFlop reports | source-verified for rendering; live row-level sessions remain blocked by missing approved bearer/browser packets |
+| Buyer and admin frontends render live status changes | W3-W6 reports plus W5 current reconciliation | bounded/service-scoped rendering proven for current release; natural human-session/customer-bound proof optional-product-gated where product requires it |
 | Validation scripts prove order correctness and lifecycle synchronization | Orders verifier chain, Warehouse focused tests, marketplace `verify:orders-lifecycle-ui`; W6-A expanded FlipFlop verifier to dashboard widgets | source-verified; live mutation/session proofs remain gated |
 
 ## Current Open Gates
 
-- W6-B active: central-authority contract for FlipFlop admin status changes. Thread `019f3159-4923-74e2-b424-04157c47febf`.
-- W6-C blocked: `[MISSING: approved live customer/admin bearer/session packet]` for FlipFlop browser/API smoke.
-- W1/W2 live synthetic create/pay/callback smoke blocked: `[MISSING: RUN_LIVE_LIFECYCLE_MUTATION_SMOKE=1]`, `[MISSING: LIFECYCLE_MUTATION_SMOKE_APPROVAL_ID]`, `[MISSING: LIFECYCLE_MUTATION_SMOKE_CONFIRM=CREATE_PAY_WAREHOUSE_READ]`.
-- W3-W5 live row-level marketplace cabinet smokes blocked: `[MISSING: approved buyer/admin bearer/session packets]`.
-- Bazos provider-backed webhook/status proof blocked: `[MISSING: Bazos provider-backed webhook/status contract and sample]`.
+- W6-B resolved: FlipFlop central Orders action authority is runtime-complete and consumed by W7.
+- FlipFlop direct safe-human browser proof remains optional/product-gated beyond proven service-scoped proof.
+- W1/W2 live buyer-bound synthetic create/pay/callback proof is resolved; cleanup or explicit retention remains gated by the W1/W2 cleanup policy packet.
+- W3-W5 natural human-session/customer-bound marketplace cabinet smokes remain optional/product-gated where product requires proof beyond approved bounded/service-scoped artifacts.
+- Bazos provider-backed webhook/status proof remains product/provider-packet gated: UNKNOWN live Bazos marketplace webhook support plus missing provider item/status/warehouseId fixture or explicit out-of-scope decision.
 
 ## Next Action
 
-W6-B is the next non-runtime-gated lane because it addresses a real central-authority gap without requiring live customer sessions or production stock/payment mutations.
+The next non-source gate is W8 Bazos provider/product decision packet, or an explicit product decision that provider-backed Bazos marketplace lifecycle is out of scope.
 
 ## 2026-07-06 W5 Current Gate Reconciliation Addendum
 
