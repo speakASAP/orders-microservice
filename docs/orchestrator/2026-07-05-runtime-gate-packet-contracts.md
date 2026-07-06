@@ -3,7 +3,7 @@
 status: source-contract-runtime-gated
 created_at: 2026-07-05
 owner: orders-lifecycle-orchestrator
-scope: W1/W2 live buyer-bound synthetic proof, W2 Warehouse callback current gate, W3-W5 row-level cabinet smoke, W6B FlipFlop action smoke, W8 Bazos provider proof
+scope: W1/W2 live buyer-bound synthetic proof, W2 Warehouse callback current gate, W3-W5 row-level cabinet smoke, W6B FlipFlop action smoke, W8 Bazos provider proof, W9 payment/provider correction current gate
 
 ## Intent Preservation Chain
 
@@ -21,9 +21,9 @@ Execution Plan -> Keep this document source-only, require non-secret redacted in
 
 Coding Prompt -> Do not run live mutation from this document. Do not print or persist bearer tokens, raw customer/order/payment/provider/tracking payloads, raw IDs, raw DB rows, or screenshots. Use hashes, route names, booleans, status codes, and redacted IDs only.
 
-Code -> scripts/verify-runtime-gate-packets.js, scripts/verify-w1w2-live-buyer-bound-proof.js, scripts/verify-w1w2-synthetic-cleanup-policy.js, scripts/verify-w2-warehouse-callback-current-gate.js, package scripts verify:runtime-gate-packets, verify:w1w2-live-buyer-bound-proof, verify:w1w2-cleanup-policy, verify:w2-warehouse-callback-current-gate, and this contract.
+Code -> scripts/verify-runtime-gate-packets.js, scripts/verify-w1w2-live-buyer-bound-proof.js, scripts/verify-w1w2-synthetic-cleanup-policy.js, scripts/verify-w2-warehouse-callback-current-gate.js, package scripts verify:runtime-gate-packets, verify:w1w2-live-buyer-bound-proof, verify:w1w2-cleanup-policy, verify:w2-warehouse-callback-current-gate, verify:w9-payment-provider-correction-current-gate, and this contract.
 
-Validation -> npm run verify:w1w2-live-buyer-bound-proof; npm run verify:w1w2-cleanup-policy; npm run verify:w2-warehouse-callback-current-gate; npm run verify:runtime-gate-packets; git diff --check.
+Validation -> npm run verify:w1w2-live-buyer-bound-proof; npm run verify:w1w2-cleanup-policy; npm run verify:w2-warehouse-callback-current-gate; npm run verify:w9-payment-provider-correction-current-gate; npm run verify:runtime-gate-packets; git diff --check.
 
 ## Global Packet Rules
 
@@ -138,6 +138,26 @@ Required non-secret fields for any extra live target/status packet:
 - Stock/reservation side-effect expectation.
 
 Abort if the target status is unknown, if the transition is destructive without owner approval, if cleanup expectations are missing, if the packet attempts provider calls/deploy/DB writes, or if raw tracking/customer/provider/order/payment values would be exposed.
+
+## Payment Refund Provider Correction Runtime Packet
+
+Status: [RESOLVED/NARROWED: payment/refund/provider correction workflow is source-defined and fail-closed; Orders cancellation/idempotency/side-effect packet shape is verified, while live refund/provider/Orders route execution remains owner-approved exact-runtime-packet gated].
+
+Current evidence:
+
+- Orders payment boundary accepts bounded payment status updates and keeps refunds/provider-owned raw fields Payments-owned.
+- Orders cancellation/status correction source requires human approval, safe reason, side-effect acknowledgements, and sanitized idempotency audit before Warehouse cancellation.
+- Goal 24 final owner handoff and no-mutation cross-repo audit define the future packet shape without invoking live side effects.
+
+Live payment/refund/provider correction remains gated by [MISSING: approved exact payment/refund/provider correction runtime packet naming target order hash/state, payment/provider hashes, actor/approvedBy, approval id, safe reason, idempotency key, sideEffectsHandled payment|warehouse|notification|crm|channel, Warehouse lookup state, channel acknowledgement, and final redacted evidence path].
+
+Additional hard stops:
+
+- [MISSING: Fiobanka provider-side completed-transfer refund/reversal/correction proof hash, or owner-approved unpaid no-provider-cancel acknowledgement for the selected future target].
+- [MISSING: approved runtime route invocation evidence; do not call the route until all packet fields are present].
+- [MISSING: same-request replay proof for the exact future route invocation if live Orders cancellation is later approved].
+
+Abort if the packet lacks exact target hashes/state, attempts provider calls/refunds/Orders route invocation without final owner approval, omits any sideEffectsHandled acknowledgement, omits Warehouse lookup state, or would expose raw tokens, IDs, DB rows, customer/payment/provider/tracking payloads, screenshots, or secrets.
 
 ## Current Decision
 
