@@ -51,8 +51,8 @@ Recorded by FlipFlop before `0e06a50` push:
 
 ## Remaining Gates
 
-- `[MISSING: approved live action-admin session packet / ORDERS_STATUS_SERVICE_TOKEN projection for runtime action proof]`
-- `[MISSING: approved live lifecycle mutation smoke target and redacted readback packet]`
+- `[RESOLVED: approved action-admin token projection for runtime action proof]` Superseded by Auth `ddbde1c` and FlipFlop `281e2f4`; live browser session proof remains separate.
+- `[RESOLVED: approved synthetic central Orders create/read/cancel target and redacted readback packet]` Superseded by W7E guarded smoke evidence; no provider/payment call occurred.
 - `[MISSING: cancellation side-effect packet UX]` for cancellation actions from FlipFlop admin UI.
 - `[MISSING: payment/refund/provider correction workflow]` payment/provider corrections remain outside this status action contract.
 

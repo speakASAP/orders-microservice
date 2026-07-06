@@ -120,7 +120,7 @@ Result: contract status is `approved-source-contract`, completeness `source_vali
 ssh alfares 'cd /home/ssf/Documents/Github/flipflop && sed -n "930,1005p" services/order-service/src/orders/orders.service.ts && sed -n "105,135p" services/frontend/app/admin/orders/[id]/page.tsx'
 ```
 
-Result: current FlipFlop source no longer blindly mutates central-owned local status/payment. `updateAdminOrderStatus()` throws `[MISSING: FlipFlop route-to-Orders admin action implementation]` for central-owned status/payment edits and allows notes-only updates. The admin detail form omits `status` and `paymentStatus` when `centralStatusLocked` is true.
+Historical result before W7E: FlipFlop source no longer blindly mutates central-owned local status/payment and failed closed while route-to-Orders wiring was missing. Superseded by W7E evidence: FlipFlop 281e2f4 routes central-owned status actions to Orders while payment/provider correction remains fail-closed; the admin detail form avoids local central payment/status drift.
 
 ## Validation Results
 
@@ -163,7 +163,7 @@ Result: pass.
 ## Current Blockers
 
 - `[MISSING: approved live action-admin session packet]` No authenticated live action-admin browser/API mutation proof was available or run.
-- `[MISSING: FlipFlop route-to-Orders admin action implementation]` FlipFlop currently fails closed for central-owned local status/payment edits and does not yet call Orders `POST /api/admin/operations/actions/order-status`.
+- `[RESOLVED: FlipFlop route-to-Orders admin action implementation]` Superseded by FlipFlop `281e2f4`; central-owned status actions route to Orders action route while payment/provider correction remains fail-closed.
 - `[MISSING: payment/refund/provider correction workflow]` Payment/provider correction semantics remain outside this status action contract.
 
 ## Agent-Ready Downstream Prompt
@@ -200,8 +200,8 @@ Validation:
 
 | Workstream | Status | Owner role | Objective | Allowed files | Forbidden files | Dependencies/blockers | Validation evidence | Merge order |
 |---|---|---|---|---|---|---|---|---|
-| W6-B1 FlipFlop action wiring | dependency-gated | FlipFlop integration owner | Route central-owned admin status actions to Orders admin action route | FlipFlop order-service/admin UI/client/verifiers/docs | payment/provider/checkout, migrations, deploy scripts | `[MISSING: approved live action-admin session packet]` for runtime; source can preserve fail-closed path | source verifier, UI/service build/lint, no live mutation | after contract report |
-| W6-B2 Orders live action smoke | blocked | Orders validation owner | Prove action route with redacted approved live packet | Orders smoke/report only | DB/manual mutation without packet, secrets/raw data | `[MISSING: approved live action-admin session packet]`, target order packet, side-effect acks | redacted API smoke and audit/event evidence | after owner approval |
+| W6-B1 FlipFlop action wiring | complete | FlipFlop integration owner | Route central-owned admin status actions to Orders admin action route | FlipFlop order-service/admin UI/client/verifiers/docs | payment/provider/checkout, migrations, deploy scripts | none for central status authority; browser session remains separate | source verifier, UI/service build/lint, guarded create/read/cancel smoke | complete in FlipFlop `281e2f4` |
+| W6-B2 Orders live action smoke | complete for guarded synthetic central status cleanup | Orders validation owner | Prove action route with redacted approved live packet | Orders/FlipFlop smoke/report only | DB/manual mutation without packet, secrets/raw data | none for approved synthetic W6-B cleanup; browser session remains separate | redacted API smoke and audit/event evidence | complete via W7E consumed evidence |
 | W6-B3 Payment/provider correction contract | blocked | Payments/Orders owner | Define non-status payment/refund/provider correction workflow | contract docs/verifiers only | provider call, refund, money movement | `[MISSING: payment/refund/provider correction workflow]` | source-only contract verifier | independent, before any payment correction UI |
 | W7 Integration | final integration | Orchestrator | Merge W6-B verdict into lifecycle master status | docs/orchestrator reports | runtime code/schema | W6-B1 or explicit defer decision | final handoff report | last |
 

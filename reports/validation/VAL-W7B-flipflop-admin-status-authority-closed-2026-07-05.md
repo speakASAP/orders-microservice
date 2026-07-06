@@ -75,7 +75,7 @@ Validated in FlipFlop before commit:
 
 ## Remaining Blockers
 
-- `[RESOLVED/NARROWED: Orders admin lifecycle action contract source-validated]` Orders now documents and verifies `POST /api/admin/operations/actions/order-status` plus action-role-gated `PUT /api/orders/:id/status`; FlipFlop route-to-Orders implementation remains dependency-gated.
+- `[RESOLVED/NARROWED: Orders admin lifecycle action contract source-validated]` Orders now documents and verifies `POST /api/admin/operations/actions/order-status` plus action-role-gated `PUT /api/orders/:id/status`; FlipFlop route-to-Orders implementation is superseded by W7E runtime closure evidence in `reports/validation/VAL-W7E-flipflop-action-admin-runtime-closure-2026-07-06.md`.
 - `[MISSING: live admin session]` W6-B is source-validated; no authenticated browser smoke was available.
 - `[MISSING: approved live lifecycle mutation smoke]` W1/W2 synthetic create/pay/warehouse-read live smoke remains gated by explicit approval variables.
 - `[RESOLVED/NARROWED: Bazos provider-proof gate committed in bazos 2970794]` Provider-backed proof remains blocked by exact non-secret packet fields; see `reports/validation/VAL-W8-bazos-provider-proof-gate-2026-07-05.md`.

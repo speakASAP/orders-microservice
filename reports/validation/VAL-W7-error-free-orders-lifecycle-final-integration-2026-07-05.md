@@ -21,9 +21,9 @@ Execution Plan -> Read current remote repo heads and handoff reports; do not mut
 
 Coding Prompt -> Remote-only on `alfares`; preserve `[MISSING: ...]`; do not print raw tokens, raw customer/order/payment/tracking/provider payloads, raw IDs, raw DB rows, or screenshots; no deploy for docs-only updates.
 
-Code -> Documentation/report update only: master plan, status docs, implementation state, and this W7 report.
+Code -> Documentation/report/verifier update only: master plan, status docs, implementation state, W1/W2 cleanup policy packet, cleanup verifier, and this W7 report.
 
-Validation -> Run W1/W2 live buyer-bound verifier, central Orders lifecycle evidence verifiers, runtime gate packet verifier, completion audit, and diff hygiene after the docs update.
+Validation -> Run W1/W2 live buyer-bound verifier, W1/W2 cleanup policy verifier, central Orders lifecycle evidence verifiers, runtime gate packet verifier, completion audit, and diff hygiene after the docs update.
 
 ## Integrated Evidence
 
@@ -60,8 +60,17 @@ Repo-local packet handoffs are pushed and aggregated in reports/validation/VAL-W
 - Bazos provider proof: explicit decision that Bazos has or does not have provider-backed marketplace webhook support; provider order item/status ingestion contract; status transition sample; item identity mapping; Warehouse-owned `warehouseId`; approved non-secret fixture or live provider smoke packet.
 - Aukro/Heureka row-level proof: approved customer/admin bearer/session, target channel row criteria, non-stale central Orders row evidence policy, and admin stats readback boundary.
 - Warehouse callback runtime smoke beyond the already proven W1/W2 synthetic lane: approved fulfillment target, current status, next status, actor, reason code, reference/idempotency policy, rollback/no-rollback expectation, and Orders lifecycle readback boundary.
-- Synthetic W1/W2 cleanup: approved cleanup/no-cleanup policy for the synthetic lifecycle evidence rows, if cleanup is required.
+- Synthetic W1/W2 cleanup: W1/W2 cleanup route/policy is source-defined as fail-closed in `docs/orchestrator/2026-07-06-w1w2-synthetic-cleanup-policy-packet.md`: `[RESOLVED/NARROWED: cleanup route/policy for W1/W2 synthetic lifecycle rows is defined as fail-closed Orders-owned cleanup decision packet; live retention or cancellation remains blocked until current redacted readback and owner side-effect acknowledgements exist]`. Live cleanup or explicit retention still requires approved target hashes, actor, Orders/Warehouse readback, side-effect acknowledgements, idempotency/replay policy, and redacted post-action evidence.
 
 ## Boundary
 
 Approved W1/W2 synthetic live mutation occurred and is recorded only with redacted hashes/statuses/booleans. Approved FlipFlop W6 action proof used Auth-issued action-admin JWT generation to a 0600 temp file, Vault key patch, ExternalSecret sync, a FlipFlop order-service restart, and guarded synthetic create/read/cancel smoke recorded only as statuses/booleans. No provider call, real payment movement, migration, deploy, token/secret output, decoded JWT output, raw ID output, raw DB row output, raw customer/payment/provider/tracking output, screenshot, or browser session capture occurred in this W7 update.
+
+
+## 2026-07-06 W6-B Runtime Closure Addendum
+
+Consumed report: `reports/validation/VAL-W7E-flipflop-action-admin-runtime-closure-2026-07-06.md`.
+
+W6-B central status authority is no longer blocked on route-to-Orders implementation, Auth action-admin role seed, token projection, or synthetic cleanup proof. The consumed evidence is redacted and status/boolean-only: Auth role/token validation reports `valid=true` and `hasActionAdmin=true`; FlipFlop guarded smoke reports create `201`, read `200`, cleanup `200`, `providerCall=false`, and no blockers.
+
+Preserved blockers are outside W6-B central status authority: `[MISSING: payment/refund/provider correction workflow]`, `[MISSING: live customer/admin browser session smoke]`, Bazos provider-backed proof packet, optional natural row-level marketplace sessions, and extra Warehouse callback packet beyond already proven W1/W2 if product requires it.
