@@ -3,7 +3,7 @@
 status: source-contract-runtime-gated
 created_at: 2026-07-05
 owner: orders-lifecycle-orchestrator
-scope: W1/W2 live buyer-bound synthetic proof, W3-W5 row-level cabinet smoke, W6B FlipFlop action smoke, W8 Bazos provider proof
+scope: W1/W2 live buyer-bound synthetic proof, W2 Warehouse callback current gate, W3-W5 row-level cabinet smoke, W6B FlipFlop action smoke, W8 Bazos provider proof
 
 ## Intent Preservation Chain
 
@@ -21,9 +21,9 @@ Execution Plan -> Keep this document source-only, require non-secret redacted in
 
 Coding Prompt -> Do not run live mutation from this document. Do not print or persist bearer tokens, raw customer/order/payment/provider/tracking payloads, raw IDs, raw DB rows, or screenshots. Use hashes, route names, booleans, status codes, and redacted IDs only.
 
-Code -> scripts/verify-runtime-gate-packets.js, scripts/verify-w1w2-live-buyer-bound-proof.js, scripts/verify-w1w2-synthetic-cleanup-policy.js, package scripts verify:runtime-gate-packets, verify:w1w2-live-buyer-bound-proof, verify:w1w2-cleanup-policy, and this contract.
+Code -> scripts/verify-runtime-gate-packets.js, scripts/verify-w1w2-live-buyer-bound-proof.js, scripts/verify-w1w2-synthetic-cleanup-policy.js, scripts/verify-w2-warehouse-callback-current-gate.js, package scripts verify:runtime-gate-packets, verify:w1w2-live-buyer-bound-proof, verify:w1w2-cleanup-policy, verify:w2-warehouse-callback-current-gate, and this contract.
 
-Validation -> npm run verify:w1w2-live-buyer-bound-proof; npm run verify:w1w2-cleanup-policy; npm run verify:runtime-gate-packets; git diff --check.
+Validation -> npm run verify:w1w2-live-buyer-bound-proof; npm run verify:w1w2-cleanup-policy; npm run verify:w2-warehouse-callback-current-gate; npm run verify:runtime-gate-packets; git diff --check.
 
 ## Global Packet Rules
 
@@ -118,9 +118,17 @@ Abort if live provider support is unknown and no product decision exists, if ite
 
 ## Warehouse Callback Runtime Packet
 
-Status: [MISSING: approved Warehouse fulfillment runtime packet].
+Status: [RESOLVED/NARROWED: Warehouse callback source and approved synthetic customer/admin runtime proof are complete; any extra Warehouse callback smoke beyond W1/W2/W2 is not an autonomous source gap and remains product-approved target/status packet gated].
 
-Required non-secret fields:
+Current evidence:
+
+- Warehouse source owns fulfillment status persistence and calls Orders PUT /api/orders/:orderId/warehouse-fulfillment-status with bounded status, reason, actor, reference, fulfillment order id, and timestamp fields.
+- Orders source accepts the Warehouse callback and maps fulfillment/delivery status into canonical lifecycle read models.
+- Approved W1/W2/W2 synthetic evidence already proves Warehouse reservation, paid handoff, Warehouse callback/readback, customer lifecycle readback, and admin lifecycle readback without raw token, ID, customer, address, payment, provider, tracking, DB row, screenshot, or secret output.
+
+Extra live fulfillment transition smoke is still gated by [MISSING: approved Warehouse fulfillment runtime packet].
+
+Required non-secret fields for any extra live target/status packet:
 
 - Exact fulfillment target hash, current fulfillment status, and requested next status.
 - Actor and reason code.
@@ -129,7 +137,7 @@ Required non-secret fields:
 - Orders lifecycle readback boundary and expected lifecycle/delivery fields.
 - Stock/reservation side-effect expectation.
 
-Abort if the target status is unknown, if the transition is destructive without owner approval, if cleanup expectations are missing, or if raw tracking/customer/provider values would be exposed.
+Abort if the target status is unknown, if the transition is destructive without owner approval, if cleanup expectations are missing, if the packet attempts provider calls/deploy/DB writes, or if raw tracking/customer/provider/order/payment values would be exposed.
 
 ## Current Decision
 

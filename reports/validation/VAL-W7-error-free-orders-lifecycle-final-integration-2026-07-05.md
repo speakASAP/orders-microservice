@@ -1,6 +1,6 @@
 # W7 Error-Free Orders Lifecycle Final Integration
 
-status: partial_runtime_complete_remaining_marketplace_provider_fulfillment_gated
+status: partial_runtime_complete_remaining_marketplace_provider_payment_browser_extra_warehouse_gated
 created_at: 2026-07-05
 repo: /home/ssf/Documents/Github/orders-microservice
 scope: orders-microservice, warehouse-microservice, allegro, bazos, aukro, heureka, flipflop
@@ -28,7 +28,7 @@ Validation -> Run W1/W2 live buyer-bound verifier, W1/W2 cleanup policy verifier
 ## Integrated Evidence
 
 - Orders W1/W2 live buyer-bound synthetic proof is verified in `reports/validation/VAL-W7-W1W2-live-buyer-bound-proof-2026-07-05.md`: create HTTP 201, Warehouse reservation true, payment HTTP 200, Warehouse fulfillment HTTP 200, customer lifecycle HTTP 200, admin lifecycle HTTP 200, and both customer/admin saw `warehouse_collecting`; evidence is hashes/statuses/booleans only. Orders source is also verified for create contract, Warehouse reservation gate, payment-to-fulfillment handoff, Warehouse fulfillment callback projection, lifecycle read models, product/order delivery statistics, channel lifecycle surfaces, and customer subject-bound ownership. Orders customer lifecycle reads require Auth `sub` and do not use `customer.email` as an ownership fallback.
-- Warehouse W2 report verifies source callback behavior and focused fulfillment tests, but live fulfillment status mutation remains gated by an owner-approved redacted runtime packet for exact target, transition, actor, reason/idempotency policy, and Orders readback boundary.
+- Warehouse W2 report verifies source callback behavior, focused fulfillment tests, and approved synthetic customer/admin runtime readback. `[RESOLVED/NARROWED: Warehouse callback source and approved synthetic customer/admin runtime proof are complete; any extra Warehouse callback smoke beyond W1/W2/W2 is not an autonomous source gap and remains product-approved target/status packet gated]` Live fulfillment status mutation for any extra target/status remains gated by an owner-approved redacted runtime packet for exact target, transition, actor, reason/idempotency policy, and Orders readback boundary.
 - Allegro is source-proven and approved synthetic buyer/admin runtime-proven: buyer list/detail, unauth 401, non-owned detail 404, admin orders/stats, and cleanup all passed without printing raw tokens or payloads. Remaining natural proof is a real-traffic subject-bound buyer row with forwarded central Orders lifecycle if product requires it.
 - Bazos is source/UI verified and bounded paid lifecycle proof is accepted. `[RESOLVED/NARROWED: W8 Bazos provider-backed proof is not an autonomous source implementation gap; current Bazos source supports bounded synthetic/internal order ingestion and central Orders UI proof, while true provider-backed webhook/status proof remains product/provider-packet gated]` Provider-backed proof remains blocked until a provider contract/sample or explicit product decision exists.
 - Aukro and Heureka are source/runtime-presence verified. Row-level live proof is blocked by missing approved customer/admin sessions and missing/unknown non-stale central Orders rows.
@@ -36,7 +36,7 @@ Validation -> Run W1/W2 live buyer-bound verifier, W1/W2 cleanup policy verifier
 
 ## Go/No-Go
 
-Decision: `w1w2_and_flipflop_w6_runtime_proven_remaining_marketplace_provider_fulfillment_packets_gated`.
+Decision: `w1w2_buyer_bound_and_w6b_action_admin_runtime_proven_remaining_marketplace_provider_payment_browser_packets_gated`.
 
 Go:
 
@@ -59,7 +59,7 @@ Repo-local packet handoffs are pushed and aggregated in reports/validation/VAL-W
 
 - Bazos provider proof: explicit decision remains required. `[RESOLVED/NARROWED: W8 Bazos provider-backed proof is not an autonomous source implementation gap; current Bazos source supports bounded synthetic/internal order ingestion and central Orders UI proof, while true provider-backed webhook/status proof remains product/provider-packet gated]`. Remaining required packet fields are explicit decision that Bazos has or does not have provider-backed marketplace webhook support; provider order item/status ingestion contract; status transition sample; item identity mapping; Warehouse-owned `warehouseId`; approved non-secret fixture or live provider smoke packet.
 - Aukro/Heureka row-level proof: approved customer/admin bearer/session, target channel row criteria, non-stale central Orders row evidence policy, and admin stats readback boundary.
-- Warehouse callback runtime smoke beyond the already proven W1/W2 synthetic lane: approved fulfillment target, current status, next status, actor, reason code, reference/idempotency policy, rollback/no-rollback expectation, and Orders lifecycle readback boundary.
+- Warehouse callback runtime smoke beyond already proven W1/W2/W2 synthetic evidence: `[RESOLVED/NARROWED: Warehouse callback source and approved synthetic customer/admin runtime proof are complete; any extra Warehouse callback smoke beyond W1/W2/W2 is not an autonomous source gap and remains product-approved target/status packet gated]`. Extra smoke still requires approved fulfillment target, current status, next status, actor, reason code, reference/idempotency policy, rollback/no-rollback expectation, and Orders lifecycle readback boundary.
 - Synthetic W1/W2 cleanup: W1/W2 cleanup route/policy is source-defined as fail-closed in `docs/orchestrator/2026-07-06-w1w2-synthetic-cleanup-policy-packet.md`: `[RESOLVED/NARROWED: cleanup route/policy for W1/W2 synthetic lifecycle rows is defined as fail-closed Orders-owned cleanup decision packet; live retention or cancellation remains blocked until current redacted readback and owner side-effect acknowledgements exist]`. Live cleanup or explicit retention still requires approved target hashes, actor, Orders/Warehouse readback, side-effect acknowledgements, idempotency/replay policy, and redacted post-action evidence.
 
 ## Boundary

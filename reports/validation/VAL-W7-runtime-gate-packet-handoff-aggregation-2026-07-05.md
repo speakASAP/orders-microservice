@@ -1,10 +1,10 @@
 # W7 Runtime Gate Packet Handoff Aggregation
 
-status: source-handoffs-pushed-runtime-gated
+status: source-handoffs-pushed-w2-current-gate-narrowed
 created_at: 2026-07-05
 owner: orders-lifecycle-orchestrator
 orders_packet_contract: docs/orchestrator/2026-07-05-runtime-gate-packet-contracts.md
-orders_packet_contract_commit: 1d0ff06
+orders_packet_contract_commit: 1d0ff06; current Orders W2 narrowing pending in this follow-up commit
 
 ## Intent Preservation Chain
 
@@ -30,7 +30,7 @@ Validation -> repo-specific verifiers passed before commit; Orders `npm run veri
 
 | Repo | Commit | Handoff | Runtime gate preserved |
 |---|---:|---|---|
-| warehouse-microservice | 394451e | `docs/orchestrator/2026-07-05-runtime-gate-packet-handoff.md` | `[MISSING: approved Warehouse fulfillment runtime packet]` |
+| warehouse-microservice | 394451e plus Orders follow-up W2 current gate | docs/orchestrator/2026-07-05-runtime-gate-packet-handoff.md; reports/validation/VAL-W2-warehouse-callback-current-gate-2026-07-06.md | [RESOLVED/NARROWED: Warehouse callback source and approved synthetic customer/admin runtime proof are complete; any extra Warehouse callback smoke beyond W1/W2/W2 is not an autonomous source gap and remains product-approved target/status packet gated]; extra live transition still preserves [MISSING: approved Warehouse fulfillment runtime packet] |
 | bazos | c6b1263 | `docs/orchestrator/2026-07-05-runtime-gate-packet-handoff.md` | `[UNKNOWN: live Bazos marketplace webhook support]`; `[MISSING: approved provider-backed non-secret fixture or live provider smoke packet]` |
 | flipflop | 6869b31 | `docs/orchestrator/2026-07-05-runtime-gate-packet-handoff.md` | `[MISSING: approved live action-admin session packet]` plus action-admin/idempotency/side-effect/readback gates |
 | allegro | 6653a16 | `docs/orchestrator/2026-07-05-runtime-gate-packet-handoff.md` | natural buyer/admin row-level proof packet remains product/session gated |
@@ -45,6 +45,10 @@ Validation -> repo-specific verifiers passed before commit; Orders `npm run veri
 - Allegro: `git diff --check` and `npm run verify:orders-lifecycle-ui` passed before commit.
 - Aukro: `git diff --check` and `npm run verify:orders-lifecycle-ui` passed before commit.
 - Heureka: `git diff --check` and `npm run verify:orders-lifecycle-ui` passed before commit.
+
+## 2026-07-06 W2 Current Gate Addendum
+
+Orders now records W2 as source-and-approved-synthetic-runtime-proven-extra-packet-gated. The Warehouse callback source path and approved synthetic customer/admin lifecycle readbacks are complete for W1/W2/W2 evidence; only additional live target/status fulfillment transitions remain product-approved packet gated. No deploy, live mutation, DB write, provider call, token output, raw ID output, raw DB row output, raw customer/address/payment/provider/tracking output, or screenshot capture occurred in this addendum.
 
 ## Boundary
 

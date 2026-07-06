@@ -22,7 +22,7 @@ const ipsMarkers = ['Vision ->','Goal Impact ->','System ->','Feature ->','Task 
 for (const marker of ipsMarkers) assertIncludes(contract, marker, 'IPS chain');
 const packetSections = ['## W1/W2 Live Synthetic Create Pay Warehouse Read Packet','## W3-W5 Marketplace Row-Level Cabinet Packet','## W6B FlipFlop Route-To-Orders Admin Action Packet','## W8 Bazos Provider-Backed Proof Packet','## Warehouse Callback Runtime Packet'];
 for (const marker of packetSections) assertIncludes(contract, marker, 'packet section');
-const requiredGateMarkers = ['[RESOLVED: W1/W2 live buyer-bound synthetic lifecycle packet executed and verified]','[MISSING: approved buyer/admin bearer/session packets]','[MISSING: approved live action-admin session packet]','[MISSING: approved provider-backed non-secret fixture or live provider smoke packet]','[UNKNOWN: live Bazos marketplace webhook support]','[MISSING: approved Warehouse fulfillment runtime packet]'];
+const requiredGateMarkers = ['[RESOLVED: W1/W2 live buyer-bound synthetic lifecycle packet executed and verified]','[MISSING: approved buyer/admin bearer/session packets]','[MISSING: approved live action-admin session packet]','[MISSING: approved provider-backed non-secret fixture or live provider smoke packet]','[UNKNOWN: live Bazos marketplace webhook support]','[RESOLVED/NARROWED: Warehouse callback source and approved synthetic customer/admin runtime proof are complete; any extra Warehouse callback smoke beyond W1/W2/W2 is not an autonomous source gap and remains product-approved target/status packet gated]','[MISSING: approved Warehouse fulfillment runtime packet]'];
 for (const marker of requiredGateMarkers) assertIncludes(contract, marker, 'missing gate marker');
 const requiredFields = ['packetId','ownerApproval','scope','actor','target','idempotency','sideEffects','readback','redaction','abortConditions','Auth actor/role mapping','Orders idempotency key and replay policy','sideEffectsHandled.payment|warehouse|notification|crm|channel=true','Provider order item/status ingestion contract','Warehouse-owned warehouseId','Subject-bound ownership policy; email fallback is forbidden'];
 for (const marker of requiredFields) assertIncludes(contract, marker, 'required packet field');
@@ -30,11 +30,11 @@ const forbiddenSafetyMarkers = ['Do not run live mutation from this document.','
 for (const marker of forbiddenSafetyMarkers) assertIncludes(contract, marker, 'safety marker');
 assertIncludes(finalReport, '## Minimum Packets To Close Remaining Gates', 'final W7 report packet section');
 assertIncludes(finalReport, 'Orders W1/W2 live buyer-bound synthetic proof is verified', 'final W7 report W1/W2 resolved proof');
-assertIncludes(finalReport, 'w1w2_and_flipflop_w6_runtime_proven_remaining_marketplace_provider_fulfillment_packets_gated', 'final W7 report updated decision');
+assertIncludes(finalReport, 'w1w2_buyer_bound_and_w6b_action_admin_runtime_proven_remaining_marketplace_provider_payment_browser_packets_gated', 'final W7 report updated decision');
 assertIncludes(finalReport, 'FlipFlop W6 is runtime-complete', 'final W7 report FlipFlop resolved proof');
 assertIncludes(finalReport, 'create 201, read 200, cleanup 200', 'final W7 report FlipFlop runtime statuses');
-assertIncludes(finalReport, 'Warehouse callback runtime smoke beyond the already proven W1/W2 synthetic lane', 'final W7 report Warehouse packet');
+assertIncludes(finalReport, 'Warehouse callback runtime smoke beyond already proven W1/W2/W2 synthetic evidence', 'final W7 report Warehouse packet');
 assertIncludes(finalReport, 'Bazos provider proof: explicit decision', 'final W7 report Bazos packet');
 assertIncludes(masterPlan, 'W1/W2 live buyer-bound proof is verified by `npm run verify:w1w2-live-buyer-bound-proof`', 'master plan W1/W2 resolved gate');
 assertIncludes(masterPlan, 'FlipFlop W6 central action proof is runtime-complete in FlipFlop `df32252`', 'master plan W6 resolved gate');
-console.log(JSON.stringify({ok:true,verifier:'orders-runtime-gate-packets.v1',packetSections:packetSections.length,runtimeGateMarkers:requiredGateMarkers.length,mutation:false,providerCall:false,browserSessionUsed:false,tokenValuesReadOrPrinted:false,sensitiveOutput:'redacted-source-only'}, null, 2));
+console.log(JSON.stringify({ok:true,verifier:'orders-runtime-gate-packets.v1',packetSections:packetSections.length,runtimeGateMarkers:requiredGateMarkers.length,warehouseCallbackExtraSmoke:'product_approved_packet_gated',mutation:false,providerCall:false,browserSessionUsed:false,tokenValuesReadOrPrinted:false,sensitiveOutput:'redacted-source-only'}, null, 2));
