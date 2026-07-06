@@ -159,6 +159,7 @@ async function verifyCentralTransport() {
   process.env.LOGGING_SERVICE_URL = 'https://logging.internal/';
   process.env.LOGGING_SERVICE_API_PATH = '/custom/logs';
   process.env.SERVICE_NAME = 'orders-api';
+  process.env.LOGGING_SERVICE_TOKEN = 'test-central-token';
   global.fetch = (url, options) => {
     requests.push({ url, options, payload: JSON.parse(options.body) });
     return Promise.reject(new Error('service unavailable'));
@@ -191,6 +192,7 @@ async function verifyCentralTransport() {
   assert.equal(requests[0].url, 'https://logging.internal/custom/logs');
   assert.equal(requests[0].options.method, 'POST');
   assert.equal(requests[0].options.headers['content-type'], 'application/json');
+  assert.equal(requests[0].options.headers.Authorization, 'Bearer test-central-token');
 
   const payload = requests[0].payload;
   assert.equal(payload.level, 'warn');
@@ -215,7 +217,7 @@ async function verifyCentralTransportOmitsAuthWithoutToken() {
   };
   const requests = [];
 
-  process.env.LOGGING_SERVICE_URL = https://logging.internal;
+  process.env.LOGGING_SERVICE_URL = 'https://logging.internal';
   delete process.env.LOGGING_SERVICE_API_PATH;
   delete process.env.LOGGING_SERVICE_TOKEN;
   global.fetch = (url, options) => {
@@ -224,7 +226,7 @@ async function verifyCentralTransportOmitsAuthWithoutToken() {
   };
 
   try {
-    captureConsole(() => logger.log(no auth header, OrdersService));
+    captureConsole(() => logger.log('no auth header', 'OrdersService'));
     await Promise.resolve();
   } finally {
     global.fetch = originalFetch;
@@ -234,9 +236,9 @@ async function verifyCentralTransportOmitsAuthWithoutToken() {
     }
   }
 
-  assert.equal(requests.length, 1, Central transport should still post when token is unset);
-  assert.equal(requests[0].url, https://logging.internal/api/logs);
-  assert.equal(Object.prototype.hasOwnProperty.call(requests[0].options.headers, Authorization), false);
+  assert.equal(requests.length, 1, 'Central transport should still post when token is unset');
+  assert.equal(requests[0].url, 'https://logging.internal/api/logs');
+  assert.equal(Object.prototype.hasOwnProperty.call(requests[0].options.headers, 'Authorization'), false);
 }
 
 async function verifyCentralTransportDisabledWithoutUrl() {

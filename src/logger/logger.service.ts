@@ -135,9 +135,13 @@ export class LoggerService {
     if (!endpoint || typeof fetch !== 'function') return;
 
     const payload = this.buildCentralPayload(level, message, metadata, timestamp);
+    const headers: Record<string, string> = { 'content-type': 'application/json' };
+    const token = process.env.LOGGING_SERVICE_TOKEN?.trim();
+    if (token) headers.Authorization = `Bearer ${token}`;
+
     void fetch(endpoint, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers,
       body: JSON.stringify(payload),
     }).catch(() => undefined);
   }
