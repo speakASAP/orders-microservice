@@ -30,9 +30,11 @@ const forbiddenSafetyMarkers = ['Do not run live mutation from this document.','
 for (const marker of forbiddenSafetyMarkers) assertIncludes(contract, marker, 'safety marker');
 assertIncludes(finalReport, '## Minimum Packets To Close Remaining Gates', 'final W7 report packet section');
 assertIncludes(finalReport, 'Orders W1/W2 live buyer-bound synthetic proof is verified', 'final W7 report W1/W2 resolved proof');
-assertIncludes(finalReport, 'w1w2_live_buyer_bound_proven_remaining_marketplace_provider_action_fulfillment_packets_gated', 'final W7 report updated decision');
-assertIncludes(finalReport, 'FlipFlop action smoke: approved action-admin session', 'final W7 report FlipFlop packet');
+assertIncludes(finalReport, 'w1w2_and_flipflop_w6_runtime_proven_remaining_marketplace_provider_fulfillment_packets_gated', 'final W7 report updated decision');
+assertIncludes(finalReport, 'FlipFlop W6 is runtime-complete', 'final W7 report FlipFlop resolved proof');
+assertIncludes(finalReport, 'create 201, read 200, cleanup 200', 'final W7 report FlipFlop runtime statuses');
 assertIncludes(finalReport, 'Warehouse callback runtime smoke beyond the already proven W1/W2 synthetic lane', 'final W7 report Warehouse packet');
 assertIncludes(finalReport, 'Bazos provider proof: explicit decision', 'final W7 report Bazos packet');
 assertIncludes(masterPlan, 'W1/W2 live buyer-bound proof is verified by `npm run verify:w1w2-live-buyer-bound-proof`', 'master plan W1/W2 resolved gate');
+assertIncludes(masterPlan, 'FlipFlop W6 central action proof is runtime-complete in FlipFlop `df32252`', 'master plan W6 resolved gate');
 console.log(JSON.stringify({ok:true,verifier:'orders-runtime-gate-packets.v1',packetSections:packetSections.length,runtimeGateMarkers:requiredGateMarkers.length,mutation:false,providerCall:false,browserSessionUsed:false,tokenValuesReadOrPrinted:false,sensitiveOutput:'redacted-source-only'}, null, 2));
