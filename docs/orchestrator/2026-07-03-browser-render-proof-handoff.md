@@ -4,6 +4,10 @@ Date: 2026-07-03
 Repository of record: `orders-microservice`
 Current Orders evidence baseline: use repository `HEAD`; this handoff is enforced by `verify:browser-render-proof-readiness` in `npm test`.
 
+## 2026-07-06 Supersession Note
+
+This handoff is historical for the original browser-render lane. Current merge-order authority is `docs/orchestrator/2026-07-03-channel-browser-smoke-order.md`: `recommendedFirstLane=w8_bazos_provider_product_decision`. FlipFlop service-scoped browser-render proof, Heureka service-scoped API/DOM proof, Aukro protected/service-scoped proof, Allegro bounded buyer proof, and Bazos bounded paid multi-product proof are accepted for current implementation readiness; direct safe-human or natural customer-bound browser proof is optional/product-gated when product requires proof beyond accepted bounded/service-scoped evidence.
+
 ## Intent Chain
 
 - Vision: customer and admin cabinets must visibly reflect canonical Orders lifecycle changes after order creation, payment, Warehouse fulfillment, and delivery progress.
@@ -36,20 +40,19 @@ Current Orders evidence baseline: use repository `HEAD`; this handoff is enforce
 
 ## Merge-Order Review Request
 
-Recommended first browser proof lane: FlipFlop only.
+Current first non-source lane: W8 Bazos provider/product owner decision; direct FlipFlop safe-human browser proof is optional/product-gated.
 
 Reason:
-- Orders live mutation proof already uses `channel=flipflop` and `serviceName=flipflop-service`.
-- FlipFlop has deployed customer `/orders` and admin `/admin/orders` routes returning HTTP `200`.
-- A FlipFlop-first browser proof avoids Allegro real-buyer bearer/order-row blockers and avoids unknown Bazos provider-webhook scope.
+- Current W7/W8 aggregation no longer treats browser proof as the first autonomous source lane.
+- W8 Bazos is owner-decision gated by exactly one product/provider option.
+- FlipFlop service-scoped proof is accepted for implementation readiness; direct safe-human browser proof should run only if product requires proof beyond accepted service-scoped evidence.
 
 Merge/review order:
 
-1. Orders orchestrator review approves the FlipFlop validation-only browser lane.
-2. Run browser smoke against deployed FlipFlop routes using an approved safe human buyer/admin session.
-3. If UI evidence fails because rendering/polling is insufficient, stop and produce a channel-specific implementation prompt before any FlipFlop repo edit.
-4. After FlipFlop proof is recorded, request separate review for Heureka/Aukro/Bazos/Allegro lanes in that order.
-5. Keep Allegro provider/shipment-status lanes separate from browser proof unless the review explicitly combines them.
+1. Resolve W8 Bazos owner decision if product/provider scope must be closed.
+2. Run direct safe-human browser proof only for a channel where product explicitly requires proof beyond accepted bounded/service-scoped evidence.
+3. If UI evidence fails because rendering/polling is insufficient, stop and produce a channel-specific implementation prompt before any channel repo edit.
+4. Keep Allegro provider/shipment-status lanes separate from browser proof unless the review explicitly combines them.
 
 ## Proposed FlipFlop Browser Validation Lane
 
@@ -94,15 +97,15 @@ Failure criteria:
 
 | Channel | Status | Browser proof readiness | Blockers |
 | --- | --- | --- | --- |
-| FlipFlop | Recommended first | Ready for validation-only lane after merge-order review | Needs approved safe human buyer/admin session or explicit approval for service-scoped browser proxy proof. |
-| Heureka | Deployed route coverage | Dependency-gated | Needs approved dashboard/auth session and lane review. |
-| Aukro | Deployed route coverage | Dependency-gated | Needs approved cabinet/admin session and lane review. |
-| Bazos | Deployed route coverage plus protected `/orders` | Dependency-gated | Provider-backed marketplace webhook/order source remains `[UNKNOWN]`; browser proof can only cover synthetic/internal order unless product approves scope. |
-| Allegro | Deployed buyer/admin routes | Dependency-gated | Needs real subject-bound Allegro buyer order row and buyer bearer; provider shipment-status runtime remains separate. |
+| FlipFlop | Service-scoped proof accepted | Optional/product-gated direct safe-human proof | Needs approved safe human buyer/admin session only if product requires proof beyond accepted service-scoped evidence. |
+| Heureka | Service-scoped API/DOM proof accepted | Optional/product-gated direct human proof | Needs approved dashboard/auth session only if product requires proof beyond accepted service-scoped API/DOM evidence. |
+| Aukro | Protected/service-scoped proof accepted | Optional/product-gated natural customer proof | Needs approved cabinet/admin session only if product requires natural real customer-bound proof beyond accepted bounded/service-scoped evidence. |
+| Bazos | Bounded paid multi-product proof accepted | W8 owner-decision gated for provider-backed proof | Provider-backed marketplace webhook/order source remains `[UNKNOWN]`; close scope through the W8 owner decision packet. |
+| Allegro | Bounded buyer proof accepted | Optional/product-gated natural buyer proof | Needs real subject-bound Allegro buyer order row and buyer bearer only if product requires natural proof beyond accepted bounded evidence; provider shipment-status runtime remains separate. |
 
 ## Handoff Prompt
 
-Objective: run a validation-only browser proof for FlipFlop lifecycle status propagation after an Orders lifecycle mutation. Work from current Orders repository `HEAD`, the completion audit baseline, and the deployed FlipFlop route evidence. Do not edit non-Orders repos unless merge-order review explicitly authorizes an implementation lane after validation fails.
+Objective: only run a direct safe-human browser proof for FlipFlop if product explicitly requires proof beyond accepted service-scoped lifecycle status propagation; otherwise pursue the current W8 Bazos owner-decision lane. Work from current Orders repository `HEAD`, the completion audit baseline, and the deployed FlipFlop route evidence. Do not edit non-Orders repos unless merge-order review explicitly authorizes an implementation lane after validation fails.
 
 Scope:
 - Orders repo: read docs, run `npm run smoke:lifecycle-mutation` only with explicit live gates, write sanitized validation report if approved.

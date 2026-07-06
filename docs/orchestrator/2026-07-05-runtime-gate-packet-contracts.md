@@ -67,21 +67,23 @@ Resolved non-secret fields:
 
 The resolved W1/W2 proof does not authorize replay, cleanup, provider calls, real payment movement, or future live mutation. Abort any future replay, cleanup, or retention decision unless a new packet names target hashes, actor, idempotency, side effects, current Orders/Warehouse readback, and redacted post-action boundary without raw sensitive output.
 
-## W3-W5 Marketplace Row-Level Cabinet Packet
+## W3-W5 Marketplace Natural/Customer-Bound Cabinet Packet
 
-Status: [MISSING: approved buyer/admin bearer/session packets].
+Status: [MISSING: approved buyer/admin bearer/session packets for optional natural human-session/customer-bound proof when product requires proof beyond accepted bounded/service-scoped evidence].
+
+Current accepted bounded/service-scoped evidence remains in force for implementation readiness; this packet only governs optional natural/customer-bound evidence that product explicitly requires beyond those accepted proofs.
 
 Required non-secret fields:
 
 - Channel: allegro, bazos, aukro, heureka, or flipflop.
-- Buyer/admin proof mode: API, browser, or service-scoped proxy.
-- Approved bearer/session source path or handoff method with explicit no-print/no-decode/no-persist handling.
+- Buyer/admin proof mode: API, browser, service-scoped proxy, or natural human-session/customer-bound proof.
+- Approved bearer/session source path or handoff method with explicit no-print/no-decode/no-persist handling when the selected proof mode requires a live session.
 - Subject-bound ownership policy; email fallback is forbidden for buyer ownership proof.
 - Target row criteria: central Orders id hash or external order hash, lifecycle stage expected, freshness threshold, and stale-row policy.
 - Admin stats readback boundary when admin cabinet statistics are part of the claim.
 - Evidence format: route/status booleans, rendered canonical lifecycle label or API lifecycle fields, hashes only.
 
-Abort if no approved session exists, if only anonymous/public shell routes are available, if the row is stale and stale proof is not the objective, or if proof would expose raw customer/order data.
+Abort if required natural proof has no approved session, if only anonymous/public shell routes are available, if the row is stale and stale proof is not the objective, or if proof would expose raw customer/order data. Do not use this optional packet to downgrade already accepted bounded/service-scoped W3-W5 evidence.
 
 ## W6B FlipFlop Route-To-Orders Admin Action Packet
 

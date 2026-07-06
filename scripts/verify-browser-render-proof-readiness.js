@@ -95,11 +95,13 @@ async function main() {
 
   const handoffMarkers = [
     'Current Orders evidence baseline: use repository `HEAD`; this handoff is enforced by `verify:browser-render-proof-readiness` in `npm test`.',
-    'Recommended first browser proof lane: FlipFlop only.',
+    '## 2026-07-06 Supersession Note',
+    'recommendedFirstLane=w8_bazos_provider_product_decision',
+    'Current first non-source lane: W8 Bazos provider/product owner decision; direct FlipFlop safe-human browser proof is optional/product-gated.',
     'No edits in `flipflop`, `heureka`, `bazos`, `aukro`, `allegro`, Auth, Cliplot, Marketing, Payments, Warehouse, or shared contracts during validation-only lane.',
-    'Needs approved safe human buyer/admin session or explicit approval for service-scoped browser proxy proof.',
+    'FlipFlop | Service-scoped proof accepted | Optional/product-gated direct safe-human proof',
+    'Bazos | Bounded paid multi-product proof accepted | W8 owner-decision gated for provider-backed proof',
     'Provider-backed marketplace webhook/order source remains `[UNKNOWN]`',
-    'Needs real subject-bound Allegro buyer order row and buyer bearer',
     'Evidence classification: `proven`, `incomplete`, or `blocked`.',
   ];
   handoffMarkers.forEach((marker) => assertIncludes(handoff, marker, 'browser-render-proof-handoff'));
