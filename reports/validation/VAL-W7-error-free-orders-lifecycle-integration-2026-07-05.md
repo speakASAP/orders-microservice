@@ -72,3 +72,7 @@ No deploy, production stock mutation, payment mutation, provider mutation, DB wr
 ## Next Orchestrator Action
 
 W6-B runtime closure is now recorded in Orders. Keep W3-W5 row-level live/browser smoke where product requires it, payment/provider correction workflow, optional extra Warehouse callback proof, and real Bazos provider proof blocked until their explicit contracts or approved runtime packets exist.
+
+## 2026-07-06 W5 Current Gate Reconciliation Addendum
+
+[RESOLVED/NARROWED: W5 Aukro/Heureka current gate is service-scoped API/DOM proven for central Orders lifecycle rendering; natural human-session or natural real customer-bound proof remains optional/product-gated if product requires proof beyond approved service-scoped/bounded evidence]. Historical row-level/session-gated wording in this report is superseded for Aukro/Heureka current aggregation by reports/validation/VAL-W5-aukro-heureka-current-gate-2026-07-06.md and npm run verify:w5-aukro-heureka-current-gate. Natural human-session/customer-bound proof remains optional/product-gated if product requires proof beyond approved service-scoped/bounded evidence.

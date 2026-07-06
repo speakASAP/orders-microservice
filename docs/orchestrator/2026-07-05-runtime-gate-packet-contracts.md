@@ -162,3 +162,6 @@ Abort if the packet lacks exact target hashes/state, attempts provider calls/ref
 ## Current Decision
 
 These packet contracts make the remaining work executable once approved facts exist. They do not authorize any live mutation, provider call, deploy, DB write, browser session capture, token output, raw customer/order/payment/provider/tracking output, or screenshot capture.
+## 2026-07-06 W5 Aukro/Heureka Runtime Packet Reconciliation
+
+[RESOLVED/NARROWED: W5 Aukro/Heureka current gate is service-scoped API/DOM proven for central Orders lifecycle rendering; natural human-session or natural real customer-bound proof remains optional/product-gated if product requires proof beyond approved service-scoped/bounded evidence]. The W3-W5 packet remains required only for natural human-session or natural real customer-bound proof where product requires evidence beyond approved service-scoped/bounded artifacts. Do not reopen Aukro/Heureka service-scoped proof unless reports/validation/VAL-W5-aukro-heureka-current-gate-2026-07-06.md or npm run verify:w5-aukro-heureka-current-gate fails.

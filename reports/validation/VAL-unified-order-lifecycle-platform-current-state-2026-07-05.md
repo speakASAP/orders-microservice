@@ -47,3 +47,7 @@ Validation -> Report presence, git diff hygiene, and current remote repo status.
 ## Next Action
 
 W6-B is the next non-runtime-gated lane because it addresses a real central-authority gap without requiring live customer sessions or production stock/payment mutations.
+
+## 2026-07-06 W5 Current Gate Reconciliation Addendum
+
+[RESOLVED/NARROWED: W5 Aukro/Heureka current gate is service-scoped API/DOM proven for central Orders lifecycle rendering; natural human-session or natural real customer-bound proof remains optional/product-gated if product requires proof beyond approved service-scoped/bounded evidence]. Historical row-level/session-gated wording in this report is superseded for Aukro/Heureka current aggregation by reports/validation/VAL-W5-aukro-heureka-current-gate-2026-07-06.md and npm run verify:w5-aukro-heureka-current-gate. Natural human-session/customer-bound proof remains optional/product-gated if product requires proof beyond approved service-scoped/bounded evidence.

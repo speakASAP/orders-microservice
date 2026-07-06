@@ -14,6 +14,9 @@ def inc(text, marker):
 report=read(Path("reports/validation/VAL-W5-aukro-heureka-current-gate-2026-07-06.md"))
 for m in ["Vision ->","Goal Impact ->","System ->","Feature ->","Task ->","Execution Plan ->","Coding Prompt ->","Code ->","Validation ->",decision,"natural real customer-bound Aukro order proof","direct Heureka human-session proof","external Heureka shop registration details"]:
     inc(report,m)
+contract=read(Path("docs/orchestrator/2026-07-05-runtime-gate-packet-contracts.md"))
+inc(contract,decision)
+inc(contract,"W5 Aukro/Heureka Runtime Packet Reconciliation")
 verifier=read(Path("scripts/verify-channel-lifecycle-runtime-evidence.js"))
 for m in ["protected_customer_admin_lifecycle_api_proven_dom_optional","live_create_replay_reservation_cleanup_proven_orders_list_non_stale_lifecycle_proven","Heureka visible DOM lifecycle proof is service-scoped and proven","Aukro customer and admin visible DOM lifecycle proof is service-scoped and proven"]:
     inc(verifier,m)
