@@ -29,7 +29,7 @@ Validation -> `npm run verify:current-head-requirement-audit`; `npm run verify:c
 
 | Repository | Current pushed head | Current role in audit |
 |---|---|---|
-| orders-microservice | `d24eedd docs: align W8 Bazos owner gate` | canonical lifecycle, verifier, and aggregation owner |
+| orders-microservice | self-verifying current `HEAD`; consumed pre-audit evidence head `d24eedd docs: align W8 Bazos owner gate` | canonical lifecycle, verifier, and aggregation owner |
 | warehouse-microservice | `a259309 Add warehouse business health contract` | stock/reservation/fulfillment owner |
 | flipflop | `281e2f4 docs: refresh W6B auth-subject smoke artifact` | service-scoped buyer/admin lifecycle and action-admin evidence |
 | bazos | `1a41e73 docs: align W8 intake with orders gate` | bounded customer/admin lifecycle proof and W8 owner-decision intake |

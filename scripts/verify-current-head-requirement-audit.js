@@ -44,8 +44,8 @@ for (const marker of ipsMarkers) {
   includes(report, marker, 'current head audit report IPS chain');
 }
 
+const ordersRepoPath = '/home/ssf/Documents/Github/orders-microservice';
 const repos = {
-  'orders-microservice': { path: '/home/ssf/Documents/Github/orders-microservice', head: 'd24eedd docs: align W8 Bazos owner gate' },
   'warehouse-microservice': { path: '/home/ssf/Documents/Github/warehouse-microservice', head: 'a259309 Add warehouse business health contract' },
   flipflop: { path: '/home/ssf/Documents/Github/flipflop', head: '281e2f4 docs: refresh W6B auth-subject smoke artifact' },
   bazos: { path: '/home/ssf/Documents/Github/bazos', head: '1a41e73 docs: align W8 intake with orders gate' },
@@ -61,7 +61,20 @@ const allowedOrdersDirty = new Set([
   '?? docs/orchestrator/2026-07-06-current-head-requirement-audit.md',
   '?? reports/validation/VAL-W7-current-head-requirement-audit-2026-07-06.md',
   '?? scripts/verify-current-head-requirement-audit.js',
+  'M docs/orchestrator/2026-07-06-current-head-requirement-audit.md',
+  'M reports/validation/VAL-W7-current-head-requirement-audit-2026-07-06.md',
+  'M scripts/verify-current-head-requirement-audit.js',
 ]);
+
+includes(doc, 'self-verifying current `HEAD`; consumed pre-audit evidence head `d24eedd docs: align W8 Bazos owner gate`', 'orders self-verifying head marker');
+includes(report, 'self-verifying current `HEAD`; consumed pre-audit evidence head `d24eedd docs: align W8 Bazos owner gate`', 'orders report self-verifying head marker');
+{
+  const statusText = gitStatus(ordersRepoPath);
+  assert.equal(statusText.startsWith('## main...origin/main'), true, 'orders-microservice not synced to origin/main');
+  const dirtyLines = statusText.split('\n').slice(1).map((line) => line.trim()).filter(Boolean);
+  const unexpected = dirtyLines.filter((line) => !allowedOrdersDirty.has(line));
+  assert.equal(unexpected.length, 0, `orders-microservice has unexpected dirty worktree entries: ${unexpected.join('; ')}`);
+}
 
 for (const [repo, cfg] of Object.entries(repos)) {
   includes(doc, cfg.head, `${repo} documented head`);
@@ -70,12 +83,7 @@ for (const [repo, cfg] of Object.entries(repos)) {
   const statusText = gitStatus(cfg.path);
   assert.equal(statusText.startsWith('## main...origin/main'), true, `${repo} not synced to origin/main`);
   const dirtyLines = statusText.split('\n').slice(1).map((line) => line.trim()).filter(Boolean);
-  if (repo === 'orders-microservice') {
-    const unexpected = dirtyLines.filter((line) => !allowedOrdersDirty.has(line));
-    assert.equal(unexpected.length, 0, `${repo} has unexpected dirty worktree entries: ${unexpected.join('; ')}`);
-  } else {
-    assert.equal(dirtyLines.length, 0, `${repo} has dirty worktree: ${dirtyLines.join('; ')}`);
-  }
+  assert.equal(dirtyLines.length, 0, `${repo} has dirty worktree: ${dirtyLines.join('; ')}`);
 }
 
 const requirementMarkers = [
@@ -162,7 +170,7 @@ const result = {
   verifier: 'orders-current-head-requirement-audit.v1',
   requiredImplementation: 'complete',
   remainingWork: 'owner_product_gated_optional_proof_or_exact_runtime_packets',
-  reposVerified: Object.keys(repos).length,
+  reposVerified: Object.keys(repos).length + 1,
   mutation: false,
   providerCall: false,
   deploy: false,
