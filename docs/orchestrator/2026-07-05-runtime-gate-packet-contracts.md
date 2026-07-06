@@ -87,24 +87,27 @@ Abort if required natural proof has no approved session, if only anonymous/publi
 
 ## W6B FlipFlop Route-To-Orders Admin Action Packet
 
-Status: [MISSING: approved live action-admin session packet].
+Status: [RESOLVED/NARROWED: FlipFlop W6B central action authority is runtime-complete; future natural human/admin browser proof remains optional/product-gated and does not reopen W6B action authority].
 
-Required non-secret fields:
+Current evidence:
 
-- Approved Auth-backed actor/session carrying global:superadmin or internal:orders-microservice:action-admin for Orders.
-- Auth actor/role mapping from FlipFlop admin session to Orders action actor.
-- Exact central Orders target id hash and local FlipFlop order correlation hash.
-- Requested lifecycle status and whether it is a forward status or cancellation.
-- Orders idempotency key and replay policy for channel action attempts.
-- For cancellation: approval.approved=true, approval.approvalType=human, safe reasonCode, and sideEffectsHandled.payment|warehouse|notification|crm|channel=true acknowledgements.
-- Response/readback contract for FlipFlop admin UI after central correction command.
-- Fail-closed expectation when action-admin authority is absent.
+- FlipFlop central-owned status actions route to Orders POST /api/admin/operations/actions/order-status.
+- Auth action-admin role/token projection is proven through Auth/Vault/ExternalSecret evidence.
+- Guarded create/read/cancel smoke passed with create 201, read 200, cleanup 200, blockers empty, providerCall=false, and no raw token/order/customer/payment output.
+- Local FlipFlop lifecycle/payment writes remain fail-closed for central-owned orders.
 
-Abort if the actor lacks action-admin authority, if payment/refund/provider correction is attempted through the status action, if cancellation side-effect acknowledgements are incomplete, or if FlipFlop would fall back to local Prisma lifecycle/payment writes.
+Resolved non-secret fields:
+
+- Auth actor/role mapping is resolved: Auth-backed actor role includes internal:orders-microservice:action-admin for Orders action authority.
+- Route-to-Orders action mapping and response/readback boundary are recorded in W7 final integration evidence.
+- Orders idempotency key and replay policy remain enforced for future cancellation/correction lanes. sideEffectsHandled.payment|warehouse|notification|crm|channel=true remains required for any future cancellation/correction packet.
+- Payment/refund/provider correction remains outside W6B and is governed by the W9 exact-runtime-packet gate.
+
+Abort any future action if the actor lacks action-admin authority, if payment/refund/provider correction is attempted through the status action, if cancellation side-effect acknowledgements are incomplete, or if FlipFlop would fall back to local Prisma lifecycle/payment writes.
 
 ## W8 Bazos Provider-Backed Proof Packet
 
-Status: [MISSING: approved provider-backed non-secret fixture or live provider smoke packet] and [UNKNOWN: live Bazos marketplace webhook support].
+Status: [MISSING: Bazos owner must select exactly one allowed product decision option]; [MISSING: approved provider-backed non-secret fixture or live provider smoke packet] and [UNKNOWN: live Bazos marketplace webhook support].
 
 Required non-secret fields:
 
