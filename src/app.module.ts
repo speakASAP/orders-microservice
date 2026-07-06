@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtRolesGuard } from './auth/jwt-roles.guard';
 import { AdminModule } from './admin/admin.module';
 import { LandingModule } from './landing/landing.module';
+import { BusinessHealthModule } from './business-health/business-health.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { LandingModule } from './landing/landing.module';
     ShipmentsModule,
     PricingModule,
     AdminModule,
+    BusinessHealthModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtRolesGuard },

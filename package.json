@@ -62,7 +62,8 @@
     "verify:w5-aukro-heureka-current-gate": "python3 scripts/verify-w5-aukro-heureka-current-gate.py",
     "verify:w8-bazos-product-decision-packet": "node scripts/verify-w8-bazos-product-decision-packet.js",
     "verify:current-owner-decision-queue": "node scripts/verify-current-owner-decision-queue.js",
-    "verify:current-head-requirement-audit": "node scripts/verify-current-head-requirement-audit.js"
+    "verify:current-head-requirement-audit": "node scripts/verify-current-head-requirement-audit.js",
+    "verify:business-health-orders-reservation-contract": "node scripts/verify-business-health-orders-reservation-contract.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
