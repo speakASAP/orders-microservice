@@ -80,7 +80,7 @@ const smokeMarkers = [
 for (const marker of smokeMarkers) assertIncludes(smoke, marker, 'smoke script gate/readback');
 
 assertIncludes(contract, '## W1/W2 Live Synthetic Create Pay Warehouse Read Packet', 'runtime gate contract');
-assertIncludes(contract, '[MISSING: approved W1/W2 live synthetic lifecycle packet]', 'runtime gate contract still preserves source gate');
+assertIncludes(contract, '[RESOLVED: W1/W2 live buyer-bound synthetic lifecycle packet executed and verified]', 'runtime gate contract W1/W2 resolved gate');
 assertIncludes(report, 'status: packet_prepared_not_executed', 'preparation report');
 assertIncludes(report, 'mutation: false', 'preparation report boundary');
 assertIncludes(report, 'tokenValuesReadOrPrinted: false', 'preparation report boundary');

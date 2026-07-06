@@ -3,27 +3,27 @@
 status: source-contract-runtime-gated
 created_at: 2026-07-05
 owner: orders-lifecycle-orchestrator
-scope: W1/W2 live synthetic smoke, W3-W5 row-level cabinet smoke, W6B FlipFlop action smoke, W8 Bazos provider proof
+scope: W1/W2 live buyer-bound synthetic proof, W3-W5 row-level cabinet smoke, W6B FlipFlop action smoke, W8 Bazos provider proof
 
 ## Intent Preservation Chain
 
 Vision -> Every sellable order is error-free and every buyer/admin surface reflects canonical Orders lifecycle.
 
-Goal Impact -> Remaining runtime gates are explicit, reviewable, and machine-checkable before any live order, Warehouse, provider, or customer/admin session proof is attempted.
+Goal Impact -> W1/W2 live buyer-bound proof is resolved, and remaining runtime gates stay explicit, reviewable, and machine-checkable before any further Warehouse, provider, action-admin, or marketplace row-level proof is attempted.
 
 System -> Orders owns canonical lifecycle and runtime proof gates. Warehouse owns stock, reservation, fulfillment, and delivery status transitions. Marketplaces own channel UI/readback only. Auth owns session and role evidence. Providers own external marketplace/shipment facts.
 
 Feature -> Runtime packet contract for gated order lifecycle proof lanes.
 
-Task -> Convert open [MISSING: ...] blockers into exact packet shapes without supplying tokens, customer rows, provider payloads, or mutation approval.
+Task -> Record the resolved W1/W2 packet and keep open [MISSING: ...] blockers as exact packet shapes without supplying tokens, customer rows, provider payloads, or unapproved mutation authority.
 
 Execution Plan -> Keep this document source-only, require non-secret redacted inputs, forbid raw sensitive values, and validate that every live lane has a packet boundary before execution.
 
 Coding Prompt -> Do not run live mutation from this document. Do not print or persist bearer tokens, raw customer/order/payment/provider/tracking payloads, raw IDs, raw DB rows, or screenshots. Use hashes, route names, booleans, status codes, and redacted IDs only.
 
-Code -> scripts/verify-runtime-gate-packets.js, package script verify:runtime-gate-packets, and this contract.
+Code -> scripts/verify-runtime-gate-packets.js, scripts/verify-w1w2-live-buyer-bound-proof.js, package scripts verify:runtime-gate-packets and verify:w1w2-live-buyer-bound-proof, and this contract.
 
-Validation -> npm run verify:runtime-gate-packets; git diff --check.
+Validation -> npm run verify:w1w2-live-buyer-bound-proof; npm run verify:runtime-gate-packets; git diff --check.
 
 ## Global Packet Rules
 
@@ -44,22 +44,28 @@ A packet is not sufficient if it only says approved without target, actor, idemp
 
 ## W1/W2 Live Synthetic Create Pay Warehouse Read Packet
 
-Status: [MISSING: approved W1/W2 live synthetic lifecycle packet].
+Status: [RESOLVED: W1/W2 live buyer-bound synthetic lifecycle packet executed and verified].
 
-Required non-secret fields:
+Evidence:
 
-- RUN_LIVE_LIFECYCLE_MUTATION_SMOKE=1 approval reference.
-- LIFECYCLE_MUTATION_SMOKE_APPROVAL_ID safe approval id.
-- LIFECYCLE_MUTATION_SMOKE_CONFIRM=CREATE_PAY_WAREHOUSE_READ confirmation.
-- Synthetic channel and customer subject policy.
-- Warehouse-owned product/warehouse target criteria and max quantity.
-- Payment status transition policy and provider boundary: no real provider money movement unless separately approved.
-- Warehouse fulfillment transition target and rollback/no-rollback expectation.
-- Customer/admin lifecycle readback boundary.
-- Idempotency key policy and replay expectation.
-- Cleanup/no-cleanup rule for Orders, Warehouse, channel, notifications, and CRM.
+- `reports/validation/VAL-W7-W1W2-live-buyer-bound-proof-2026-07-05.md`
+- `reports/validation/lifecycle-mutation-smoke/VAL-W1W2-buyer-bound-runtime-proof-2026-07-05.json`
+- `reports/validation/lifecycle-mutation-smoke/report-subject-bound-latest.json`
+- `npm run verify:w1w2-live-buyer-bound-proof`
 
-Abort if any of these are missing, if target stock ownership is unknown, if a provider payment would move money, or if the packet would require raw token/customer/order/payment output.
+Resolved non-secret fields:
+
+- Owner approval was supplied in-thread for the bounded synthetic run.
+- Confirmation used buyer-bound create/pay/Warehouse/customer/admin readback semantics.
+- Synthetic channel was `flipflop`; buyer subject, order id, product id, warehouse id, and actor are recorded only as hashes.
+- Warehouse-owned stock row was selected with positive availability; max quantity was one item.
+- Payment transition was internal Orders/Payments status only; no real provider money movement occurred.
+- Warehouse fulfillment transition to collecting returned HTTP 200.
+- Customer and admin lifecycle readback returned HTTP 200 and both saw `warehouse_collecting`.
+- Token values, decoded JWT, raw order rows, raw customer output, provider payloads, screenshots, and raw IDs were not printed.
+- Cleanup/no-cleanup remains unresolved for the synthetic evidence row: [MISSING: cleanup route/policy for synthetic lifecycle smoke rows].
+
+The resolved packet does not authorize replay, cleanup, provider calls, real payment movement, or future live mutation. Abort any future replay or cleanup unless a new packet names target hashes, actor, idempotency, side effects, and readback boundary without raw sensitive output.
 
 ## W3-W5 Marketplace Row-Level Cabinet Packet
 

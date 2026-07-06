@@ -1,6 +1,6 @@
 # W7 Runtime Packet Blocked Audit
 
-status: blocked-awaiting-approved-runtime-packet
+status: superseded-w1w2-proven-remaining-runtime-packets-gated
 created_at: 2026-07-05
 owner: orders-lifecycle-orchestrator
 scope: orders-microservice, warehouse-microservice, bazos, flipflop, allegro, aukro, heureka
@@ -9,7 +9,7 @@ scope: orders-microservice, warehouse-microservice, bazos, flipflop, allegro, au
 
 Vision -> Every sellable order is error-free: stock is checked and reserved on order creation, paid orders are handed to Warehouse, and every buyer/admin surface reflects canonical Orders lifecycle.
 
-Goal Impact -> The remaining work is no longer an autonomous source implementation gap. It is blocked on externally supplied runtime packets, bearer/session approvals, provider facts, or product decisions.
+Goal Impact -> W1/W2 is no longer blocked: live buyer-bound proof is recorded. Remaining work is not an autonomous source implementation gap; it is blocked on externally supplied marketplace/provider/action/fulfillment packets, bearer/session approvals, provider facts, or product decisions.
 
 System -> Orders owns canonical lifecycle and runtime gate contracts. Warehouse owns fulfillment/stock mutation. Marketplaces own local cabinet/provider proof. Auth owns bearer/session role evidence. Providers own external webhook/shipment facts.
 
@@ -29,7 +29,7 @@ Validation -> npm run verify:runtime-gate-packets; npm run verify:completion-aud
 
 | Repo | Head | Evidence |
 |---|---:|---|
-| orders-microservice | 7bc8af8 | Runtime gate handoff aggregation and central packet contract. |
+| orders-microservice | 9fa2584 | W1/W2 live buyer-bound proof verifier plus runtime gate handoff aggregation and central packet contract. |
 | warehouse-microservice | 394451e | Warehouse runtime gate packet handoff. |
 | bazos | c6b1263 | Bazos provider runtime gate packet handoff. |
 | flipflop | 6869b31 | FlipFlop action-admin runtime gate packet handoff. |
@@ -42,8 +42,8 @@ Validation -> npm run verify:runtime-gate-packets; npm run verify:completion-aud
 | Requirement | Current evidence | Verdict |
 |---|---|---|
 | Document target business process | Master plan, final integration report, runtime packet contract | complete source-side |
-| Verify Orders create contract, stock reservation, totals, delivery cost/address | W1 Orders verifiers and completion audit | source-verified; live mutation packet gated |
-| Verify paid-to-Warehouse fulfillment handoff | W1/W2 reports and verifiers | source-verified; live Warehouse transition packet gated |
+| Verify Orders create contract, stock reservation, totals, delivery cost/address | W1/W2 live buyer-bound proof and completion audit | live buyer-bound proven for approved synthetic lane |
+| Verify paid-to-Warehouse fulfillment handoff | W1/W2 live buyer-bound proof and verifiers | live synthetic Warehouse fulfillment transition proven; further Warehouse runtime packets remain gated |
 | Standard lifecycle model across services | Orders lifecycle/read-model verifiers and marketplace UI verifiers | source-verified |
 | Buyer/admin cabinets render lifecycle/status | Allegro, Bazos, Aukro, Heureka, FlipFlop source/runtime-presence proofs | source/bounded verified; row-level natural proof packet gated |
 | Admin statistics/order delivery views | Orders product statistics proof plus marketplace admin proof reports | source-verified; live row-level session gated |
@@ -55,7 +55,7 @@ Validation -> npm run verify:runtime-gate-packets; npm run verify:completion-aud
 
 The same external blocking condition has repeated across the latest orchestration turns and is now fully source-scoped:
 
-- [MISSING: approved W1/W2 live synthetic lifecycle packet]
+- [RESOLVED: W1/W2 live buyer-bound synthetic lifecycle packet executed and verified]
 - [MISSING: approved Warehouse fulfillment runtime packet]
 - [MISSING: approved buyer/admin bearer/session packets]
 - [MISSING: approved live action-admin session packet]
@@ -66,13 +66,13 @@ These are not source-code tasks. They require owner-provided approvals, bearer/s
 
 ## Why Autonomous Work Stops Here
 
-Continuing without a packet would require at least one forbidden action: inventing provider support, inventing bearer/session authority, selecting live customer/order/provider targets without approval, mutating Orders/Warehouse state, or asserting row-level proof from anonymous/public-shell evidence.
+Continuing beyond W1/W2 without a packet would require at least one forbidden action: inventing provider support, inventing bearer/session authority, selecting live marketplace customer/order/provider targets without approval, mutating Warehouse/action-admin state without a target packet, or asserting row-level proof from anonymous/public-shell evidence.
 
 The central packet contract at `docs/orchestrator/2026-07-05-runtime-gate-packet-contracts.md` defines the exact packet shape needed to resume safely. All dependent repos now carry local handoff docs pointing back to that contract.
 
 ## Boundary
 
-No deploy, live order mutation, payment mutation, Warehouse stock/fulfillment mutation, provider call, DB read/write, browser session capture, token output, raw customer/order/payment/provider/tracking output, raw DB row output, or screenshot capture occurred in this blocked audit.
+This audit is superseded for W1/W2 by the approved live buyer-bound proof. No deploy, provider call, DB read/write, browser session capture, token output, raw customer/order/payment/provider/tracking output, raw DB row output, or screenshot capture occurred in this audit update.
 
 ## Resume Condition
 
@@ -81,5 +81,4 @@ Resume with one concrete approved packet from the central runtime gate contract.
 - W6B FlipFlop action-admin packet.
 - W8 Bazos provider decision/fixture packet.
 - Warehouse callback runtime packet.
-- W1/W2 synthetic create/pay/Warehouse/read packet.
 - W3-W5 marketplace row-level buyer/admin session packet.
