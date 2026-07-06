@@ -54,7 +54,7 @@ const packetMarkers = [
   'Warehouse fulfillment update HTTP status is `200`',
   'customer lifecycle read HTTP status is `200`',
   'admin lifecycle read HTTP status is `200`',
-  '[MISSING: cleanup route/policy for synthetic lifecycle smoke rows]',
+  '[RESOLVED/NARROWED: cleanup route/policy for W1/W2 synthetic lifecycle rows is defined as fail-closed Orders-owned cleanup decision packet; live retention or cancellation remains blocked until current redacted readback and owner side-effect acknowledgements exist]',
   '[MISSING: final operator decision to run the live W1/W2 smoke with all three env gates]',
   '[UNKNOWN: current runtime stock state for the default synthetic product until execution-time preflight]',
   'raw bearer tokens or secret values',

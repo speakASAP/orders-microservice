@@ -17,8 +17,8 @@ Feature -> W1/W2 live buyer-bound create/reserve/pay/Warehouse/customer/admin re
 Task -> Consume the approved buyer-bound smoke report and preserve redaction, subject-bound ownership, and no-provider/no-money boundaries.
 Execution Plan -> Verify the latest redacted smoke report has successful create, reservation, payment, Warehouse fulfillment, customer lifecycle, and admin lifecycle assertions.
 Coding Prompt -> Do not expose tokens, raw order ids, raw buyer subjects, raw rows, customer/payment/provider/tracking payloads, screenshots, or session material.
-Code -> scripts/verify-w1w2-live-buyer-bound-proof.js, this report, W1 report addendum, package script, STATUS and IMPLEMENTATION_STATE entries.
-Validation -> npm run verify:w1w2-live-buyer-bound-proof; npm run verify:w1w2-runtime-packet; npm run verify:runtime-gate-packets; npm run verify:completion-audit; git diff --check.
+Code -> scripts/verify-w1w2-live-buyer-bound-proof.js, this report, W1 report addendum, cleanup policy packet/verifier, package script, STATUS and IMPLEMENTATION_STATE entries.
+Validation -> npm run verify:w1w2-live-buyer-bound-proof; npm run verify:w1w2-runtime-packet; npm run verify:w1w2-cleanup-policy; npm run verify:runtime-gate-packets; npm run verify:completion-audit; git diff --check.
 
 ## Sanitized Result
 
@@ -73,5 +73,5 @@ W1/W2 is proven for the approved synthetic lane: order creation, Warehouse reser
 
 ## Remaining Gate
 
-- `[MISSING: cleanup route/policy for synthetic lifecycle smoke rows]`.
+- W1/W2 cleanup route/policy is source-defined by `docs/orchestrator/2026-07-06-w1w2-synthetic-cleanup-policy-packet.md`: `[RESOLVED/NARROWED: cleanup route/policy for W1/W2 synthetic lifecycle rows is defined as fail-closed Orders-owned cleanup decision packet; live retention or cancellation remains blocked until current redacted readback and owner side-effect acknowledgements exist]`. Runtime cleanup or explicit retention remains blocked by `[MISSING: approved W1/W2 cleanup mutation or retention packet naming exact target hashes and actor]`, `[MISSING: current Orders lifecycle/payment/fulfillment readback before cleanup decision]`, `[MISSING: Warehouse reservation lookup via GET /api/reservations/order/:orderId before cleanup decision]`, `[MISSING: sideEffectsHandled.payment|warehouse|notification|crm|channel acknowledgements before cancellation cleanup]`, and `[MISSING: explicit owner decision to retain the paid synthetic evidence row if no cleanup mutation is chosen]`.
 - W3-W5 natural row-level marketplace cabinet proofs remain separately auth/session-gated where no approved customer/admin session packet exists.

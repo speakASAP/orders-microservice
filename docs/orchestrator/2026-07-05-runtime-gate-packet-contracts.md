@@ -21,9 +21,9 @@ Execution Plan -> Keep this document source-only, require non-secret redacted in
 
 Coding Prompt -> Do not run live mutation from this document. Do not print or persist bearer tokens, raw customer/order/payment/provider/tracking payloads, raw IDs, raw DB rows, or screenshots. Use hashes, route names, booleans, status codes, and redacted IDs only.
 
-Code -> scripts/verify-runtime-gate-packets.js, scripts/verify-w1w2-live-buyer-bound-proof.js, package scripts verify:runtime-gate-packets and verify:w1w2-live-buyer-bound-proof, and this contract.
+Code -> scripts/verify-runtime-gate-packets.js, scripts/verify-w1w2-live-buyer-bound-proof.js, scripts/verify-w1w2-synthetic-cleanup-policy.js, package scripts verify:runtime-gate-packets, verify:w1w2-live-buyer-bound-proof, verify:w1w2-cleanup-policy, and this contract.
 
-Validation -> npm run verify:w1w2-live-buyer-bound-proof; npm run verify:runtime-gate-packets; git diff --check.
+Validation -> npm run verify:w1w2-live-buyer-bound-proof; npm run verify:w1w2-cleanup-policy; npm run verify:runtime-gate-packets; git diff --check.
 
 ## Global Packet Rules
 
@@ -63,9 +63,9 @@ Resolved non-secret fields:
 - Warehouse fulfillment transition to collecting returned HTTP 200.
 - Customer and admin lifecycle readback returned HTTP 200 and both saw `warehouse_collecting`.
 - Token values, decoded JWT, raw order rows, raw customer output, provider payloads, screenshots, and raw IDs were not printed.
-- Cleanup/no-cleanup remains unresolved for the synthetic evidence row: [MISSING: cleanup route/policy for synthetic lifecycle smoke rows].
+- Cleanup route/policy is source-defined in `docs/orchestrator/2026-07-06-w1w2-synthetic-cleanup-policy-packet.md`: [RESOLVED/NARROWED: cleanup route/policy for W1/W2 synthetic lifecycle rows is defined as fail-closed Orders-owned cleanup decision packet; live retention or cancellation remains blocked until current redacted readback and owner side-effect acknowledgements exist].
 
-The resolved packet does not authorize replay, cleanup, provider calls, real payment movement, or future live mutation. Abort any future replay or cleanup unless a new packet names target hashes, actor, idempotency, side effects, and readback boundary without raw sensitive output.
+The resolved W1/W2 proof does not authorize replay, cleanup, provider calls, real payment movement, or future live mutation. Abort any future replay, cleanup, or retention decision unless a new packet names target hashes, actor, idempotency, side effects, current Orders/Warehouse readback, and redacted post-action boundary without raw sensitive output.
 
 ## W3-W5 Marketplace Row-Level Cabinet Packet
 

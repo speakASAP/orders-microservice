@@ -29,7 +29,7 @@ Coding Prompt -> Do not print or persist bearer tokens, raw order ids, raw custo
 
 Code -> `scripts/smoke-lifecycle-mutation-propagation.js`, `scripts/verify-w1w2-runtime-packet.js`, this packet, and `package.json` script `verify:w1w2-runtime-packet`.
 
-Validation -> `npm run verify:w1w2-runtime-packet`; `npm run verify:runtime-gate-packets`; `npm run verify:completion-audit`; `git diff --check`.
+Validation -> `npm run verify:w1w2-runtime-packet`; `npm run verify:w1w2-cleanup-policy`; `npm run verify:runtime-gate-packets`; `npm run verify:completion-audit`; `git diff --check`.
 
 ## Runtime Gate Values
 
@@ -85,7 +85,7 @@ Expected if the live smoke is explicitly executed later:
 
 No external provider money movement, marketplace provider write, notification send, CRM mutation, manual DB write, deploy, migration, or browser session capture is authorized by this packet.
 
-Cleanup policy: no automatic cleanup route is defined in the current smoke script. The synthetic order remains as redacted runtime evidence if the smoke is executed. Any later cleanup requires a separate owner-approved cleanup packet. `[MISSING: cleanup route/policy for synthetic lifecycle smoke rows]`.
+Cleanup policy packet: `docs/orchestrator/2026-07-06-w1w2-synthetic-cleanup-policy-packet.md`. `[RESOLVED/NARROWED: cleanup route/policy for W1/W2 synthetic lifecycle rows is defined as fail-closed Orders-owned cleanup decision packet; live retention or cancellation remains blocked until current redacted readback and owner side-effect acknowledgements exist]`. The synthetic order remains redacted runtime evidence unless a future owner-approved cleanup or retention packet supplies target hashes, actor, Orders/Warehouse readback, side-effect acknowledgements, idempotency/replay policy, and redacted post-action evidence.
 
 ## Readback
 
@@ -135,7 +135,7 @@ Abort before live execution if any condition is true:
 ## Remaining Gates
 
 - `[MISSING: final operator decision to run the live W1/W2 smoke with all three env gates]`.
-- `[MISSING: cleanup route/policy for synthetic lifecycle smoke rows]`.
+- `[RESOLVED/NARROWED: cleanup route/policy for W1/W2 synthetic lifecycle rows is defined as fail-closed Orders-owned cleanup decision packet; live retention or cancellation remains blocked until current redacted readback and owner side-effect acknowledgements exist]`.
 - `[UNKNOWN: current runtime stock state for the default synthetic product until execution-time preflight]`.
 
 ## Execution Command Template
