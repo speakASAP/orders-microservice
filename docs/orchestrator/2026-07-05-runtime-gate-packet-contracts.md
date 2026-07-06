@@ -107,7 +107,7 @@ Abort any future action if the actor lacks action-admin authority, if payment/re
 
 ## W8 Bazos Provider-Backed Proof Packet
 
-Status: [MISSING: Bazos owner must select exactly one allowed product decision option]; [UNKNOWN: live Bazos marketplace webhook support]. Provider-backed fixture/live smoke evidence is required only if the selected owner option is `provider_backed_supported`.
+Status: selected_scope_only=`bounded_synthetic_accepted_for_now`; provider-backed proof intentionally unclaimed; [UNKNOWN: live Bazos marketplace webhook support]. Provider-backed fixture/live smoke evidence is required only if the selected owner option is `provider_backed_supported`.
 
 Allowed owner decision options:
 
@@ -127,7 +127,7 @@ Required non-secret fields if `provider_backed_supported` is selected:
 
 Scope-only decision outcomes `provider_backed_not_supported`, `provider_backed_out_of_scope`, or `bounded_synthetic_accepted_for_now` do not prove provider-backed lifecycle support and must keep provider-backed proof unclaimed.
 
-Abort if no owner decision option is selected, if `provider_backed_supported` is selected without provider/item/Warehouse evidence, if scope-only options are relabeled as provider-backed proof, or if the proof requires raw provider payload output. Product decision intake packet: `docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md`. [RESOLVED/NARROWED: W8 Bazos product decision intake packet is source-defined; real provider-backed Bazos lifecycle remains blocked until an owner selects one allowed decision option and supplies the required non-secret evidence]
+Abort if scope changes to `provider_backed_supported` without provider/item/Warehouse evidence, if scope-only options are relabeled as provider-backed proof, or if the proof requires raw provider payload output. Product decision intake packet: `docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md`. [RESOLVED/NARROWED: W8 Bazos scope decision is recorded as `bounded_synthetic_accepted_for_now` for the current release; provider-backed Bazos lifecycle remains explicitly unclaimed and future-product-gated until non-secret evidence exists]
 
 ## Warehouse Callback Runtime Packet
 

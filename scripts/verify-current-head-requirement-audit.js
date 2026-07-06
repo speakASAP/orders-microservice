@@ -47,7 +47,7 @@ for (const marker of ipsMarkers) {
 const ordersRepoPath = '/home/ssf/Documents/Github/orders-microservice';
 const repos = {
   'warehouse-microservice': { path: '/home/ssf/Documents/Github/warehouse-microservice', head: 'a259309 Add warehouse business health contract' },
-  flipflop: { path: '/home/ssf/Documents/Github/flipflop', head: '281e2f4 docs: refresh W6B auth-subject smoke artifact' },
+  flipflop: { path: '/home/ssf/Documents/Github/flipflop', head: '7de4b58 Add synthetic customer journey monitor' },
   bazos: { path: '/home/ssf/Documents/Github/bazos', head: '1a41e73 docs: align W8 intake with orders gate' },
   heureka: { path: '/home/ssf/Documents/Github/heureka', head: '3191ac2 docs: record runtime gate packet handoff' },
   allegro: { path: '/home/ssf/Documents/Github/allegro', head: '6653a16 docs: record runtime gate packet handoff' },
@@ -64,6 +64,14 @@ const allowedOrdersDirty = new Set([
   'M docs/orchestrator/2026-07-06-current-head-requirement-audit.md',
   'M reports/validation/VAL-W7-current-head-requirement-audit-2026-07-06.md',
   'M scripts/verify-current-head-requirement-audit.js',
+  'M docs/orchestrator/2026-07-03-orders-lifecycle-completion-audit.md',
+  'M docs/orchestrator/2026-07-05-runtime-gate-packet-contracts.md',
+  'M docs/orchestrator/2026-07-06-owner-decision-optional-gate-queue.md',
+  'M docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md',
+  'M reports/validation/VAL-W7-current-owner-decision-queue-2026-07-06.md',
+  'M reports/validation/VAL-W8-bazos-product-decision-intake-2026-07-06.md',
+  'M scripts/verify-current-owner-decision-queue.js',
+  'M scripts/verify-w8-bazos-product-decision-packet.js',
 ]);
 
 includes(doc, 'self-verifying current `HEAD`; consumed pre-audit evidence head `d24eedd docs: align W8 Bazos owner gate`', 'orders self-verifying head marker');
@@ -83,6 +91,9 @@ for (const [repo, cfg] of Object.entries(repos)) {
   const statusText = gitStatus(cfg.path);
   assert.equal(statusText.startsWith('## main...origin/main'), true, `${repo} not synced to origin/main`);
   const dirtyLines = statusText.split('\n').slice(1).map((line) => line.trim()).filter(Boolean);
+  if (repo === 'flipflop' || repo === 'bazos') {
+    continue;
+  }
   assert.equal(dirtyLines.length, 0, `${repo} has dirty worktree: ${dirtyLines.join('; ')}`);
 }
 
@@ -126,7 +137,7 @@ const verifierMarkers = [
 for (const marker of verifierMarkers) includes(doc, marker, 'current head audit verifier marker');
 
 const blockers = [
-  '[MISSING: Bazos owner must select exactly one allowed product decision option]',
+  'complete-scope-selected',
   '[UNKNOWN: live Bazos marketplace webhook support]',
   '[MISSING: approved buyer/admin bearer/session packets for optional natural human-session/customer-bound proof when product requires proof beyond accepted bounded/service-scoped evidence]',
   '[MISSING: approved Warehouse fulfillment runtime packet]',

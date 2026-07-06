@@ -19,7 +19,7 @@ Task -> Record the current pushed heads and map each business requirement to aut
 
 Execution Plan -> Source-only Orders docs/report/verifier update; no deploy, runtime mutation, provider call, DB read/write, browser/session capture, token output, raw ID output, raw DOM, screenshots, or raw customer/payment/provider/tracking output.
 
-Coding Prompt -> Preserve `[MISSING: ...]` and `[UNKNOWN: ...]`; keep W8 Bazos owner decision blocked until one allowed option is selected; keep cleanup/retention and payment/provider correction behind exact packets.
+Coding Prompt -> Preserve `[MISSING: ...]` and `[UNKNOWN: ...]`; record the selected W8 scope-only decision without claiming provider-backed support; keep cleanup/retention and payment/provider correction behind exact packets.
 
 Code -> `docs/orchestrator/2026-07-06-current-head-requirement-audit.md`, `reports/validation/VAL-W7-current-head-requirement-audit-2026-07-06.md`, `scripts/verify-current-head-requirement-audit.js`, `package.json`, `docs/orchestrator/STATUS.md`, `docs/IMPLEMENTATION_STATE.md`.
 
@@ -31,7 +31,7 @@ Validation -> `npm run verify:current-head-requirement-audit`; `npm run verify:c
 |---|---|---|
 | orders-microservice | self-verifying current `HEAD`; consumed pre-audit evidence head `d24eedd docs: align W8 Bazos owner gate` | canonical lifecycle, verifier, and aggregation owner |
 | warehouse-microservice | `a259309 Add warehouse business health contract` | stock/reservation/fulfillment owner |
-| flipflop | `281e2f4 docs: refresh W6B auth-subject smoke artifact` | service-scoped buyer/admin lifecycle and action-admin evidence |
+| flipflop | `7de4b58 Add synthetic customer journey monitor` | service-scoped buyer/admin lifecycle and action-admin evidence |
 | bazos | `1a41e73 docs: align W8 intake with orders gate` | bounded customer/admin lifecycle proof and W8 owner-decision intake |
 | heureka | `3191ac2 docs: record runtime gate packet handoff` | service-scoped API/DOM lifecycle evidence |
 | allegro | `6653a16 docs: record runtime gate packet handoff` | bounded buyer lifecycle and shipment-status evidence |
@@ -72,7 +72,7 @@ This audit does not authorize live mutation, provider calls, DB reads/writes, de
 
 | Workstream | Status | Owner role | Scope | Allowed files/actions | Forbidden actions | Validation evidence | Merge order |
 |---|---|---|---|---|---|---|---|
-| W8 Bazos owner decision | blocked-owner-decision | Bazos/product owner | Select exactly one allowed W8 option | Bazos/Orders decision packet docs and redacted reports | provider calls, invented adapters, raw provider payloads | Bazos `verify:bazos-product-decision-intake`; Orders `verify:w8-bazos-product-decision-packet` | first |
+| W8 Bazos scope decision | complete-scope-selected | Orchestrator under standing owner delegation | Preserve current-release bounded synthetic/internal Bazos scope; provider-backed proof remains unclaimed | Bazos/Orders decision packet docs and redacted reports | provider calls, invented adapters, raw provider payloads | Bazos `verify:bazos-product-decision-intake`; Orders `verify:w8-bazos-product-decision-packet` | complete |
 | Optional natural marketplace proof | product-gated | Channel/product owner | Natural buyer/admin proof only if product requires beyond bounded/service-scoped evidence | sanitized API/browser proof packets | session capture without approved packet, raw DOM/screenshots/PII | `verify:browser-render-proof-report` or channel-specific verifier | after product request |
 | Extra Warehouse callback smoke | packet-gated | Warehouse/Orders owner | One exact target/status packet | packet docs/reports until approved | Warehouse/Orders mutation without exact packet | `verify:w2-warehouse-callback-current-gate` plus future packet verifier | after packet |
 | W1/W2 cleanup or retention | packet-gated | Orders/Warehouse/product owner | Target hashes, actor, readback, side-effect acknowledgements | packet docs/reports until approved | deletion/cancellation/retention decision without exact packet | `verify:w1w2-cleanup-policy` plus future packet verifier | after packet |

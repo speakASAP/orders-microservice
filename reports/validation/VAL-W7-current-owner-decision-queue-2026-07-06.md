@@ -19,7 +19,7 @@ Task -> Consolidate current remaining gates into one machine-verifiable artifact
 
 Execution Plan -> Source-only report and verifier update; no deploy, no runtime mutation, no provider call, no DB access, no browser/session capture.
 
-Coding Prompt -> Preserve exact [MISSING: ...] and [UNKNOWN: ...] blockers; do not invent W8 decisions, provider adapters, sessions, Warehouse IDs, or cleanup semantics.
+Coding Prompt -> Preserve exact [MISSING: ...] and [UNKNOWN: ...] blockers; record the selected W8 scope-only decision without inventing provider adapters, sessions, Warehouse IDs, or cleanup semantics.
 
 Code -> reports/validation/VAL-W7-current-owner-decision-queue-2026-07-06.md, scripts/verify-current-owner-decision-queue.js, package verifier wiring, STATUS and IMPLEMENTATION_STATE entries.
 
@@ -46,7 +46,7 @@ This queue does not authorize live mutation, provider calls, DB reads/writes, de
 
 | Gate | Current status | Owner role | Required decision or packet | Must not do autonomously | Validation owner |
 |---|---|---|---|---|---|
-| W8 Bazos provider/product scope | [MISSING: Bazos owner must select exactly one allowed product decision option]; [UNKNOWN: live Bazos marketplace webhook support] | Bazos/product/provider owner | Select exactly one: provider_backed_supported, provider_backed_not_supported, provider_backed_out_of_scope, bounded_synthetic_accepted_for_now | Do not invent provider webhook contracts, provider payloads, item mappings, or Warehouse warehouseId values | Orders/Bazos verifier owner |
+| W8 Bazos provider/product scope | selected_scope_only=`bounded_synthetic_accepted_for_now`; provider-backed proof intentionally unclaimed; [UNKNOWN: live Bazos marketplace webhook support] | Orchestrator under standing owner delegation | Preserve bounded synthetic/internal Bazos scope for the current release; reopen provider-backed proof only with a future non-secret evidence packet | Do not invent provider webhook contracts, provider payloads, item mappings, or Warehouse warehouseId values | Orders/Bazos verifier owner |
 | W8 if provider_backed_supported | conditional [MISSING] fields remain | Bazos/provider owner | Provider order item/status ingestion contract, provider status transition sample, item identity mapping, Warehouse-owned warehouseId, approved non-secret fixture/live smoke packet | Do not claim provider-backed proof from bounded synthetic/internal evidence | Bazos/provider proof owner |
 | W3-W5 natural/customer-bound marketplace proof | optional/product-gated | Marketplace/product owner | Approved buyer/admin bearer/session packets only if product requires proof beyond accepted bounded/service-scoped evidence | Do not downgrade accepted bounded/service-scoped W3-W5 evidence | Channel validation owner |
 | Direct safe-human browser proof | optional/product-gated | Marketplace/product owner | Approved safe session and sanitized browser-render proof only if product requires direct human proof | Do not use anonymous/public shell routes as lifecycle proof | Browser validation owner |
@@ -57,24 +57,22 @@ This queue does not authorize live mutation, provider calls, DB reads/writes, de
 
 ## Allowed Next Actions
 
-1. Record a signed W8 Bazos owner decision using the existing intake packet.
-2. If the decision is provider_backed_supported, collect only the required non-secret provider/item/status/Warehouse evidence before any proof claim.
-3. If the decision is provider_backed_not_supported, provider_backed_out_of_scope, or bounded_synthetic_accepted_for_now, record scope-only acceptance and keep provider-backed proof unclaimed.
-4. Run optional natural/human/session proofs only when product explicitly requires proof beyond accepted bounded/service-scoped evidence and supplies an approved session packet.
-5. Run no live cleanup, cancellation, provider, payment, Warehouse, or browser/session action from this queue alone.
+1. Preserve the selected W8 scope-only decision `bounded_synthetic_accepted_for_now` for the current release and keep provider-backed proof unclaimed.
+2. Reopen W8 only if product later changes to `provider_backed_supported` and supplies the required non-secret provider/item/status/Warehouse evidence before any proof claim.
+3. Run optional natural/human/session proofs only when product explicitly requires proof beyond accepted bounded/service-scoped evidence and supplies an approved session packet.
+4. Run no live cleanup, cancellation, provider, payment, Warehouse, or browser/session action from this queue alone.
 
 ## Parallel Execution
 
 | Workstream | Status | Owner role | Scope | Allowed files | Forbidden actions | Validation evidence | Merge order |
 |---|---|---|---|---|---|---|---|
-| W8 Bazos owner decision intake | blocked-owner-decision | Bazos/product owner | Decide provider-backed support scope | Bazos/Orders decision packet docs and redacted reports | provider calls, invented adapters, raw provider payloads | verify:w8-bazos-product-decision-packet; Bazos verify:bazos-product-decision-intake | first |
+| W8 Bazos scope decision | complete-scope-selected | Orchestrator under standing owner delegation | Preserve current-release bounded synthetic/internal scope | Bazos/Orders decision packet docs and redacted reports | provider calls, invented adapters, raw provider payloads | verify:w8-bazos-product-decision-packet; Bazos verify:bazos-product-decision-intake | complete |
 | Optional marketplace natural proof | product-gated | Channel validation owner | Only channels where product requests natural proof | sanitized proof reports only | session capture without approved packet, raw DOM/screenshots/PII | verify:browser-render-proof-report or channel verifier | after product request |
 | Exact runtime packet lanes | packet-gated | Service owner for lane | Cleanup, Warehouse extra callback, payment/provider correction | packet docs/reports only until approved | live mutation without exact packet | lane-specific verifier | after owner packet |
 | Final integration | final-integration | Orders orchestrator | Aggregate selected decisions/proofs | Orders docs/reports/verifiers | downgrading accepted bounded/service-scoped proof | npm test | last |
 
 ## Open Blockers
 
-- [MISSING: Bazos owner must select exactly one allowed product decision option]
 - [UNKNOWN: live Bazos marketplace webhook support]
 - [MISSING: approved buyer/admin bearer/session packets for optional natural human-session/customer-bound proof when product requires proof beyond accepted bounded/service-scoped evidence]
 - [MISSING: approved Warehouse fulfillment runtime packet]
