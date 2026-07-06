@@ -104,3 +104,7 @@ Abort W8 closure if:
 ## Boundary
 
 No Bazos source edit, provider call, deploy, DB read/write, live order mutation, Warehouse mutation, payment/refund action, browser session, token output, raw ID output, raw DOM, screenshot, or raw customer/payment/provider/tracking output occurred while creating this packet.
+
+## Bazos Local Intake Evidence
+
+[RESOLVED/NARROWED: Bazos local W8 product decision intake is pushed in bazos 3abd0ab and verified by Orders; provider-backed proof still requires exactly one owner-selected decision option]. Bazos local verifier: `npm run verify:bazos-product-decision-intake`; pushed commit: `3abd0ab docs: add W8 Bazos product decision intake`. Remaining blocker: `[MISSING: Bazos owner must select exactly one allowed product decision option]`.

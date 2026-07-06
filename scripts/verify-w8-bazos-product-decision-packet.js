@@ -10,6 +10,11 @@ const currentGatePath = path.join(root, 'reports/validation/VAL-W8-bazos-provide
 const runtimePacketPath = path.join(root, 'docs/orchestrator/2026-07-05-runtime-gate-packet-contracts.md');
 const browserOrderPath = path.join(root, 'docs/orchestrator/2026-07-03-channel-browser-smoke-order.md');
 const statusPath = path.join(root, 'docs/orchestrator/STATUS.md');
+const bazosRoot = process.env.BAZOS_REPO_PATH || '/home/ssf/Documents/Github/bazos';
+const bazosPacketPath = path.join(bazosRoot, 'docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md');
+const bazosReportPath = path.join(bazosRoot, 'reports/validation/2026-07-06-W8-bazos-product-decision-intake.md');
+const bazosVerifierPath = path.join(bazosRoot, 'scripts/verify-bazos-product-decision-intake.js');
+const bazosStatePath = path.join(bazosRoot, 'docs/IMPLEMENTATION_STATE.md');
 
 function read(file) {
   assert.equal(fs.existsSync(file), true, `${path.relative(root, file)} is missing`);
@@ -28,6 +33,10 @@ const currentGate = read(currentGatePath);
 const runtimePacket = read(runtimePacketPath);
 const browserOrder = read(browserOrderPath);
 const status = read(statusPath);
+const bazosPacket = read(bazosPacketPath);
+const bazosReport = read(bazosReportPath);
+const bazosVerifier = read(bazosVerifierPath);
+const bazosState = read(bazosStatePath);
 
 const decision = '[RESOLVED/NARROWED: W8 Bazos product decision intake packet is source-defined; real provider-backed Bazos lifecycle remains blocked until an owner selects one allowed decision option and supplies the required non-secret evidence]';
 const ipsMarkers = ['Vision ->','Goal Impact ->','System ->','Feature ->','Task ->','Execution Plan ->','Coding Prompt ->','Code ->','Validation ->'];
@@ -38,11 +47,17 @@ for (const marker of ipsMarkers) {
 for (const doc of [packet, report, currentGate, runtimePacket, browserOrder, status]) {
   assertIncludes(doc, decision, 'W8 intake decision propagation');
 }
+const bazosLocalDecision = 'Bazos owner must select exactly one product decision option';
+assertIncludes(bazosPacket, bazosLocalDecision, 'Bazos W8 local decision packet');
+assertIncludes(bazosReport, '[MISSING: Bazos owner must select exactly one allowed product decision option]', 'Bazos W8 local report owner blocker');
+assertIncludes(bazosState, 'W8 Bazos product/provider decision intake packet added source-only', 'Bazos W8 implementation state propagation');
 
 const options = ['provider_backed_supported', 'provider_backed_not_supported', 'provider_backed_out_of_scope', 'bounded_synthetic_accepted_for_now'];
 for (const option of options) {
   assertIncludes(packet, option, 'W8 allowed option packet');
   assertIncludes(report, option, 'W8 allowed option report');
+  assertIncludes(bazosPacket, option, 'Bazos W8 allowed option packet');
+  assertIncludes(bazosReport, option, 'Bazos W8 allowed option report');
 }
 assertIncludes(packet, 'Any other option is invalid.', 'W8 invalid option guard');
 
@@ -73,6 +88,19 @@ for (const marker of missingMarkers) {
   assertIncludes(packet, marker, 'W8 missing marker packet');
   assertIncludes(report, marker, 'W8 missing marker report');
 }
+const bazosMissingMarkers = [
+  '[UNKNOWN: live Bazos marketplace webhook support]',
+  '[MISSING: provider-backed Bazos order item/status ingestion contract]',
+  '[MISSING: provider-backed Bazos order status transition sample]',
+  '[MISSING: provider-backed Bazos order item identity mapping sample]',
+  '[MISSING: Warehouse-owned warehouseId for provider-backed Bazos order items]',
+  '[MISSING: approved provider-backed non-secret fixture or live provider smoke packet]',
+  '[MISSING: Bazos owner must select exactly one allowed product decision option]',
+];
+for (const marker of bazosMissingMarkers) {
+  assertIncludes(bazosPacket, marker, 'Bazos W8 missing marker packet');
+  assertIncludes(bazosReport, marker, 'Bazos W8 missing marker report');
+}
 
 const abortMarkers = [
   'Provider-backed proof is claimed from synthetic/internal Bazos envelopes',
@@ -96,10 +124,14 @@ for (const marker of forbiddenClaims) {
   assertNotIncludes(report, marker, 'W8 intake report forbidden claim');
 }
 
+assertIncludes(bazosVerifier, 'verifier: "bazos-product-decision-intake.v1"', 'Bazos W8 verifier identity');
+assertIncludes(bazosVerifier, '[MISSING: Bazos owner must select exactly one allowed product decision option]', 'Bazos W8 owner decision blocker');
 const result = {
   ok: true,
   verifier: 'orders-w8-bazos-product-decision-packet.v1',
   intakePacketDefined: true,
+  bazosLocalIntakeVerified: true,
+  bazosLocalIntakeEvidence: 'bazos_docs_report_verifier_state_checked',
   providerBackedProof: 'still_product_provider_decision_gated',
   allowedOptions: options,
   mutation: false,

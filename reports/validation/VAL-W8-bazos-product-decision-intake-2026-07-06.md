@@ -58,3 +58,7 @@ No Bazos source edit, provider call, deploy, DB read/write, live order mutation,
 ## Next Action
 
 A product/provider owner must select exactly one allowed decision option and provide the required non-secret evidence fields. Until then, W8 remains product/provider-decision gated.
+
+## Bazos Local Intake Evidence
+
+[RESOLVED/NARROWED: Bazos local W8 product decision intake is pushed in bazos 3abd0ab and verified by Orders; provider-backed proof still requires exactly one owner-selected decision option]. Bazos local verifier: `npm run verify:bazos-product-decision-intake`; pushed commit: `3abd0ab docs: add W8 Bazos product decision intake`. Remaining blocker: `[MISSING: Bazos owner must select exactly one allowed product decision option]`.
