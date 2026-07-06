@@ -35,7 +35,8 @@ assertIncludes(finalReport, 'w1w2_buyer_bound_and_w6b_action_admin_runtime_prove
 assertIncludes(finalReport, 'FlipFlop W6 is runtime-complete', 'final W7 report FlipFlop resolved proof');
 assertIncludes(finalReport, 'create 201, read 200, cleanup 200', 'final W7 report FlipFlop runtime statuses');
 assertIncludes(finalReport, 'Warehouse callback runtime smoke beyond already proven W1/W2/W2 synthetic evidence', 'final W7 report Warehouse packet');
-assertIncludes(finalReport, 'Bazos provider proof: explicit decision', 'final W7 report Bazos packet');
+assertIncludes(finalReport, 'Bazos provider proof: the decision intake packet is now pushed', 'final W7 report Bazos intake packet');
+assertIncludes(finalReport, '[MISSING: Bazos owner must select exactly one allowed product decision option]', 'final W7 report Bazos owner option blocker');
 assertIncludes(finalReport, paymentProviderDecision, 'final W7 report W9 payment/provider gate');
 assertIncludes(masterPlan, 'W1/W2 live buyer-bound proof is verified by `npm run verify:w1w2-live-buyer-bound-proof`', 'master plan W1/W2 resolved gate');
 assertIncludes(masterPlan, 'FlipFlop W6 central action proof is runtime-complete in FlipFlop `df32252`', 'master plan W6 resolved gate');

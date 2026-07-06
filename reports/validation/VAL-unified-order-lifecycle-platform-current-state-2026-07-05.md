@@ -42,12 +42,16 @@ Validation -> Report presence, git diff hygiene, and current remote repo status.
 - FlipFlop direct safe-human browser proof remains optional/product-gated beyond proven service-scoped proof.
 - W1/W2 live buyer-bound synthetic create/pay/callback proof is resolved; cleanup or explicit retention remains gated by the W1/W2 cleanup policy packet.
 - W3-W5 natural human-session/customer-bound marketplace cabinet smokes remain optional/product-gated where product requires proof beyond approved bounded/service-scoped artifacts.
-- Bazos provider-backed webhook/status proof remains product/provider-packet gated: UNKNOWN live Bazos marketplace webhook support plus missing provider item/status/warehouseId fixture or explicit out-of-scope decision.
+- Bazos provider-backed webhook/status proof remains product/provider-decision gated: Bazos local W8 decision intake is pushed and Orders-verified, but no owner option is selected yet; provider proof remains blocked by `[UNKNOWN: live Bazos marketplace webhook support]`, missing provider item/status/warehouseId fixture, and `[MISSING: Bazos owner must select exactly one allowed product decision option]`.
 
 ## Next Action
 
-The next non-source gate is W8 Bazos provider/product decision packet, or an explicit product decision that provider-backed Bazos marketplace lifecycle is out of scope.
+The next non-source gate is now the W8 Bazos owner decision inside the pushed intake packet: select exactly one of `provider_backed_supported`, `provider_backed_not_supported`, `provider_backed_out_of_scope`, or `bounded_synthetic_accepted_for_now`. The intake packet itself is no longer missing.
 
 ## 2026-07-06 W5 Current Gate Reconciliation Addendum
 
 [RESOLVED/NARROWED: W5 Aukro/Heureka current gate is service-scoped API/DOM proven for central Orders lifecycle rendering; natural human-session or natural real customer-bound proof remains optional/product-gated if product requires proof beyond approved service-scoped/bounded evidence]. Historical row-level/session-gated wording in this report is superseded for Aukro/Heureka current aggregation by reports/validation/VAL-W5-aukro-heureka-current-gate-2026-07-06.md and npm run verify:w5-aukro-heureka-current-gate. Natural human-session/customer-bound proof remains optional/product-gated if product requires proof beyond approved service-scoped/bounded evidence.
+
+## 2026-07-06 W8 Bazos Local Intake Aggregation Addendum
+
+[RESOLVED/NARROWED: Bazos local W8 product decision intake is pushed in bazos 3abd0ab and verified by Orders; provider-backed proof still requires exactly one owner-selected decision option]. Remaining blocker: `[MISSING: Bazos owner must select exactly one allowed product decision option]`; provider-backed proof remains `[UNKNOWN: live Bazos marketplace webhook support]`. Orders verifier: `npm run verify:w8-bazos-product-decision-packet`; Bazos verifier: `npm run verify:bazos-product-decision-intake`. No deploy, provider call, DB read/write, live order mutation, Warehouse mutation, browser session, token output, raw ID output, raw DOM, screenshot, or raw customer/payment/provider/tracking output occurred.

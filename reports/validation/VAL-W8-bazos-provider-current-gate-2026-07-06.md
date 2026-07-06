@@ -1,6 +1,6 @@
 # W8 Bazos Provider Current Gate
 
-status: provider_product_packet_gated_not_autonomous_source_gap
+status: owner_decision_option_gated_not_autonomous_source_gap
 created_at: 2026-07-06
 repository: /home/ssf/Documents/Github/orders-microservice
 bazos_repository: /home/ssf/Documents/Github/bazos
@@ -13,7 +13,7 @@ raw_sensitive_output: forbidden
 
 Vision -> Every marketplace order lifecycle claim must distinguish central Orders lifecycle proof from real provider-backed marketplace proof.
 
-Goal Impact -> W7 can stop treating W8 Bazos as an autonomous implementation lane and keep it gated on a provider/product decision packet.
+Goal Impact -> W7 can stop treating W8 Bazos as an autonomous implementation lane; the intake packet is pushed and W8 is now gated on one owner-selected decision option.
 
 System -> Orders owns central lifecycle evidence and W7 aggregation. Bazos owns channel-local synthetic/internal ingestion, buyer/admin UI projection, and any future provider-source integration. External provider/product owners own real Bazos marketplace webhook/status semantics.
 
@@ -44,14 +44,15 @@ This does not prove real provider-backed Bazos order lifecycle support. Bounded 
 - Bazos provider verifiers require the unknown live webhook marker and reject provider-backed completion claims.
 - Bazos W4/W8 reports separate accepted central Orders UI proof from blocked provider-backed proof.
 
-## Remaining Provider Packet Fields
+## Remaining Owner Decision And Provider Fields
 
 - `[UNKNOWN: live Bazos marketplace webhook support]`.
 - `[MISSING: provider-backed Bazos order item/status ingestion contract]`.
 - `[MISSING: provider-backed Bazos order status transition sample]`.
 - `[MISSING: provider-backed Bazos order item identity mapping sample]`.
 - `[MISSING: Warehouse-owned warehouseId for provider-backed Bazos order items]`.
-- `[MISSING: approved provider-backed non-secret fixture or live provider smoke packet]`.
+- `[MISSING: approved provider-backed non-secret fixture or live provider smoke packet]` if and only if the owner selects `provider_backed_supported`.
+- `[MISSING: Bazos owner must select exactly one allowed product decision option]`.
 
 ## Boundary
 
@@ -59,4 +60,4 @@ No Bazos source edit, Orders deploy, Bazos deploy, provider call, browser sessio
 
 ## Next Action
 
-Only a provider/product owner can close W8 further by supplying either an explicit decision that Bazos has no provider-backed order lifecycle source, or a non-secret provider/status packet with item identity, Warehouse-owned `warehouseId`, status transition mapping, auth boundary, and redacted live/fixture evidence. Decision intake packet: `docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md`. [RESOLVED/NARROWED: W8 Bazos product decision intake packet is source-defined; real provider-backed Bazos lifecycle remains blocked until an owner selects one allowed decision option and supplies the required non-secret evidence]
+Only a Bazos/product owner can close W8 further by selecting exactly one allowed option: `provider_backed_supported`, `provider_backed_not_supported`, `provider_backed_out_of_scope`, or `bounded_synthetic_accepted_for_now`. Provider/status packet fields are required only for `provider_backed_supported`. Decision intake packet: `docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md`. [RESOLVED/NARROWED: W8 Bazos product decision intake packet is source-defined; real provider-backed Bazos lifecycle remains blocked until an owner selects one allowed decision option and supplies the required non-secret evidence]

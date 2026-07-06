@@ -10,6 +10,9 @@ const currentGatePath = path.join(root, 'reports/validation/VAL-W8-bazos-provide
 const runtimePacketPath = path.join(root, 'docs/orchestrator/2026-07-05-runtime-gate-packet-contracts.md');
 const browserOrderPath = path.join(root, 'docs/orchestrator/2026-07-03-channel-browser-smoke-order.md');
 const statusPath = path.join(root, 'docs/orchestrator/STATUS.md');
+const unifiedCurrentPath = path.join(root, 'reports/validation/VAL-unified-order-lifecycle-platform-current-state-2026-07-05.md');
+const finalIntegrationPath = path.join(root, 'reports/validation/VAL-W7-error-free-orders-lifecycle-final-integration-2026-07-05.md');
+const masterPlanPath = path.join(root, 'docs/orchestrator/2026-07-05-error-free-orders-lifecycle-master-plan.md');
 const bazosRoot = process.env.BAZOS_REPO_PATH || '/home/ssf/Documents/Github/bazos';
 const bazosPacketPath = path.join(bazosRoot, 'docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md');
 const bazosReportPath = path.join(bazosRoot, 'reports/validation/2026-07-06-W8-bazos-product-decision-intake.md');
@@ -33,6 +36,9 @@ const currentGate = read(currentGatePath);
 const runtimePacket = read(runtimePacketPath);
 const browserOrder = read(browserOrderPath);
 const status = read(statusPath);
+const unifiedCurrent = read(unifiedCurrentPath);
+const finalIntegration = read(finalIntegrationPath);
+const masterPlan = read(masterPlanPath);
 const bazosPacket = read(bazosPacketPath);
 const bazosReport = read(bazosReportPath);
 const bazosVerifier = read(bazosVerifierPath);
@@ -47,10 +53,19 @@ for (const marker of ipsMarkers) {
 for (const doc of [packet, report, currentGate, runtimePacket, browserOrder, status]) {
   assertIncludes(doc, decision, 'W8 intake decision propagation');
 }
+assertIncludes(currentGate, 'owner_decision_option_gated_not_autonomous_source_gap', 'W8 provider current gate owner-decision status');
+assertIncludes(currentGate, 'Provider/status packet fields are required only for `provider_backed_supported`', 'W8 provider current gate conditional provider fields');
 const bazosLocalDecision = 'Bazos owner must select exactly one product decision option';
 assertIncludes(bazosPacket, bazosLocalDecision, 'Bazos W8 local decision packet');
 assertIncludes(bazosReport, '[MISSING: Bazos owner must select exactly one allowed product decision option]', 'Bazos W8 local report owner blocker');
 assertIncludes(bazosState, 'W8 Bazos product/provider decision intake packet added source-only', 'Bazos W8 implementation state propagation');
+for (const doc of [unifiedCurrent, finalIntegration, masterPlan]) {
+  assertIncludes(doc, '[MISSING: Bazos owner must select exactly one allowed product decision option]', 'Orders W8 current-state owner blocker propagation');
+  assertIncludes(doc, '[UNKNOWN: live Bazos marketplace webhook support]', 'Orders W8 current-state unknown provider propagation');
+}
+assertIncludes(unifiedCurrent, 'The intake packet itself is no longer missing.', 'Unified current state W8 intake no longer missing');
+assertIncludes(finalIntegration, 'Consumed Bazos commit: `3abd0ab docs: add W8 Bazos product decision intake`', 'Final integration Bazos intake commit');
+assertIncludes(masterPlan, 'local intake packet exists; blocked until Bazos owner selects exactly one allowed product decision option', 'Master plan Bazos intake merge-order');
 
 const options = ['provider_backed_supported', 'provider_backed_not_supported', 'provider_backed_out_of_scope', 'bounded_synthetic_accepted_for_now'];
 for (const option of options) {

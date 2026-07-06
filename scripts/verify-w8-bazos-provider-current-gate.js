@@ -66,7 +66,10 @@ for (const marker of gateMarkers) {
   assertIncludes(report, marker, 'Orders W8 report gate marker');
   assertIncludes(w8Report, marker, 'Bazos W8 report gate marker');
 }
+assertIncludes(report, '[MISSING: Bazos owner must select exactly one allowed product decision option]', 'Orders W8 owner decision blocker');
 assertIncludes(report, 'Bounded synthetic/internal evidence is not provider-backed proof', 'Orders W8 bounded proof distinction');
+assertIncludes(report, 'owner_decision_option_gated_not_autonomous_source_gap', 'Orders W8 owner decision gate status');
+assertIncludes(report, 'Provider/status packet fields are required only for `provider_backed_supported`', 'Orders W8 provider fields conditional on supported option');
 assertIncludes(w8Report, 'Rejected as provider-backed proof:', 'Bazos W8 rejected evidence heading');
 assertIncludes(w8Report, 'Synthetic/internal webhook envelopes.', 'Bazos W8 rejects synthetic webhook evidence');
 assertIncludes(w4Report, 'Status: source-verified, runtime buyer/admin smoke gated, provider-backed webhook proof missing', 'Bazos W4 boundary');
@@ -88,7 +91,7 @@ for (const marker of forbiddenClaims) {
 const result = {
   ok: true,
   verifier: 'orders-w8-bazos-provider-current-gate.v1',
-  providerBackedProof: 'product_provider_packet_gated',
+  providerBackedProof: 'owner_decision_option_gated',
   autonomousSourceGap: false,
   boundedSyntheticInternalProofAccepted: true,
   liveWebhookSupport: '[UNKNOWN: live Bazos marketplace webhook support]',
