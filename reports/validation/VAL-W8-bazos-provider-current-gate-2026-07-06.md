@@ -59,4 +59,4 @@ No Bazos source edit, Orders deploy, Bazos deploy, provider call, browser sessio
 
 ## Next Action
 
-Only a provider/product owner can close W8 further by supplying either an explicit decision that Bazos has no provider-backed order lifecycle source, or a non-secret provider/status packet with item identity, Warehouse-owned `warehouseId`, status transition mapping, auth boundary, and redacted live/fixture evidence.
+Only a provider/product owner can close W8 further by supplying either an explicit decision that Bazos has no provider-backed order lifecycle source, or a non-secret provider/status packet with item identity, Warehouse-owned `warehouseId`, status transition mapping, auth boundary, and redacted live/fixture evidence. Decision intake packet: `docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md`. [RESOLVED/NARROWED: W8 Bazos product decision intake packet is source-defined; real provider-backed Bazos lifecycle remains blocked until an owner selects one allowed decision option and supplies the required non-secret evidence]

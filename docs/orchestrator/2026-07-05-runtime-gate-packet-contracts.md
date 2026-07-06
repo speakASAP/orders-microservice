@@ -114,7 +114,7 @@ Required non-secret fields:
 - Approved non-secret fixture or live provider smoke packet.
 - Orders lifecycle and buyer/admin readback boundary.
 
-Abort if live provider support is unknown and no product decision exists, if item identity or Warehouse ownership is missing, or if the proof requires raw provider payload output.
+Abort if live provider support is unknown and no product decision exists, if item identity or Warehouse ownership is missing, or if the proof requires raw provider payload output. Product decision intake packet: `docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md`. [RESOLVED/NARROWED: W8 Bazos product decision intake packet is source-defined; real provider-backed Bazos lifecycle remains blocked until an owner selects one allowed decision option and supplies the required non-secret evidence]
 
 ## Warehouse Callback Runtime Packet
 

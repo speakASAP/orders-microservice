@@ -75,4 +75,4 @@ Any future proof report must include:
 
 Status: required service-scoped/bounded proof complete for current W7 aggregation; remaining natural/provider lanes are product/approval-gated.
 
-Next action: decide W8 Bazos provider/product scope; pursue direct safe-human marketplace proof only if product requires proof beyond current service-scoped or bounded evidence.
+Next action: decide W8 Bazos provider/product scope; pursue direct safe-human marketplace proof only if product requires proof beyond current service-scoped or bounded evidence. Use `docs/orchestrator/2026-07-06-w8-bazos-product-decision-intake-packet.md`. [RESOLVED/NARROWED: W8 Bazos product decision intake packet is source-defined; real provider-backed Bazos lifecycle remains blocked until an owner selects one allowed decision option and supplies the required non-secret evidence]
