@@ -115,14 +115,14 @@ async function main() {
   const smokeOrderMarkers = [
     'Run remaining channel browser/API proof work in this order:',
     '1. Keep FlipFlop service-scoped browser proof as the current proven browser lifecycle evidence; pursue direct safe-human proof only if an approved safe buyer/admin session is provided.',
-    '2. Heureka next only after `/heureka/dashboard/orders` and `/api/heureka/dashboard/orders` are fixed or an approved alternative proof path is defined.',
-    '3. Aukro next only after an approved live row links to a current non-stale canonical Orders lifecycle stage.',
-    '4. Bazos only after a provider-backed paid order ingestion and persisted item snapshot source exists, unless product explicitly accepts synthetic/internal scope.',
-    '5. Allegro only after a real subject-bound buyer order row and buyer bearer are approved.',
+    '2. Heureka service-scoped API/DOM lifecycle proof is current-proven; pursue natural human-session proof only if product requires proof beyond approved service-scoped evidence.',
+    '3. Aukro protected API plus service-scoped DOM lifecycle proof is current-proven; pursue natural real customer-bound proof only if product requires proof beyond approved service-scoped/bounded evidence.',
+    '4. Bazos remains the next product/provider decision lane: provider-backed paid order ingestion and persisted item snapshot source, or an explicit product decision accepting bounded synthetic/internal scope.',
+    '5. Allegro bounded buyer lifecycle proof is current-proven; pursue natural real-buyer proof only if product requires proof beyond approved bounded evidence.',
     '6. Provider shipment-status runtime proof only after Allegro enablement, Warehouse URL/token config, safe order selection, sanitized readback, and fulfillment/Orders mutation approval.',
     'No new source-edit worker should start for the five channel UI repos',
     'FlipFlop direct proof lane, only if a safe session is supplied:',
-    'Status: partial proof complete, remaining lanes data/route/approval-gated.',
+    'Status: required service-scoped/bounded proof complete for current W7 aggregation; remaining natural/provider lanes are product/approval-gated.',
   ];
   smokeOrderMarkers.forEach((marker) => assertIncludes(smokeOrder, marker, 'channel browser smoke order'));
 
@@ -174,17 +174,17 @@ async function main() {
       handoffMarkersVerified: handoffMarkers.length,
       statusMarkersVerified: statusMarkers.length,
       lifecycleMutationSmokeScriptPresent: true,
-      recommendedFirstLane: 'heureka_route_api_or_flipflop_direct_session',
+      recommendedFirstLane: 'w8_bazos_provider_product_decision',
       smokeOrderMarkersVerified: smokeOrderMarkers.length,
       flipflopReadinessMarkersVerified: flipflopReadinessMarkers.length,
     },
     routeSmoke,
     remainingGates: [
       'direct safe-human FlipFlop proof if required beyond proven service-scoped evidence',
-      'Heureka route/API proof path fix or approved alternative',
-      'Aukro non-stale canonical lifecycle row',
-      'Bazos provider-backed paid order source',
-      'Allegro real buyer bearer and subject-bound order row',
+      'optional direct human-session Heureka proof if product requires beyond service-scoped evidence',
+      'optional natural real customer-bound Aukro proof if product requires beyond service-scoped/bounded evidence',
+      'Bazos provider-backed paid order source or explicit product acceptance of bounded synthetic/internal scope',
+      'optional natural real-buyer Allegro proof if product requires beyond bounded evidence',
       'separate review before touching non-Orders repositories',
     ],
   };
