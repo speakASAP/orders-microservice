@@ -80,3 +80,7 @@ Merge order: W1 and W2 first, W3-W6 in parallel after source contract confirmati
 - Do not deploy unless the workstream explicitly reaches a deploy gate with clean status and validation evidence.
 - Do not perform live stock, payment, refund, provider, or customer data mutation without an owner-approved runtime packet.
 - Preserve `[MISSING: ...]` blockers instead of inventing tokens, ownership rules, webhooks, adapters, or delivery provider contracts.
+
+### 2026-07-06 W9 Payment Provider Correction Current Gate
+
+[RESOLVED/NARROWED: payment/refund/provider correction workflow is source-defined and fail-closed; Orders cancellation/idempotency/side-effect packet shape is verified, while live refund/provider/Orders route execution remains owner-approved exact-runtime-packet gated]. W9 consumes Goal 24 paid/provider readiness, final owner handoff, no-mutation cross-repo audit, payment boundary, Warehouse handoff boundary, and status transition idempotency evidence. Live payment/refund/provider correction remains blocked until the approved exact runtime packet exists; no live side effects were run.
