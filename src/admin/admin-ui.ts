@@ -362,6 +362,7 @@ export const ADMIN_ORDERS_HTML = String.raw`<!doctype html>
       url.searchParams.set('client_id', AUTH_CLIENT_ID);
       url.searchParams.set('return_url', returnUrl.toString());
       url.searchParams.set('state', nonce);
+      url.searchParams.set('lang', 'cs');
       return url.toString();
     }
 
