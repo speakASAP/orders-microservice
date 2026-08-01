@@ -4,7 +4,6 @@ Central order processing service. Handles orders from all sales channels.
 
 ## Quick Reference
 
-| | |
 |---|---|
 | Port | 3203 · `http://orders-microservice:3203` |
 | Domain | `https://orders.alfares.cz` |
@@ -58,7 +57,6 @@ Central order processing service. Handles orders from all sales channels.
 
 - **K8s**: `statex-apps` namespace · k3s ✅
 - **Secrets**: Vault `secret/prod/orders-microservice` → ESO → K8s Secret
-  See [`../shared/docs/VAULT.md`](../shared/docs/VAULT.md)
 
 ## Related Services
 

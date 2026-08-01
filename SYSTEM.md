@@ -2,21 +2,20 @@
 
 ## Stack
 
-NestJS · PostgreSQL · RabbitMQ  
-**Port**: 3203 · **Domain**: `orders.alfares.cz`
+NestJS · PostgreSQL · RabbitMQ
+**Port**: 3203 **Domain**: `orders.alfares.cz`
 
 ## Deployment
 
-**Platform**: Kubernetes (k3s) · namespace `statex-apps` · Phase A ✅  
-**Image**: `localhost:5000/orders-microservice:latest`  
-**Deploy**: `./scripts/deploy.sh`  
+**Platform**: Kubernetes (k3s) · namespace `statex-apps`
+**Image**: `localhost:5000/orders-microservice:latest`
+**Deploy**: `./scripts/deploy.sh`
 **Logs**: `kubectl logs -n statex-apps -l app=orders-microservice -f`
 
 ## Secrets
 
-All secrets in Vault at `secret/prod/orders-microservice`.  
-Synced via ESO → K8s Secret `orders-microservice-secret`.  
-See [`../shared/docs/VAULT.md`](../shared/docs/VAULT.md).
+All secrets in Vault at `secret/prod/orders-microservice`.
+Synced via ESO → K8s Secret `orders-microservice-secret`.
 
 | Secret key | Purpose |
 |---|---|
@@ -49,7 +48,7 @@ No state jumps. See `BUSINESS.md` for constraints.
 
 ## Pricing Domain
 
-This service owns the pricing/AI-suggestion domain (not `payments-microservice`).  
+This service owns the pricing/AI-suggestion domain (not `payments-microservice`).
 Canonical surface: `GET/POST /admin/pricing/*` and `/pricing/*`.
 
 ## Current State
