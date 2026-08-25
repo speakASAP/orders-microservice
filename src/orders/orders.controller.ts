@@ -6,6 +6,7 @@ import { CreateOrderRequestDto } from './create-order.dto';
 import { PaymentStatusUpdateRequestDto } from '../payments/payment-status.dto';
 import { WarehouseFulfillmentStatusUpdateRequestDto } from './warehouse-fulfillment-status.dto';
 import { Roles } from '../auth/roles.decorator';
+import { ADMIN_READ_ROLES } from '../admin/admin.service';
 
 interface OrderStatusUpdateBody {
   status: string;
@@ -115,6 +116,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
+  @Roles(...ADMIN_READ_ROLES)
   async findAll(@Query('channel') channel?: string, @Query('status') status?: string) {
     const orders = await this.ordersService.findAll(channel, status);
     return { success: true, data: orders };

@@ -5,11 +5,12 @@
  */
 
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
-  UnauthorizedException,
   ForbiddenException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { timingSafeEqual } from 'crypto';
@@ -30,6 +31,8 @@ type AuthValidateResponse = {
 
 @Injectable()
 export class JwtRolesGuard implements CanActivate {
+  private readonly logger = new Logger(JwtRolesGuard.name);
+
   constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -43,7 +46,19 @@ export class JwtRolesGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    const requiredRoles = rolesMetadata?.roles?.length ? rolesMetadata.roles : this.getDefaultRoles();
+    // Deny by default. An undecorated route previously inherited
+    // [global:superadmin, internal:orders-microservice:admin], silently granting
+    // the service's broadest role set to any route someone forgot to decorate.
+    if (!rolesMetadata?.roles?.length) {
+      const handler = context.getHandler()?.name ?? 'unknown';
+      const controller = context.getClass()?.name ?? 'unknown';
+      this.logger.error(
+        `Route ${controller}.${handler} has no @Roles decorator; denying request.`,
+      );
+      throw new ForbiddenException('Route is missing an authorization policy');
+    }
+
+    const requiredRoles = rolesMetadata.roles;
 
     const request = context.switchToHttp().getRequest<Request>();
     const internalUser = this.resolveInternalServiceActor(request);
@@ -279,8 +294,4 @@ export class JwtRolesGuard implements CanActivate {
     return payload.user;
   }
 
-  private getDefaultRoles(): string[] {
-    const name = process.env.SERVICE_NAME || 'orders-microservice';
-    return [`global:superadmin`, `internal:${name}:admin`];
-  }
 }

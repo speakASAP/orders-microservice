@@ -18,24 +18,28 @@ interface AuthenticatedRequest extends Request {
 export class PricingController {
   constructor(private readonly pricingService: PricingService) {}
 
+  @Roles(...PRICING_ADMIN_ROLES)
   @Get('suggestions')
   async listSuggestions(@Query('limit') limit = '50', @Query('status') status = 'pending') {
     const data = await this.pricingService.listSuggestions(limit, status);
     return { success: true, data };
   }
 
+  @Roles(...PRICING_ADMIN_ROLES)
   @Post('generate')
   async generateSuggestions() {
     const data = await this.pricingService.generateSuggestions();
     return { success: true, data };
   }
 
+  @Roles(...PRICING_ADMIN_ROLES)
   @Patch('suggestions/:id/approve')
   async approveSuggestion(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
     const data = await this.pricingService.approveSuggestion(id, request.user);
     return { success: true, data };
   }
 
+  @Roles(...PRICING_ADMIN_ROLES)
   @Patch('suggestions/:id/reject')
   async rejectSuggestion(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
     const data = await this.pricingService.rejectSuggestion(id, request.user);

@@ -226,7 +226,12 @@ assertContains(
 );
 assertContains(warehouseController, 'statusMutationApplied', 'Warehouse snapshot intake must report status mutation result');
 assertContains(warehouseController, 'ProviderShipmentCorrelationDto', 'Warehouse endpoint must use bounded DTO');
-assertContains(warehouseController, "@Roles('internal:allegro-service:service')", 'Warehouse shipment endpoints must require the minimal Allegro service role');
+// Warehouse migrated inline role strings onto shared constants in a8f76d0. The
+// contract is unchanged: these endpoints must still be gated on the minimal
+// Allegro service role, which ALLEGRO_FULFILLMENT_ROLES carries as its first entry.
+assertContains(warehouseController, '@Roles(...ALLEGRO_FULFILLMENT_ROLES)', 'Warehouse shipment endpoints must require the minimal Allegro service role');
+const warehouseRoles = requireFile(warehouseRoot, 'src/auth/roles.constants.ts');
+assertContains(warehouseRoles, "'internal:allegro-service:service'", 'ALLEGRO_FULFILLMENT_ROLES must carry the minimal Allegro service role');
 assertNotContains(warehouseController, ["@Roles('internal:warehouse-microservice:admin', 'internal:allegro-service:service')"], 'Warehouse shipment endpoints must not keep the broad admin fallback');
 
 const warehouseMigration = requireFile(warehouseRoot, 'src/migrations/1781700000000-CreateFulfillmentProviderShipmentCorrelations.ts');
