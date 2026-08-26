@@ -277,6 +277,8 @@ assert.match(controllerSource, /CHANNEL_ORDER_CREATE_ROLES/);
 assert.match(controllerSource, /@Roles\(\.\.\.CHANNEL_ORDER_CREATE_ROLES\)/);
 assert.match(controllerSource, /@Post\('validate-create'\)/);
 const guardSource = fs.readFileSync(path.join(__dirname, '..', 'src/auth/jwt-roles.guard.ts'), 'utf8');
+// Static-header lanes: the guard still resolves these by string comparison, so each
+// entry must remain present AND hold a credential unique to that caller.
 const createServiceContracts = [
   {
     serviceName: 'flipflop-service',
@@ -293,27 +295,6 @@ const createServiceContracts = [
     vaultProperty: 'JWT_TOKEN',
   },
   {
-    serviceName: 'aukro-service',
-    tokenEnv: 'AUKRO_INTERNAL_SERVICE_TOKEN',
-    role: 'internal:aukro-service:service',
-    vaultKey: 'secret/prod/aukro-service',
-    vaultProperty: 'JWT_TOKEN',
-  },
-  {
-    serviceName: 'bazos-service',
-    tokenEnv: 'BAZOS_INTERNAL_SERVICE_TOKEN',
-    role: 'internal:bazos-service:service',
-    vaultKey: 'secret/prod/bazos-service',
-    vaultProperty: 'JWT_TOKEN',
-  },
-  {
-    serviceName: 'heureka-service',
-    tokenEnv: 'HEUREKA_INTERNAL_SERVICE_TOKEN',
-    role: 'internal:heureka-service:service',
-    vaultKey: 'secret/prod/heureka-service',
-    vaultProperty: 'JWT_TOKEN',
-  },
-  {
     serviceName: 'cliplot',
     tokenEnv: 'CLIPLOT_ORDERS_SERVICE_TOKEN',
     fallbackTokenEnv: 'CLIPLOT_SERVICE_TOKEN',
@@ -321,14 +302,16 @@ const createServiceContracts = [
     vaultKey: 'secret/prod/cliplot',
     vaultProperty: 'ORDERS_SERVICE_TOKEN',
   },
-  {
-    serviceName: 'cliplot-service',
-    tokenEnv: 'CLIPLOT_ORDERS_SERVICE_TOKEN',
-    fallbackTokenEnv: 'CLIPLOT_SERVICE_TOKEN',
-    role: 'internal:cliplot-service:service',
-    vaultKey: 'secret/prod/cliplot',
-    vaultProperty: 'ORDERS_SERVICE_TOKEN',
-  },
+];
+
+// Bearer lanes: aukro, bazos and heureka create orders with per-pair RS256
+// principals verified through /auth/validate. They MUST NOT appear in the guard's
+// static map — all three previously held the same shared string (sha256 a2880693),
+// which let any holder pick an identity via the x-service-name header.
+const createBearerContracts = [
+  { serviceName: 'aukro-service', role: 'internal:aukro-service:service', vaultKey: 'secret/prod/aukro-service' },
+  { serviceName: 'bazos-service', role: 'internal:bazos-service:service', vaultKey: 'secret/prod/bazos-service' },
+  { serviceName: 'heureka-service', role: 'internal:heureka-service:service', vaultKey: 'secret/prod/heureka-service' },
 ];
 for (const { serviceName, tokenEnv, fallbackTokenEnv, role } of createServiceContracts) {
   assert.ok(controllerSource.includes(role), `Create order controller missing role ${role}`);
@@ -337,6 +320,33 @@ for (const { serviceName, tokenEnv, fallbackTokenEnv, role } of createServiceCon
   if (fallbackTokenEnv) assert.ok(guardSource.includes(fallbackTokenEnv), `Guard missing fallback env ${fallbackTokenEnv}`);
   assert.ok(guardSource.includes(role), `Guard missing role ${role}`);
 }
+
+// Every remaining static entry must name a DISTINCT token env, otherwise two callers
+// could share a credential and the x-service-name header would choose between them.
+const staticTokenEnvs = createServiceContracts.map(({ tokenEnv }) => tokenEnv);
+assert.equal(
+  new Set(staticTokenEnvs).size,
+  staticTokenEnvs.length,
+  `Static guard entries must not share a token env: ${staticTokenEnvs.join(', ')}`,
+);
+
+// The guard must keep its runtime ambiguity check, which denies any credential
+// configured for more than one caller.
+assert.ok(
+  guardSource.includes('namesSharingToken'),
+  'Guard is missing the shared-credential ambiguity check',
+);
+
+for (const { serviceName, role } of createBearerContracts) {
+  // The controller must still accept the role, but the guard must NOT resolve this
+  // caller from the static header any more.
+  assert.ok(controllerSource.includes(role), `Create order controller missing role ${role}`);
+  assert.ok(
+    !guardSource.includes(`'${serviceName}':`),
+    `Guard must not resolve ${serviceName} from x-service-name; it is a Bearer lane`,
+  );
+}
+
 const contractDoc = fs.readFileSync(path.join(__dirname, '..', 'docs/orchestrator/CHANNEL_ORDER_CREATE_CONTRACT.md'), 'utf8');
 for (const { serviceName, tokenEnv, fallbackTokenEnv, role, vaultKey, vaultProperty } of createServiceContracts) {
   assert.ok(contractDoc.includes(serviceName), `Contract missing service ${serviceName}`);

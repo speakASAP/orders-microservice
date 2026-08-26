@@ -193,6 +193,20 @@ export class JwtRolesGuard implements CanActivate {
       return null;
     }
 
+    // LEGACY STATIC-CREDENTIAL PATH — do not add entries.
+    //
+    // This path takes the caller's identity from the x-service-name header and only
+    // string-compares the token. That is safe ONLY while every entry holds a
+    // credential unique to one caller: any value appearing under two names lets its
+    // holder pick which of those names it authenticates as.
+    //
+    // aukro, bazos, heureka, marketing, payments and warehouse used to live here and
+    // all six held the SAME string (sha256 a2880693), so one holder could
+    // authenticate as any of the six. They are now on per-pair RS256 principals
+    // verified through /auth/validate (line 71's Bearer path) and have been removed.
+    //
+    // The four below still send the static header and each holds a distinct value.
+    // Migrate them to Bearer and delete this method; new callers must use Bearer.
     const configuredServices: Record<string, { token?: string; role: string }> = {
       'catalog-microservice': {
         token: this.resolveEnvToken('CATALOG_INTERNAL_SERVICE_TOKEN'),
@@ -206,45 +220,45 @@ export class JwtRolesGuard implements CanActivate {
         token: this.resolveEnvToken('ALLEGRO_INTERNAL_SERVICE_TOKEN'),
         role: 'internal:allegro-service:service',
       },
-      'aukro-service': {
-        token: this.resolveEnvToken('AUKRO_INTERNAL_SERVICE_TOKEN'),
-        role: 'internal:aukro-service:service',
-      },
-      'bazos-service': {
-        token: this.resolveEnvToken('BAZOS_INTERNAL_SERVICE_TOKEN'),
-        role: 'internal:bazos-service:service',
-      },
-      'heureka-service': {
-        token: this.resolveEnvToken('HEUREKA_INTERNAL_SERVICE_TOKEN'),
-        role: 'internal:heureka-service:service',
-      },
-      'warehouse-microservice': {
-        token: this.resolveEnvToken('WAREHOUSE_INTERNAL_SERVICE_TOKEN', 'WAREHOUSE_ORDERS_SERVICE_TOKEN'),
-        role: 'internal:warehouse-microservice:service',
-      },
-      'payments-microservice': {
-        token: this.resolveEnvToken('PAYMENTS_INTERNAL_SERVICE_TOKEN', 'PAYMENTS_ORDERS_SERVICE_TOKEN'),
-        role: 'internal:payments-microservice:service',
-      },
-      'marketing-microservice': {
-        token: this.resolveEnvToken('MARKETING_INTERNAL_SERVICE_TOKEN', 'MARKETING_ORDERS_SERVICE_TOKEN'),
-        role: 'internal:marketing-microservice:service',
-      },
       'invoices-microservice': {
         token: this.resolveEnvToken('INVOICES_INTERNAL_SERVICE_TOKEN', 'INVOICES_ORDERS_SERVICE_TOKEN'),
         role: 'internal:invoices-microservice:service',
       },
+      // cliplot is a live caller (cliplot/src/integrations.js sends this header with
+      // x-service-name: cliplot). Both aliases resolve the same env vars and would
+      // therefore share a token, so the ambiguity check below would deny them — they
+      // are collapsed into the single name the caller actually sends.
+      //
+      // NOTE: neither `cliplot` nor `invoices-microservice` has an `applications` row
+      // in the auth DB, so the roles granted here cannot be issued as real principals.
+      // Seed those applications before migrating either lane to Bearer.
       'cliplot': {
         token: this.resolveEnvToken('CLIPLOT_ORDERS_SERVICE_TOKEN', 'CLIPLOT_SERVICE_TOKEN'),
         role: 'internal:cliplot:service',
       },
-      'cliplot-service': {
-        token: this.resolveEnvToken('CLIPLOT_ORDERS_SERVICE_TOKEN', 'CLIPLOT_SERVICE_TOKEN'),
-        role: 'internal:cliplot-service:service',
-      },
     };
+
     const service = configuredServices[serviceName];
     if (!service?.token || !this.safeEqual(providedToken, service.token)) {
+      return null;
+    }
+
+    // Defence in depth: refuse a credential configured for more than one caller.
+    // Without this, re-introducing a shared value silently restores the ability to
+    // choose an identity via the header. Deny rather than pick — an ambiguous
+    // credential must never authenticate.
+    const namesSharingToken = Object.entries(configuredServices)
+      .filter(([, candidate]) => candidate.token && this.safeEqual(providedToken, candidate.token))
+      .map(([name]) => name);
+    if (namesSharingToken.length > 1) {
+      // Caller names only — no part of the presented value is logged. Wording avoids
+      // the terms scripts/verify-sensitive-logging.js bans from log arguments.
+      this.logger.error(
+        `Ambiguous internal service identity: the presented value is configured for `
+          + `multiple callers (${namesSharingToken.join(', ')}), so the x-service-name `
+          + `header (claimed: ${serviceName}) cannot select between them. Request denied. `
+          + 'Give each caller its own per-pair RS256 principal.',
+      );
       return null;
     }
 
