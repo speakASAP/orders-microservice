@@ -122,13 +122,18 @@ export class WarehouseReservationClient {
         completedAt: new Date().toISOString(),
         reservedCount: reservedItems.length,
       };
-    } catch {
+    } catch (error: any) {
+      this.logger.error(
+        `Warehouse reservation handoff failed (orderId=${order.id}, url=${this.baseUrl}/api/reservations/reserve, ` +
+          `items=${items.length}, reserved=${reservedItems.length}, ${this.describeError(error)})`,
+        error?.stack,
+        'WarehouseReservationClient',
+      );
       const compensation = await this.releaseReservedItems(
         order,
         reservedItems,
         RESERVATION_COMPENSATION_REASON_CODE,
       );
-      this.logger.warn('Warehouse reservation handoff failed', 'WarehouseReservationClient');
       return {
         ...base,
         status: 'failed',
@@ -232,8 +237,14 @@ export class WarehouseReservationClient {
         completedAt: new Date().toISOString(),
         reservedCount: succeeded,
       };
-    } catch {
-      this.logger.warn('Warehouse reservation lifecycle handoff failed', 'WarehouseReservationClient');
+    } catch (error: any) {
+      this.logger.error(
+        `Warehouse reservation lifecycle handoff failed (orderId=${order.id}, action=${action}, ` +
+          `url=${this.baseUrl}/api/reservations/${action}, items=${items.length}, succeeded=${succeeded}, ` +
+          `${this.describeError(error)})`,
+        error?.stack,
+        'WarehouseReservationClient',
+      );
       return {
         ...base,
         status: 'failed',
@@ -262,9 +273,15 @@ export class WarehouseReservationClient {
       try {
         await this.postReservationAction('release', this.buildReleasePayload(order, item, reasonCode));
         succeeded += 1;
-      } catch {
+      } catch (error: any) {
         failed += 1;
-        this.logger.warn('Warehouse reservation compensation release failed', 'WarehouseReservationClient');
+        this.logger.error(
+          `Warehouse reservation compensation release failed (orderId=${order.id}, ` +
+            `warehouseId=${item.warehouseId}, url=${this.baseUrl}/api/reservations/release, ` +
+            `${this.describeError(error)})`,
+          error?.stack,
+          'WarehouseReservationClient',
+        );
       }
     }
 
@@ -281,6 +298,19 @@ export class WarehouseReservationClient {
         Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
       },
     };
+  }
+
+private describeError(error: any): string {
+    const status = error?.response?.status ?? error?.status;
+    const body = error?.response?.data;
+    const rendered = typeof body === 'string' ? body : body ? JSON.stringify(body) : undefined;
+    return [
+      `message=${error?.message || 'unknown error'}`,
+      `httpStatus=${status ?? 'n/a'}`,
+      rendered ? `body=${rendered.slice(0, 300)}` : undefined,
+    ]
+      .filter(Boolean)
+      .join(' ');
   }
 
   private hasWarehouseId(item: OrderItem): boolean {

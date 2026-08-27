@@ -149,8 +149,13 @@ export class OrderFulfillmentHandoffClient {
         handedOffCount: lines.length,
         fulfillmentOrderId: this.normalizeOptionalString(response?.data?.data?.id),
       };
-    } catch {
-      this.logger.warn('Warehouse fulfillment order handoff failed', 'OrderFulfillmentHandoffClient');
+    } catch (error: any) {
+      this.logger.error(
+        `Warehouse fulfillment order handoff failed (orderId=${order.id}, ` +
+          `url=${this.baseUrl}/api/fulfillment-orders, items=${items.length}, ${this.describeError(error)})`,
+        error?.stack,
+        'OrderFulfillmentHandoffClient',
+      );
       return {
         ...base,
         status: 'failed',
@@ -263,6 +268,19 @@ export class OrderFulfillmentHandoffClient {
         Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
       },
     };
+  }
+
+private describeError(error: any): string {
+    const status = error?.response?.status ?? error?.status;
+    const body = error?.response?.data;
+    const rendered = typeof body === 'string' ? body : body ? JSON.stringify(body) : undefined;
+    return [
+      `message=${error?.message || 'unknown error'}`,
+      `httpStatus=${status ?? 'n/a'}`,
+      rendered ? `body=${rendered.slice(0, 300)}` : undefined,
+    ]
+      .filter(Boolean)
+      .join(' ');
   }
 
   private hasWarehouseId(item: OrderItem): boolean {
