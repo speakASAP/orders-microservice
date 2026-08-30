@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "profile": "runtime-service",
+  "project": {
+    "name": "orders-microservice",
+    "repository": "https://github.com/speakASAP/orders-microservice.git"
+  },
+  "standard": {
+    "repository": "https://github.com/speakASAP/intent-preservation-system",
+    "revision": "3e36f64c11e31b878fd2fe09267426738b25ae7f"
+  },
+  "artifacts": {
+    "readme": "README.md",
+    "business": "BUSINESS.md",
+    "system": "SYSTEM.md",
+    "agents": "AGENTS.md",
+    "operations": "AGENT_OPERATIONS.md",
+    "claude": "CLAUDE.md",
+    "tasks": "TASKS.md",
+    "state": "STATE.json",
+    "constitution": "docs/00_constitution/CONSTITUTION.md",
+    "vision": "docs/01_vision/VISION.md",
+    "integrationContract": "docs/06_architecture/INTEGRATION_CONTRACT.md",
+    "projectInvariants": "docs/17_governance/PROJECT_INVARIANTS.md",
+    "validationDebt": "docs/orchestrator/VALIDATION_DEBT.md",
+    "bootstrapTask": "docs/11_tasks/TASK-001-bootstrap-service.md",
+    "bootstrapGoalImpact": "docs/22_goal_impact/GOAL-IMPACT-TASK-001.md",
+    "bootstrapExecutionPlan": "docs/21_execution_plans/EP-TASK-001-bootstrap-service.md",
+    "bootstrapValidation": "docs/12_validation/VAL-TASK-001-bootstrap-service.md"
+  },
+  "integrationReview": [
+    {
+      "capability": "auth",
+      "component": "auth-microservice",
+      "decision": "required",
+      "reason": "Every protected route is validated against a JWT issued by auth-microservice; the role guard rejects requests without a valid role.",
+      "contract": "JWT identity validation and named internal-service roles enforced by src/auth/jwt-roles.guard.ts",
+      "configuration": "JWT_SECRET and AUTH_SERVICE_URL environment variables",
+      "failureMode": "Requests without a valid JWT or required role are rejected with 403 and no order mutation occurs.",
+      "validation": "Role guard unit tests and manual verification of protected route behavior."
+    },
+    {
+      "capability": "postgres",
+      "component": "db-server-postgres",
+      "decision": "required",
+      "reason": "The service persists orders, order items, shipments and pricing suggestions in PostgreSQL as its durable system of record.",
+      "contract": "Relational data model for orders, order items, shipments and pricing suggestions",
+      "configuration": "db-server-postgres:5432 connection and DB_PASSWORD from Vault secret/prod/orders-microservice",
+      "failureMode": "Persistence failure surfaces as a storage error and blocks the affected write rather than silently succeeding.",
+      "validation": "Order/shipment CRUD persistence tests confirm durable state."
+    },
+    {
+      "capability": "redis",
+      "component": "db-server-redis",
+      "decision": "not-applicable",
+      "reason": "No Redis client, dependency, or connection configuration exists anywhere in package.json or src/; the service does not use Redis for caching, queueing or coordination."
+    },
+    {
+      "capability": "logging",
+      "component": "logging-microservice",
+      "decision": "required",
+      "reason": "The service posts structured logs to logging-microservice via LOGGING_SERVICE_URL in src/logger/logger.service.ts; this is a mandatory ecosystem capability for runtime services.",
+      "contract": "POST structured log payloads to the shared logging-microservice endpoint",
+      "configuration": "LOGGING_SERVICE_URL environment variable read in src/logger/logger.service.ts",
+      "failureMode": "Logging delivery failure degrades operational visibility but does not block order processing.",
+      "validation": "Structured log emission is exercised by the logger service and reviewed in operational checks."
+    },
+    {
+      "capability": "notifications",
+      "component": "notifications-microservice",
+      "decision": "not-applicable",
+      "reason": "orders-microservice never calls notifications-microservice directly (no NOTIFICATIONS_SERVICE_URL or HTTP client exists in src/). notifications-microservice is instead a downstream consumer of the orders.order.shipped.v1 event over RabbitMQ, which is reviewed under the event-bus capability."
+    },
+    {
+      "capability": "ai",
+      "component": "ai-microservice",
+      "decision": "required",
+      "reason": "AI pricing suggestion generation calls ai-microservice over HTTP, confirmed in src/pricing/pricing.service.ts.",
+      "contract": "HTTP calls to AI_SERVICE_URL for pricing suggestion generation",
+      "configuration": "AI_SERVICE_URL=http://ai-microservice:3380 in src/pricing/pricing.service.ts and .env.example",
+      "failureMode": "Pricing suggestion generation fails explicitly and does not block order ingestion, status transitions or shipment tracking.",
+      "validation": "Pricing generation endpoint (/admin/pricing/generate) smoke test."
+    },
+    {
+      "capability": "payments",
+      "component": "payments-microservice",
+      "decision": "required",
+      "reason": "payments-microservice calls PUT /:id/payment-status as an authenticated internal service to bridge terminal payment status onto the order record, confirmed by the internal:payments-microservice:service role in src/orders/orders.controller.ts.",
+      "contract": "PUT /:id/payment-status accepting authenticated terminal-status callbacks",
+      "configuration": "Role internal:payments-microservice:service, PAYMENTS_INTERNAL_SERVICE_TOKEN / PAYMENTS_ORDERS_SERVICE_TOKEN in .env.example",
+      "failureMode": "Unauthorized payment-status callbacks are rejected and the order retains its last known payment status rather than an unverified update.",
+      "validation": "Role guard test on the payment-status route and payload validation via PaymentStatusUpdateRequestDto."
+    },
+    {
+      "capability": "catalog",
+      "component": "catalog-microservice",
+      "decision": "required",
+      "reason": "Pricing suggestion generation reads product data from and writes approved pricing back to catalog-microservice, confirmed in src/pricing/pricing.service.ts.",
+      "contract": "HTTP read of product data and write of approved pricing suggestions",
+      "configuration": "CATALOG_SERVICE_URL=http://catalog-microservice:3200 and CATALOG_INTERNAL_SERVICE_TOKEN in .env.example",
+      "failureMode": "A missing CATALOG_SERVICE_URL raises an explicit configuration error rather than silently skipping the pricing write.",
+      "validation": "Catalog pricing write path exercised by the pricing approval workflow."
+    },
+    {
+      "capability": "orders",
+      "component": "orders-microservice",
+      "decision": "not-applicable",
+      "reason": "This service is the orders domain itself, not a consumer of another orders service."
+    },
+    {
+      "capability": "warehouse",
+      "component": "warehouse-microservice",
+      "decision": "required",
+      "reason": "Order creation hands off reservation to warehouse-microservice, confirmed in src/warehouse/warehouse-reservation.client.ts and src/orders/order-fulfillment-handoff.client.ts.",
+      "contract": "Reservation handoff calls with bearer auth on order creation; warehouse-fulfillment-status updates accepted from warehouse-microservice",
+      "configuration": "WAREHOUSE_SERVICE_URL, WAREHOUSE_SERVICE_TOKEN, WAREHOUSE_RESERVATION_ENABLED, WAREHOUSE_RESERVATION_TTL_MINUTES in .env.example",
+      "failureMode": "When reservation handoff fails or is disabled, the order is still created and recorded without warehouse handoff metadata rather than failing order creation.",
+      "validation": "warehouseHandoff metadata presence check and the warehouse-fulfillment-status role-gated route."
+    },
+    {
+      "capability": "invoices",
+      "component": "invoices-microservice",
+      "decision": "required",
+      "reason": "invoices-microservice reads confirmed order detail as an authenticated internal service, confirmed by the internal:invoices-microservice:service role in ORDER_DETAIL_READ_ROLES in src/orders/orders.controller.ts.",
+      "contract": "Authenticated GET of order detail and lifecycle read models for invoice generation",
+      "configuration": "Role internal:invoices-microservice:service enforced on GET /:id and /:id/lifecycle",
+      "failureMode": "Unauthorized invoice reads are rejected with 403; invoice generation fails closed rather than reading stale or unauthorized data.",
+      "validation": "Role guard test confirms only the invoices-microservice role and equivalent admin/channel roles can read order detail."
+    },
+    {
+      "capability": "object-storage",
+      "component": "minio-microservice",
+      "decision": "not-applicable",
+      "reason": "No object-storage client, bucket configuration, or file-export logic exists anywhere in src/ or package.json."
+    },
+    {
+      "capability": "event-bus",
+      "component": "RabbitMQ",
+      "decision": "required",
+      "reason": "The service publishes orders.order.created.v1, orders.order.updated.v1 and orders.order.shipped.v1 to RabbitMQ via amqplib, confirmed in src/orders/order-events.service.ts.",
+      "contract": "Publish versioned order lifecycle events on the orders.events exchange",
+      "configuration": "RABBITMQ_URL environment variable read in src/orders/order-events.service.ts",
+      "failureMode": "A RabbitMQ connection failure is logged and order processing continues; downstream event-driven consumers (warehouse, allegro, aukro, bazos, marketing, notifications) fall behind until connectivity is restored.",
+      "validation": "GET /health/order-events reports RabbitMQ connectivity status."
+    },
+    {
+      "capability": "docs-rag",
+      "component": "docs-rag-microservice",
+      "decision": "required",
+      "reason": "The service must remain discoverable by the documentation and adoption indexing stack; this is a mandatory capability for runtime-service profiles.",
+      "contract": "Direct Git repository ingestion and repository-scoped retrieval",
+      "configuration": "The project is tracked by the canonical repository registry and docs-RAG index",
+      "failureMode": "When docs-RAG is unavailable, repository-local intent and operation documents remain the source of truth for the project.",
+      "validation": "Project documents resolve to the owning repository path and are discoverable without inventing facts."
+    },
+    {
+      "capability": "monitoring",
+      "component": "monitoring-microservice",
+      "decision": "required",
+      "reason": "Runtime health and rollout readiness must be observable; this is a mandatory capability for runtime-service profiles and is confirmed by src/health/health.controller.ts.",
+      "contract": "GET /health and GET /health/order-events with Kubernetes readiness probes",
+      "configuration": "Deployment probes and health endpoints defined in k8s/ manifests",
+      "failureMode": "An unhealthy service is prevented from passing rollout readiness and is reported to the owner.",
+      "validation": "The monitoring stack confirms health, readiness and RabbitMQ connectivity availability."
+    },
+    {
+      "capability": "backups",
+      "component": "backups-microservice",
+      "decision": "required",
+      "reason": "The service persists order, item and shipment records as its durable system of record in PostgreSQL, which requires backup coverage; this is a mandatory capability for runtime-service profiles.",
+      "contract": "PostgreSQL backup and retention policy managed at the database-server level",
+      "configuration": "Retention and backup schedule managed by database-server for the orders schema",
+      "failureMode": "Data loss is surfaced and triaged before continued production operation.",
+      "validation": "Backup posture is defined and reviewed as part of database-server operations."
+    }
+  ]
+}

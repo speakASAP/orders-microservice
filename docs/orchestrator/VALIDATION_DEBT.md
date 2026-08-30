@@ -15,7 +15,7 @@ Record known validation failures that are not caused by the current task, so age
 
 | ID | Date | Command | Failure Summary | Scope | Owner | Blocks Current Task? | Unblock Condition | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| VD-001 | YYYY-MM-DD | `[command]` | `[sanitized failure]` | repo-wide / task-specific / external service | `[owner]` | yes/no | `[required fix or approval]` | `[report path or safe excerpt]` |
+| VD-001 | 2026-08-30 | `python3 ../intent-preservation-system/scripts/validate_adoption_profile.py --root . --phase planning` | No open validation debt recorded for the orders-microservice IPS adoption bootstrap. | repo-wide | project owner | no | maintain clean adoption evidence | `docs/12_validation/VAL-TASK-001-bootstrap-service.md` |
 
 ## Current-Task Decision Checklist
 
@@ -25,7 +25,9 @@ Record known validation failures that are not caused by the current task, so age
 - Did the failure exist before this task started?
 - Is the validation command required by the current task acceptance criteria?
 
-## Agent Reporting Format
+## Update Format
+
+Record each validation debt check using the fields below before closing a task or handoff.
 
 ```text
 Validation debt check:
@@ -35,5 +37,9 @@ Validation debt check:
 - Current-task impact:
 - Next action:
 ```
+
+## Agent Reporting Format
+
+Use the Update Format block above when reporting a validation debt check at task handoff.
 
 Next step: Keep entries current whenever validation failures are classified as out of scope.

@@ -8,37 +8,36 @@ Shared rules live here:
 
 Read those first, then follow the repository-specific notes below and the current planning/status files.
 
-
 ## Repository-Specific Notes
 
 # Agents: orders-microservice
 
-## Knowledge Retrieval
+## required reading
 
-Use `docs-rag-microservice` for bounded discovery when it is healthy, then
-verify deployment, security, database, integration and public-contract facts
-against the cited Git source. Git remains authoritative.
+Before implementation, read:
 
-Authority and fallback rules:
-`/home/ssf/Documents/Github/shared/docs/DOCUMENTATION_AUTHORITY.md`.
+- `README.md`
+- `BUSINESS.md`
+- `SYSTEM.md`
+- `AGENTS.md`
+- `AGENT_OPERATIONS.md`
+- `TASKS.md`
+- `STATE.json`
+- `docs/06_architecture/INTEGRATION_CONTRACT.md`
+- `docs/17_governance/PROJECT_INVARIANTS.md`
+- `docs/IMPLEMENTATION_ORCHESTRATOR.md` and `docs/orchestrator/*` (pre-existing implementation orchestration pack)
 
-Do not generate tokens in documentation or assume an unconfident/failed RAG
-response means that source documentation does not exist.
+## authority
 
-## Goalkeeper Orchestrator Workflow
+The project owner approves order-processing business scope. Agents must not redefine business intent, weaken the order state machine, or authorize automated cancellation/refund. `BUSINESS.md`, `docs/00_constitution/CONSTITUTION.md` and `docs/01_vision/VISION.md` are protected and require human approval for changes.
 
-The local goalkeeper application acts as the implementation orchestrator around this project, while `orders-microservice` remains a data service.
+## intent preservation system
 
-- The goalkeeper tracks active goals, sets or updates implementation goals, maintains plans, and records progress across runs.
-- When the user communicates through command line or chat, the orchestrator response should state what was completed during the last run and what concrete next step is needed.
-- Keep this project documentation synchronized when the orchestrator rules or operating approach changes.
-- Plan implementation work for maximum safe parallel agent execution: split owner-approved work into independent lanes, name blockers and dependencies, assign non-overlapping file ownership, and list all startable parallel tasks for separate Codex sessions.
-- Keep shared status/state docs coordinator-owned when multiple agents work in parallel; consolidate evidence after lane completion.
-- Every assistant response in this project context must end with a final line beginning `Next step:`. Use a specific next action when work remains, or `Next step: No action needed.` when the task is complete.
+Preserve the chain of intent across:
 
-## Intent Preservation System
+`Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding Prompt -> Code -> Validation`
 
-Use the company compact IPS pack for all future implementation work:
+Use the company compact IPS pack for implementation work, alongside the canonical IPS artifact set:
 
 - `docs/IMPLEMENTATION_ORCHESTRATOR.md`
 - `docs/IMPLEMENTATION_STATE.md`
@@ -54,9 +53,39 @@ Use the company compact IPS pack for all future implementation work:
 - `docs/orchestrator/PROMPTS.md`
 - `docs/orchestrator/STATUS.md`
 - `implementation-goals/README.md`
-- `implementation-goals/templates/*`
 
 Future coding must not begin until the selected task has upstream traceability, invariant review, sensitive-data classification, contract impact review, validation plan, and a pre-coding gate decision. After work, update `docs/orchestrator/STATUS.md` and `docs/IMPLEMENTATION_STATE.md` with evidence and the next action.
+
+## safety and operations
+
+- Never commit secrets, credentials, or raw production/customer data
+- Never log customer address or payment information
+- Keep the system grounded in proven repository facts
+- Use `[MISSING: ...]` or `[UNKNOWN: ...]` instead of inventing facts
+- Keep validation debt separate from current-task failures
+- Prefer the narrowest valid validation command before broad test suites
+- Use `docs-rag-microservice` for bounded discovery when it is healthy, then verify deployment, security, database, integration and public-contract facts against the cited Git source. Git remains authoritative. Authority and fallback rules: `/home/ssf/Documents/Github/shared/docs/DOCUMENTATION_AUTHORITY.md`. Do not generate tokens in documentation or assume an unconfident/failed RAG response means source documentation does not exist.
+
+## project-specific rules
+
+- AI must never cancel or refund orders without explicit human approval
+- Order status transitions must follow the defined state machine (`pending → confirmed → processing → shipped → delivered | cancelled`) — no jumps
+- All marketplace services (allegro, aukro, bazos, heureka, cliplot) forward orders here; do not add a competing order-ingestion path
+- The local goalkeeper application acts as implementation orchestrator around this project; orders-microservice remains a data service
+- Plan implementation work for maximum safe parallel agent execution: split owner-approved work into independent lanes, name blockers and dependencies, assign non-overlapping file ownership
+- Every assistant response in this project context must end with a final line beginning `Next step:`
+
+## required final report
+
+The final task report must include:
+
+- files changed
+- documents created or revised
+- validation commands and results
+- validation debt used or created
+- active blockers as `[MISSING: ...]` or `[UNKNOWN: ...]`
+- deviations from scope
+- next concrete action
 
 ## Active Agents
 <!-- Coordinator-maintained -->

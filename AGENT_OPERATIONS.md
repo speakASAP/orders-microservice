@@ -2,36 +2,27 @@
 
 This repository follows the company Cross-Agent Automation Standard from the Intent Preservation System.
 
-## Required Chain
-
-All agents must preserve:
-
-```text
-Vision -> Goal Impact -> System -> Feature -> Task -> Execution Plan -> Coding Prompt -> Code -> Validation
-```
-
-## Agent Roles
+## roles
 
 - Readiness scanner: classifies work as ready now, dependency-gated, blocked, active elsewhere, complete, or needs owner input. It does not implement.
 - Worker agent: implements one bounded goal or workstream with explicit scope.
 - Worker monitor: checks active worker status and conflict risks.
 - Integration validator: validates worker batches and separates current-task failures from known validation debt.
 
-## Before Work
+## before work
 
-Read repository-local instructions and planning sources first, including any `AGENTS.md`, `TASKS.md`, `STATE.json`, `docs/orchestrator/*`, `docs/intent-preservation/*`, or project-specific equivalents.
+Read repository-local instructions and planning sources first, including `AGENTS.md`, `TASKS.md`, `STATE.json`, `docs/orchestrator/*`, `docs/06_architecture/INTEGRATION_CONTRACT.md`, and `docs/17_governance/PROJECT_INVARIANTS.md`.
 
-Before coding, verify:
+Before coding, confirm:
 
-- task and upstream traceability exist;
-- execution plan is approved or explicitly draft;
-- context package or equivalent source material exists;
-- sensitive-data classification is clear;
-- contract/schema and replay/determinism impact is clear;
-- validation commands are named;
+- an active task and upstream traceability exist;
+- an execution plan defines scope, allowed files, and forbidden files;
+- integration and invariant impacts are explicit;
+- sensitive-data and contract/schema impacts are classified;
+- validation commands and evidence paths are named;
 - parallel workstreams, blockers, shared files, integration owner, and merge order are defined.
 
-## Parallel Work
+## parallel work
 
 Do not start parallel edits to the same file, schema, migration, public contract, deployment file, generated index, or status document unless one integration owner and conflict-resolution order are documented.
 
@@ -46,21 +37,22 @@ Every parallel workstream must declare:
 - expected output;
 - handoff notes.
 
-## Validation Debt
+## validation debt
 
-Use `docs/orchestrator/VALIDATION_DEBT.md`, `docs/intent-preservation/VALIDATION_DEBT.md`, or the nearest repo-standard ledger to record known out-of-scope validation failures.
+Use `docs/orchestrator/VALIDATION_DEBT.md` to record known out-of-scope validation failures. Validation debt does not excuse current-task failures. If a failure touches current-task files or acceptance criteria, treat it as blocking.
 
-Validation debt does not excuse current-task failures. If a failure touches current-task files or acceptance criteria, treat it as blocking.
+## handoff
 
-## Remote/Secret Safety
+Update `TASKS.md` and `STATE.json` before ending an incomplete session. Record deferred deployment explicitly. Every handoff must include the active task, current blockers, validation results, and the next concrete action.
 
+## project-specific operations
+
+- Keep the order status state machine and human-approval-for-cancel/refund invariants intact across any workflow change.
+- Never log customer address or payment information; keep evidence sanitized.
 - Do not copy remote repository contents into local user directories.
 - Deploy only under pre-existing human-approved project or ecosystem policy; agents cannot self-authorize by editing policy.
 - Do not print secrets, tokens, raw production data, customer identifiers, or private evidence.
 - Use `[MISSING: ...]` or `[UNKNOWN: ...]` instead of inventing facts.
-
-## Final Report
-
-Report files changed, documents created, validation evidence, validation debt used or added, blockers, deviations, and the next concrete action.
+- Report files changed, documents created, validation evidence, validation debt used or added, blockers, deviations, and the next concrete action.
 
 Next step: Follow the repository-specific `AGENTS.md` and planning files for the current task.
