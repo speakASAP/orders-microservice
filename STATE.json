@@ -61,7 +61,5 @@
     "completed_at": "2026-06-21",
     "frozen_at": "2026-06-21",
     "updated_at": "2026-08-30"
-  },
-  "activeTask": "- No active tasks at this time. The project is production/frozen per `STATE.json`.",
-  "status": "done"
+  }
 }
