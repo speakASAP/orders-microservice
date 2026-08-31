@@ -2,17 +2,14 @@
 
 This file is the concise human-readable work queue. Detailed task contracts live under `docs/11_tasks/`; execution plans and validation reports remain linked from those task documents. The pre-existing `docs/IMPLEMENTATION_ORCHESTRATOR.md` / `docs/orchestrator/*` pack continues to track detailed implementation-orchestrator state.
 
-## active
-
+## Active
 - No active tasks at this time. The project is production/frozen per `STATE.json`.
 
-## ready next
-
+## Ready Next
 - Consolidate flipflop `order-service` pricing module internals (suggestion persistence/business logic) into this repo so the upstream proxy dependency can be removed (priority: 1).
 - Review the order state machine for edge cases (priority: 3).
 
-## blocked
-
+## Blocked
 - No blocked tasks at this time.
 
 ## completed
