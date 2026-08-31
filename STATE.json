@@ -1,22 +1,49 @@
 {
-  "schemaVersion": 1,
-  "project": "orders-microservice",
-  "lifecycle": "completed_frozen",
-  "health": "healthy",
-  "activeTask": "none",
-  "lastUpdated": "2026-08-30",
-  "deployment": {
-    "status": "production",
-    "notes": "Production/frozen since 2026-06-21; commit-triggered auto-deploy queue applies to any future documentation-only or code change on main."
+  "schema_version": "1.0",
+  "repository": "orders-microservice",
+  "service": {
+    "name": "orders-microservice",
+    "kind": "service",
+    "lifecycle": "completed_frozen",
+    "deployment": "kubernetes"
   },
-  "blockers": [],
-  "followUps": [
-    "Project marked completed/frozen on 2026-06-21 after remote inventory: no active goals, plans, open tasks, blockers, or pending human/AI actions as of that date.",
-    "IPS documentation-adoption baseline (TASK-001-bootstrap-service) completed 2026-08-30.",
-    "Consolidate flipflop order-service pricing module internals into this repo (tracked backlog item, priority 1).",
-    "Review order state machine for edge cases (tracked backlog item, priority 3)."
-  ],
+  "planning": {
+    "status": "done",
+    "active_goal_ids": [],
+    "next_ready_goal_ids": [],
+    "blocked_goal_ids": [],
+    "active_workstream_ids": [],
+    "last_updated_at": "2026-08-31T08:07:21Z"
+  },
+  "delivery": {
+    "last_validation_id": "VAL-TASK-001",
+    "last_validation_status": "validated",
+    "validation_debt_count": 0,
+    "last_deployment_commit": null
+  },
+  "collection": {
+    "profile": "service",
+    "artifact_index": "docs/registry/ARTIFACT_INDEX.json",
+    "status_source": "human-and-agent-maintained"
+  },
   "legacy": {
+    "schemaVersion": 1,
+    "project": "orders-microservice",
+    "lifecycle": "completed_frozen",
+    "health": "healthy",
+    "activeTask": "none",
+    "lastUpdated": "2026-08-30",
+    "deployment": {
+      "status": "production",
+      "notes": "Production/frozen since 2026-06-21; commit-triggered auto-deploy queue applies to any future documentation-only or code change on main."
+    },
+    "blockers": [],
+    "followUps": [
+      "Project marked completed/frozen on 2026-06-21 after remote inventory: no active goals, plans, open tasks, blockers, or pending human/AI actions as of that date.",
+      "IPS documentation-adoption baseline (TASK-001-bootstrap-service) completed 2026-08-30.",
+      "Consolidate flipflop order-service pricing module internals into this repo (tracked backlog item, priority 1).",
+      "Review order state machine for edge cases (tracked backlog item, priority 3)."
+    ],
     "v": 1,
     "stage": "production",
     "cycle": 0,

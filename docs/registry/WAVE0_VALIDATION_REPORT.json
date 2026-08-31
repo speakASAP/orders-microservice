@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "repository": "orders-microservice",
+  "profile": "service",
+  "generated_at": "2026-08-31T08:07:21Z",
+  "status": "validated",
+  "scope": "Wave0 docs-only repository contract adoption (STATE/profile/index/report)",
+  "checks": [
+    {
+      "id": "validate-repository-profile",
+      "status": "pass",
+      "command": "python3 /home/ssf/Documents/Github/shared/scripts/validate-repository-profile.py --root . --json",
+      "result": {
+        "ok": true,
+        "error_count": 0,
+        "warning_count": 0,
+        "artifact_count": 4,
+        "collectable_path_count": 17
+      }
+    },
+    {
+      "id": "build-artifact-index-check",
+      "status": "pass",
+      "command": "python3 /home/ssf/Documents/Github/shared/scripts/build-artifact-index.py --root . --check --json",
+      "result": {
+        "ok": true,
+        "error_count": 0,
+        "artifact_count": 4
+      }
+    },
+    {
+      "id": "json-parse",
+      "status": "pass",
+      "command": "python3 JSON parse check for STATE/profile/index/report",
+      "result": {
+        "ok": true,
+        "files": [
+          "STATE.json",
+          "docs/registry/REPOSITORY_PROFILE.json",
+          "docs/registry/ARTIFACT_INDEX.json",
+          "docs/registry/WAVE0_VALIDATION_REPORT.json"
+        ]
+      }
+    },
+    {
+      "id": "scope-diff-check",
+      "status": "pass",
+      "command": "git --no-pager status --short && rtk rg --files docs/registry | sort",
+      "result": {
+        "ok": true,
+        "changed_paths": [
+          "STATE.json",
+          "docs/registry/ARTIFACT_INDEX.json",
+          "docs/registry/REPOSITORY_PROFILE.json",
+          "docs/registry/WAVE0_VALIDATION_REPORT.json"
+        ],
+        "unexpected_paths": []
+      }
+    },
+    {
+      "id": "secret-pattern-scan",
+      "status": "pass",
+      "command": "rtk rg -n '(-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,})' STATE.json docs/registry/REPOSITORY_PROFILE.json docs/registry/ARTIFACT_INDEX.json docs/registry/WAVE0_VALIDATION_REPORT.json",
+      "result": {
+        "ok": true,
+        "matches": 0
+      }
+    }
+  ],
+  "notes": [
+    "Validation report is repository-local and docs-only.",
+    "No canonical RunLayer mapping was asserted because none is verified for this repository."
+  ]
+}

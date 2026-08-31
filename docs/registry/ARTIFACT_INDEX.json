@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "repository": "orders-microservice",
+  "generated_at": "2026-08-31T08:07:21Z",
+  "artifacts": [
+    {
+      "id": "EP-TASK-001",
+      "type": "execution_plan",
+      "status": "done",
+      "title": "EP-TASK-001-bootstrap-service: Bootstrap orders-microservice",
+      "path": "docs/21_execution_plans/EP-TASK-001-bootstrap-service.md",
+      "parent_ids": [
+        "TASK-001"
+      ],
+      "updated_at": "2026-08-30T21:00:47Z"
+    },
+    {
+      "id": "GOAL-IMPACT-TASK-001",
+      "type": "decision",
+      "status": "validated",
+      "title": "GOAL-IMPACT-TASK-001: Bootstrap orders-microservice",
+      "path": "docs/22_goal_impact/GOAL-IMPACT-TASK-001.md",
+      "parent_ids": [
+        "TASK-001"
+      ],
+      "updated_at": "2026-08-30T21:00:47Z"
+    },
+    {
+      "id": "TASK-001",
+      "type": "task",
+      "status": "done",
+      "title": "TASK-001-bootstrap-service: Bootstrap orders-microservice",
+      "path": "docs/11_tasks/TASK-001-bootstrap-service.md",
+      "parent_ids": [],
+      "updated_at": "2026-08-30T21:00:47Z"
+    },
+    {
+      "id": "VAL-TASK-001",
+      "type": "validation",
+      "status": "validated",
+      "title": "VAL-TASK-001-bootstrap-service: Validate orders-microservice bootstrap",
+      "path": "docs/12_validation/VAL-TASK-001-bootstrap-service.md",
+      "parent_ids": [
+        "TASK-001"
+      ],
+      "updated_at": "2026-08-30T21:01:22Z"
+    }
+  ],
+  "warnings": [
+    "Execution-plan status normalized from source label implemented to common status done for contract compatibility.",
+    "GOAL-IMPACT-TASK-001 is indexed as type decision because Wave0 v1 has no dedicated goal_impact artifact type.",
+    "No verified canonical RunLayer project mapping is recorded for orders-microservice in this docs-only Wave0 pass."
+  ]
+}
