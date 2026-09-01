@@ -29,6 +29,9 @@ for (const migrated of [
   'payments-microservice',
   'warehouse-microservice',
   'flipflop-service',
+  'allegro-service',
+  'invoices-microservice',
+  'cliplot',
 ]) {
   assert.ok(
     !guardSource.includes(`'${migrated}': {`),
@@ -59,37 +62,22 @@ function makeGuard(roles) {
 async function run() {
   const saved = { ...process.env };
   try {
-    // Two distinct callers deliberately sharing one value: the ambiguity check must
-    // deny BOTH names, not pick one.
-    // flipflop-service was removed from the legacy map on 2026-09-01 (it sends Bearer
-    // now), so these cases use allegro-service -- a name still IN the map. Asserting
-    // against a removed name would pass for the wrong reason: it rejects because the
-    // entry is gone, not because the ambiguity rule fired, and the test would no longer
-    // prove anything.
-    process.env.CATALOG_INTERNAL_SERVICE_TOKEN = 'shared-value';
-    process.env.ALLEGRO_INTERNAL_SERVICE_TOKEN = 'shared-value';
+    // Only catalog-microservice remains in the legacy map (2026-09-01). The
+    // two-caller ambiguity rule therefore cannot be exercised against real entries any
+    // more, and writing it against a REMOVED name would pass for the wrong reason --
+    // rejecting because the entry is gone, not because the rule fired. That trap already
+    // bit once here: the flipflop cases kept passing after flipflop was removed while
+    // proving nothing. So the ambiguity rule is asserted structurally below instead, and
+    // the runtime cases cover only what a single remaining entry can actually prove.
+    process.env.CATALOG_INTERNAL_SERVICE_TOKEN = 'catalog-only-value';
     delete process.env.FLIPFLOP_INTERNAL_SERVICE_TOKEN;
+    delete process.env.ALLEGRO_INTERNAL_SERVICE_TOKEN;
     delete process.env.INVOICES_INTERNAL_SERVICE_TOKEN;
     delete process.env.INVOICES_ORDERS_SERVICE_TOKEN;
     delete process.env.CLIPLOT_ORDERS_SERVICE_TOKEN;
     delete process.env.CLIPLOT_SERVICE_TOKEN;
 
-    for (const claimed of ['catalog-microservice', 'allegro-service']) {
-      const guard = makeGuard(['internal:catalog-microservice:service', 'internal:allegro-service:service']);
-      const ctx = makeContext(
-        { 'x-internal-service-token': 'shared-value', 'x-service-name': claimed },
-        [],
-      );
-      await assert.rejects(
-        () => guard.canActivate(ctx),
-        (error) => error?.status === 401 || error?.status === 403,
-        `a value shared by two callers must not authenticate as ${claimed}`,
-      );
-    }
-
-    // A value unique to one caller still works.
-    process.env.CATALOG_INTERNAL_SERVICE_TOKEN = 'catalog-only-value';
-    process.env.ALLEGRO_INTERNAL_SERVICE_TOKEN = 'allegro-only-value';
+    // The one remaining caller still authenticates with its own value.
     const guard = makeGuard(['internal:catalog-microservice:service']);
     const ctx = makeContext(
       { 'x-internal-service-token': 'catalog-only-value', 'x-service-name': 'catalog-microservice' },
@@ -98,21 +86,30 @@ async function run() {
     assert.equal(
       await guard.canActivate(ctx),
       true,
-      'a value unique to one caller must still authenticate',
+      'catalog-microservice must still authenticate with its own value',
     );
 
-    // ...and it must not authenticate as a different caller.
-    const wrongName = makeGuard(['internal:allegro-service:service']);
-    const wrongCtx = makeContext(
-      { 'x-internal-service-token': 'catalog-only-value', 'x-service-name': 'allegro-service' },
-      [],
-    );
-    await assert.rejects(
-      () => wrongName.canActivate(wrongCtx),
-      (error) => error?.status === 401 || error?.status === 403,
-      "catalog's value must not authenticate as allegro-service",
-    );
+    // A name that is not in the map must not authenticate, whatever token it presents.
+    for (const removed of ['flipflop-service', 'allegro-service', 'invoices-microservice', 'cliplot']) {
+      const g = makeGuard(['internal:catalog-microservice:service']);
+      const c = makeContext(
+        { 'x-internal-service-token': 'catalog-only-value', 'x-service-name': removed },
+        [],
+      );
+      await assert.rejects(
+        () => g.canActivate(c),
+        (error) => error?.status === 401 || error?.status === 403,
+        `${removed} is a Bearer lane and must not authenticate via the static header`,
+      );
+    }
 
+    // The ambiguity rule itself: asserted on the source, since it can no longer be
+    // triggered through the map. If a second entry is ever added, this pins that the
+    // deny-on-shared-value check is still present to police it.
+    assert.ok(
+      guardSource.includes('namesSharingToken'),
+      'the shared-credential ambiguity check must not be removed while the static path exists',
+    );
 
     console.log('internal service identity verification ok');
   } finally {

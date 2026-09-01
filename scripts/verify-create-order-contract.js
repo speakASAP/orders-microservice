@@ -279,30 +279,9 @@ assert.match(controllerSource, /@Post\('validate-create'\)/);
 const guardSource = fs.readFileSync(path.join(__dirname, '..', 'src/auth/jwt-roles.guard.ts'), 'utf8');
 // Static-header lanes: the guard still resolves these by string comparison, so each
 // entry must remain present AND hold a credential unique to that caller.
-const createServiceContracts = [
-  {
-    serviceName: 'flipflop-service',
-    tokenEnv: 'FLIPFLOP_INTERNAL_SERVICE_TOKEN',
-    role: 'internal:flipflop-service:service',
-    vaultKey: 'secret/prod/flipflop-service',
-    vaultProperty: 'ORDERS_SERVICE_TOKEN',
-  },
-  {
-    serviceName: 'allegro-service',
-    tokenEnv: 'ALLEGRO_INTERNAL_SERVICE_TOKEN',
-    role: 'internal:allegro-service:service',
-    vaultKey: 'secret/prod/allegro-service',
-    vaultProperty: 'JWT_TOKEN',
-  },
-  {
-    serviceName: 'cliplot',
-    tokenEnv: 'CLIPLOT_ORDERS_SERVICE_TOKEN',
-    fallbackTokenEnv: 'CLIPLOT_SERVICE_TOKEN',
-    role: 'internal:cliplot:service',
-    vaultKey: 'secret/prod/cliplot',
-    vaultProperty: 'ORDERS_SERVICE_TOKEN',
-  },
-];
+// Only catalog-microservice is left on this path. flipflop-service, allegro-service and
+// cliplot moved to Bearer on 2026-09-01 and are asserted in createBearerContracts below.
+const createServiceContracts = [];
 
 // Bearer lanes: aukro, bazos and heureka create orders with per-pair RS256
 // principals verified through /auth/validate. They MUST NOT appear in the guard's
@@ -312,6 +291,9 @@ const createBearerContracts = [
   { serviceName: 'aukro-service', role: 'internal:aukro-service:service', vaultKey: 'secret/prod/aukro-service' },
   { serviceName: 'bazos-service', role: 'internal:bazos-service:service', vaultKey: 'secret/prod/bazos-service' },
   { serviceName: 'heureka-service', role: 'internal:heureka-service:service', vaultKey: 'secret/prod/heureka-service' },
+  { serviceName: 'flipflop-service', role: 'internal:flipflop-service:service', vaultKey: 'secret/prod/flipflop-service' },
+  { serviceName: 'allegro-service', role: 'internal:allegro-service:service', vaultKey: 'secret/prod/allegro-service' },
+  { serviceName: 'cliplot', role: 'internal:cliplot:service', vaultKey: 'secret/prod/cliplot' },
 ];
 for (const { serviceName, tokenEnv, fallbackTokenEnv, role } of createServiceContracts) {
   assert.ok(controllerSource.includes(role), `Create order controller missing role ${role}`);

@@ -205,40 +205,23 @@ export class JwtRolesGuard implements CanActivate {
     // authenticate as any of the six. They are now on per-pair RS256 principals
     // verified through /auth/validate (line 71's Bearer path) and have been removed.
     //
-    // flipflop-service was removed 2026-09-01: its caller
-    // (flipflop/shared/clients/order-client.service.ts getAuthHeaders) now sends
-    // Authorization: Bearer with a per-pair RS256 principal
-    // (svc-flipflop-service--orders-microservice, role internal:flipflop-service:service),
-    // verified live before this entry was deleted.
+    // flipflop-service, allegro-service, invoices-microservice and cliplot were all
+    // removed on 2026-09-01, each verified on Bearer from its deployed pod before its
+    // entry was deleted. Only catalog-microservice remains.
     //
-    // The three below still send the static header and each holds a distinct value.
-    // Migrate them to Bearer and delete this method; new callers must use Bearer.
+    // catalog is NOT a like-for-like migration and is deliberately left here: its value
+    // (sha256 5f420714) is a single shared password held by EIGHT services, because
+    // catalog's own inbound guard mints internal:catalog-microservice:admin + catalog:write
+    // from an unauthenticated x-service-name header. Retiring it means separating that one
+    // secret into per-caller credentials across eight repos -- a separate workstream, not a
+    // step in this one. Do not swap this value alone: seven inbound lanes to catalog read
+    // the same Vault property and would break together.
+    //
+    // Delete this method once catalog is migrated; new callers must use Bearer.
     const configuredServices: Record<string, { token?: string; role: string }> = {
       'catalog-microservice': {
         token: this.resolveEnvToken('CATALOG_INTERNAL_SERVICE_TOKEN'),
         role: 'internal:catalog-microservice:service',
-      },
-      'allegro-service': {
-        token: this.resolveEnvToken('ALLEGRO_INTERNAL_SERVICE_TOKEN'),
-        role: 'internal:allegro-service:service',
-      },
-      'invoices-microservice': {
-        token: this.resolveEnvToken('INVOICES_INTERNAL_SERVICE_TOKEN', 'INVOICES_ORDERS_SERVICE_TOKEN'),
-        role: 'internal:invoices-microservice:service',
-      },
-      // cliplot is a live caller (cliplot/src/integrations.js sends this header with
-      // x-service-name: cliplot). Both aliases resolve the same env vars and would
-      // therefore share a token, so the ambiguity check below would deny them — they
-      // are collapsed into the single name the caller actually sends.
-      //
-      // NOTE: `cliplot` and `invoices-microservice` were seeded in the auth DB on
-      // 2026-08-27, so their roles CAN now be issued as real principals -- the earlier
-      // blocker is gone. cliplot's status lane already moved to Bearer
-      // (svc-cliplot--orders-microservice); the entry below covers only its remaining
-      // create/validate-create calls, which still send the static header.
-      'cliplot': {
-        token: this.resolveEnvToken('CLIPLOT_ORDERS_SERVICE_TOKEN', 'CLIPLOT_SERVICE_TOKEN'),
-        role: 'internal:cliplot:service',
       },
     };
 

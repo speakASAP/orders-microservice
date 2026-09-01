@@ -235,7 +235,14 @@ export class OrdersService {
       .addGroupBy('orders.channel')
       .addGroupBy('orders.status')
       .addGroupBy('orders.currency')
-      .orderBy('MAX(COALESCE(orders.orderedAt, orders.createdAt))', 'DESC')
+      // Order by the select alias, not by the expression. Repeating
+      // MAX(COALESCE(orders.orderedAt, orders.createdAt)) here made TypeORM split the
+      // string on the comma inside COALESCE and treat "COALESCE(orders" as an alias,
+      // throwing `"COALESCE(orders" alias was not found` -- a 500 on every call to
+      // GET /api/orders/statistics/products/:productId. The equivalent addSelect above
+      // is unaffected because only orderBy is parsed for alias resolution, and .take()
+      // is what forces that resolution by building a distinct-id subquery.
+      .orderBy('"orderedAt"', 'DESC')
       .take(PRODUCT_SALES_HISTORY_LIMIT)
       .getRawMany<ProductSalesHistoryRawRow>();
 
