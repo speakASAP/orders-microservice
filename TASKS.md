@@ -8,6 +8,10 @@ This file is the concise human-readable work queue. Detailed task contracts live
 ## Ready Next
 - Consolidate flipflop `order-service` pricing module internals (suggestion persistence/business logic) into this repo so the upstream proxy dependency can be removed (priority: 1).
 - Review the order state machine for edge cases (priority: 3).
+- Project marked completed/frozen on 2026-06-21 after remote inventory: no active goals, plans, open tasks, blockers, or pending human/AI actions as of that date.
+- IPS documentation-adoption baseline (TASK-001-bootstrap-service) completed 2026-08-30.
+- Consolidate flipflop order-service pricing module internals into this repo (tracked backlog item, priority 1).
+- Review order state machine for edge cases (tracked backlog item, priority 3).
 
 ## Blocked
 - No blocked tasks at this time.
