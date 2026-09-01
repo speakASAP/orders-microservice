@@ -205,16 +205,18 @@ export class JwtRolesGuard implements CanActivate {
     // authenticate as any of the six. They are now on per-pair RS256 principals
     // verified through /auth/validate (line 71's Bearer path) and have been removed.
     //
-    // The four below still send the static header and each holds a distinct value.
+    // flipflop-service was removed 2026-09-01: its caller
+    // (flipflop/shared/clients/order-client.service.ts getAuthHeaders) now sends
+    // Authorization: Bearer with a per-pair RS256 principal
+    // (svc-flipflop-service--orders-microservice, role internal:flipflop-service:service),
+    // verified live before this entry was deleted.
+    //
+    // The three below still send the static header and each holds a distinct value.
     // Migrate them to Bearer and delete this method; new callers must use Bearer.
     const configuredServices: Record<string, { token?: string; role: string }> = {
       'catalog-microservice': {
         token: this.resolveEnvToken('CATALOG_INTERNAL_SERVICE_TOKEN'),
         role: 'internal:catalog-microservice:service',
-      },
-      'flipflop-service': {
-        token: this.resolveEnvToken('FLIPFLOP_INTERNAL_SERVICE_TOKEN'),
-        role: 'internal:flipflop-service:service',
       },
       'allegro-service': {
         token: this.resolveEnvToken('ALLEGRO_INTERNAL_SERVICE_TOKEN'),
@@ -229,9 +231,11 @@ export class JwtRolesGuard implements CanActivate {
       // therefore share a token, so the ambiguity check below would deny them — they
       // are collapsed into the single name the caller actually sends.
       //
-      // NOTE: neither `cliplot` nor `invoices-microservice` has an `applications` row
-      // in the auth DB, so the roles granted here cannot be issued as real principals.
-      // Seed those applications before migrating either lane to Bearer.
+      // NOTE: `cliplot` and `invoices-microservice` were seeded in the auth DB on
+      // 2026-08-27, so their roles CAN now be issued as real principals -- the earlier
+      // blocker is gone. cliplot's status lane already moved to Bearer
+      // (svc-cliplot--orders-microservice); the entry below covers only its remaining
+      // create/validate-create calls, which still send the static header.
       'cliplot': {
         token: this.resolveEnvToken('CLIPLOT_ORDERS_SERVICE_TOKEN', 'CLIPLOT_SERVICE_TOKEN'),
         role: 'internal:cliplot:service',

@@ -62,10 +62,17 @@ export const ORDER_CUSTOMER_LIFECYCLE_READ_ROLES = [
   ...ORDER_ADMIN_LIFECYCLE_READ_ROLES,
 ] as const;
 
+// cliplot is listed here rather than in ORDER_CHANNEL_LIFECYCLE_READ_ROLES on purpose.
+// It reads back its own order after a status change (cliplot/src/integrations.js
+// readOrderWithStatusToken) and calls no lifecycle endpoint at all, so adding it to the
+// shared channel list would also grant admin/lifecycle and customer/lifecycle -- listings
+// that span every channel's orders. Detail read is the whole requirement; the wider grant
+// would be over-privilege of exactly the kind the RS256 migration exists to remove.
 export const ORDER_DETAIL_READ_ROLES = [
   'global:superadmin',
   'internal:orders-microservice:admin',
   'internal:invoices-microservice:service',
+  'internal:cliplot:service',
   ...ORDER_CHANNEL_LIFECYCLE_READ_ROLES,
 ] as const;
 
