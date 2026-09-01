@@ -882,7 +882,14 @@ export class OrdersService {
       .innerJoinAndSelect('orders.items', 'item')
       .where('item.productId = :productId', { productId: filters.productId })
       .andWhere('orders.status IN (:...statuses)', { statuses: filters.statuses })
-      .orderBy(orderDateExpression, 'DESC')
+      // Order by an explicit alias, not by the COALESCE expression. With .take(),
+      // TypeORM's createOrderByCombinedWithSelectExpression resolves each orderBy
+      // through findAliasByName, and it splits this string on the comma inside
+      // COALESCE -- looking for an alias literally named "COALESCE(orders" and
+      // throwing on every call. The same trap as the getRawMany orderBy above, but
+      // reached through getMany, and hidden behind a variable rather than a literal.
+      .addSelect(orderDateExpression, 'orders_effective_ordered_at')
+      .orderBy('orders_effective_ordered_at', 'DESC')
       .take(PRODUCT_SALES_LIFECYCLE_ORDER_LIMIT);
 
     if (filters.channel) {
