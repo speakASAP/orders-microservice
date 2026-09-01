@@ -11,7 +11,10 @@ const authInventory = fs.readFileSync(path.join(repoRoot, 'docs/orchestrator/202
 
 function assertAuthServiceJwtContract() {
   assert.match(clientSource, /process\.env\.WAREHOUSE_SERVICE_TOKEN/);
-  assert.match(clientSource, /process\.env\.WAREHOUSE_INTERNAL_SERVICE_TOKEN/);
+  // WAREHOUSE_INTERNAL_SERVICE_TOKEN fallback removed 2026-09-01: it resolved to the
+  // shared roleless `a2880693` value, which warehouse can never authenticate, so the
+  // fallback could only ever mask a missing primary. See plan section 6ad.
+  assert.doesNotMatch(clientSource, /process\.env\.WAREHOUSE_INTERNAL_SERVICE_TOKEN/);
   assert.match(clientSource, /rawToken\?\.trim\(\)/);
   assert.match(clientSource, /Authorization:\s*token\.startsWith\('Bearer '\)\s*\?\s*token\s*:\s*`Bearer \$\{token\}`/);
   assert.doesNotMatch(clientSource, /Authorization:\s*rawToken/);
@@ -64,7 +67,7 @@ async function run() {
   assertAuthServiceJwtContract();
 
   await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'false' }, async () => {
-    const client = new WarehouseReservationClient({ post() { throw new Error('should not call'); } }, { warn() {} });
+    const client = new WarehouseReservationClient({ post() { throw new Error('should not call'); } }, { warn() {}, error() {} });
     const result = await client.reserveOrderItems(makeOrder());
     assert.equal(result.status, 'disabled');
     assert.equal(result.skipReason, 'reservation_disabled');
@@ -78,7 +81,7 @@ async function run() {
         calls.push({ url, payload, config });
         return of({ data: { success: true } });
       },
-    }, { warn() {} });
+    }, { warn() {}, error() {} });
     const result = await client.reserveOrderItems(makeOrder());
     assert.equal(result.status, 'reserved');
     assert.equal(result.reservedCount, 1);
@@ -101,7 +104,7 @@ async function run() {
   });
 
   await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true' }, async () => {
-    const client = new WarehouseReservationClient({ post() { throw new Error('should not call'); } }, { warn() {} });
+    const client = new WarehouseReservationClient({ post() { throw new Error('should not call'); } }, { warn() {}, error() {} });
     const result = await client.reserveOrderItems(makeOrder({ items: [{ productId: 'catalog-product-1', quantity: 1 }] }));
     assert.equal(result.status, 'skipped');
     assert.equal(result.skipReason, 'missing_warehouse_id');
@@ -112,7 +115,7 @@ async function run() {
       post() {
         return throwError(() => new Error('warehouse down'));
       },
-    }, { warn() {} });
+    }, { warn() {}, error() {} });
     const result = await client.reserveOrderItems(makeOrder());
     assert.equal(result.status, 'failed');
     assert.equal(result.failureCode, 'warehouse_request_failed');
@@ -126,7 +129,7 @@ async function run() {
         error.response = { status: 409, data: { code: 'INSUFFICIENT_STOCK', available: 1, requested: 2 } };
         return throwError(() => error);
       },
-    }, { warn() {} });
+    }, { warn() {}, error() {} });
     const result = await client.reserveOrderItems(makeOrder());
     assert.equal(result.status, 'failed');
     assert.equal(result.reservedCount, 0);
@@ -155,7 +158,7 @@ async function run() {
         }
         return of({ data: { success: true } });
       },
-    }, { warn() {} });
+    }, { warn() {}, error() {} });
 
     const result = await client.reserveOrderItems(order);
 
@@ -184,7 +187,7 @@ async function run() {
         if (reserveAttempts === 1) return of({ data: { success: true } });
         return throwError(() => new Error('warehouse rejected concurrent last item reservation'));
       },
-    }, { warn() {} });
+    }, { warn() {}, error() {} });
 
     const first = await client.reserveOrderItems(makeOrder({ id: 'order-last-item-1' }));
     const second = await client.reserveOrderItems(makeOrder({ id: 'order-last-item-2' }));
@@ -197,7 +200,7 @@ async function run() {
     assert.equal(second.compensationFailedCount, 0);
   });
 
-  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_INTERNAL_SERVICE_TOKEN: '\nBearer existing-prefix-token\n' }, async () => {
+  await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true', WAREHOUSE_SERVICE_TOKEN: '\nBearer existing-prefix-token\n' }, async () => {
     const order = makeOrder();
     const item = order.items[0];
     const calls = [];
@@ -206,7 +209,7 @@ async function run() {
         calls.push({ url, payload, config });
         return of({ data: { success: true } });
       },
-    }, { warn() {} });
+    }, { warn() {}, error() {} });
 
     assert.equal(client.buildReleasePayload(order, item).reasonCode, 'PAYMENT_FAILED_RELEASE');
     assert.equal(client.buildReleasePayload(order, item).quantity, 2);

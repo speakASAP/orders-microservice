@@ -93,8 +93,7 @@ function preflight() {
       port: Boolean(process.env.PORT || '3203'),
       WAREHOUSE_RESERVATION_ENABLED: process.env.WAREHOUSE_RESERVATION_ENABLED === 'true',
       FLIPFLOP_INTERNAL_SERVICE_TOKEN: Boolean((process.env.FLIPFLOP_INTERNAL_SERVICE_TOKEN || '').trim()),
-      PAYMENTS_INTERNAL_SERVICE_TOKEN: Boolean((process.env.PAYMENTS_INTERNAL_SERVICE_TOKEN || process.env.PAYMENTS_ORDERS_SERVICE_TOKEN || '').trim()),
-      WAREHOUSE_INTERNAL_SERVICE_TOKEN: Boolean((process.env.WAREHOUSE_INTERNAL_SERVICE_TOKEN || process.env.WAREHOUSE_ORDERS_SERVICE_TOKEN || '').trim())
+      WAREHOUSE_SERVICE_TOKEN: Boolean((process.env.WAREHOUSE_SERVICE_TOKEN || '').trim())
     }));
   `));
 
@@ -104,8 +103,7 @@ function preflight() {
   }
   if (!env.WAREHOUSE_RESERVATION_ENABLED) blockers.push('[MISSING: WAREHOUSE_RESERVATION_ENABLED=true in Orders pod]');
   if (!env.FLIPFLOP_INTERNAL_SERVICE_TOKEN) blockers.push('[MISSING: FLIPFLOP_INTERNAL_SERVICE_TOKEN in Orders pod]');
-  if (!env.PAYMENTS_INTERNAL_SERVICE_TOKEN) blockers.push('[MISSING: Payments internal token in Orders pod]');
-  if (!env.WAREHOUSE_INTERNAL_SERVICE_TOKEN) blockers.push('[MISSING: Warehouse internal token in Orders pod]');
+  if (!env.WAREHOUSE_SERVICE_TOKEN) blockers.push('[MISSING: WAREHOUSE_SERVICE_TOKEN in Orders pod]');
 
   return {
     deploymentReady: `${ready}/${desired}`,
@@ -149,8 +147,13 @@ function runLiveSmoke() {
       const port = process.env.PORT || '3203';
       const baseUrl = 'http://127.0.0.1:' + port + '/api/orders';
       const serviceToken = String(process.env.FLIPFLOP_INTERNAL_SERVICE_TOKEN || '').trim();
-      const paymentsToken = String(process.env.PAYMENTS_INTERNAL_SERVICE_TOKEN || process.env.PAYMENTS_ORDERS_SERVICE_TOKEN || '').trim();
-      const warehouseToken = String(process.env.WAREHOUSE_INTERNAL_SERVICE_TOKEN || process.env.WAREHOUSE_ORDERS_SERVICE_TOKEN || '').trim();
+      // payments-microservice and warehouse-microservice were removed from the guard's
+      // configuredServices map in 6u and moved to per-pair RS256 Bearer principals, so
+      // the static x-internal-service-token header is no longer honoured for either.
+      // Their ES entries (sourced from payments/warehouse JWT_TOKEN, both the shared
+      // roleless a2880693 value) were removed 2026-09-01 -- see plan section 6ad.
+      const paymentsToken = '';
+      const warehouseToken = '';
       const customerEmail = input.serviceName + '@internal.invalid';
       const runRef = input.externalOrderId;
       const hash = (value) => crypto.createHash('sha256').update(String(value || '')).digest('hex').slice(0, 12);

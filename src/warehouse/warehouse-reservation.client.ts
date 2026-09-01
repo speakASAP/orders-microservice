@@ -289,7 +289,7 @@ export class WarehouseReservationClient {
   }
 
   private buildRequestConfig(): { headers?: Record<string, string> } {
-    const rawToken = process.env.WAREHOUSE_SERVICE_TOKEN || process.env.WAREHOUSE_INTERNAL_SERVICE_TOKEN;
+    const rawToken = process.env.WAREHOUSE_SERVICE_TOKEN;
     const token = rawToken?.trim();
     if (!token) return {};
 
