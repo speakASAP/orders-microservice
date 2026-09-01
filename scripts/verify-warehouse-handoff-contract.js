@@ -13,7 +13,7 @@ function assertAuthServiceJwtContract() {
   assert.match(clientSource, /process\.env\.WAREHOUSE_SERVICE_TOKEN/);
   // WAREHOUSE_INTERNAL_SERVICE_TOKEN fallback removed 2026-09-01: it resolved to the
   // shared roleless `a2880693` value, which warehouse can never authenticate, so the
-  // fallback could only ever mask a missing primary. See plan section 6ad.
+  // fallback could only ever mask a missing primary. See plan section 6ai.
   assert.doesNotMatch(clientSource, /process\.env\.WAREHOUSE_INTERNAL_SERVICE_TOKEN/);
   assert.match(clientSource, /rawToken\?\.trim\(\)/);
   assert.match(clientSource, /Authorization:\s*token\.startsWith\('Bearer '\)\s*\?\s*token\s*:\s*`Bearer \$\{token\}`/);

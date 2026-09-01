@@ -151,7 +151,7 @@ function runLiveSmoke() {
       // configuredServices map in 6u and moved to per-pair RS256 Bearer principals, so
       // the static x-internal-service-token header is no longer honoured for either.
       // Their ES entries (sourced from payments/warehouse JWT_TOKEN, both the shared
-      // roleless a2880693 value) were removed 2026-09-01 -- see plan section 6ad.
+      // roleless a2880693 value) were removed 2026-09-01 -- see plan section 6ai.
       const paymentsToken = '';
       const warehouseToken = '';
       const customerEmail = input.serviceName + '@internal.invalid';
