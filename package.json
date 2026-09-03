@@ -65,25 +65,27 @@
     "verify:current-head-requirement-audit": "node scripts/verify-current-head-requirement-audit.js",
     "verify:business-health-orders-reservation-contract": "node scripts/verify-business-health-orders-reservation-contract.js",
     "verify:auth-marathon-only-boundary": "node scripts/verify-auth-marathon-only-boundary.js",
-    "verify:internal-service-identity": "node scripts/verify-internal-service-identity.js"
+    "verify:internal-service-identity": "node scripts/verify-internal-service-identity.js",
+    "verify:credential-self-report": "node scripts/verify-credential-self-report.js"
   },
   "dependencies": {
-    "@nestjs/common": "^10.0.0",
-    "@nestjs/core": "^10.0.0",
-    "@nestjs/platform-express": "^10.0.0",
-    "@nestjs/typeorm": "^10.0.0",
-    "@nestjs/config": "^3.1.1",
     "@nestjs/axios": "^3.0.1",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.1.1",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/jwt": "^10.2.0",
     "@nestjs/microservices": "^10.0.0",
-    "typeorm": "^0.3.17",
-    "pg": "^8.11.3",
+    "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/schedule": "^4.1.2",
+    "@nestjs/typeorm": "^10.0.0",
     "amqplib": "^0.10.3",
     "axios": "^1.6.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
+    "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
-    "class-validator": "^0.14.0",
-    "class-transformer": "^0.5.1",
-    "@nestjs/jwt": "^10.2.0"
+    "typeorm": "^0.3.17"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

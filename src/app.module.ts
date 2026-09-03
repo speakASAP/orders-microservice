@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { OrdersModule } from './orders/orders.module';
 import { ItemsModule } from './items/items.module';
 import { ShipmentsModule } from './shipments/shipments.module';
@@ -17,6 +18,7 @@ import { BusinessHealthModule } from './business-health/business-health.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     AuthModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
