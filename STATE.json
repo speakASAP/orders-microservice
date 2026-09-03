@@ -4,7 +4,7 @@
   "service": {
     "name": "orders-microservice",
     "kind": "service",
-    "lifecycle": "completed_frozen",
+    "lifecycle": "frozen",
     "deployment": "kubernetes"
   },
   "planning": {
