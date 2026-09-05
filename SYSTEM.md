@@ -124,7 +124,7 @@ This service owns the pricing/AI-suggestion domain (not `payments-microservice`)
 
 ### warehouse handoff
 
-Orders calls Warehouse reservation endpoints with its own Auth-registered orders-to-warehouse RS256 bearer JWT and least-privilege target role. The pair credential flows through Vault -> ExternalSecret -> Kubernetes Secret -> secretKeyRef; Warehouse remains stock truth. See auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md.
+Orders-to-Warehouse machine identity is governed exclusively by the canonical [SERVICE_IDENTITY_CONSUMER_STANDARD.md](../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md); Warehouse remains stock truth.
 
 ### current state
 
