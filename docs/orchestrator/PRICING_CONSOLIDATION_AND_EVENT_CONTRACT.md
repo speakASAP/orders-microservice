@@ -57,7 +57,6 @@ Catalog:
 
 - `src/pricing/pricing.controller.ts` exposes guarded pricing writes through `POST /api/pricing`, `POST /api/pricing/bulk`, and `PUT /api/pricing/:id`, plus current price reads through `GET /api/pricing/product/:productId/current`.
 - `src/pricing/pricing.service.ts` owns deterministic current-price selection, pricing validation, sale/base-price rules, validity windows, and bulk human-review guard.
-- `src/auth/catalog-auth.guard.ts` accepts Auth JWT roles or an internal service token for Catalog writes.
 - `src/products/products.controller.ts` exposes product update at `PUT /api/products/:id`, but product update is not the canonical Catalog pricing-write contract.
 
 ## Confirmed State
@@ -99,20 +98,6 @@ Compatibility decision:
 
 The desired Orders-to-Catalog pricing update should target Catalog pricing, not product truth:
 
-```http
-POST /api/pricing
-Authorization: Bearer <Auth-issued service/admin JWT>
-# or x-internal-service-token from Catalog-approved service credentials
-
-{
-  "productId": "catalog-product-id",
-  "basePrice": 1200,
-  "currency": "CZK",
-  "priceType": "regular",
-  "isActive": true
-}
-```
-
 Catalog remains responsible for:
 
 - validating pricing row shape;
@@ -135,8 +120,6 @@ Payments remains responsible for provider sessions, payment capture, variable sy
 
 ### G6-A Catalog Pricing Write Adapter
 
-Status: implemented in source; runtime wiring maps `CATALOG_INTERNAL_SERVICE_TOKEN` from Catalog's Vault-backed `BAZOS_SERVICE_TOKEN` until a dedicated Catalog internal token property is available.
-
 Objective: Replace the legacy product-update fallback in `PricingService.updateProductPrice()` with a Catalog pricing-write adapter that calls `POST /api/pricing` using approved Catalog service authentication.
 
 Likely Orders files:
@@ -148,7 +131,6 @@ Likely Orders files:
 
 Dependencies:
 
-- approved runtime Catalog service credential source, such as `CATALOG_INTERNAL_SERVICE_TOKEN` or Auth-issued service JWT;
 - confirmation of whether approved suggestions should create a regular active pricing row or a separate price type such as `orders_suggestion`.
 
 Forbidden outcomes:
@@ -161,7 +143,6 @@ Forbidden outcomes:
 Implementation note, 2026-06-21:
 
 - Orders now writes approved suggestions to Catalog through `POST /api/pricing` with `productId`, `basePrice`, `currency="CZK"`, `priceType="regular"`, and `isActive=true`.
-- Orders sends Catalog service authentication through `x-internal-service-token` and `x-service-name=orders-microservice`; token values are not logged or persisted in pricing rows/events.
 - The legacy `/admin/products/:productId` and `/products/:productId` price fallback is removed.
 
 ### G6-B Pricing Event Versioning

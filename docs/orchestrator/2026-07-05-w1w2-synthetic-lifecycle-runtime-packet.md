@@ -54,7 +54,6 @@ The existing smoke script exits source-only with blockers unless all three gates
 ## Actor
 
 - Orders pod executes the bounded smoke through `kubectl exec`.
-- Channel actor: `flipflop-service`, using runtime internal service token presence only.
 - Payment actor: `payments-microservice`, using runtime internal payments token presence only.
 - Warehouse actor: `warehouse-microservice`, using runtime Warehouse token presence only.
 - Token values must not be printed, decoded, copied, or persisted.
@@ -127,10 +126,8 @@ Abort before live execution if any condition is true:
 - `[MISSING: LIFECYCLE_MUTATION_SMOKE_CONFIRM=CREATE_PAY_WAREHOUSE_READ]`.
 - Orders deployment is not ready.
 - `WAREHOUSE_RESERVATION_ENABLED` is not `true` in the Orders runtime.
-- `FLIPFLOP_INTERNAL_SERVICE_TOKEN`, payments internal token, or Warehouse internal token is missing from runtime env presence checks.
 - Synthetic catalog product or Warehouse id is rejected, unavailable, or no longer Warehouse-owned.
 - The run would require real provider payment, customer notification, marketplace provider write, manual DB write, deploy, migration, browser session capture, token output, raw row output, or raw customer/payment/provider/tracking output.
-
 
 ## Remaining Gates
 

@@ -123,5 +123,3 @@ Approval evidence: owner-confirmation: orders-microservice-onboarding-approved
 | auth-microservice | `auth-microservice:3370` |
 
 ## Warehouse Handoff
-
-Orders records Warehouse reservation handoff metadata on order creation when `WAREHOUSE_RESERVATION_ENABLED=true`. Production receives `WAREHOUSE_SERVICE_TOKEN` from Vault through External Secrets Operator and calls Warehouse with bearer auth. Every reservable order item must include a Warehouse-owned `warehouseId`; Warehouse remains the stock and reservation authority.

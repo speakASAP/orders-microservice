@@ -30,7 +30,6 @@ Validation -> FlipFlop source validation plus Orders `git diff --check` and clea
 
 FlipFlop commit `0e06a50` contains:
 
-- `shared/clients/order-client.service.ts`: adds action-admin route client using `POST /api/admin/operations/actions/order-status` and fail-closed `ORDERS_STATUS_SERVICE_TOKEN` handling.
 - `services/order-service/src/orders/orders.service.ts`: routes central-owned `status` changes to the central Orders UUID, keeps `notes` local, and rejects central-owned `paymentStatus` changes.
 - `services/order-service/src/orders/dto/update-admin-order-status.dto.ts`: carries optional approval packet for Orders cancellation gates.
 - `services/frontend/app/admin/orders/[id]/page.tsx`: submits changed central status to Orders while omitting central payment changes and avoiding accidental status action on notes-only saves.

@@ -31,9 +31,7 @@
     "tokenPrinted": false,
     "conclusion": "Heureka service identity alone cannot read Orders detail for dashboard central lifecycle proof; proof runner needs a short-lived Auth/Orders admin token for readback and cleanup."
   },
-  "rootCause": "The existing Heureka smoke runner checks Catalog product existence without Catalog auth headers, while the live Catalog product endpoint now returns 401. The pod has HEUREKA_INTERNAL_SERVICE_TOKEN available, but the runner does not send it to Catalog. Separately, Orders detail readback rejects the Heureka service identity with 401.",
   "requiredNextRunnerShape": {
-    "catalogPreflight": "Send x-internal-service-token from HEUREKA_INTERNAL_SERVICE_TOKEN or CATALOG_INTERNAL_SERVICE_TOKEN when reading Catalog product preflight.",
     "ordersReadbackAndCleanup": "Use a short-lived Auth-issued Orders admin/global-superadmin bearer without printing or persisting token values.",
     "boundedMutation": "Create synthetic Heureka order, run /heureka/dashboard/orders-list and detail/admin rendered proof while the central order is fresh, then cancel the synthetic order with approved cleanup.",
     "artifactPolicy": "Record only HTTP statuses, aggregate counts, lifecycle stage/label, booleans, and hashes; no token values, customer PII, raw order rows, DB dumps, provider payloads, payment refs, or tracking values."

@@ -69,7 +69,6 @@ Runtime status-only proof:
 - `https://aukro.alfares.cz/health` returned HTTP 200.
 - Protected `https://aukro.alfares.cz/aukro/ui/dashboard` returned HTTP 403 without session.
 - Protected `https://aukro.alfares.cz/aukro/ui/admin/services` returned HTTP 403 without session.
-- Pod env presence was checked by length/presence only: `ORDER_SERVICE_URL`, `JWT_TOKEN`, `AUKRO_INTERNAL_SERVICE_TOKEN` present.
 
 Remaining Aukro blockers:
 
@@ -92,7 +91,6 @@ Source proof:
 
 - Dashboard list/detail and admin stats render central lifecycle/status counts through protected Orders-backed APIs.
 - All 13 lifecycle labels are covered.
-- Runtime readiness verified `ORDER_SERVICE_URL`, `JWT_TOKEN`, `HEUREKA_INTERNAL_SERVICE_TOKEN`, and `WAREHOUSE_SERVICE_TOKEN` presence only, with values redacted.
 
 Runtime status-only proof:
 

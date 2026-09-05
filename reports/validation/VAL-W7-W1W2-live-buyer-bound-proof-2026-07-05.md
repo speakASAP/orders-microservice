@@ -56,8 +56,6 @@ The checked-in JSON reports contain only short hashes for the order id, buyer su
 
 `live_buyer_bound_w1w2_proven`.
 
-W1/W2 is proven for the approved synthetic lane: order creation, Warehouse reservation, paid transition, Warehouse fulfillment transition, customer lifecycle readback, and admin lifecycle readback all passed. Customer lifecycle authorization remains subject-bound; this proof does not relax service-token access or email fallback policy.
-
 ## Boundary
 
 - mutation: one approved synthetic Orders/Warehouse lifecycle row in the latest smoke report.

@@ -35,7 +35,6 @@ Validation: pod-local preflight returned Heureka health 200, Warehouse stock 200
 
 ## Required Next Runner Shape
 
-1. Add Catalog auth to the proof runner preflight using `HEUREKA_INTERNAL_SERVICE_TOKEN` or `CATALOG_INTERNAL_SERVICE_TOKEN` as `x-internal-service-token`, without printing the token.
 2. Acquire a short-lived Auth-issued Orders admin/global-superadmin bearer inside the cluster without printing or persisting the token value.
 3. Create one synthetic Heureka order through `POST /heureka/orders/ingest`.
 4. Before cleanup, probe `/heureka/dashboard/orders-list`, order detail, and admin stats/rendered dashboard evidence for a non-stale central lifecycle stage.
@@ -46,10 +45,7 @@ Validation: pod-local preflight returned Heureka health 200, Warehouse stock 200
 
 `[MISSING: approved Heureka synthetic rendered-proof runner with Catalog auth header and short-lived Orders admin readback/cleanup token]`
 
-
 ## Resolution
-
-Heureka commit `a0dbb24` resolves the preflight/runtime blockers without changing Orders contracts. The smoke runner sends Catalog internal auth for product preflight, and the Heureka Orders client now prefers `ORDERS_INTERNAL_SERVICE_TOKEN` / `JWT_TOKEN` before the Catalog-to-Heureka `HEUREKA_INTERNAL_SERVICE_TOKEN` when calling Orders.
 
 Post-deploy evidence:
 

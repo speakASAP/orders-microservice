@@ -126,7 +126,6 @@ Scope: owner-approved one-time publish for the central Orders FlipFlop window al
 Publish readiness:
 
 - Orders, Marketing, and Catalog deployments were ready 1/1.
-- Marketing runtime key/presence check showed `ORDERS_SERVICE_TOKEN=true`, `CATALOG_INTERNAL_SERVICE_TOKEN=true`, `ORDER_AFFINITY_RUN_LEDGER_ENABLED=true`, `ORDER_AFFINITY_CATALOG_PUBLISH_ENABLED=true`, and `CATALOG_SERVICE_URL=true` without printing values.
 - Catalog health through Marketing configured `CATALOG_SERVICE_URL` returned HTTP 200 and `status=healthy`.
 - Immediate dry-run returned `inputRecords=2`, `acceptedCreatedEvents=2`, `rejectedRecords=0`, `aggregatePairs=2`, and `totalPairEvidence=4`.
 

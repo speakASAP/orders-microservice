@@ -32,7 +32,6 @@ Validation -> Run W1/W2 live buyer-bound verifier, W1/W2 cleanup policy verifier
 - Allegro is source-proven and approved synthetic buyer/admin runtime-proven: buyer list/detail, unauth 401, non-owned detail 404, admin orders/stats, and cleanup all passed without printing raw tokens or payloads. Remaining natural proof is a real-traffic subject-bound buyer row with forwarded central Orders lifecycle if product requires it.
 - Bazos is source/UI verified and bounded paid lifecycle proof is accepted. `[RESOLVED/NARROWED: W8 Bazos provider-backed proof is not an autonomous source implementation gap; current Bazos source supports bounded synthetic/internal order ingestion and central Orders UI proof, while true provider-backed webhook/status proof remains owner-decision-option gated]` Provider-backed proof remains blocked until exactly one owner decision option is selected; if `provider_backed_supported`, provider item/status contract, transition sample, item identity mapping, Warehouse-owned `warehouseId`, and approved non-secret fixture/live smoke packet are required.
 - Aukro and Heureka are current-proven for service-scoped central Orders lifecycle rendering. `[RESOLVED/NARROWED: W5 Aukro/Heureka current gate is service-scoped API/DOM proven for central Orders lifecycle rendering; natural human-session or natural real customer-bound proof remains optional/product-gated if product requires proof beyond approved service-scoped/bounded evidence]` Natural human-session/customer-bound row proof is not claimed and remains optional/product-gated.
-- FlipFlop W6 is runtime-complete in FlipFlop `df32252`: central-owned local payment correction remains fail-closed, central lifecycle labels/read models and dashboards are verified, central-owned status actions route to Orders `POST /api/admin/operations/actions/order-status`, Auth `internal:orders-microservice:action-admin` is seeded, `ORDERS_STATUS_SERVICE_TOKEN` is Vault-backed and ExternalSecret-synced, the previous synthetic row was cancelled through Orders admin action HTTP 201 with remaining open count 0, and fresh guarded create/read/cancel smoke passed with create 201, read 200, cleanup 200, blockers empty, providerCall=false, tokenPrinted=false, rawIdsPrinted=false.
 
 ## Go/No-Go
 
@@ -65,7 +64,6 @@ Repo-local packet handoffs are pushed and aggregated in reports/validation/VAL-W
 ## Boundary
 
 Approved W1/W2 synthetic live mutation occurred and is recorded only with redacted hashes/statuses/booleans. Approved FlipFlop W6 action proof used Auth-issued action-admin JWT generation to a 0600 temp file, Vault key patch, ExternalSecret sync, a FlipFlop order-service restart, and guarded synthetic create/read/cancel smoke recorded only as statuses/booleans. No provider call, real payment movement, migration, deploy, token/secret output, decoded JWT output, raw ID output, raw DB row output, raw customer/payment/provider/tracking output, screenshot, or browser session capture occurred in this W7 update.
-
 
 ## 2026-07-06 W6-B Runtime Closure Addendum
 

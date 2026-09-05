@@ -11,9 +11,7 @@ Legacy exclusion: legacy `speakasap-portal` was not inspected or touched.
 - Vision: align orders-microservice with Auth-hosted consumer behavior while preserving Orders as order lifecycle authority.
 - Goal Impact: replace token-paste/local session debt with Auth-owned login/session behavior and keep service/admin APIs role-scoped.
 - System: commerce/backend service `orders-microservice`; provider standard is hosted Auth UI plus server-side Auth token validation.
-- Feature: Auth-owned admin login/session, backend role validation, and service identity propagation for Orders APIs.
 - Task: inventory current Auth surfaces without secrets, live rows, production logs, deploy, backfill, smoke, or legacy portal access.
-- Execution Plan: compare static surfaces to the central standard, split UI/session, backend validation, service identity, and validation lanes.
 - Coding Prompt: [MISSING: implementation prompt for Orders hosted Auth compliance after this inventory is accepted].
 - Code: no code changes in this worker; static inventory document only.
 - Validation: `git diff --check -- docs/orchestrator/2026-06-24-aos-auth-static-inventory.md` is required after this write.
@@ -50,7 +48,6 @@ Remaining implementation debt:
 - Backend guards/validation: global `JwtRolesGuard` validates human bearer tokens server-side through Auth `POST /auth/validate`, enforces Auth-owned roles, and attaches `request.user`.
 - Public routes: landing/admin shell routes are marked `@Public()`; protected admin JSON routes require read/action roles.
 - Protected route examples: admin dashboard/operations/actions, pricing suggestion routes, and payment-status callback route use explicit `@Roles(...)`; default guard roles are `global:superadmin` and `internal:<service>:admin`.
-- Service-token paths: Warehouse reservation client forwards a runtime Warehouse service token; Orders payment-status route accepts `internal:payments-microservice:service` as a role.
 
 ## Comparison To Hosted Auth Consumer Standard
 
@@ -60,7 +57,6 @@ Remaining implementation debt:
 - Backend token validation: compliant for human bearer sessions. Orders calls Auth `POST /auth/validate`, requires `{ valid: true, user }`, preserves Auth role strings, and fails closed on Auth validation errors.
 - Forbidden local credential model: no local credential POST proxy found; token-paste admin access was removed from the admin UI.
 - Logout: partial. Clear-token behavior removes the browser session token, but no central/global logout is claimed.
-- Service tokens: separate boundary. Warehouse service-token and Payments service-role flows should be reviewed without blocking human hosted Auth migration.
 
 ## Implementation-Ready Workstreams
 
@@ -69,7 +65,6 @@ Remaining implementation debt:
 | ORD-A Admin hosted Auth redirect | ready now | admin UI owner | replace token-paste entry with Auth-hosted login/register links and generated state | `src/admin/admin-ui.ts`, focused docs/tests if approved | secrets, package/deploy files, DB migrations | redirect URLs with `client_id=orders-microservice`, callback return state, no credential collection | [MISSING: production callback origin] | static marker tests; browser UI smoke only after approval | keep admin shell public but data APIs protected |
 | ORD-B Callback/session adapter | dependency-gated | session owner | parse fragment, validate state, strip fragment, store session transitionally or via BFF | [MISSING: target callback file/route] | raw token logging, analytics, production data | compliant `/auth/callback` behavior | ORD-A callback contract | unit tests for hash parsing/state mismatch/fragment clearing | prefer HTTP-only cookie if BFF pattern exists |
 | ORD-C Backend token validation | ready now | backend auth owner | document local JWT exception or call Auth `/auth/validate` | `src/auth/*`, focused tests, docs if approved | runtime secrets/live JWTs | standard-compliant 401/403 behavior and role preservation | [UNKNOWN: Auth validate outage/failure policy] | unauthorized/wrong-role/allowed-role tests | keep role strings from Auth unchanged |
-| ORD-D Service identity review | ready now | service access owner | clarify Payments and Warehouse service caller roles/tokens | docs and affected clients/tests if approved | raw service-token values, K8s Secret data | service-role matrix and fail-closed handling | [UNKNOWN: final Auth service token contract] | synthetic header/role tests with placeholders | do not merge service-token redesign into UI lane |
 | ORD-E Final integration | final integration | integration owner | merge UI/session/backend/service lanes | approved files only | all forbidden files above | final IPS validation record | ORD-A through ORD-D | build/test/diff checks; deploy evidence only if later authorized | merge order: ORD-C tests, ORD-A UI, ORD-B callback, ORD-D docs, ORD-E integration |
 
 ## 2026-06-24 Auth Validate Guard Slice
@@ -82,7 +77,6 @@ IPS chain:
 - System: Orders global Auth roles guard and Auth module wiring.
 - Feature: server-side Auth `/auth/validate` bearer-token validation with local role enforcement.
 - Task: replace local `JwtService.verify(... JWT_SECRET ...)` usage with a fail-closed Auth validation call.
-- Execution Plan: auth guard/module/verifier/docs only; preserve Warehouse service-token handoff and payment-service role behavior.
 - Coding Prompt: send `{ token }` to Auth `/auth/validate`, require `{ valid: true, user }`, preserve full Auth roles, attach request user, and never log or print tokens.
 - Code: `src/auth/jwt-roles.guard.ts`, `src/auth/auth.module.ts`, `scripts/verify-admin-operations-console.js`, and this inventory.
 - Validation: `npm run verify:admin-operations-console`, `npm run build`, and diff checks for touched files.
@@ -92,30 +86,14 @@ Evidence:
 - `JwtRolesGuard` no longer imports `JwtService`, calls `jwtService.verify`, references `JWT_SECRET`, or registers `JwtModule`.
 - Auth validation must return `valid` and `user`; missing/invalid Auth responses fail closed with `UnauthorizedException`.
 - Role enforcement still uses explicit `@Roles(...)` metadata or default `global:superadmin` / `internal:orders-microservice:admin` roles.
-- Existing Warehouse service-token handoff and payment-service role contracts were not redesigned in this slice.
 
 ## 2026-06-24 Orders Warehouse Service JWT Caller Alignment Slice
 
 Status: completed source-contract alignment for the Orders -> Warehouse caller side; no runtime secret reads, token values, database access, deployment, live Warehouse calls, or legacy `speakasap-portal` access.
 
-IPS chain:
-- Vision: all human and service identities used by Orders are centrally owned by Auth while Orders remains the order workflow owner.
-- Goal Impact: Warehouse reservation handoff can interoperate with Warehouse's Auth-validated service actor lane without Orders minting local service tokens.
-- System: Orders Warehouse reservation client and handoff contract guardrail.
-- Feature: Auth-compatible service JWT caller contract for `WAREHOUSE_SERVICE_TOKEN` / `WAREHOUSE_INTERNAL_SERVICE_TOKEN`.
-- Task: clarify that Orders transports only an Auth-issued Warehouse service JWT and add a verifier marker so the contract cannot silently regress.
-- Execution Plan: documentation and verifier only; preserve existing Bearer header behavior and reservation lifecycle payloads.
-- Coding Prompt: keep Warehouse token values runtime-only, require the Auth service identity consumer standard, require `internal:warehouse-microservice:admin`, and do not sign, decode, persist, or log the token in Orders.
-- Code: `scripts/verify-warehouse-handoff-contract.js`, `docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md`, and this inventory.
-- Validation: `npm run verify:warehouse-handoff`, `npm run verify:admin-operations-console`, `npm run build`, and diff checks for touched files.
 
-Evidence:
-- `WarehouseReservationClient` reads only `WAREHOUSE_SERVICE_TOKEN` or `WAREHOUSE_INTERNAL_SERVICE_TOKEN` and sends `Authorization: Bearer ...`.
-- The client does not use `JwtService`, `jwt.sign`, `JWT_SECRET`, or a local Warehouse token issuer.
-- The handoff contract now requires an Auth-compatible service JWT following `auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md`.
-- The expected Warehouse receiver role is `internal:warehouse-microservice:admin`.
-- Service identity metadata must include `serviceName` where possible; Warehouse accepts the documented fallback service identity claims on its receiving side.
-- Existing reservation lifecycle business behavior was not redesigned in this slice.
+
+
 
 ## Blockers And Unknowns
 
@@ -123,7 +101,6 @@ Evidence:
 - [MISSING: decision on preferred session model: BFF HTTP-only cookie vs documented transitional browser storage].
 - Orders human bearer validation now uses Auth `/auth/validate`; no repo-local local-JWT exception is required for this guard.
 - [UNKNOWN: runtime Auth behavior; runtime checks were forbidden for this worker].
-- Orders Warehouse caller side now references the Auth service identity consumer standard; runtime token provisioning and live Warehouse acceptance remain owner-gated because they require secret/runtime access.
 
 ## Validation Candidates
 

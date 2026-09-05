@@ -236,8 +236,6 @@ Validation:
 Remaining gates:
 
 - [OPTIONAL: natural real-buyer browser proof where existing approved bounded/service-scoped evidence is not sufficient for product sign-off.]
-- [OPTIONAL: real provider live-read where existing internal Warehouse delivery smoke is not sufficient.]
-2026-07-03 continuation: Approved synthetic Allegro provider return fixture proved the returned path in pre-production mode. After the synthetic `DELIVERED` fixture moved Warehouse to `delivered` and Orders lifecycle to `received`, a second sanitized `RETURNED` provider fixture was posted from the live Allegro pod with `WAREHOUSE_INTERNAL_SERVICE_TOKEN`. Warehouse returned HTTP 201 with `statusMutationApplied=true`, `observationDecision=accepted`, `normalizedWarehouseStatus=returned`, and fulfillment status `returned`. Orders accepted the Warehouse callback and moved lifecycle from `received` to `returned`. No token values, raw provider payloads, raw tracking numbers, raw waybills, raw account/order ids, customer PII, screenshots, raw DOM, provider write, deploy, or runtime secret change was used or printed. This remains synthetic/pre-production evidence; real Allegro.cz production shipment evidence should be rechecked when real customers/traffic exist.
 ## 2026-07-03 - Goal 24 Warehouse Cleanup Semantics Reconciled
 
 IPS: Vision -> paid Catalog bundle rollback must preserve Orders, Payments, and Warehouse ownership; Goal Impact -> Orders consumes Warehouse `3043cad` cleanup operation matrix as source-policy evidence; System -> Orders owns lifecycle/cancellation gates, Payments owns provider/refund events, Warehouse owns component-line stock cleanup; Feature -> paid/provider bundle cleanup readiness; Task -> reconcile Warehouse operation semantics into Orders report/verifier/state; Execution Plan -> Orders docs/verifier/state only; Coding Prompt -> no live mutation and no invented provider approvals; Code -> Goal 24 readiness report, rollback doc, verifier, state/status; Validation -> targeted verifier/payment/Warehouse/build/diff-check.
@@ -246,7 +244,6 @@ Decision: Warehouse cleanup-operation selection is no longer missing at source-p
 
 Remaining gates: `[MISSING: owner-approved paid/provider checkout smoke with stock and refund/cancel rollback plan]`, `[MISSING: Payments refund and post-fulfillment cancellation/return event contract that maps to Orders and Warehouse without inferred stock effects]`, `[RESOLVED/NARROWED: candidate target component stock rows and max component quantity are source-documented from Catalog packet]; [RESOLVED/NARROWED: live current target row readback at execution time captured through protected Warehouse API without mutation]; [RESOLVED/NARROWED: Warehouse hold/release duration is owner-approved for the bounded Goal 24 smoke as 15 minutes source-default TTL or shorter caller-supplied expiresAt]; [RESOLVED/NARROWED: final owner approval before live Warehouse reservation mutation is bounded to one Goal 24 component-line smoke attempt with max quantity 1 per component after live readback]; [MISSING: deterministic Warehouse component reservation state for cleanup]`, `[MISSING: runtime verification of Payments Orders service token/role]`, and `[MISSING: final integration owner approval before any live paid/provider runtime smoke]`.
 
-2026-07-03 continuation: Approved synthetic Allegro provider delivery fixture proved the non-UNKNOWN shipment path without requiring real Allegro.cz customers. Using the existing sanitized Allegro shipment correlation, Warehouse built a redacted `DELIVERED` snapshot with hashed provider identity fields only, and the live Allegro pod posted it to Warehouse using the dedicated `WAREHOUSE_INTERNAL_SERVICE_TOKEN`. Warehouse returned HTTP 201 with `statusMutationApplied=true`, `observationDecision=accepted`, `normalizedWarehouseStatus=delivered`, and fulfillment status `delivered`. Orders received the Warehouse callback and moved the central lifecycle from `in_delivery` to `received`. No token values, raw provider payloads, raw tracking numbers, raw waybills, raw account/order ids, customer PII, screenshots, raw DOM, provider write, deploy, or runtime secret change was used or printed. Real Allegro.cz customer-provider non-UNKNOWN evidence remains future production evidence only; current pre-customer readiness is proven through the approved synthetic provider fixture.
 ## 2026-07-03 - Broad Allegro Tracking Scan Still Has No Movement Events
 
 Result: user requested an immediate real Allegro shipment tracking sample instead of waiting. A broader read-only live scan ran from the deployed `allegro-service` pod against the token-ready active Allegro account. It listed real checkout forms and checked shipment plus carrier tracking endpoints for every reachable sample. Sanitized aggregate: `checkoutFormsScanned=41`, `shipmentEndpoint.http200=41`, `shipmentAvailability.available=37`, `trackingEndpoint.http200=43`, `trackingEventContainersSeen=0`, `latestStatusCounts.UNKNOWN=43`, `nonUnknownStatusCount=0`. No provider write, Warehouse mutation, Orders mutation, raw token, raw account/order id, raw waybill, raw provider payload, raw DB row, customer PII, screenshot, or raw DOM was printed or stored.
@@ -275,23 +272,9 @@ Parallel execution:
 | Channel checkout cleanup packet | dependency-gated | FlipFlop/channel owner | customer-visible checkout/cart/local projection cleanup | `[MISSING]` | 4 |
 | Final integration smoke | final integration | Catalog/commerce integration owner | owner-approved redacted paid/provider smoke only | `[MISSING]` | last |
 
-Remaining blocker: `[MISSING: owner-approved refund/cancel rollback plan proving provider refund or cancellation plus Orders/Warehouse cleanup]`.
-2026-07-03 continuation: Approved read-only Allegro non-UNKNOWN provider scan completed against the live `allegro-service` pod. The scan checked up to 50 forwarded candidates and found only one token-usable forwarded candidate; checkout-form shipments returned HTTP 200 with one shipment/package, carrier tracking returned HTTP 200, but tracking history contained zero status events, so the only status class was `UNKNOWN`. No Warehouse apply, Orders mutation, provider write, token value, raw account/order id, raw waybill, raw provider payload, customer PII, raw DB row, screenshot, or raw DOM was used or printed. Evidence artifact: `reports/validation/shipment-runtime-readiness/allegro-non-unknown-provider-scan-2026-07-03.json`. Remaining gate is data availability, not code ownership: `[MISSING: Allegro provider sample with carrier tracking status other than UNKNOWN]`; bounded fixture evidence still proves `IN_TRANSIT -> in_delivery`, and real provider UNKNOWN/noop intake remains proven.
-2026-07-03 continuation: Optional real Allegro provider shipment scan was refreshed after hardened token cutover. The live Allegro pod initially had one forwarded order with account but zero future-expiry access tokens; a bounded OAuth refresh updated only encrypted `allegro_accounts` token fields for one active account, returned provider refresh HTTP 200, and printed no token values. The sanitized scan then reached the real Allegro checkout-form shipments endpoint and carrier tracking endpoint for the single candidate (`shipmentEndpoint.http200=1`, `trackingEndpoint.http200=1`) without printing raw checkout-form ids, account ids, waybills, provider payloads, customer fields, or DB rows. The only latest carrier status remained `UNKNOWN` (`nonUnknownStatusCount=0`), so the optional real non-UNKNOWN provider mutation gate remains blocked by available provider data rather than code/RBAC/token readiness. No Warehouse, Orders, provider write, deploy, raw tracking reveal, or runtime secret change was performed; status-only visibility remains the current approved policy.
-2026-07-03 continuation: Optional Allegro real-provider non-UNKNOWN shipment status proof remains blocked by expired OAuth access tokens, not by Orders/Warehouse runtime. A redacted live scan found one forwarded-order candidate, zero token-ready forwarded accounts, zero shipment/tracking reads, and zero non-UNKNOWN provider statuses. Aggregate readiness counts only: accounts=3, activeAccounts=2, accountsWithToken=3, accountsWithFutureToken=0, forwardingAttempts=1, forwardingAttemptsWithAccount=1. Attempting to refresh Allegro OAuth tokens would mutate encrypted credential fields and was policy-blocked without explicit approval for this optional proof. Artifact: `reports/validation/shipment-runtime-readiness/allegro-live-provider-non-unknown-current.json`. No tokens, raw account ids, raw order ids, waybills, provider payloads, raw rows, or customer PII were printed; no provider, Warehouse, Orders, or credential mutation was performed.
-2026-07-03 continuation: Hardened Allegro shipment service-token cutover is now normalized to the Vault-managed runtime path. Allegro `b6cd31a` is deployed and ready; the live `allegro-service` pod has `WAREHOUSE_INTERNAL_SERVICE_TOKEN=present` and `WAREHOUSE_SERVICE_TOKEN=absent`, and the temporary unmanaged Kubernetes Secret `allegro-warehouse-service-token` has been deleted after validation. Warehouse `d9ebb47` remains deployed with shipment endpoints requiring `internal:allegro-service:service`; focused guard/controller/actor tests, build, migration job, rollout, and health passed. A bounded Allegro-pod probe proved the dedicated `WAREHOUSE_INTERNAL_SERVICE_TOKEN` cannot access the default Warehouse admin route (`403`), passes the hardened shipment correlation auth boundary and reaches validation (`400` on synthetic payload), while the old broad `ALLEGRO_INTERNAL_SERVICE_TOKEN` is rejected by the shipment endpoint (`403`). No token values, raw provider payloads, raw tracking values, raw order ids, customer PII, or real order mutations were printed or changed. Remaining shipment gates are optional real provider non-UNKNOWN status sample if product requires live mutation evidence and any future audited full-tracking reveal; status-only tracking visibility is already the current policy.
-2026-07-03 continuation: Allegro minimal Warehouse service-token projection is now runtime-proven. With owner approval, Auth now has an `allegro-service` internal service role/principal path and an Auth-issued token projected into the live Allegro deployment as Vault-managed `WAREHOUSE_INTERNAL_SERVICE_TOKEN`; `WAREHOUSE_SERVICE_TOKEN` remains a source-supported compatibility fallback but is absent from the current pod. Allegro source commit b6cd31a records the Vault-only runtime projection; live deployment is now localhost:5000/allegro-service:b6cd31a. Sanitized runtime proof from the Allegro pod showed the projected token env present, JWT signature valid, `internal:allegro-service:service` present, Warehouse-admin absent, roleCount=1, service type claims present, and no token/identity values printed. A bounded no-central-order replay returned `skipped=1` with `MISSING_CENTRAL_ORDER_ID`; Warehouse aggregate counts stayed unchanged at `correlations=1` and `observations=2`. Persistent changes: Auth service-principal state and Kubernetes secret value; both are reversible by service owners. No raw tracking values, provider payloads, customer PII, tokens, raw order ids, raw DB rows, screenshots, or raw DOM were printed. Remaining gates are optional real provider live-read evidence and future audited full-tracking reveal if product/security approves it.
 ## 2026-07-03 - Allegro Warehouse Service Role Source Hardened (Superseded Runtime Blocker)
 
-IPS: Vision -> provider shipment status reaches Orders only through a least-privilege Warehouse handoff; Goal Impact -> broad Warehouse-admin token fallback is removed from source while runtime ingestion remains blocked until the minimal Auth service token is projected; System -> Allegro owns sanitized shipment production, Warehouse owns correlation/status intake, Auth owns service principal/token issuance, Orders owns lifecycle evidence; Feature -> Allegro shipment service-role gate; Task -> reconcile Warehouse `ab7ac6e` and Allegro `edb3a88` source hardening into Orders runtime gate evidence; Execution Plan -> Orders-only evidence/verifier/docs update, no deploy, no secret mutation, no DB mutation, no provider read; Coding Prompt -> preserve broad-token runtime finding, do not print tokens or identities, keep recurring ingestion blocked; Code -> shipment runtime report and verifiers; Validation -> `npm run verify:shipment-runtime-readiness`, `npm run verify:tracking-visibility-policy`, `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:completion-audit`, and `git diff --check`.
-
-Historical evidence: Warehouse commit `ab7ac6e` requires `internal:allegro-service:service` only on Allegro shipment snapshot/correlation endpoints. Allegro commit `edb3a88` accepts only `WAREHOUSE_SERVICE_TOKEN` or `WAREHOUSE_INTERNAL_SERVICE_TOKEN` for Warehouse shipment correlation and no longer falls back to `ALLEGRO_INTERNAL_SERVICE_TOKEN` or generic `INTERNAL_SERVICE_TOKEN`. This blocker is superseded by the top 2026-07-03 continuation entry: the Auth-issued minimal token is now projected as `WAREHOUSE_INTERNAL_SERVICE_TOKEN` while the historical live image was Allegro 0cfe401.
-
-Superseded gate: the Auth-issued Allegro service token is now projected to Allegro runtime as `WAREHOUSE_INTERNAL_SERVICE_TOKEN`. Optional gates remain real provider live-read evidence if product requires it and a future audited full-tracking reveal contract.
-
 ## 2026-07-03 - Minimal Allegro Service Role Handoff Blocked (Superseded)
-
-IPS: Vision -> recurring provider shipment ingestion must use a least-privilege Allegro service identity, not a broad Warehouse-admin fallback; Goal Impact -> the remaining role gate is narrowed to Auth-owned service-principal/token provisioning and Allegro runtime secret mapping; System -> Auth owns service principals, JWT issuance, and RBAC roles; Allegro owns runtime token consumption; Warehouse owns endpoint role enforcement; Orders records lifecycle evidence only; Feature -> Allegro shipment ingestion service identity hardening; Task -> prove current token state and define safe handoff; Execution Plan -> read-only Auth validation and aggregate DB checks only, no role assignment or secret mutation from Orders; Coding Prompt -> no token values, identity values, emails, raw DB rows, provider payloads, tracking values, customer data, deploy, or runtime mutation; Code -> shipment runtime readiness report, verifier, and IPS docs; Validation -> `npm run verify:shipment-runtime-readiness`, `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:tracking-visibility-policy`, `npm run verify:completion-audit`, and `git diff --check` passed.
 
 Evidence: both live Allegro bearer sources validate through Auth, but neither is an `allegro-service` identity, neither has `internal:allegro-service:service`, and both still rely on the broad Warehouse-admin fallback. Auth aggregate checks show `allegro-service` application exists, `internal:allegro-service:service` role does not exist, and there are zero `allegro-service` service principals.
 
@@ -308,8 +291,6 @@ Remaining gates: optional real provider live-read evidence if the sanitized exis
 ## 2026-07-03 - Shipment Runtime Gate Report Refreshed
 
 IPS: Vision -> shipment-provider status must update Orders lifecycle only through Warehouse with redacted evidence; Goal Impact -> the executable Orders report now includes current live tags and a supplemental enabled/token config smoke while preserving the proven callback path; System -> Allegro owns sanitized snapshot production, Warehouse owns correlation/status mutation, Orders owns callback read model; Feature -> shipment-status runtime evidence gate; Task -> refresh Orders-only evidence after live enabled/token config smoke; Execution Plan -> update Orders evidence only, keep real provider live-read optional, and do not change Allegro/Warehouse runtime; Coding Prompt -> no token values, raw provider payloads, raw tracking values, customer fields, raw DB rows, or screenshots; Code -> `reports/validation/shipment-runtime-readiness/allegro-warehouse-runtime-gate-current.json` and IPS docs; Validation -> `npm run verify:shipment-runtime-readiness`, `npm run verify:channel-lifecycle-runtime-evidence`, `npm run verify:completion-audit`, and `git diff --check` passed.
-
-Evidence: Allegro runtime is now `localhost:5000/allegro-service:b6cd31a` with correlation enabled and Vault-managed `WAREHOUSE_INTERNAL_SERVICE_TOKEN` present. Warehouse runtime is `localhost:5000/warehouse-microservice:d9ebb47`. Supplemental no-central-order apply replay returned `posted=0`, `disabled=0`, `skipped=1`, reason `MISSING_CENTRAL_ORDER_ID`; Warehouse aggregate counts remained unchanged. The report preserves the prior bounded callback proof: sanitized replay posted once, Warehouse status `in_delivery`, Orders status `shipped` with payment `paid`.
 
 Remaining gates: optional real provider live-read selection if product requires provider API proof and optional future audited full-tracking reveal. Tracking visibility is status-only approved, and minimal `internal:allegro-service:service` Auth role/token alignment is now projected at runtime.
 
@@ -467,7 +448,6 @@ Remaining gates:
 - `[MISSING: product-approved tracking visibility matrix before raw tracking number or URL appears in any UI/API response]`
 - `[MISSING: owner approval to enable shipment correlation runtime env and run bounded live smoke]`
 
-
 ## 2026-07-03 - Bazos Paid Replay Zero-Order Evidence
 
 IPS: Vision -> reliable Orders lifecycle across channel services; Goal Impact -> Bazos replay source is proven healthy while the live-data blocker is narrowed to zero local Bazos orders; System -> Bazos owns local paid-order projection/replay, Orders owns lifecycle evidence gates; Feature -> Bazos paid multi-product replay evidence; Task -> refresh protected replay and aggregate live-data proof; Execution Plan -> Orders-only evidence/docs/verifier update, no Bazos source edit, no deploy, no provider call, no mutation; Coding Prompt -> do not print token values, raw order ids, customer data, provider payloads, payment refs, tracking values, raw DOM, or DB rows; Code -> `reports/validation/channel-lifecycle-runtime-evidence/bazos-provider-source-blocked.json`, `scripts/verify-channel-lifecycle-runtime-evidence.js`, completion audit/state docs; Validation -> passed: npm run verify:channel-lifecycle-runtime-evidence, npm run verify:completion-audit, git diff --check.
@@ -513,7 +493,6 @@ Execution Plan: keep Catalog-to-Heureka token path intact, make outgoing Heureka
 Coding Prompt: no token values, raw order rows, customer PII, DB rows, payment refs, tracking values, provider payloads, or raw DOM.
 Code: Heureka commit `a0dbb24` deployed as `localhost:5000/heureka-service:a0dbb24` and `localhost:5000/heureka-api-gateway:a0dbb24`.
 Validation: preflight missing none; live smoke first/replay `201`, stable order id true, Orders readback `200`, reservation statuses `reserved`, cleanup `200`; dashboard orders-list HTTP `200`, total `6`, returned `6`, centralStatusCounts `available=4`, `stale=2`, `missingId=2`, `unknown=2`, non-stale sample lifecycle `cancelled` with reservation/warehouse handoff `cancelled`.
-
 
 ## 2026-07-03 - Bazos Paid Replay Source Reconciliation
 
@@ -1171,7 +1150,6 @@ Evidence:
 - Warehouse migrations applied: `CreateFulfillmentProviderStatusObservations1781600000000` and `CreateFulfillmentProviderShipmentCorrelations1781700000000`; post-deploy `npm run migration:show:prod` showed migrations 1 through 6 all `[X]`.
 - Allegro validation before deploy: `verify:shipment-status-snapshot`, `verify:warehouse-shipment-correlation`, `verify:shipment-status-handoff`, `verify:shipment-status-projection`, `verify:shipment-status-source`, `verify:shipment-status-replay`, `verify:shipment-status-snapshot-export`, `npm run build`, and `git diff --check` passed.
 - Allegro deployment: `./scripts/deploy.sh` built, pushed, and rolled out service/api-gateway/frontend/settings/imports images `ae9d381`; service health returned HTTP 200.
-- Allegro runtime gate: `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED` was absent/null, `ALLEGRO_SHIPMENT_DEAD_LETTER_DIR=/var/lib/allegro-service/shipment-correlation-dead-letter`, `ALLEGRO_INTERNAL_SERVICE_TOKEN` present, Warehouse token env keys absent in the service pod.
 - Disabled-gate smoke: compiled replay script ran against one synthetic redacted snapshot with `--apply --confirm-warehouse-handoff ALLEGRO_SHIPMENT_STATUS_WAREHOUSE_CORRELATION`; result `snapshotCount=1`, `posted=0`, `disabled=1`, reason `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED_NOT_TRUE`, `failed=0`, `blocked=0`.
 - Warehouse row-count readback stayed unchanged after smoke: `fulfillment_provider_shipment_correlations=0`, `fulfillment_provider_status_observations=0`.
 
@@ -1223,7 +1201,6 @@ Evidence:
 
 - Owner approval source: in-thread instruction go ahead after the documented Next step requiring owner-reviewed source/window approval and dependent readiness verification.
 - Runtime readiness: Orders, Marketing, and Catalog deployments were 1/1 ready. Images: Orders localhost:5000/orders-microservice:7bcfadd, Marketing localhost:5000/marketing-microservice:latest, Catalog localhost:5000/catalog-microservice:70e2464.
-- Marketing runtime prerequisite check by key/presence only: ORDERS_SERVICE_TOKEN=true, CATALOG_INTERNAL_SERVICE_TOKEN=true, ORDER_AFFINITY_RUN_LEDGER_ENABLED=true, ORDER_AFFINITY_CATALOG_PUBLISH_ENABLED=true, CATALOG_SERVICE_URL=true.
 - Catalog health through Marketing configured CATALOG_SERVICE_URL returned HTTP 200 with status healthy.
 - Immediate pre-publish dry-run for source=orders-microservice, channel=flipflop, from=2026-07-03T04:26:06.127Z, to=2026-07-03T04:27:26.351Z returned inputRecords=2, acceptedCreatedEvents=2, rejectedRecords=0, skippedEvents=0, aggregatePairs=2, totalPairEvidence=4, byChannel.flipflop=2.
 - Publish command: kubectl -n statex-apps exec deploy/marketing-microservice -- node dist/order-affinity-backfill.js --orders-url http://orders-microservice.statex-apps.svc.cluster.local:3203 --channel=flipflop --from=2026-07-03T04:26:06.127Z --to=2026-07-03T04:27:26.351Z --limit=50 --run-id central-orders-flipflop-20260703T042606Z-042726Z --publish --pretty.
@@ -1249,7 +1226,6 @@ Rollback and retention notes:
 Next action:
 
 - Integration owner should reconcile Marketing/Catalog run-ledger history for this window and decide the retention policy before any pruning, replacement, or recurring publish.
-
 
 ## 2026-07-03 - Goal 24 Central Orders Affinity Evidence Refresh
 
@@ -1287,7 +1263,6 @@ Remaining blockers and publish guardrails:
 - [MISSING: integration-owner confirmation that dependent Marketing and Catalog readiness evidence is current at publish time.]
 - [MISSING: owner-approved retention, decay, or replacement policy before using replace-window or pruning stale affinity rows.]
 - Candidate future publish command must be reviewed before use: kubectl -n statex-apps exec deploy/marketing-microservice -- node dist/order-affinity-backfill.js --orders-url http://orders-microservice.statex-apps.svc.cluster.local:3203 --channel=flipflop --from=2026-07-03T04:26:06.127Z --to=2026-07-03T04:27:26.351Z --limit=50 --run-id central-orders-flipflop-20260703T042606Z-042726Z --publish --pretty.
-- Publish preconditions: dry-run rerun immediately before publish returns inputRecords=2, rejectedRecords=0, aggregatePairs=2, totalPairEvidence=4; Marketing runtime has ORDERS_SERVICE_TOKEN, CATALOG_INTERNAL_SERVICE_TOKEN, ORDER_AFFINITY_RUN_LEDGER_ENABLED=true, and ORDER_AFFINITY_CATALOG_PUBLISH_ENABLED=true by key/presence only; Catalog product-relations ingestion health and authorization are verified; owner accepts the exact source/window/run-id; no raw events or sensitive payloads are printed.
 - Rollback and retention notes: Catalog batch endpoint is upsert-only and does not delete; rollback of an accidental publish is not an Orders mutation and must be owned by Catalog/Marketing through approved relation deletion/replacement policy. Until stale-row policy is approved, prefer no publish or an explicit upsert-only batch with documented idempotency key and readback.
 
 Scope deviation:
@@ -1906,7 +1881,6 @@ Runtime evidence:
 - k3s node `alfares` was `Ready`; Orders, Warehouse, Allegro, Notifications, FlipFlop, Bazos, Heureka, and Aukro deployments were all `1/1` ready before runtime probing.
 - Deployed image: `localhost:5000/orders-microservice:a12b40e`; `/health` returned `status=healthy` from the new pod.
 - The first post-`12b61a4` admin list probe failed with `QueryFailedError: column "ordersortat" does not exist`, proving the remaining defect was SQL alias casing, not authorization.
-- The final pod-local probe used `x-service-name` plus `x-internal-service-token`; it did not print token values, order rows, customer fields, DB rows, provider payloads, or Warehouse data.
 - `GET /api/orders/customer/lifecycle?limit=1` returned HTTP `200`, `success=true`, `count=0`, and `ordersLength=0` for `flipflop-service`, `allegro-service`, `aukro-service`, `bazos-service`, and `heureka-service`.
 - `GET /api/orders/admin/lifecycle?limit=1` returned HTTP `200`, `success=true`, `count=1`, `ordersLength=1`, and aggregate keys `byChannel`, `byDeliveryStatus`, `byLifecycleStage`, `byPaymentStatus`, `exceptionCounts`, `totalOrders`, and `totalsByCurrency` for all five service identities.
 
@@ -1931,7 +1905,6 @@ Intent chain:
 - Coding Prompt: authorize service-to-service lifecycle hydration for known selling channels while keeping human customer auth separate.
 - Code: `ORDER_CHANNEL_LIFECYCLE_READ_ROLES` in `src/orders/orders.controller.ts`.
 - Validation: `npm test`, `git diff --check`, deploy `./scripts/deploy.sh abf4773`, rollout health check, and pod-local channel lifecycle read-role probe.
-
 
 Runtime evidence:
 
@@ -2334,7 +2307,6 @@ Evidence:
 - Allegro source now has `WarehouseShipmentCorrelationClient.publishSnapshotCorrelation()` and `buildWarehouseShipmentCorrelationRequest()`.
 - The producer maps sanitized `allegro.shipment_status_snapshot.v1` snapshots to `POST /api/fulfillment-orders/order/:centralOrderId/provider-shipment-correlations`.
 - The request contains only `provider`, `sourceChannel`, hashed account/order/shipment/waybill identities, Warehouse-compatible `sourceReferenceHash`, `reasonCode`, and bounded reference.
-- Runtime posting is disabled unless `ALLEGRO_WAREHOUSE_SHIPMENT_CORRELATION_ENABLED=true` and a Warehouse/internal service token is configured.
 - The verifier proves disabled-by-default behavior, missing-central-order skip, configured post headers, source-reference hash shape, and no raw provider/buyer marker leakage.
 
 Remaining gates:
@@ -3203,7 +3175,6 @@ Evidence:
 Runtime evidence:
 
 - Deployed Orders image `localhost:5000/orders-microservice:7bcfadd`; rollout passed and in-pod health returned `status=healthy`.
-- Runtime token check confirmed `WAREHOUSE_INTERNAL_SERVICE_TOKEN` is present in the Orders pod without printing the value.
 - Deployed Warehouse image `localhost:5000/warehouse-microservice:65e53c6`; Warehouse runtime has `ORDERS_SERVICE_URL=http://orders-microservice.statex-apps.svc.cluster.local:3203` and a service token present.
 - Live smoke order `94ce9a4b-7c6a-4625-85c7-8d1b13228b2d` advanced Warehouse fulfillment order `6ada14af-20f8-4928-9a37-94a331d97be2` from `requested` to `collecting` through `POST /api/fulfillment-orders/order/:orderId/status`.
 - Orders DB projection now stores `warehouseHandoff.fulfillmentOrderHandoff.warehouseStatus=collecting`, reason `CODEX_DELIVERY_STATUS_SMOKE`, and reference `codex-warehouse-status-smoke-1783035510`.
@@ -3307,7 +3278,6 @@ Operational notes:
 - Existing unrelated dirty changes remain in Orders repo and were not touched by this lane: `package.json`, `src/orders/orders.controller.ts`, `src/orders/orders.service.ts`, and `scripts/verify-order-affinity-replay-contract.js`.
 
 Remaining blockers:
-
 
 Next action:
 
@@ -3568,12 +3538,6 @@ Next unfinished chunk:
 
 ## 2026-07-02 - Invoices Service Read Boundary
 
-Added a minimal Orders read boundary for the new `invoices-microservice`.
-Orders now recognizes `x-service-name: invoices-microservice` with
-`INVOICES_INTERNAL_SERVICE_TOKEN`/`INVOICES_ORDERS_SERVICE_TOKEN` as
-`internal:invoices-microservice:service`, and `GET /api/orders/:id` explicitly
-allows that role through `ORDER_DETAIL_READ_ROLES`.
-
 Boundary decision: Orders events remain trigger-only and no customer, billing,
 address, provider, or payment-detail fields were added to event payloads. The
 new invoices service must use this internal read path to retrieve full order
@@ -3608,7 +3572,6 @@ Deployment evidence:
 - Commit `0611e4c feat: validate order create payload without mutation` built and deployed as `localhost:5000/orders-microservice:0611e4c`.
 - `./scripts/deploy.sh` completed successfully; rollout passed and in-pod health returned `status=healthy`.
 - No-token smoke to `POST /api/orders/validate-create` returned HTTP `401`, proving the endpoint remains protected.
-- Cliplot pod smoke with `x-service-name=cliplot-service` and runtime `ORDERS_SERVICE_TOKEN` returned HTTP `201`, `success=true`, `valid=true`, `mutation=false`, `orderCreated=false`, `warehouseMutation=false`, `eventPublished=false`, `channel=cliplot`, `currency=CZK`, `paymentMethod=invoice`, and `idempotencyStatus=available`.
 
 Boundary notes:
 
@@ -3627,12 +3590,10 @@ Intent chain:
 - Task: accept channel `cliplot`, accept internal caller `cliplot-service`, and wire the Orders-side token alias from Cliplot's existing Orders token source.
 - Execution Plan: single-worker Orders patch only; no payment-provider code, destructive database work, secret value reads, or deployment.
 - Coding Prompt: do not revert other edits, do not print token values or customer/order rows, preserve existing channels and callers.
-- Code: updated Orders channel allowlists, create-order role allowlist, internal service-token guard, ExternalSecret alias, source docs, and contract verifier.
 - Validation: passed. Commands: `git diff --check`, `npm run build`, `npm run verify:create-order-contract`, and `npm test`.
 
 Boundary notes:
 
-- No non-Orders repo was edited. `cliplot-service` was inspected read-only to confirm it already sends `x-service-name: cliplot-service` and has an `ORDERS_SERVICE_TOKEN` key name.
 - DocsRAG query was skipped because no session token was available: `[MISSING: DocsRAG session JWT]`.
 - Cliplot live submission remains gated by owner-approved smoke evidence and runtime secret sync; no deploy was run in this worker patch.
 
@@ -3754,9 +3715,7 @@ Intent chain:
 - System: Auth owns service identity/RBAC; Orders owns create/idempotency/status; Warehouse owns reservation lifecycle; Allegro owns channel caller headers and payload mapping.
 - Feature: Goal 7.2B Allegro create-order runtime readiness.
 - Task: rotate/fix Orders-to-Warehouse runtime credential handling, deploy Orders, and rerun the owner-approved Allegro synthetic smoke.
-- Execution Plan: use Auth service principal provisioning without printing token values, store only `WAREHOUSE_SERVICE_TOKEN` in Vault, force ESO sync, deploy the smallest Orders client fix, then create/replay/cancel a synthetic Allegro order.
 - Coding Prompt: no raw Vault values, decoded JWTs, customer payloads, production order rows, DB row dumps, or payment data; record only bounded synthetic ids/statuses and env key names.
-- Code: `src/warehouse/warehouse-reservation.client.ts` now trims `WAREHOUSE_SERVICE_TOKEN` or `WAREHOUSE_INTERNAL_SERVICE_TOKEN` before building the Axios `Authorization` header; `scripts/verify-warehouse-handoff-contract.js` covers raw newline and prefixed newline token shapes.
 - Validation: passed. Commands/evidence: `git diff --check`, `npm run build`, `npm run verify:warehouse-handoff`, `npm run verify:order-reservation-gate`, `npm test`, Auth/Vault/Kubernetes secret key-name checks without values, post-deploy Axios reserve/cancel, and owner-approved Allegro create/replay/cancel smoke.
 
 Runtime credential evidence:
@@ -3764,7 +3723,6 @@ Runtime credential evidence:
 - Auth service principal provisioning dry-run reported `wouldCreateUser=true`, `wouldAssignRole=true` for `orders-microservice` with `internal:warehouse-microservice:admin`.
 - Apply created service principal `orders-warehouse-service@internal.alfares.cz` as `userType=service`, assigned `internal:warehouse-microservice:admin`, emitted a JWT only to a `0600` temp file, and did not print the token.
 - Auth `/auth/validate` for the emitted token returned valid service identity with `serviceName=orders-microservice` and the Warehouse admin role.
-- Vault key `secret/prod/orders-microservice#WAREHOUSE_SERVICE_TOKEN` was patched from stdin without printing the value; ExternalSecret `orders-microservice-secret` synced and the Kubernetes Secret key validated as Auth-valid through an in-pod check.
 - Temp JWT files were removed from Auth, Allegro, and remote `/tmp` after smoke.
 
 Bug and fix:
@@ -3782,7 +3740,6 @@ Deployment evidence:
 
 Smoke evidence:
 
-- Owner-approved Allegro smoke from the live Allegro pod used `orders.create.v1`, `x-internal-service-token`, `x-service-name=allegro-service`, stable synthetic `channelAccountId=codex-allegro-smoke-account`, Catalog product `c0de0000-0000-4000-8000-000000000011`, Warehouse-owned `warehouseId=c0de0000-0000-4000-8000-000000000013`, quantity `1`, and synthetic external order id `codex-allegro-smoke-1782895044726`.
 - Create returned HTTP 201 with order `6898c3fa-e3e8-4eed-a723-11b58fc2ea3b`, `warehouseHandoff.status=reserved`, `reservedCount=1`, `failedCount=0`, `reasonCode=ORDER_CREATE_RESERVATION`.
 - Exact idempotent replay returned HTTP 201, `sameOrder=true`, and the same `warehouseHandoff.status=reserved`, proving no duplicate order/reservation side effect on replay.
 - Owner-approved cleanup cancellation returned HTTP 200 with order status `cancelled`, `warehouseHandoff.status=cancelled`, `reservedCount=1`, `failedCount=0`, `reasonCode=ORDER_CANCELLED`.
@@ -3807,15 +3764,10 @@ Preflight and deployed-state evidence:
 
 - Remote source was clean on `main` at `d1c5a48 feat: plan production order integration`; `d1c5a48` was present and equal to `origin/main`.
 - Before this lane, Kubernetes deployed image was `localhost:5000/orders-microservice:dba03dc`, so the 7.1 allowlist commit was present in source but not deployed.
-- Before this lane, live Orders runtime exposed only `HEUREKA_INTERNAL_SERVICE_TOKEN` among the five requested channel token aliases; FlipFlop, Allegro, Aukro, and Bazos aliases were missing.
-- Existing channel ExternalSecrets were structurally ready without printing values: FlipFlop secret exposed key names `JWT_TOKEN` and `ORDERS_SERVICE_TOKEN`; Allegro, Aukro, Bazos, and Heureka exposed `JWT_TOKEN`; all five channel ExternalSecrets reported `SecretSynced=True`.
 - DocsRAG was not queried because no session `JWT_TOKEN` was available: `[MISSING: DocsRAG session JWT]`.
 
 Implementation evidence:
 
-- Orders ExternalSecret now maps `FLIPFLOP_INTERNAL_SERVICE_TOKEN` from `secret/prod/flipflop-service#ORDERS_SERVICE_TOKEN`.
-- Orders ExternalSecret now maps `ALLEGRO_INTERNAL_SERVICE_TOKEN`, `AUKRO_INTERNAL_SERVICE_TOKEN`, and `BAZOS_INTERNAL_SERVICE_TOKEN` from each channel service `JWT_TOKEN` property.
-- Existing `HEUREKA_INTERNAL_SERVICE_TOKEN` mapping remains `secret/prod/heureka-service#JWT_TOKEN`.
 - `scripts/verify-create-order-contract.js` now verifies the guard roles, contract doc, and ExternalSecret mappings for all five supported channel service callers.
 
 Validation evidence:
@@ -3836,7 +3788,6 @@ Deployment evidence:
 - Kubernetes rollout completed successfully in 254.51s; in-pod `/health` returned `status=healthy`.
 - Post-deploy rollout status passed; deployment spec is `1` replica, `1` updated, `1` ready, active image `localhost:5000/orders-microservice:342f003`.
 - External health `https://orders.alfares.cz/health` returned HTTP 200 with body `status=healthy` at `2026-07-01T06:46:39.616Z`.
-- Runtime env-name presence check in the new pod reported all five aliases present: `FLIPFLOP_INTERNAL_SERVICE_TOKEN`, `ALLEGRO_INTERNAL_SERVICE_TOKEN`, `AUKRO_INTERNAL_SERVICE_TOKEN`, `BAZOS_INTERNAL_SERVICE_TOKEN`, and `HEUREKA_INTERNAL_SERVICE_TOKEN`.
 - The prior `dba03dc` pod was observed terminating and no longer counted by the deployment replica status.
 
 Boundary notes:
@@ -3912,13 +3863,7 @@ Current evidence:
 - Channel-specific follow-up remains outside this repo: sellable channel services must keep resolving canonical Catalog product IDs and `warehouseId` before calling Orders.
 - Deployment passed on 2026-06-29 with image `localhost:5000/orders-microservice:dba03dc`; rollout completed and in-pod `/health` returned `status=healthy`.
 
-## 2026-06-27 - Dedicated Catalog Internal Service Token Runtime Wiring
-
-Change: switched Orders ExternalSecret `CATALOG_INTERNAL_SERVICE_TOKEN` mapping from Catalog-owned storage to Auth-owned Vault property `secret/prod/auth-microservice#CATALOG_INTERNAL_SERVICE_TOKEN`. The Orders runtime guard still accepts Catalog calls only when `x-service-name` is `catalog-microservice` and the token matches the configured runtime key, mapping the actor to `internal:catalog-microservice:service`.
-
 Boundary decision: no token values, decoded JWTs, passwords, or raw secret material were printed, committed, or copied into docs. Auth `/auth/validate` currently requires an active user-backed `sub`, so this remains a machine-auth header contract rather than an arbitrary Auth-signed service JWT.
-
-Validation evidence: Kubernetes server dry-run passed for `k8s/external-secret.yaml`; the manifest was applied and force-reconciled with `SecretSynced=True`; live Orders pod `orders-microservice-757696f875-8gprf` exposes `CATALOG_INTERNAL_SERVICE_TOKEN`; live Catalog pod `catalog-microservice-77b79bd855-5xj9t` completed sanitized Catalog-to-Orders smoke with health/products/sales HTTP 200, `success=true`, `sourceStatus=available`, five channel rows, zero recent-history rows, and no customer/payment/address/provider markers. Source validation passed: `git diff --check`, `npm run verify:product-sales-statistics`, and `npm run build`.
 
 Next action: monitor scheduled Catalog contract checks and keep Catalog/Bazos token rotation separate.
 
@@ -3936,7 +3881,6 @@ downstream:
   - docs/IMPLEMENTATION_STATE.md
 related_adrs: []
 ```
-
 
 ## 2026-06-12 - Intent Preservation Pack
 
@@ -4133,7 +4077,6 @@ Next unfinished chunk:
 
 - Goal 2, chunk 2.2: add runtime validation for order status transitions and item fulfillment transitions.
 
-
 ## 2026-06-12 - Owner-Selected Orders Admin Frontend
 
 Current focus:
@@ -4183,7 +4126,6 @@ Next unfinished chunk:
 
 - Deploy and smoke-check `/admin/orders`, then continue Goal 2, chunk 2.2: runtime validation for order and item fulfillment status transitions.
 
-
 ## 2026-06-12 - Orders Admin Deployment Evidence
 
 Deployment evidence:
@@ -4218,7 +4160,6 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 2, chunk 2.2: add runtime validation for order status transitions and item fulfillment transitions.
-
 
 ## 2026-06-12 - Orders Runtime Image Health Tooling
 
@@ -4512,7 +4453,6 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal 3, chunk 3.2: add safe structured audit metadata for writes and status changes.
-
 
 ## 2026-06-13 - Goal 3 Chunk 3.2 Safe Structured Audit Metadata
 
@@ -4881,7 +4821,6 @@ Known follow-up:
 
 - Add database-level uniqueness or another concurrency-safe guard for simultaneous duplicate creates. The current implementation prevents ordinary retries but does not fully eliminate concurrent insert races.
 
-
 Final verification evidence:
 
 - npm test: pass; build, status transition, sensitive logging, create-order contract, idempotency contract, and duplicate-order protection checks completed.
@@ -4897,7 +4836,6 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal H3 chunk H3.5: verify FlipFlop and marketplace adapters can retry safely.
-
 
 ## 2026-06-13 - Goal 4.3 / H3 validation and deployment
 
@@ -4931,7 +4869,6 @@ Gate decision:
 Next unfinished chunk:
 
 - Goal H3 chunk H3.5: verify FlipFlop and marketplace adapters can retry safely; then add database-level uniqueness hardening for simultaneous duplicate creates.
-
 
 ## 2026-06-13 - Goal 4.4 / H3.5 Channel Adapter Retry Verification
 
@@ -5212,7 +5149,6 @@ Next unfinished chunk:
 
 - Goal H6 payments callback boundary.
 
-
 ## 2026-06-13 - Goal H6 Payments Callback And Status Boundary
 
 Current focus:
@@ -5488,7 +5424,6 @@ Current focus:
 
 Source change:
 
-- Updated src/warehouse/warehouse-reservation.client.ts to normalize the Warehouse base URL and attach Authorization bearer auth from WAREHOUSE_SERVICE_TOKEN or WAREHOUSE_INTERNAL_SERVICE_TOKEN on reserve, release, fulfill, cancel, expire, and return calls.
 - Updated scripts/verify-warehouse-handoff-contract.js to prove both unprefixed and already-prefixed token env values are sent as bearer auth.
 - Updated docs/orchestrator/WAREHOUSE_HANDOFF_CONTRACT.md to record the runtime-only auth requirement.
 
@@ -5553,11 +5488,8 @@ Cleanup and safe production state:
 
 - A longer-lived Warehouse token could not be persisted through Vault because the available ExternalSecrets token returned 403 on write.
 - The ad hoc deployment Warehouse token was removed after the smoke, and WAREHOUSE_RESERVATION_ENABLED was removed from the deployment.
-- Active pod orders-microservice-768c84b58c-45swf is healthy on the fixed image digest and has JWT_SECRET present, WAREHOUSE_RESERVATION_ENABLED missing, and WAREHOUSE_SERVICE_TOKEN missing.
 
 Next unfinished chunk:
-
-- Add a managed Vault-backed WAREHOUSE_SERVICE_TOKEN entry for Orders, map it through ExternalSecret, enable WAREHOUSE_RESERVATION_ENABLED through reviewed config, then rerun the same synthetic reservation smoke as a persistent production configuration check.
 
 ## 2026-06-13 - Managed Warehouse Handoff Runtime Wiring
 
@@ -5567,8 +5499,6 @@ Current focus:
 
 Implementation evidence:
 
-- Created an Orders-to-Warehouse service JWT with role internal:warehouse-microservice:admin and stored it as WAREHOUSE_SERVICE_TOKEN at Vault path secret/prod/orders-microservice without printing or committing the token value.
-- Mapped WAREHOUSE_SERVICE_TOKEN through k8s/external-secret.yaml into orders-microservice-secret.
 - Enabled WAREHOUSE_RESERVATION_ENABLED=true in k8s/configmap.yaml with WAREHOUSE_SERVICE_URL=http://warehouse-microservice.statex-apps.svc.cluster.local:3201 and WAREHOUSE_RESERVATION_TTL_MINUTES=15.
 - Added .env.example placeholders for the Warehouse handoff runtime variables.
 - Changed scripts/deploy.sh to set the deployment image to the immutable commit tag it builds instead of mutable latest.
@@ -5592,8 +5522,6 @@ Runtime deployment evidence:
 - Commit 634d570 was built, pushed, and deployed as localhost:5000/orders-microservice:634d570.
 - The standard deploy script timed out while Kubernetes was still starting init containers, but a manual rollout wait immediately afterward completed successfully.
 - Active pod orders-microservice-6f797c7cf9-rzc5z is healthy on image localhost:5000/orders-microservice:634d570 with digest sha256:7c50721a35a759a12637a8053e6ff7035003fc6e8607cdfbd66d34d2a8bf8e5b.
-- ExternalSecret status is Ready/SecretSynced; the live Kubernetes Secret key list includes DB_PASSWORD, JWT_SECRET, JWT_TOKEN, and WAREHOUSE_SERVICE_TOKEN.
-- Runtime env presence check confirmed WAREHOUSE_RESERVATION_ENABLED, WAREHOUSE_SERVICE_TOKEN, WAREHOUSE_SERVICE_URL, and JWT_SECRET are present without printing values.
 
 Persistent smoke evidence:
 
@@ -5666,7 +5594,6 @@ Verification evidence:
 Next unfinished chunk:
 
 - Continue normal traffic monitoring. Start a future candidate contract goal only when the owner approves a concrete application integration.
-
 
 ## 2026-06-13 - Parallel Planning Refactor
 
@@ -5950,7 +5877,6 @@ Next unfinished chunk:
 
 - Select owner-approved runtime follow-up G6-A, G6-B, or G6-C; otherwise continue normal Orders monitoring or select the next backlog goal. P3 candidate application contract work remains blocked until owner approval names a concrete integration.
 
-
 ## 2026-06-26 - Catalog Goal 17 Product Sales Statistics Read Model
 
 Current focus:
@@ -5986,12 +5912,10 @@ Validation evidence:
 Blockers and follow-ups:
 
 - [MISSING: Catalog-owned consumer smoke against the live Catalog integration path after deployment approval.]
-- Auth-owned confirmation resolved: `internal:catalog-microservice:service` is the Catalog service actor for Orders product statistics when authenticated with `CATALOG_INTERNAL_SERVICE_TOKEN` from `secret/prod/auth-microservice#CATALOG_INTERNAL_SERVICE_TOKEN`.
 
 Next unfinished chunk:
 
 - Hand off to the coordinator for Catalog-side integration and deployment approval. Do not deploy from this workstream.
-
 
 ## 2026-07-02 - Auth Subject Snapshot For Invoices
 
@@ -6041,7 +5965,6 @@ Blockers converted:
 - `[MISSING: approved FlipFlop smoke:orders-auth-subject execution proving authenticated central order snapshots carry customer.authSubject]`
 - `[MISSING: Cliplot hosted Auth callback/session contract before authenticated checkout can pass Auth subject]`
 
-
 ## 2026-07-03 - Order Affinity Historical Replay Export
 
 Current focus: Orders-owned bounded historical export for Marketing order-affinity backfill.
@@ -6063,7 +5986,6 @@ Deployment and runtime evidence:
 - Commits pushed: `6154389` added the replay export; `43189fe` added Marketing internal auth; `9ead8f3` and `be9fee8` fixed runtime TypeORM sort compatibility.
 - Current deployed image: `localhost:5000/orders-microservice:be9fee8`.
 - Deploy completed successfully and `/health` returned `status=healthy`.
-- ExternalSecret `orders-microservice-secret` is `Ready=True` and maps `MARKETING_INTERNAL_SERVICE_TOKEN` from `secret/prod/marketing-microservice#JWT_TOKEN` without printing secret values.
 - Marketing live dry-run against `GET /api/orders/internal/order-affinity/replay-candidates?limit=50` succeeded after deployment.
 - Dry-run result: `inputRecords=0`, `aggregatePairs=0`, `candidates=[]`; no historical Catalog relation writes were performed.
 
@@ -6071,7 +5993,6 @@ Remaining blockers:
 
 - `[MISSING: qualifying historical paid multi-product Orders rows for a non-empty historical backfill batch]`.
 - `[MISSING: owner-reviewed publish window if a future replay window returns non-zero candidates]`.
-
 
 ## 2026-07-03 - Channel Lifecycle Detail Endpoint For Rendered UI Proof
 
@@ -6099,9 +6020,7 @@ Remaining gates:
 - `[MISSING: deploy Orders lifecycle detail endpoint]`
 - `[MISSING: rerun FlipFlop authenticated customer/admin rendered browser proof after deploy]`
 
-
 Follow-up evidence: post-deploy smoke of `d8ac74d` showed FlipFlop still normalized `lifecycle.status=processing` before top-level `lifecycleStage`. The detail projection now also exposes nested `lifecycle.stage=warehouse_collecting`, `lifecycle.status=warehouse_collecting`, and `lifecycle.rawStatus=processing`; verifier coverage was extended for this legacy adapter order.
-
 
 ## 2026-07-03 - FlipFlop Browser Render Proof Proven
 
@@ -6134,7 +6053,6 @@ Follow-up / non-Orders handoff:
 - `[MISSING: FlipFlop owner-approved frontend fix for direct safe-human browser session]`: direct browser session currently hits `/api/users/profile` 401, and `/orders` redirects before AuthContext loading completes. This was not edited in the Orders lane because non-Orders source changes require merge-order review.
 - `[MISSING: next channel browser proof lane selection after orchestrator review]`.
 
-
 ## 2026-07-03 - FlipFlop Proof Added To Runtime Evidence Gate
 
 Current focus: keep machine-readable lifecycle runtime evidence aligned with the proven FlipFlop browser artifacts.
@@ -6155,7 +6073,6 @@ Remaining gates:
 
 - `[MISSING: browser/API lifecycle proof for Heureka, Aukro, Bazos, and Allegro according to each channel blocker.]`
 - `[MISSING: Warehouse/Allegro shipment-status deploy/migration/env/smoke approvals.]`
-
 
 ## 2026-07-03 - Heureka Browser Lifecycle Proof Blocked By Orders API Route
 

@@ -67,10 +67,8 @@ The metadata must not include stock quantities beyond the order item quantity, W
 
 ## Runtime Guardrails
 
-- Orders sends Warehouse reservation lifecycle requests with Authorization bearer auth when WAREHOUSE_SERVICE_TOKEN or WAREHOUSE_INTERNAL_SERVICE_TOKEN is configured. Token values are runtime-only and must not be logged or documented.
 - The configured Warehouse bearer value must be an Auth-compatible service JWT issued/provisioned through `auth-microservice`, not a locally signed Orders token. The expected consumer standard is `auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md`: the token must carry Warehouse service identity metadata, preferably `serviceName`, and the Warehouse receiver role `internal:warehouse-microservice:admin`.
 - Orders is only the caller and transport owner for this handoff. User identity, service identity, token issuance, and token validation remain centralized in `auth-microservice`; Orders must not sign, decode, persist, or log the Warehouse service JWT.
-- Production maps `WAREHOUSE_SERVICE_TOKEN` from Vault path `secret/prod/orders-microservice` through External Secrets Operator and enables `WAREHOUSE_RESERVATION_ENABLED=true` through Kubernetes ConfigMap.
 - Reservation calls are disabled unless `WAREHOUSE_RESERVATION_ENABLED=true`.
 - Orders skips reservation if any item lacks `warehouseId`.
 - If one create-time item reservation succeeds and a later item reservation fails, Orders calls `POST /api/reservations/release` for each already reserved line before returning a failed handoff.

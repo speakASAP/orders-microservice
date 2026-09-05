@@ -28,25 +28,9 @@ related_adrs: []
 
 ## Endpoint
 
-```http
-POST /api/orders
-Authorization: Bearer <service-or-admin-jwt>
-x-internal-service-token: <runtime-only channel service token>
-x-service-name: <flipflop-service|allegro-service|cliplot>   # static-header lanes only
-Content-Type: application/json
-```
-
 The endpoint is protected for admin/internal callers. The runtime DTO accepts the contract version `orders.create.v1`. A missing `contractVersion` is tolerated for backward compatibility during migration, but new FlipFlop and marketplace clients should send it.
 
 No-mutation validation endpoint:
-
-```http
-POST /api/orders/validate-create
-Authorization: Bearer <service-or-admin-jwt>
-x-internal-service-token: <runtime-only channel service token>
-x-service-name: <flipflop-service|allegro-service|cliplot>   # static-header lanes only
-Content-Type: application/json
-```
 
 `POST /api/orders/validate-create` uses the same role allowlist and request
 shape as live create. It normalizes `orders.create.v1` and checks idempotency
@@ -56,37 +40,7 @@ as Cliplot checkout validation before live order creation is approved.
 
 Supported create callers:
 
-| Service caller | Required role | Runtime token environment in Orders | Runtime secret source | Notes |
-| --- | --- | --- | --- | --- |
-| `flipflop-service` | `internal:flipflop-service:service` | `FLIPFLOP_INTERNAL_SERVICE_TOKEN` | `secret/prod/flipflop-service#ORDERS_SERVICE_TOKEN` | Orders-side alias for the dedicated FlipFlop-to-Orders token; channel-side header smoke still pending. |
-| `allegro-service` | `internal:allegro-service:service` | `ALLEGRO_INTERNAL_SERVICE_TOKEN` | `secret/prod/allegro-service#JWT_TOKEN` | Orders-side alias for Allegro service token; channel-side auth and `warehouseId` wiring still pending. |
-| `cliplot` | `internal:cliplot:service` | `CLIPLOT_ORDERS_SERVICE_TOKEN` with code fallback to `CLIPLOT_SERVICE_TOKEN` | `secret/prod/cliplot#ORDERS_SERVICE_TOKEN` | Primary Cliplot-to-Orders caller token after repository/runtime rename. |
-
 Bearer create callers (per-pair RS256 principals, **not** in the static map):
-
-| Service caller | Required role | Runtime token environment in caller | Runtime secret source |
-| --- | --- | --- | --- |
-| `aukro-service` | `internal:aukro-service:service` | `ORDERS_SERVICE_TOKEN` | `secret/prod/aukro-service#ORDERS_SERVICE_TOKEN` |
-| `bazos-service` | `internal:bazos-service:service` | `ORDERS_SERVICE_TOKEN` | `secret/prod/bazos-service#ORDERS_SERVICE_TOKEN` |
-| `heureka-service` | `internal:heureka-service:service` | `ORDERS_SERVICE_TOKEN` | `secret/prod/heureka-service#ORDERS_SERVICE_TOKEN` |
-
-These three send `Authorization: Bearer <per-pair RS256 token>`, which Orders verifies
-through `/auth/validate`. They are deliberately absent from the guard's static map: all
-three previously held the same shared string, so presenting it with a different
-`x-service-name` authenticated as a different service. `x-service-name` is still sent for
-logging, but it no longer selects identity for these callers.
-
-**The static-header path derives identity from `x-service-name` and only string-compares
-the token, so every remaining entry must hold a credential unique to one caller.** The
-guard denies any token configured for more than one name rather than choosing between
-them, and `scripts/verify-create-order-contract.js` asserts both that property and that
-the Bearer lanes stay out of the static map.
-
-The `cliplot-service` alias has been removed: it resolved the same env vars as `cliplot`,
-so the two shared a token and would now be denied as ambiguous. The live pod sends
-`x-service-name: cliplot`.
-
-Machine-auth requests use `x-internal-service-token` plus `x-service-name`; token values remain runtime-only and must not be logged, decoded, committed, or copied into docs. The role allowlist and Orders-side runtime aliases are present in source, but each caller still needs channel-side header wiring plus a sanitized create/idempotency/Warehouse reservation smoke before production rollout.
 
 ## Request Shape
 

@@ -43,13 +43,6 @@ DocsRAG was not queried because this session has no `JWT_TOKEN`; this is recorde
 
 Orders-side runtime credential aliases are now mapped and deployed for all supported channel service callers:
 
-- `FLIPFLOP_INTERNAL_SERVICE_TOKEN` from `secret/prod/flipflop-service#ORDERS_SERVICE_TOKEN`.
-- `ALLEGRO_INTERNAL_SERVICE_TOKEN` from `secret/prod/allegro-service#JWT_TOKEN`.
-- `AUKRO_INTERNAL_SERVICE_TOKEN` from `secret/prod/aukro-service#JWT_TOKEN`.
-- `BAZOS_INTERNAL_SERVICE_TOKEN` from `secret/prod/bazos-service#JWT_TOKEN`.
-- `HEUREKA_INTERNAL_SERVICE_TOKEN` from `secret/prod/heureka-service#JWT_TOKEN`.
-- `CLIPLOT_ORDERS_SERVICE_TOKEN` from `secret/prod/cliplot#ORDERS_SERVICE_TOKEN`, with source-code fallback support for `CLIPLOT_SERVICE_TOKEN`.
-
 Only secret key names and ExternalSecret sync status were inspected; no token values were printed, decoded, created, or committed. Commit `342f003` deployed the 7.1 allowlist plus this Orders-side runtime mapping as `localhost:5000/orders-microservice:342f003`, and runtime env-name presence confirmed all five aliases.
 
 Channel repositories still own caller header implementation, `warehouseId` forwarding, and sanitized create/idempotency/Warehouse reservation smokes.
@@ -67,24 +60,6 @@ Goal 7.2 channel caller header/`warehouseId` wiring and sanitized smoke evidence
 All relevant Kubernetes deployments were observed ready `1/1`. No raw token values, decoded JWTs, customer payloads, production order rows, DB rows, or payment data were printed. No channel source was edited by this coordinator integration pass.
 
 ## Application Decisions
-
-| Application or service | Current decision | Production requirement |
-| --- | --- | --- |
-| FlipFlop | Goal 7.2 smoke passed. | Keep `orders.create.v1`, stable `channelAccountId`, canonical Catalog product IDs, Warehouse-owned `warehouseId`, and dedicated Orders token path under regression coverage. |
-| Heureka | Goal 7.2 smoke passed; current repo dirty with separate dashboard/feed/admin lane. | Do not mix the dirty dashboard/feed work into Orders Goal 7. Keep machine-auth headers and Warehouse route derivation under regression coverage. |
-| Allegro | Goal 7.2B Warehouse UUID smoke passed. | Keep accepted Orders auth headers and Warehouse-owned UUID forwarding; do not regress to non-UUID stock warehouse names. |
-| Aukro | Goal 7.2B live Orders smoke and cleanup passed. | Keep accepted Orders auth headers, Warehouse route forwarding, and failure visibility under regression coverage. |
-| Bazos / Bazosh spelling | Goal 7.2B synthetic Orders/Warehouse smoke passed; provider-backed order ingestion still unknown. | Keep auth headers and `warehouseId` guard; resolve `[UNKNOWN: live Bazos marketplace webhook support]` before claiming true live provider-backed Bazos order ingestion. |
-| Catalog | Consumer of protected product sales statistics. | Continue using Auth-owned `CATALOG_INTERNAL_SERVICE_TOKEN`; Catalog remains product truth and never stores order truth. |
-| Warehouse | Stock and reservation authority. | Orders create must keep failing closed unless Warehouse reservation returns `reserved`. |
-| Payments | Payment identity and reconciliation authority. | Use bounded `orders.payment-status.v1`; no provider sessions, variable symbols, refunds, or reconciliation in Orders. |
-| Leads | No `orders.events` consumer found. | Add queue binding, event DTO, idempotent consumer, replay/backfill plan, and validation smoke before claiming CRM order lifecycle integration. |
-| Marketing | HTTP polling/segmentation signal exists; no `orders.events` consumer found. | Decide whether REST polling remains enough or implement RabbitMQ lifecycle consumer; no campaign execution inside Orders. |
-| Notifications | HTTP send API exists; no `orders.events` consumer found. | Add event-to-notification policy, recipient source, template approval, and mass-send guard before automatic lifecycle notifications. |
-| Marathon | Stay domain-local now. | Future bounded VIP purchase signal only if owner approves; do not move participant/payment/progress lifecycle into Orders. |
-| SpeakASAP | Stay domain-local. | Only revisit if owner converts or retires SpeakASAP payment-service order ownership. |
-| School Committee | Stay domain-local. | Future contribution/accounting signal only, not product order. |
-| Rentabox | Stay domain-local for MVP. | Future rental/payment signal only after real payment contract approval. |
 
 ## Parallel Execution Plan
 

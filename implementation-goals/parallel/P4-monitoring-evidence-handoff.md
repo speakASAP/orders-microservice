@@ -80,10 +80,6 @@ Result summary:
 
 Command:
 
-```bash
-ssh alfares 'printf "WAREHOUSE_RESERVATION_ENABLED="; kubectl -n statex-apps get configmap orders-microservice-config -o jsonpath="{.data.WAREHOUSE_RESERVATION_ENABLED}"; printf "\nWAREHOUSE_SERVICE_URL="; kubectl -n statex-apps get configmap orders-microservice-config -o jsonpath="{.data.WAREHOUSE_SERVICE_URL}"; printf "\nWAREHOUSE_RESERVATION_TTL_SECONDS="; kubectl -n statex-apps get configmap orders-microservice-config -o jsonpath="{.data.WAREHOUSE_RESERVATION_TTL_SECONDS}"; printf "\nWAREHOUSE_SERVICE_TOKEN_PRESENT="; if kubectl -n statex-apps get secret orders-microservice-secret -o jsonpath="{.data.WAREHOUSE_SERVICE_TOKEN}" | grep -q .; then printf "yes-redacted"; else printf "no"; fi; printf "\n"'
-```
-
 Result summary:
 
 - `WAREHOUSE_RESERVATION_ENABLED=true`

@@ -131,9 +131,6 @@
         "sourceHardeningComplete": true,
         "runtimeCutoverBlocked": false,
         "requiredRole": "internal:allegro-service:service",
-        "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-        "effectiveProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-        "secondaryProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
         "signatureValidInAllegroRuntime": true,
         "bothProjectedRuntimeTokensValid": false,
         "roleCount": 1,
@@ -144,8 +141,6 @@
         "printedEmails": false
       },
       "runtimeTokenProjection": {
-        "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-        "secretSource": "secret/prod/allegro-service#WAREHOUSE_INTERNAL_SERVICE_TOKEN",
         "vaultWriteAttempt": "HTTP_403_FORBIDDEN",
         "externalSecretSynced": true,
         "deploymentManifestCommit": "b6cd31a",
@@ -153,16 +148,11 @@
         "tokenPrinted": false,
         "identityValuesPrinted": false,
         "secretsDisplayed": false,
-        "additionalProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-        "additionalSecretSource": "secret/prod/allegro-service#WAREHOUSE_INTERNAL_SERVICE_TOKEN",
         "unmanagedKubernetesSecretCreated": false,
-        "effectiveProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-        "secondaryProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
         "deploymentEnvPatched": false,
         "bothProjectedRuntimeTokensValid": false,
         "tokenProjectionManifestCommit": "b6cd31a",
         "vaultManagedOnly": true,
-        "compatibilityFallbackEnvAvailableInSource": "WAREHOUSE_SERVICE_TOKEN",
         "compatibilityFallbackEnvPresentInLivePod": false,
         "unmanagedKubernetesSecretRemoved": true,
         "temporaryCompatibilitySecretPresent": false,
@@ -309,18 +299,11 @@
       "allegroCommit": "edb3a88",
       "warehouseEndpointsRequireOnlyAllegroServiceRole": true,
       "allegroBroadInternalTokenFallbackRemoved": true,
-      "requiredRuntimeTokenEnv": [
-        "WAREHOUSE_SERVICE_TOKEN",
-        "WAREHOUSE_INTERNAL_SERVICE_TOKEN"
-      ],
+      "requiredRuntimeTokenEnv": [],
       "runtimeCutoverBlocked": false,
       "tokenProjectionManifestCommit": "b6cd31a",
       "runtimeTokenProjected": true,
-      "projectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-      "authIssuedMinimalServiceRole": true,
-      "additionalProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-      "secondaryProjectedRuntimeEnv": "WAREHOUSE_INTERNAL_SERVICE_TOKEN",
-      "compatibilityFallbackEnvAvailableInSource": "WAREHOUSE_SERVICE_TOKEN"
+      "authIssuedMinimalServiceRole": true
     }
   }
 }

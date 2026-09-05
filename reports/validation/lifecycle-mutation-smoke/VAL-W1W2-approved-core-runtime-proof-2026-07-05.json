@@ -16,10 +16,7 @@
     "image": "localhost:5000/orders-microservice:ce8c544",
     "envPresence": {
       "port": true,
-      "WAREHOUSE_RESERVATION_ENABLED": true,
-      "FLIPFLOP_INTERNAL_SERVICE_TOKEN": true,
-      "PAYMENTS_INTERNAL_SERVICE_TOKEN": true,
-      "WAREHOUSE_INTERNAL_SERVICE_TOKEN": true
+      "WAREHOUSE_RESERVATION_ENABLED": true
     },
     "blockers": []
   },

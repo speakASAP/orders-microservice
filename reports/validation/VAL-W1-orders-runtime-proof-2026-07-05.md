@@ -52,8 +52,6 @@ Result: Orders and Warehouse deployments ready `1/1`; Orders pod running; observ
 WRITE_LIFECYCLE_MUTATION_SMOKE_REPORT=0 npm run smoke:lifecycle-mutation
 ```
 
-Result: exited with approval-gate status as expected, `mutation=false`, `tokenValuesPrinted=false`, `rawOrderRowsPrinted=false`. Preflight reported Orders deployment ready `1/1`, available `1/1`, image `localhost:5000/orders-microservice:adddafb`, and env presence true for `WAREHOUSE_RESERVATION_ENABLED`, `FLIPFLOP_INTERNAL_SERVICE_TOKEN`, Payments internal token, and Warehouse internal token.
-
 ## Runtime Gate
 
 The live synthetic mutation path would exercise:
@@ -91,31 +89,6 @@ ssh alfares 'cd /home/ssf/Documents/Github/orders-microservice && RUN_LIVE_LIFEC
 Result: approved live synthetic smoke executed and wrote `reports/validation/lifecycle-mutation-smoke/report-latest.json`; it failed before order creation completed.
 
 Sanitized result summary:
-
-```text
-ok=false
-mode=live_synthetic_lifecycle_mutation
-mutation=true
-approvalIdPresent=true
-confirmation=CREATE_PAY_WAREHOUSE_READ
-preflight.deploymentReady=1/1
-preflight.deploymentAvailable=1/1
-preflight.image=localhost:5000/orders-microservice:ce8c544
-preflight.envPresence.WAREHOUSE_RESERVATION_ENABLED=true
-preflight.envPresence.FLIPFLOP_INTERNAL_SERVICE_TOKEN=true
-preflight.envPresence.PAYMENTS_INTERNAL_SERVICE_TOKEN=true
-preflight.envPresence.WAREHOUSE_INTERNAL_SERVICE_TOKEN=true
-createHttpStatus=400
-orderIdPresent=false
-initialWarehouseReserved=false
-paymentHttpStatus=null
-warehouseHttpStatus=null
-customerLifecycleHttpStatus=null
-adminLifecycleHttpStatus=null
-tokenValuesPrinted=false
-rawOrderRowsPrinted=false
-blocker=[MISSING: lifecycle mutation propagation smoke did not satisfy all assertions]
-```
 
 Follow-up read-only diagnostic:
 
