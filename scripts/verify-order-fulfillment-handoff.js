@@ -235,7 +235,7 @@ async function run() {
   });
 
   await withEnv({ WAREHOUSE_RESERVATION_ENABLED: 'true' }, async () => {
-    const warnings = [];
+    const errors = [];
     const client = new OrderFulfillmentHandoffClient({
       get() {
         return throwError(() => new Error('warehouse response included private payload'));
@@ -243,15 +243,14 @@ async function run() {
       post() {
         throw new Error('not used');
       },
-    }, { warn(message, context) { warnings.push({ message, context }); } });
+    }, { error(message, stack, context) { errors.push({ message, context }); } });
     const result = await client.createAfterPaymentFulfillment(makeOrder());
     assert.equal(result.status, 'failed');
     assert.equal(result.failureCode, 'warehouse_request_failed');
     assert.equal(JSON.stringify(result).includes('private payload'), false);
-    assert.deepEqual(warnings, [{
-      message: 'Warehouse fulfillment order handoff failed',
-      context: 'OrderFulfillmentHandoffClient',
-    }]);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0].message, /^Warehouse fulfillment order handoff failed \(orderId=order-1, /);
+    assert.equal(errors[0].context, 'OrderFulfillmentHandoffClient');
   });
 
   const source = require('fs').readFileSync(require('path').join(__dirname, '..', 'src/orders/orders.service.ts'), 'utf8');
