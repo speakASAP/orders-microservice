@@ -71,6 +71,8 @@ Customer cabinet API:
 
 Admin cabinet API:
 
+Service callers follow the [canonical service identity standard](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
+
 - `GET /api/orders/admin/lifecycle`
 - Auth: `global:superadmin`, `internal:orders-microservice:admin`, `internal:orders-microservice:readonly`, `internal:orders-microservice:operator`, or `internal:aukro-service:service`.
 - Filters: `channel`, `status`, `paymentStatus`, `lifecycleStage`, `from`, `to`, `limit`.

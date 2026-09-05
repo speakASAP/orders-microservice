@@ -35,6 +35,7 @@ The first product slice is intentionally narrow:
 - Admin shell at `/admin` and `/admin/orders`.
 - Admin JSON remains protected at `/api/admin/orders/dashboard` and `/api/admin/orders/:id`.
 - Admin API access requires Auth-issued roles `global:superadmin` or `internal:orders-microservice:admin`.
+- Service callers follow the [canonical service identity standard](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
 - The admin shell must not embed order records, customer addresses, payment details, secrets, or tokens.
 
 ## Ecosystem Integration Map

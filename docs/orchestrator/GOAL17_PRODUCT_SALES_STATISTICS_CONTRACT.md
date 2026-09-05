@@ -40,6 +40,8 @@ GET /api/orders/statistics/products/:productId?from=2026-06-01T00:00:00.000Z&to=
 
 ## Auth Boundary
 
+Service callers follow the [canonical service identity standard](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
+
 The endpoint is protected by the existing Orders global JWT role guard and explicit roles:
 
 - `global:superadmin`

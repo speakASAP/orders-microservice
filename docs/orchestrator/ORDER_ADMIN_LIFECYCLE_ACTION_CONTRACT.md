@@ -40,6 +40,8 @@ Validation -> `npm run verify:order-admin-lifecycle-action-contract`, `npm run v
 
 ## Approved Command Surface
 
+Service callers follow the [canonical service identity standard](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md).
+
 The Orders-owned admin lifecycle command is:
 
 - `POST /api/admin/operations/actions/order-status`
