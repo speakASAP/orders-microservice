@@ -124,7 +124,7 @@ This service owns the pricing/AI-suggestion domain (not `payments-microservice`)
 
 ### warehouse handoff
 
-Production sets `WAREHOUSE_RESERVATION_ENABLED=true` through a Kubernetes ConfigMap and receives `WAREHOUSE_SERVICE_TOKEN` from Vault through External Secrets Operator. Orders calls Warehouse reservation endpoints with bearer auth and records audit-safe `warehouseHandoff` metadata; Warehouse remains stock truth.
+Orders calls Warehouse reservation endpoints with its own Auth-registered orders-to-warehouse RS256 bearer JWT and least-privilege target role. The pair credential flows through Vault -> ExternalSecret -> Kubernetes Secret -> secretKeyRef; Warehouse remains stock truth. See auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md.
 
 ### current state
 
