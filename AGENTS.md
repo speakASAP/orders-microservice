@@ -93,3 +93,9 @@ None.
 
 ## Service-to-service authentication
 For machine service identity, follow the sole canonical [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md). It is not reproduced here.
+
+**Known non-conformance — do not copy or extend.** `JwtRolesGuard` (`src/auth/jwt-roles.guard.ts`, `resolveInternalServiceActor`) retains a legacy static-credential path: a shared `CATALOG_INTERNAL_SERVICE_TOKEN` combined with a self-asserted `x-service-name` header, still live for caller `catalog-microservice`. The guard is wired globally through `APP_GUARD`.
+
+The code's own comment marks this "LEGACY STATIC-CREDENTIAL PATH — do not add entries", and the standard above prohibits both halves: a shared static token is not per-`(caller -> orders-microservice)` pair or revocable per caller, and a caller-supplied name header is not proof of identity. Where one token value is shared by several caller names, the header alone decides which identity is assumed.
+
+Do not add callers or routes to this path; the fix is per-pair Auth-issued RS256 credentials.
