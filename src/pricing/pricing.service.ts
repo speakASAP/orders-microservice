@@ -30,8 +30,13 @@ export class PricingService {
     process.env.AI_SERVICE_URL || 'http://ai-microservice:3380';
   private readonly catalogServiceUrl =
     process.env.CATALOG_SERVICE_URL || process.env.PRODUCT_SERVICE_URL || '';
-  private readonly catalogInternalServiceToken =
-    process.env.CATALOG_INTERNAL_SERVICE_TOKEN || '';
+  // Per-pair principal for orders-microservice -> catalog-microservice, sent as
+  // a bearer. No fallback to CATALOG_INTERNAL_SERVICE_TOKEN: that was one shared
+  // static secret held by seven services with a self-asserted x-service-name
+  // header, the shape SERVICE_IDENTITY_CONSUMER_STANDARD.md prohibits. Catalog
+  // still accepts it until the last caller migrates, so a fallback would
+  // authenticate successfully and hide the regression.
+  private readonly catalogServiceToken = process.env.CATALOG_SERVICE_TOKEN || '';
 
   constructor(
     private readonly httpService: HttpService,
@@ -490,7 +495,7 @@ export class PricingService {
         'CATALOG_SERVICE_URL must be configured for Catalog pricing updates',
       );
     }
-    if (!this.catalogInternalServiceToken) {
+    if (!this.catalogServiceToken) {
       throw new BadRequestException(
         'CATALOG_INTERNAL_SERVICE_TOKEN must be configured for Catalog pricing updates',
       );
@@ -509,8 +514,7 @@ export class PricingService {
           isActive: true,
         },
         headers: {
-          'x-internal-service-token': this.catalogInternalServiceToken,
-          'x-service-name': 'orders-microservice',
+          Authorization: `Bearer ${this.catalogServiceToken}`,
         },
         timeout: 5000,
       });
