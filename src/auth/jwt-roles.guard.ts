@@ -13,7 +13,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { timingSafeEqual } from 'crypto';
 import { Request } from 'express';
 import { ROLES_KEY, PUBLIC_KEY } from './roles.decorator';
 
@@ -61,16 +60,15 @@ export class JwtRolesGuard implements CanActivate {
     const requiredRoles = rolesMetadata.roles;
 
     const request = context.switchToHttp().getRequest<Request>();
-    const internalUser = this.resolveInternalServiceActor(request);
     const authHeader = request.headers.authorization;
 
-    if (!internalUser && (!authHeader || !authHeader.startsWith('Bearer '))) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing or invalid Authorization header');
     }
 
-    const user = internalUser || await this.validateTokenWithAuth(authHeader!.slice(7));
-    const isInternalService = Boolean(internalUser);
+    const user = await this.validateTokenWithAuth(authHeader.slice(7));
     const userRoles: string[] = Array.isArray(user.roles) ? user.roles : [];
+    const isInternalService = userRoles.some((role) => role.startsWith('internal:'));
 
     const hasRole = requiredRoles.some((r) => userRoles.includes(r)
       || r === 'authenticated'
@@ -184,90 +182,6 @@ export class JwtRolesGuard implements CanActivate {
       return Object.values(value as Record<string, unknown>).some((entry) => this.hasPreferenceValue(entry));
     }
     return true;
-  }
-
-  private resolveInternalServiceActor(request: Request): NonNullable<AuthValidateResponse['user']> | null {
-    const providedToken = request.header('x-internal-service-token')?.trim();
-    const serviceName = request.header('x-service-name')?.trim();
-    if (!providedToken || !serviceName) {
-      return null;
-    }
-
-    // LEGACY STATIC-CREDENTIAL PATH — do not add entries.
-    //
-    // This path takes the caller's identity from the x-service-name header and only
-    // string-compares the token. That is safe ONLY while every entry holds a
-    // credential unique to one caller: any value appearing under two names lets its
-    // holder pick which of those names it authenticates as.
-    //
-    // aukro, bazos, heureka, marketing, payments and warehouse used to live here and
-    // all six held the SAME string (sha256 a2880693), so one holder could
-    // authenticate as any of the six. They are now on per-pair RS256 principals
-    // verified through /auth/validate (line 71's Bearer path) and have been removed.
-    //
-    // flipflop-service, allegro-service, invoices-microservice and cliplot were all
-    // removed on 2026-09-01, each verified on Bearer from its deployed pod before its
-    // entry was deleted. Only catalog-microservice remains.
-    //
-    // catalog is NOT a like-for-like migration and is deliberately left here: its value
-    // (sha256 5f420714) is a single shared password held by EIGHT services, because
-    // catalog's own inbound guard mints internal:catalog-microservice:admin + catalog:write
-    // from an unauthenticated x-service-name header. Retiring it means separating that one
-    // secret into per-caller credentials across eight repos -- a separate workstream, not a
-    // step in this one. Do not swap this value alone: seven inbound lanes to catalog read
-    // the same Vault property and would break together.
-    //
-    // Delete this method once catalog is migrated; new callers must use Bearer.
-    const configuredServices: Record<string, { token?: string; role: string }> = {
-      'catalog-microservice': {
-        token: this.resolveEnvToken('CATALOG_INTERNAL_SERVICE_TOKEN'),
-        role: 'internal:catalog-microservice:service',
-      },
-    };
-
-    const service = configuredServices[serviceName];
-    if (!service?.token || !this.safeEqual(providedToken, service.token)) {
-      return null;
-    }
-
-    // Defence in depth: refuse a credential configured for more than one caller.
-    // Without this, re-introducing a shared value silently restores the ability to
-    // choose an identity via the header. Deny rather than pick — an ambiguous
-    // credential must never authenticate.
-    const namesSharingToken = Object.entries(configuredServices)
-      .filter(([, candidate]) => candidate.token && this.safeEqual(providedToken, candidate.token))
-      .map(([name]) => name);
-    if (namesSharingToken.length > 1) {
-      // Caller names only — no part of the presented value is logged. Wording avoids
-      // the terms scripts/verify-sensitive-logging.js bans from log arguments.
-      this.logger.error(
-        `Ambiguous internal service identity: the presented value is configured for `
-          + `multiple callers (${namesSharingToken.join(', ')}), so the x-service-name `
-          + `header (claimed: ${serviceName}) cannot select between them. Request denied. `
-          + 'Give each caller its own per-pair RS256 principal.',
-      );
-      return null;
-    }
-
-    return {
-      sub: `service:${serviceName}`,
-      email: `${serviceName}@internal.invalid`,
-      roles: [service.role],
-    };
-  }
-
-  private resolveEnvToken(...names: string[]): string | undefined {
-    for (const name of names) {
-      const token = process.env[name]?.trim();
-      if (token) return token;
-    }
-    return undefined;
-  }
-
-  private safeEqual(a: string, b: string): boolean {
-    const left = Buffer.from(a);
-    const right = Buffer.from(b);
-    return left.length === right.length && timingSafeEqual(left, right);
   }
 
   private async validateTokenWithAuth(token: string): Promise<NonNullable<AuthValidateResponse['user']>> {

@@ -97,12 +97,10 @@ function makeService(calls) {
   );
   assert.doesNotMatch(controllerSource, /@Public\(\)\s*\n\s*@Get\('statistics\/products\/:productId'\)/);
   const guardSource = fs.readFileSync(path.join(PROJECT_ROOT, 'src/auth/jwt-roles.guard.ts'), 'utf8');
-  assert.match(guardSource, /resolveInternalServiceActor\(request\)/);
-  assert.match(guardSource, /x-internal-service-token/);
-  assert.match(guardSource, /x-service-name/);
-  assert.match(guardSource, /catalog-microservice/);
-  assert.match(guardSource, /internal:catalog-microservice:service/);
-  assert.match(guardSource, /timingSafeEqual/);
+  assert.doesNotMatch(guardSource, /resolveInternalServiceActor/);
+  assert.doesNotMatch(guardSource, /x-internal-service-token/);
+  assert.doesNotMatch(guardSource, /CATALOG_INTERNAL_SERVICE_TOKEN/);
+  assert.match(guardSource, /\/auth\/validate/);
 
   assert.deepEqual(
     Reflect.getMetadata(ROLES_KEY, OrdersController.prototype.getProductSalesStatistics),
