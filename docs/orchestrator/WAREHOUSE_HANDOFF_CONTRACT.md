@@ -67,8 +67,8 @@ The metadata must not include stock quantities beyond the order item quantity, W
 
 ## Runtime Guardrails
 
-- The configured Warehouse bearer value must be an Auth-compatible service JWT issued/provisioned through `auth-microservice`, not a locally signed Orders token. The expected consumer standard is `auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md`: the token must carry Warehouse service identity metadata, preferably `serviceName`, and the Warehouse receiver role `internal:warehouse-microservice:admin`.
-- Orders is only the caller and transport owner for this handoff. User identity, service identity, token issuance, and token validation remain centralized in `auth-microservice`; Orders must not sign, decode, persist, or log the Warehouse service JWT.
+- Warehouse bearer must be the Auth-issued `(orders-microservice -> warehouse-microservice)` RS256 service JWT per [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../../../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md), with role `internal:warehouse-microservice:admin`. Orders must not mint, alter, decode into output, or log that credential.
+- Orders is only the caller and transport owner for this handoff. Identity issuance and validation stay in `auth-microservice`.
 - Reservation calls are disabled unless `WAREHOUSE_RESERVATION_ENABLED=true`.
 - Orders skips reservation if any item lacks `warehouseId`.
 - If one create-time item reservation succeeds and a later item reservation fails, Orders calls `POST /api/reservations/release` for each already reserved line before returning a failed handoff.
