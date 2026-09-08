@@ -33,11 +33,11 @@
       "capability": "auth",
       "component": "auth-microservice",
       "decision": "required",
-      "reason": "Every protected route is validated against a JWT issued by auth-microservice; the role guard rejects requests without a valid role.",
-      "contract": "JWT identity validation and named internal-service roles enforced by src/auth/jwt-roles.guard.ts",
-      "configuration": "JWT_SECRET and AUTH_SERVICE_URL environment variables",
+      "reason": "Every protected route validates a JWT through auth-microservice POST /auth/validate; the role guard rejects requests without a valid role. Machine callers use Auth-issued pair RS256 principals per SERVICE_IDENTITY_CONSUMER_STANDARD.md.",
+      "contract": "AUTH_SERVICE_URL validate + named internal-service roles enforced by src/auth/jwt-roles.guard.ts; human lane CONSUMER_JWT_VALIDATION_STANDARD.md; machine lane SERVICE_IDENTITY_CONSUMER_STANDARD.md",
+      "configuration": "AUTH_SERVICE_URL; Auth-issued pair RS256 Bearers from Vault/ESO for machine callers — do not mint or verify with JWT_SECRET",
       "failureMode": "Requests without a valid JWT or required role are rejected with 403 and no order mutation occurs.",
-      "validation": "Role guard unit tests and manual verification of protected route behavior."
+      "validation": "Role guard unit tests and manual verification of protected route behavior against Auth standards."
     },
     {
       "capability": "postgres",

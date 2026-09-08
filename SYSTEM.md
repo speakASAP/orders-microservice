@@ -101,8 +101,7 @@ All secrets are stored in Vault at `secret/prod/orders-microservice` and synced 
 | Secret key | Purpose |
 |---|---|
 | `DB_PASSWORD` | PostgreSQL password |
-| `JWT_SECRET` | JWT signing key |
-| `JWT_TOKEN` | Service bearer token for DocsRAG agent-context queries |
+| `JWT_TOKEN` | Auth-issued `(orders-microservice -> docs-rag-microservice)` pair RS256 Bearer for DocsRAG — see [`SERVICE_IDENTITY_CONSUMER_STANDARD.md`](../auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md) |
 
 ### order state machine
 
